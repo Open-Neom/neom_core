@@ -1,0 +1,4 @@
+enum SpotifySearchType {
+  song,
+  playlist
+}

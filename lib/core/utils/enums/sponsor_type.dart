@@ -1,0 +1,22 @@
+enum SponsorType {
+  academy,
+  bar,
+  cafe,
+  culturalCenter,
+  forum,
+  manager,
+  privateSpace,
+  publicSpace,
+  rehearsalRoom,
+  restaurant,
+  store,
+  shop,
+  homeStudio,
+  liveSession,
+  equipmentRental,
+  producer,
+  recordStudio,
+  podcaster,
+  photographer,
+  radio
+}

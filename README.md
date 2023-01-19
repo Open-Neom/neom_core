@@ -1,2 +1,2 @@
-# yoreme_commons
+# neom_commons
 Common modules between apps.

@@ -1,0 +1,21 @@
+import 'dart:async';
+import '../model/app_item.dart';
+import '../model/item_list.dart';
+
+
+abstract class ItemlistRepository {
+
+  Future<bool> addAppItem(String profileId, AppItem appItem, String itemlistId);
+  Future<bool> removeItem(String profileId, AppItem appItem, String itemlistId);
+  Future<bool> updateItem(String profileId, String itemlistId, AppItem item);
+
+  Future<String> insert(String profileId, Itemlist itemlist);
+  Future<bool> remove(String profileId, String itemlistId);
+
+  Future<bool> update(String profileId, Itemlist itemlist);
+  Future<bool> setAsFavorite(String profileId, Itemlist itemlist);
+  Future<bool> unsetOfFavorite(String profileId, Itemlist itemlist);
+
+  Future<Map<String, Itemlist>> retrieveItemlists(String profileId);
+
+}

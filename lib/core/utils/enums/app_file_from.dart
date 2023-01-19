@@ -1,0 +1,4 @@
+enum AppFileFrom {
+  camera,
+  gallery,
+}

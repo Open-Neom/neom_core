@@ -1,0 +1,21 @@
+enum ReportType {
+  bot,
+  bullying,
+  drugs,
+  falseInfo,
+  falseProfile,
+  fakeNews,
+  hatefulLanguage,
+  harassment,
+  illegalActivities,
+  impersonating,
+  meaninglessContent,
+  nudes,
+  porn,
+  spam,
+  suicide,
+  terrorism,
+  unauthorizedSells,
+  violence,
+  other
+}

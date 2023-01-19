@@ -1,0 +1,4 @@
+enum ItemlistOwner {
+  profile,
+  band
+}

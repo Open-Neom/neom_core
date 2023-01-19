@@ -1,0 +1,95 @@
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+import '../../../core/ui/widgets/appbar_child.dart';
+import '../../../core/ui/widgets/core_widgets.dart';
+import '../../../core/utils/app_color.dart';
+import '../../../core/utils/app_theme.dart';
+import '../../../core/utils/constants/app_page_id_constants.dart';
+import '../../../core/utils/constants/app_translation_constants.dart';
+import '../../../core/utils/constants/url_constants.dart';
+import '../../../core/utils/core_utilities.dart';
+import '../widgets/signup_widgets.dart';
+import 'signup_controller.dart';
+
+
+class SignupPage extends StatelessWidget {
+  const SignupPage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return GetBuilder<SignUpController>(
+      id: AppPageIdConstants.signUp,
+      init: SignUpController(),
+      builder: (_) => Scaffold(
+      appBar: AppBarChild(),
+      body: SingleChildScrollView(
+        child: Container(
+          width: AppTheme.fullWidth(context),
+          height: AppTheme.fullHeight(context),
+          decoration: AppTheme.appBoxDecoration,
+          padding: const EdgeInsets.symmetric(horizontal: 30),
+          child: Form(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                buildLabel(context, AppTranslationConstants.welcomeToApp.tr, AppTranslationConstants.youWillFindMsg.tr),
+                buildTwoEntryFields(AppTranslationConstants.firstName.tr, AppTranslationConstants.lastName.tr,
+                    firstController: _.firstNameController, secondController: _.lastNameController, fieldsContext: context),
+                buildEntryField(AppTranslationConstants.username.tr, controller: _.usernameController),
+                buildEntryField(AppTranslationConstants.enterEmail.tr,
+                    controller: _.emailController, isEmail: true),
+                buildEntryField(AppTranslationConstants.enterPassword.tr,
+                    controller: _.passwordController, isPassword: true),
+                buildEntryField(AppTranslationConstants.confirmPassword.tr,
+                    controller: _.confirmController, isPassword: true),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Checkbox(
+                      value: _.agreeTerms,
+                      onChanged: (value) {
+                        _.setTermsAgreement(value ?? false);
+                      },
+                    ),
+                    Text(AppTranslationConstants.iHaveReadAndAccept.tr,
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                    TextButton(
+                        child: Text(AppTranslationConstants.termsAndConditions.tr,
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                        onPressed: () async {
+                          CoreUtilities.launchURL(UrlConstants.termsOfService);
+                        }
+                    ),
+                  ],
+                ),
+                !_.agreeTerms ? Container() : Container(
+                  margin: const EdgeInsets.symmetric(vertical: 15),
+                  width: MediaQuery.of(context).size.width/2,
+                  child: TextButton(
+                    onPressed: () => _.submit(context),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+                      backgroundColor: AppColor.getMain(),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),),
+                    child: Text(AppTranslationConstants.signUp.tr, style: const TextStyle(color: Colors.white,fontSize: 16.0,
+                        fontWeight: FontWeight.bold)),
+                  ),
+                ),
+                const Divider(height: 30),
+                const SizedBox(height: 30),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ),
+    );
+  }
+
+
+
+}

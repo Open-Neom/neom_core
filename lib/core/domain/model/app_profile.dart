@@ -1,0 +1,201 @@
+import 'dart:convert';
+
+import 'package:enum_to_string/enum_to_string.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:get/get.dart';
+
+import '../../utils/app_utilities.dart';
+import '../../utils/core_utilities.dart';
+import '../../utils/enums/profile_type.dart';
+import '../../utils/enums/usage_reason.dart';
+import 'facility.dart';
+import 'genre.dart';
+import 'instrument.dart';
+import 'item_list.dart';
+import 'place.dart';
+import 'review.dart';
+
+class AppProfile {
+
+  String id;
+  String name;
+  String aboutMe;
+  String photoUrl;
+  String coverImgUrl;
+  String mainFeature;
+  int lastTimeOn = 0;
+  int lastSpotifySync = 0;
+  double reviewStars =  10.0;
+  bool isActive;
+  Position? position;
+  ProfileType type;
+  UsageReason reason;
+
+  Review? lastReview;
+
+  List<String>? bannedGenres;
+  List<String>? itemmates;
+  List<String>? eventmates;
+  List<String>? followers;
+  List<String>? following;
+  List<String>? unfollowing;
+  List<String>? blockTo;
+  List<String>? blockedBy;
+  List<String>? posts;
+  List<String>? blogEntries;
+  List<String>? comments;
+  List<String>? hiddenPosts;
+  List<String>? hiddenComments;
+  List<String>? reports;
+  List<String>? bands;
+  List<String>? events;
+  List<String>? reviews;
+
+  List<String>? appItems;
+  List<String>? watchingEvents;
+  List<String>? goingEvents;
+  List<String>? playingEvents;
+
+  List<String>? requests;
+  List<String>? sentRequests;
+  List<String>? invitationRequests;
+
+  ///These are retrieved from a Firebase Collection
+  Map<String, Itemlist>? itemlists;
+  Map<String, Instrument>? instruments;
+  Map<String, Genre>? genres;
+  Map<String, Facility>? facilities;
+  Map<String, Place>? places;
+
+  AppProfile({
+    this.id = "",
+    this.name = "",
+    this.position,
+    this.photoUrl = "",
+    this.coverImgUrl = "",
+    this.aboutMe = "",
+    this.reason = UsageReason.any,
+    this.mainFeature = "",
+    this.lastSpotifySync = 0,
+    this.reviewStars = 10.0,
+    this.isActive = false,
+    this.type = ProfileType.musician,
+  });
+
+  @override
+  String toString() {
+    return 'AppProfile{id: $id, name: $name, aboutMe: $aboutMe, photoUrl: $photoUrl, coverImgUrl: $coverImgUrl, mainFeature: $mainFeature, lastTimeOn: $lastTimeOn, lastSpotifySync: $lastSpotifySync, reviewStars: $reviewStars, isActive: $isActive, position: $position, type: $type, reason: $reason, lastReview: $lastReview, bannedGenres: $bannedGenres, itemmates: $itemmates, eventmates: $eventmates, followers: $followers, following: $following, unfollowing: $unfollowing, blockTo: $blockTo, blockedBy: $blockedBy, posts: $posts, blogEntries: $blogEntries, comments: $comments, hiddenPosts: $hiddenPosts, hiddenComments: $hiddenComments, reports: $reports, bands: $bands, events: $events, reviews: $reviews, appItems: $appItems, watchingEvents: $watchingEvents, goingEvents: $goingEvents, playingEvents: $playingEvents, requests: $requests, sentRequests: $sentRequests, invitationRequests: $invitationRequests, itemlists: $itemlists, instruments: $instruments, genres: $genres, facilities: $facilities, places: $places}';
+  }
+
+  Map<String, dynamic> toJSON() {
+    AppUtilities.logger.d("Profile toJSON");
+    return <String, dynamic> {
+      'id': id,
+      'name': name,
+      'position': jsonEncode(position),
+      'photoUrl': photoUrl,
+      'coverImgUrl': coverImgUrl,
+      'aboutMe': aboutMe,
+      'mainFeature': mainFeature,
+      'lastSpotifySync': lastSpotifySync,
+      'reviewStars': reviewStars,
+      'isActive': isActive,
+      'type': type.name,
+      'reason': reason.name,
+      'lastReview': lastReview?.toJSON() ?? Review().toJSON(),
+      'bannedGenres': bannedGenres,
+      'itemmates': itemmates,
+      'eventmates': eventmates,
+      'following': following,
+      'followers': followers,
+      'unfollowing': unfollowing,
+      'blockTo': blockTo,
+      'blockedBy': blockedBy,
+      'posts': posts,
+      'blogEntries': blogEntries,
+      'comments': comments,
+      'hiddenPosts': hiddenPosts,
+      'hiddenComments': hiddenComments,
+      'reports': reports,
+      'bands': bands,
+      'events': events,
+      'reviews': reviews,
+      'appItems': appItems,
+      'watchingEvents': watchingEvents,
+      'goingEvents': goingEvents,
+      'playingEvents': playingEvents,
+      'requests': requests,
+      'sentRequests': sentRequests,
+      'invitationRequests': invitationRequests,
+    };
+  }
+
+  AppProfile.fromJSON(data) :
+        id = data["id"] ?? "",
+        name = data["name"] ?? "",
+        photoUrl = data["photoUrl"] ?? "",
+        coverImgUrl = data["coverImgUrl"] ?? "",
+        type = EnumToString.fromString(ProfileType.values, data["type"] ?? ProfileType.musician.name) ?? ProfileType.musician,
+        reason = EnumToString.fromString(UsageReason.values, data["reason"] ?? UsageReason.fun.name) ?? UsageReason.fun,
+        aboutMe = data["aboutMe"] ?? "",
+        lastSpotifySync = data["lastSpotifySync"] ?? 0,
+        reviewStars = data["reviewStars"] ?? 10,
+        mainFeature = data["mainFeature"] ?? "",
+        isActive = data["isActive"] ?? true,
+        position = CoreUtilities.JSONtoPosition(data["position"]),
+        bannedGenres = data["bannedGenres"]?.cast<String>() ?? [],
+        itemmates = data["itemmates"]?.cast<String>() ?? [],
+        eventmates = data["eventmates"]?.cast<String>() ?? [],
+        following = data["following"]?.cast<String>() ?? [],
+        followers = data["followers"]?.cast<String>() ?? [],
+        unfollowing = data["unfollowing"]?.cast<String>() ?? [],
+        blockTo = data["blockTo"]?.cast<String>() ?? [],
+        blockedBy = data["blockedBy"]?.cast<String>() ?? [],
+        posts = data["posts"]?.cast<String>() ?? [],
+        blogEntries = data["blogEntries"]?.cast<String>() ?? [],
+        comments = data["comments"]?.cast<String>() ?? [],
+        hiddenPosts = data["hiddenPosts"]?.cast<String>() ?? [],
+        hiddenComments = data["hiddenComments"]?.cast<String>() ?? [],
+        reports = data["reports"]?.cast<String>() ?? [],
+        bands = data["bands"]?.cast<String>() ?? [],
+        events = data["events"]?.cast<String>() ?? [],
+        reviews = data["reviews"]?.cast<String>() ?? [],
+        appItems = data["appItems"]?.cast<String>() ?? data["songs"]?.cast<String>() ?? [],
+        watchingEvents = data["watchingEvents"]?.cast<String>() ?? [],
+        goingEvents = data["goingEvents"]?.cast<String>() ?? [],
+        playingEvents = data["playingEvents"]?.cast<String>() ?? [],
+        requests = data["requests"]?.cast<String>() ?? [],
+        sentRequests = data["sentRequests"]?.cast<String>() ?? [],
+        invitationRequests = data["invitationRequests"]?.cast<String>() ?? [];
+
+
+  AppProfile.fromProfileInstruments(data) :
+        id = data["id"] ?? "",
+        name = data["name"] ?? "",
+        photoUrl = data["photoUrl"] ?? "",
+        reason = EnumToString.fromString(UsageReason.values, data["reason"] ?? UsageReason.fun.name) ?? UsageReason.fun,
+        aboutMe = data["aboutMe"] ?? "",
+        mainFeature = data["mainFeature"] ?? "",
+        position = CoreUtilities.JSONtoPosition(data["position"]),
+        appItems = data["appItems"]?.cast<String>() ?? data["songs"]?.cast<String>() ?? [],
+        instruments = { for (var e in data["instruments"]?.cast<String>() ?? []) e : Instrument() },
+        type = ProfileType.musician, coverImgUrl = "", isActive = true;
+
+
+  Map<String, dynamic> toProfileInstrumentsJSON() {
+    Get.log("Profile toJSON for Firestore with no Id");
+    return <String, dynamic>{
+      'id': id,
+      'name': name,
+      'position': jsonEncode(position),
+      'photoUrl': photoUrl,
+      'aboutMe': aboutMe,
+      'reason': reason.name,
+      'appItems': appItems,
+      'genres': genres?.values.map((genre) => genre.name).toList(),
+      'mainFeature': mainFeature,
+      'instruments': instruments?.values.map((instrument) => instrument.name).toList(),
+    };
+  }
+
+}
