@@ -676,5 +676,7 @@ class AppTranslationConstants {
   static const String moderator = 'moderator';
   static const String participation = 'participation';
   static const String playingRole = 'playingRole';
+  static const String onlineEvent = 'onlineEvent';
+  static const String test = 'test';
 
 }

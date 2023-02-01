@@ -34,6 +34,7 @@ abstract class EventService {
   void addInfoToEvent();
   void setEventDate(DateRangePickerSelectionChangedArgs args);
   void setCheckboxState();
+  void setIsOnlineCheckboxState();
   void setEventTime(context);
   void setPaymentAmount();
 

@@ -36,6 +36,7 @@ class Event {
   List<BandFulfillment> bandFulfillments;
   List<String>? watchingProfiles;
   List<String>? goingProfiles;
+  bool isOnline;
   bool isTest;
 
   Event({
@@ -60,6 +61,7 @@ class Event {
       this.isFulfilled = false,
       this.instrumentFulfillments = const [],
       this.bandFulfillments = const [],
+      this.isOnline = false,
       this.isTest = false
   });
 
@@ -90,6 +92,7 @@ class Event {
     bandFulfillments = [],
     watchingProfiles = [],
     goingProfiles = [],
+    isOnline = false,
     isTest = false;
 
   Event.fromJSON(data):
@@ -123,6 +126,7 @@ class Event {
       }).toList() ?? [],
       watchingProfiles = List.from(data["watchingProfiles"]?.cast<String>() ?? []),
       goingProfiles = List.from(data["goingProfiles"]?.cast<String>() ?? []),
+      isOnline = data["isOnline"] ?? false,
       isTest = data["isTest"] ?? false;
 
 
@@ -151,6 +155,7 @@ class Event {
     'bandFulfillments': bandFulfillments.map((bandFulfillment) => bandFulfillment.toJSON()).toList(),
     'watchingProfiles': [],
     'goingProfiles': [],
+    'isOnline': isOnline,
     'isTest': isTest,
   };
 

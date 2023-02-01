@@ -35,6 +35,9 @@ class EventTile extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
+                  event.isTest ? Text(AppTranslationConstants.test.tr,
+                      style: const TextStyle(fontWeight: FontWeight.bold)
+                  ) : Container(),
                   Text(
                       event.name.length <= AppConstants.maxEventNameLength ? event.name.capitalizeFirst!
                           : "${event.name.substring(0,AppConstants.maxEventNameLength).capitalizeFirst}...",
