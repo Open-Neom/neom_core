@@ -1,5 +1,5 @@
 enum ProfileType {
-  musician("writer"),
+  instrumentist("writer"),
   facilitator("facilitator"),
   host("host"),
   fan("reader"),

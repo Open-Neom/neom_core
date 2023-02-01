@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:geolocator/geolocator.dart';
 
-import '../../utils/constants/url_constants.dart';
+import '../../app_flavour.dart';
 import '../../utils/core_utilities.dart';
 import '../../utils/enums/place_type.dart';
 import 'address.dart';
@@ -98,7 +98,7 @@ class Place {
     address = Address.fromJSON(data["address"] ?? {}),
     ownerName = data["ownerName"] ?? "",
     ownerId = data["ownerId"] ?? "",
-    ownerImgUrl = data["ownerImgUrl"] ?? UrlConstants.noImageUrl,
+    ownerImgUrl = data["ownerImgUrl"] ?? AppFlavour.getNoImageUrl(),
     position = CoreUtilities.JSONtoPosition(data["position"]),
     type = EnumToString.fromString(PlaceType.values, data["type"] ?? PlaceType.publicSpace.name) ?? PlaceType.publicSpace,
     galleryImgUrls = data["galleryImgUrls"]?.cast<String>() ?? [],

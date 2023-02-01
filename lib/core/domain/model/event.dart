@@ -137,7 +137,7 @@ class Event {
     'createdTime': createdTime,
     'eventDate': eventDate,
     'reason': reason.name,
-    'appItem': appItems.map((appItem) => appItem.toJSON()).toList(),
+    'appItems': appItems.map((appItem) => appItem.toJSON()).toList(),
     'genres': genres,
     'itemPercentageCoverage': itemPercentageCoverage,
     'distanceKm': distanceKm,

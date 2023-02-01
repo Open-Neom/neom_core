@@ -18,7 +18,7 @@ Widget customText(String msg,
       width: 0,
     );
   } else {
-    var fontSize = style.fontSize ?? Theme.of(context).textTheme.bodyText2!.fontSize;
+    var fontSize = style.fontSize ?? Theme.of(context).textTheme.bodyMedium!.fontSize;
     style = style.copyWith(
       fontSize: fontSize! - (AppTheme.fullWidth(context) <= 375 ? 2 : 0),
     );

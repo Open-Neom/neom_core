@@ -91,8 +91,6 @@ Future<http.Response?> sendPushNotificationToFcm({required String toProfileId,
     AppUtilities.logger.e(e.toString());
   }
 
-
-
   return response;
 
 }

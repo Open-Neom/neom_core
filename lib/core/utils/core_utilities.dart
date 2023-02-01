@@ -13,6 +13,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../app_flavour.dart';
 import '../data/implementations/shared_preference_controller.dart';
 import '../domain/model/activity_feed.dart';
 import '../domain/model/address.dart';
@@ -32,9 +33,7 @@ import 'app_utilities.dart';
 import 'constants/app_assets.dart';
 import 'constants/app_constants.dart';
 import 'constants/app_google_constants.dart';
-import 'constants/emxi_constants.dart';
 import 'constants/message_translation_constants.dart';
-import 'constants/url_constants.dart';
 import 'enums/app_currency.dart';
 import 'enums/app_item_state.dart';
 import 'enums/event_type.dart';
@@ -265,7 +264,7 @@ class CoreUtilities {
     String profileMainFeature = "";
 
     switch(profile.type) {
-      case(ProfileType.musician):
+      case(ProfileType.instrumentist):
         profileMainFeature = getMainInstrument(profile.instruments ?? <String, Instrument>{});
         break;
       case(ProfileType.facilitator):
@@ -508,7 +507,7 @@ class CoreUtilities {
 
     try {
       if(imageUrl.isEmpty) {
-        imageUrl = UrlConstants.noImageUrl;
+        imageUrl = AppFlavour.getNoImageUrl();
       }
 
       Uri uri = Uri.parse(imageUrl);
@@ -518,7 +517,7 @@ class CoreUtilities {
         if (response.statusCode == 200) {
           cachedNetworkImageProvider = CachedNetworkImageProvider(imageUrl);
         } else {
-          cachedNetworkImageProvider = const CachedNetworkImageProvider(UrlConstants.noImageUrl);
+          cachedNetworkImageProvider = CachedNetworkImageProvider(AppFlavour.getNoImageUrl());
         }
       }
 
@@ -550,15 +549,15 @@ class CoreUtilities {
 
   Future<Post> verifyPostMediaUrls(Post post) async {
     if(post.profileImgUrl.isEmpty || !await isAvailableMediaUrl(post.profileImgUrl)) {
-      post.profileImgUrl = UrlConstants.noImageUrl;
+      post.profileImgUrl = AppFlavour.getNoImageUrl();
     }
 
     if(post.mediaUrl.isEmpty || !await isAvailableMediaUrl(post.mediaUrl)) {
-      post.mediaUrl = UrlConstants.noImageUrl;
+      post.mediaUrl = AppFlavour.getNoImageUrl();
     }
 
     if(post.thumbnailUrl.isEmpty || !await isAvailableMediaUrl(post.thumbnailUrl)) {
-      post.thumbnailUrl = UrlConstants.noImageUrl;
+      post.thumbnailUrl = AppFlavour.getNoImageUrl();
     }
 
     return post;
@@ -591,8 +590,8 @@ class CoreUtilities {
 
   Future<void> shareApp() async {
     ShareResult shareResult = await Share.shareWithResult('${MessageTranslationConstants.shareAppMsg.tr}\n'
-        '\nAndroid: ${UrlConstants.playStoreLink}\n'
-        '\niOS: ${UrlConstants.appStoreLink}'
+        '\nAndroid: ${AppFlavour.getPlayStoreUrl()}\n'
+        '\niOS: ${AppFlavour.getAppStoreUrl()}'
     );
 
     if(shareResult.status == ShareResultStatus.success && shareResult.raw != "null") {
@@ -615,8 +614,8 @@ class CoreUtilities {
     ShareResult? shareResult;
     String caption = post.caption;
     if(post.type == PostType.blogEntry) {
-      if(caption.contains(EmxiConstants.titleTextDivider)) {
-        caption = caption.replaceAll(EmxiConstants.titleTextDivider, "\n\n");
+      if(caption.contains(AppConstants.titleTextDivider)) {
+        caption = caption.replaceAll(AppConstants.titleTextDivider, "\n\n");
       }
       String dotsLine = "";
       for(int i = 0; i < post.profileName.length; i++) {
@@ -630,15 +629,15 @@ class CoreUtilities {
       shareResult = await Share.shareXFiles([XFile(thumbnailLocalPath)],
           text: '$caption${caption.isNotEmpty ? "\n\n" : ""}'
               '${MessageTranslationConstants.shareAppMsg.tr}\n'
-              '\nAndroid: ${UrlConstants.playStoreLink}\n'
-              '\niOS: ${UrlConstants.appStoreLink}'
+              '\nAndroid: ${AppFlavour.getPlayStoreUrl()}\n'
+              '\niOS: ${AppFlavour.getAppStoreUrl()}'
       );
     } else {
       shareResult = await Share.shareWithResult(
           '$caption${caption.isNotEmpty ? "\n\n" : ""}'
               '${MessageTranslationConstants.shareAppMsg.tr}\n'
-              '\nAndroid: ${UrlConstants.playStoreLink}\n'
-              '\niOS: ${UrlConstants.appStoreLink}'
+              '\nAndroid: ${AppFlavour.getPlayStoreUrl()}\n'
+              '\niOS: ${AppFlavour.getAppStoreUrl()}'
       );
     }
 

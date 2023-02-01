@@ -1,5 +1,7 @@
 import 'package:get/get.dart';
+import 'package:spotify/spotify.dart';
 
+import '../../utils/app_utilities.dart';
 import '../../utils/constants/app_constants.dart';
 import '../../utils/constants/app_translation_constants.dart';
 import '../../utils/core_utilities.dart';
@@ -30,7 +32,7 @@ class Itemlist {
   });
 
 
-  Itemlist.myFirstGigList() :
+  Itemlist.myFirstItemlist() :
     id = AppConstants.firstItemlist,
     name = AppTranslationConstants.myFirstItemlistName.tr,
     description = AppTranslationConstants.myFirstItemlistDesc.tr,
@@ -42,7 +44,7 @@ class Itemlist {
     isFav = true;
 
 
-  Itemlist.myFirstGigListFan() :
+  Itemlist.myFirstItemlistFan() :
         id = AppConstants.firstItemlist,
         name = AppTranslationConstants.myFirstItemlistName.tr,
         description = AppTranslationConstants.myFirstItemlistFanDesc.tr,
@@ -94,8 +96,42 @@ class Itemlist {
     'imgUrl': imgUrl,
     'public': public,
     'uri': uri,
-    'appItem': appItems!.map((appItem) => appItem.toJSON()).toList(),
+    'appItems': appItems!.map((appItem) => appItem.toJSON()).toList(),
     'isFav': isFav
   };
+
+  static Future<Itemlist> mapPlaylistToItemlist(Playlist playlist) async {
+    AppUtilities
+        .logger.i("Mapping Spotify Playlist ${playlist.name} to Itemlist");
+    List<AppItem> songs = [];
+
+    try {
+      if (playlist.tracks != null && (playlist.tracks?.total ?? 0) > 1) {
+        songs = await AppItem.mapTracksToSongs(playlist.tracks!);
+      }
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+
+    return Itemlist(
+        id: playlist.id ?? "",
+        name: playlist.name ?? "",
+        description: playlist.description ?? "",
+        href: playlist.href ?? "",
+        imgUrl: playlist.images?.first.url ?? "",
+        public: playlist.public ?? true,
+        uri: playlist.uri ?? "",
+        appItems: songs);
+
+  }
+
+  Itemlist.mapPlaylistSimpleToGiglist(PlaylistSimple playlist) :
+        id = playlist.id ?? "",
+        name = playlist.name ?? "",
+        description = playlist.description ?? "",
+        href = playlist.href ?? "",
+        imgUrl = (playlist.images?.isNotEmpty ?? false) ? playlist.images?.first.url ?? "" : "",
+        public = playlist.public ?? true,
+        uri = playlist.uri ?? "";
 
 }

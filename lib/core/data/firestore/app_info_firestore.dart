@@ -21,7 +21,7 @@ class AppInfoFirestore implements AppInfoRepository {
       DocumentSnapshot documentSnapshot = await appReference
           .doc(AppFirestoreCollectionConstants.app).get();
       if (documentSnapshot.exists) {
-        appInfo = AppInfo.fromDocumentSnapshot(documentSnapshot);
+        appInfo = AppInfo.fromJSON(documentSnapshot.data());
         logger.i("App found with AppVersion ${appInfo.version}");
       }
     } catch (e) {

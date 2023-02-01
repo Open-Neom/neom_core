@@ -215,9 +215,9 @@ class UserController extends GetxController implements UserService {
     newProfile.playingEvents = [];
     newProfile.itemlists = {};
 
-    (newProfile.type == ProfileType.musician) ?
-    newProfile.itemlists![AppConstants.firstItemlist] = Itemlist.myFirstGigList()
-    : newProfile.itemlists![AppConstants.firstItemlist] = Itemlist.myFirstGigListFan();
+    (newProfile.type == ProfileType.instrumentist) ?
+    newProfile.itemlists![AppConstants.firstItemlist] = Itemlist.myFirstItemlist()
+    : newProfile.itemlists![AppConstants.firstItemlist] = Itemlist.myFirstItemlistFan();
 
     newUser.profiles = [newProfile];
     newUser.userRole = UserRole.subscriber;
@@ -307,9 +307,9 @@ class UserController extends GetxController implements UserService {
     newProfile.playingEvents = [];
     newProfile.itemlists = {};
 
-    (newProfile.type == ProfileType.musician) ?
-    newProfile.itemlists![AppConstants.firstItemlist] = Itemlist.myFirstGigList()
-        : newProfile.itemlists![AppConstants.firstItemlist] = Itemlist.myFirstGigListFan();
+    (newProfile.type == ProfileType.instrumentist) ?
+    newProfile.itemlists![AppConstants.firstItemlist] = Itemlist.myFirstItemlist()
+        : newProfile.itemlists![AppConstants.firstItemlist] = Itemlist.myFirstItemlistFan();
 
     try {
 

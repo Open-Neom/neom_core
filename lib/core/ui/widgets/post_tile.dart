@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../app_flavour.dart';
 import '../../domain/model/event.dart';
 import '../../domain/model/post.dart';
 import '../../utils/constants/app_route_constants.dart';
-import '../../utils/constants/url_constants.dart';
 import '../../utils/enums/post_type.dart';
 import 'custom_image.dart';
 
@@ -22,7 +22,7 @@ class PostTile extends StatelessWidget {
       customCachedNetworkHeroImage(post.mediaUrl)
         : post.type == PostType.video ?
       cachedNetworkThumbnail(post.thumbnailUrl, post.mediaUrl)
-        : customCachedNetworkHeroImage(event?.imgUrl ?? UrlConstants.noImageUrl),
+        : customCachedNetworkHeroImage(event?.imgUrl ?? AppFlavour.getNoImageUrl()),
       onTap:()=> {
         //TODO VERIFY ITS WORKING
         //Get.delete<PostDetailsController>(),

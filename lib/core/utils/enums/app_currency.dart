@@ -3,7 +3,7 @@ enum AppCurrency {
   usd("usd"),
   eur("eur"),
   gbp("gbp"),
-  appCoin("emxicoin");
+  appCoin("appCoin");
 
   final String value;
   const AppCurrency(this.value);

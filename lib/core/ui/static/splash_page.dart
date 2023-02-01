@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../utils/app_theme.dart';
-import '../../utils/constants/app_assets.dart';
-import '../../utils/constants/app_page_id_constants.dart';
-import 'splash_controller.dart';
+import '../../../neom_commons.dart';
 
 class SplashPage extends StatelessWidget {
 
@@ -24,23 +21,23 @@ class SplashPage extends StatelessWidget {
             children: [
               Image.asset(
                 AppAssets.logoAppWhite,
-                height: 150,
+                height: AppFlavour.appInUse == AppInUse.emxi ? 150 : 50,
                 width: 150,
               ),
-              // Image.asset(
-              //   AppAssets.logoEscritoresMXIWhite,
-              //   height: 100,
-              //   width: 250,
-              // ),
-              const SizedBox(height: 20,),
-              Text("#YoSoyEMXI",
-                style: TextStyle(
-                  color: Colors.white.withOpacity(1.0),
-                  fontFamily: AppTheme.fontFamily,
-                  fontSize: 25.0,
-                  fontWeight: FontWeight.bold
-                ),
-              ),
+              AppFlavour.appInUse == AppInUse.emxi ?
+              Column(
+                children: [
+                  const SizedBox(height: 20,),
+                  Text("#YoSoyEMXI",
+                    style: TextStyle(
+                        color: Colors.white.withOpacity(1.0),
+                        fontFamily: AppTheme.fontFamily,
+                        fontSize: 25.0,
+                        fontWeight: FontWeight.bold
+                    ),
+                  ),
+                ],
+              ) : Container(),
               const SizedBox(height: 30,),
               const CircularProgressIndicator(),
               const SizedBox(height: 30,),

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../core/app_flavour.dart';
 import '../../../core/ui/widgets/appbar_child.dart';
 import '../../../core/ui/widgets/core_widgets.dart';
 import '../../../core/utils/app_color.dart';
 import '../../../core/utils/app_theme.dart';
 import '../../../core/utils/constants/app_page_id_constants.dart';
 import '../../../core/utils/constants/app_translation_constants.dart';
-import '../../../core/utils/constants/url_constants.dart';
 import '../../../core/utils/core_utilities.dart';
 import '../widgets/signup_widgets.dart';
 import 'signup_controller.dart';
@@ -61,7 +61,7 @@ class SignupPage extends StatelessWidget {
                           style: const TextStyle(fontSize: 12),
                         ),
                         onPressed: () async {
-                          CoreUtilities.launchURL(UrlConstants.termsOfService);
+                          CoreUtilities.launchURL(AppFlavour.getTermsOfServiceUrl());
                         }
                     ),
                   ],

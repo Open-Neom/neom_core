@@ -67,6 +67,8 @@ class AppProfile {
   Map<String, Facility>? facilities;
   Map<String, Place>? places;
 
+  bool showInBooking;
+
   AppProfile({
     this.id = "",
     this.name = "",
@@ -79,7 +81,8 @@ class AppProfile {
     this.lastSpotifySync = 0,
     this.reviewStars = 10.0,
     this.isActive = false,
-    this.type = ProfileType.musician,
+    this.type = ProfileType.instrumentist,
+    this.showInBooking = false,
   });
 
   @override
@@ -127,6 +130,7 @@ class AppProfile {
       'requests': requests,
       'sentRequests': sentRequests,
       'invitationRequests': invitationRequests,
+      'showInBooking': showInBooking,
     };
   }
 
@@ -135,7 +139,7 @@ class AppProfile {
         name = data["name"] ?? "",
         photoUrl = data["photoUrl"] ?? "",
         coverImgUrl = data["coverImgUrl"] ?? "",
-        type = EnumToString.fromString(ProfileType.values, data["type"] ?? ProfileType.musician.name) ?? ProfileType.musician,
+        type = EnumToString.fromString(ProfileType.values, data["type"] ?? ProfileType.instrumentist.name) ?? ProfileType.instrumentist,
         reason = EnumToString.fromString(UsageReason.values, data["reason"] ?? UsageReason.fun.name) ?? UsageReason.fun,
         aboutMe = data["aboutMe"] ?? "",
         lastSpotifySync = data["lastSpotifySync"] ?? 0,
@@ -166,7 +170,8 @@ class AppProfile {
         playingEvents = data["playingEvents"]?.cast<String>() ?? [],
         requests = data["requests"]?.cast<String>() ?? [],
         sentRequests = data["sentRequests"]?.cast<String>() ?? [],
-        invitationRequests = data["invitationRequests"]?.cast<String>() ?? [];
+        invitationRequests = data["invitationRequests"]?.cast<String>() ?? [],
+        showInBooking = data["showInBooking"] ?? false;
 
 
   AppProfile.fromProfileInstruments(data) :
@@ -179,7 +184,9 @@ class AppProfile {
         position = CoreUtilities.JSONtoPosition(data["position"]),
         appItems = data["appItems"]?.cast<String>() ?? data["songs"]?.cast<String>() ?? [],
         instruments = { for (var e in data["instruments"]?.cast<String>() ?? []) e : Instrument() },
-        type = ProfileType.musician, coverImgUrl = "", isActive = true;
+        type = ProfileType.instrumentist, coverImgUrl = "",
+        isActive = true,
+        showInBooking = false;
 
 
   Map<String, dynamic> toProfileInstrumentsJSON() {

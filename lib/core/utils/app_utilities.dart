@@ -36,7 +36,7 @@ class AppUtilities {
                 style: const TextStyle(color: AppColor.white)
               ),
               onPressed: () {
-                Get.back();
+                Navigator.pop(context);
               },
             ),
           ],

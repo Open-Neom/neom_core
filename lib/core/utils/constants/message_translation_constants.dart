@@ -203,5 +203,9 @@ class MessageTranslationConstants {
   static const String upToDate = 'upToDate';
   static const String itemlistUpToDate = 'itemlistUpToDate';
 
+  static const String mainEventImg = 'mainEventImg';
+  static const String mainEventImgMsg = 'mainEventImgMsg';
+  
+
 
 }

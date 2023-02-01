@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-
+import 'package:get/get.dart';
+import '../../app_flavour.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/constants/app_assets.dart';
+import '../../utils/constants/app_translation_constants.dart';
+import '../../utils/enums/app_in_use.dart';
 
 class HeaderIntro extends StatelessWidget{
 
@@ -16,14 +19,18 @@ class HeaderIntro extends StatelessWidget{
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          Image.asset(AppAssets.logoAppWhite,
+          AppFlavour.appInUse == AppInUse.emxi
+              ? Image.asset(AppAssets.logoAppWhite,
             height: 140,
             width: 140,
+          ) : Container(),
+          Image.asset(AppFlavour.appInUse == AppInUse.gigmeout
+              ? (AppTranslationConstants.languageFromLocale(Get.locale!) == AppTranslationConstants.spanish
+              ? AppAssets.logoSloganSpanish : AppAssets.logoSloganEnglish)
+              : AppAssets.logoCompanyWhite,
+            height: 80,
+            width: 320,
           ),
-        Image.asset(AppAssets.logoCompanyWhite,
-        height: 80,
-        width: 320,
-        ),
           subtitle.isEmpty ? Container() : Text(subtitle,
           textAlign: TextAlign.center,
           style: TextStyle(

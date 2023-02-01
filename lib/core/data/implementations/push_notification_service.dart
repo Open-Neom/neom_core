@@ -2,11 +2,11 @@ import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:get/get.dart';
 
+import '../../app_flavour.dart';
 import '../../domain/model/push_notification_message.dart';
 import '../../utils/app_utilities.dart';
 import '../../utils/constants/app_assets.dart';
 import '../../utils/constants/app_route_constants.dart';
-import '../../utils/constants/url_constants.dart';
 import '../../utils/enums/push_notification_type.dart';
 import '../api_services/push_notification/notification_channel_constants.dart';
 
@@ -99,7 +99,7 @@ class PushNotificationService {
           payload: {"referenceId": pushNotificationMessage.referenceId},
           body: pushNotificationMessage.body,
           bigPicture: pushNotificationMessage.imgUrl?.isNotEmpty ?? false ? pushNotificationMessage.imgUrl
-              : pushNotificationMessage.fromImgUrl.isNotEmpty ? pushNotificationMessage.fromImgUrl : UrlConstants.noImageUrl,
+              : pushNotificationMessage.fromImgUrl.isNotEmpty ? pushNotificationMessage.fromImgUrl : AppFlavour.getNoImageUrl(),
           notificationLayout: notificationLayout,
         )
     );

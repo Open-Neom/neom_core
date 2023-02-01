@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 
 import '../app_flavour.dart';
@@ -8,7 +9,7 @@ class AppColor {
   static const Color appBlack = Color.fromRGBO(41,41,43, 1);
 
   static Color getMain() {
-    AppInUse appInUse = AppFlavour().appInUse;
+    AppInUse appInUse = AppFlavour.appInUse;
     Color mainColor = Colors.white;
     switch(appInUse) {
       case AppInUse.emxi:

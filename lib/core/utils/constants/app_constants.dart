@@ -1,8 +1,8 @@
 
 class AppConstants {
 
-  static const String appTitle = "Emxi";
-  static const String appVersion = "1.3.1";
+  static const String appTitle = "appTitle";
+  static const String appVersion = "1.4.0";
   static const String appPreviousStable = "1.2.0";
 
   static const String firstItemlist = "firstReadlist";
@@ -61,7 +61,6 @@ class AppConstants {
   static final eventTabs = ['items', 'going'];
   static final walletTabs = ['all', 'events', 'booking'];
   static final requestsTabs = ['invitations', 'sent', 'requests'];
-  static final blogTabs = ['published', 'drafts'];
 
   static const nameMinimumLength = 2;
   static const usernameMinimumLength = 4;
@@ -88,11 +87,14 @@ class AppConstants {
   static const String appBot = "appBot";
 
   //TODO Change with env and flavour to bot of each app
-  static const String appBotName = "Emxi Bot";
+  static const String appBotName = "Bot";
   static const String cover = "cover";
   static const String contribution = "contribution";
 
-  static const String digitalLibrary = "digitalLibrary";
   static const String http = "http";
+
+  static const int blogMinWords = 2;
+  static final blogTabs = ['published', 'drafts'];
+  static const String titleTextDivider = "_titleTextDivider_";
 
 }

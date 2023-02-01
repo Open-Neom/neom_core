@@ -129,6 +129,7 @@ class AppRouteConstants {
   static const String blogEditor  = '/blog/editor';
   static const String blogEntry  = '/blog/entry';
 
+  static const String songDetails = '/song/details';
   static const String playlistSearch = '/playlist/search';
   static const String playlistItems = '/playlist/songs';
   static const String playlistNameDesc = '/playlist/nameDesc';

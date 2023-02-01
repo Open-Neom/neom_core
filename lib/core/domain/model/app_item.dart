@@ -1,3 +1,6 @@
+import 'package:spotify/spotify.dart';
+
+import '../../utils/app_utilities.dart';
 import 'genre.dart';
 
 class AppItem {
@@ -87,5 +90,125 @@ class AppItem {
         previewUrl = appItem.previewUrl,
         state = 0,
         genres = appItem.genres;
+
+
+  static AppItem mapTrackToSong(Track track) {
+
+    String artistName = "";
+    String albumImgUrl = "";
+    String artistImgUrl = "";
+    List<String> genres = [];
+
+    try {
+      if (track.artists!.length > 1) {
+        for (var artist in track.artists!) {
+          (artistName.isEmpty && artist.name != null) ? artistName = artist.name!
+              : artistName = "$artistName, ${artist.name!}";
+          genres.addAll(artist.genres ?? []);
+        }
+      } else {
+        artistName = track.artists!.first.name ?? "";
+        genres.addAll(track.artists!.first.genres ?? []);
+        albumImgUrl = track.album!.images!.first.url ?? "";
+      }
+
+      artistImgUrl = track.artists!.first.images?.first.url ?? "";
+
+    } catch (e) {
+      AppUtilities.logger.e("");
+    }
+
+    return AppItem(
+        id: track.id ?? "",
+        name: track.name ?? "",
+        albumName: track.album!.name ?? "",
+        artist: artistName,
+        artistImgUrl: artistImgUrl,
+        durationMs: track.durationMs ?? 0,
+        albumImgUrl: albumImgUrl,
+        previewUrl: track.previewUrl ?? "",
+        state: 0);
+  }
+
+  static Future<List<AppItem>> mapTracksToSongs(Paging<Track> tracks) async {
+    List<AppItem> songs = [];
+    String artistName = "";
+    String albumImgUrl = "";
+
+    try {
+      for (var playlistTrack in tracks.itemsNative!) {
+
+        Track track = Track.fromJson(playlistTrack["track"]);
+
+        if (track.artists!.length > 1) {
+          for (var artists in track.artists!) {
+            artistName.isEmpty ? artistName = (artists.name ?? "")
+                : artistName = "$artistName, ${artists.name ?? ""}";
+          }
+        } else {
+          artistName = track.artists?.first.name ?? "";
+          albumImgUrl = track.album?.images?.first.url ?? "";
+        }
+
+        //TODO Verify how to improve this with a job routine
+        //Artist trackArtist = await SpotifySearch().loadArtistDetails(track.artists?.first.id ?? "");
+
+        songs.add(
+            AppItem(
+                id: track.id ?? "",
+                state: 1,
+                name: track.name ?? "",
+                artist: artistName,
+                artistId: track.artists?.first.id ?? "",
+                albumName: track.album?.name ?? "",
+                durationMs: track.durationMs ?? 0,
+                albumImgUrl: albumImgUrl,
+                previewUrl: track.previewUrl ?? "",
+                genres: Genre.listFromJSON(track.artists?.first.genres ?? [])
+            )
+        );
+      }
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+
+    return songs;
+  }
+
+  static List<AppItem> mapPageTracksToSongs(Pages<Track> tracks){
+
+    List<AppItem> songs = [];
+
+    String artist = "";
+    String albumImgUrl = "";
+    tracks.all().then((tracks) {
+      for (var track in tracks) {
+        if ((track.artists?.length ?? 0) > 1) {
+          for (var artists in track.artists!) {
+            artist.isEmpty ? artist = artists.name ?? ""
+                : artist = "$artist, ${artists.name ?? ""}";
+          }
+        } else {
+          artist = track.artists?.first.name ?? "";
+          albumImgUrl = track.album?.images?.first.url ?? "";
+        }
+        songs.add(
+            AppItem(
+                id: track.id ?? "",
+                state: 0,
+                name: track.name ?? "",
+                artist: artist,
+                albumName: track.album?.name ?? "",
+                durationMs: track.durationMs ?? 0,
+                albumImgUrl: albumImgUrl,
+                previewUrl: track.previewUrl ?? "",
+                genres: []
+            )
+        );
+      }
+    });
+
+    return songs;
+  }
 
 }

@@ -18,13 +18,13 @@ class AppFirestoreCollectionConstants {
   static const String reports = "reports";
 
   static const String profiles = "profiles";
-  static const String itemlists = "readlists";
+  static const String itemlists = "itemlists";
   static const String instruments = "instruments";
   static const String places = "places";
   static const String facilities = "facilities";
 
   static const String hashtags = "hashtags";
-  static const String appItems = "books";
+  static const String appItems = "appItems";
   static const String profileInstruments = "profileInstruments";
 
   static const String users = "users";

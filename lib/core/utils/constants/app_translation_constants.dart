@@ -498,7 +498,7 @@ class AppTranslationConstants {
   static const String noHistoryToShow = "noHistoryToShow";
   static const String appCoinComingSoon = "appCoinComingSoon";
   static const String transactionsHistory = "transactionsHistory";
-  static const String coinsToAcquire = "coinsToAcquire";
+  static const String appCoinsToAcquire = "appCoinsToAcquire";
   static const String acquireAppCoinsMsg = "acquireAppCoinsMsg";
 
   static const String all = "all";

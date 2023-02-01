@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:geolocator/geolocator.dart';
 
-import '../../utils/constants/url_constants.dart';
+import '../../app_flavour.dart';
 import '../../utils/core_utilities.dart';
 import '../../utils/enums/sponsor_type.dart';
 import 'address.dart';
@@ -89,7 +89,7 @@ class Sponsor {
     address = Address.fromJSON(data["address"]),
     ownerId = data["ownerId"] ?? "",
     profileId = data["ownerId"] ?? "",
-    imgUrl = data["imgUrl"] ?? UrlConstants.noImageUrl,
+    imgUrl = data["imgUrl"] ?? AppFlavour.getNoImageUrl(),
     position = CoreUtilities.JSONtoPosition(data["position"]),
     type = EnumToString.fromString(SponsorType.values, data["type"] ?? SponsorType.publicSpace.name) ?? SponsorType.publicSpace,
     galleryImgUrls = data["galleryImgUrls"].cast<String>() ?? [];
