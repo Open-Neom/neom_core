@@ -215,7 +215,11 @@ class BandFirestore implements BandRepository {
         await querySnapshot.reference
             .collection(AppFirestoreCollectionConstants.members)
             .doc(bandMember.id)
-            .delete();
+            .update({
+              AppFirestoreConstants.imgUrl: "",
+              AppFirestoreConstants.name: "",
+              AppFirestoreConstants.profileId: "",
+            });
         }
       );
 

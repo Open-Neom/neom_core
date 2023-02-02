@@ -2,6 +2,7 @@ class AppInfo {
 
   String id;
   String version;
+  int lastStableBuild;
   bool coinPromo;
   double coinAmount;
   bool fbLoginEnabled;
@@ -11,6 +12,7 @@ class AppInfo {
   AppInfo({
     this.id = "",
     this.version = "",
+    this.lastStableBuild = 0,
     this.coinPromo = true,
     this.fbLoginEnabled = false,
     this.coinAmount = 10.00,
@@ -18,14 +20,16 @@ class AppInfo {
     this.suggestedUrl = ""
   });
 
+
   @override
   String toString() {
-    return 'AppInfo{id: $id, version: $version, coinPromo: $coinPromo, coinAmount: $coinAmount, fbLoginEnabled: $fbLoginEnabled, orderNumber: $orderNumber, suggestedUrl: $suggestedUrl}';
+    return 'AppInfo{id: $id, version: $version, lastStableBuild: $lastStableBuild, coinPromo: $coinPromo, coinAmount: $coinAmount, fbLoginEnabled: $fbLoginEnabled, orderNumber: $orderNumber, suggestedUrl: $suggestedUrl}';
   }
 
   AppInfo.fromJSON(data):
     id = data["id"] ?? "",
     version = data["version"] ?? "",
+    lastStableBuild = data["lastStableBuild"] ?? 0,
     coinPromo = data["coinPromo"] ?? true,
     coinAmount = double.parse(data["coinAmount"].toString()),
     fbLoginEnabled = data["fbLoginEnabled"] ?? false,
@@ -36,6 +40,7 @@ class AppInfo {
   Map<String, dynamic> toJSON() {
     return <String, dynamic> {
       'version': version,
+      'lastStableBuild': lastStableBuild,
       'coinPromo': coinPromo,
       'coinAmount': coinAmount,
       'fbLoginEnabled': fbLoginEnabled,

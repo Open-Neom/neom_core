@@ -1,10 +1,10 @@
 import 'package:get/get.dart';
 import 'package:spotify/spotify.dart';
 
+import '../../app_flavour.dart';
 import '../../utils/app_utilities.dart';
 import '../../utils/constants/app_constants.dart';
 import '../../utils/constants/app_translation_constants.dart';
-import '../../utils/core_utilities.dart';
 import 'app_item.dart';
 
 class Itemlist {
@@ -40,7 +40,7 @@ class Itemlist {
     imgUrl = "",
     public = true,
     uri = "",
-    appItems = CoreUtilities.myFirstAppItem(),
+    appItems = AppFlavour.getFirstAppItem(),
     isFav = true;
 
 
@@ -52,7 +52,7 @@ class Itemlist {
         imgUrl = "",
         public = true,
         uri = "",
-        appItems = CoreUtilities.myFirstAppItem(),
+        appItems = AppFlavour.getFirstAppItem(),
         isFav = true;
 
 

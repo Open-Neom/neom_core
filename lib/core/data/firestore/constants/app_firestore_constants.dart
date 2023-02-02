@@ -42,6 +42,7 @@ class AppFirestoreConstants {
   static const String emailInUse = 'email-already-in-use';
   static const String unknown = 'unknown';
 
+  static const String imgUrl = 'imgUrl';
   static const String name = 'name';
   static const String description = 'description';
   static const String aboutMe = 'aboutMe';
@@ -52,6 +53,7 @@ class AppFirestoreConstants {
   static const String mainGenre = 'mainGenre';
   static const String postId = 'postId';
   static const String postIds = 'postIds';
+  static const String profileId = 'profileId';
   static const String profileIds = 'profileIds';
 
   static const String coverImgUrl = 'coverImgUrl';

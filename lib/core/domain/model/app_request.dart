@@ -59,8 +59,8 @@ class AppRequest {
       eventId = data["eventId"] ?? "";
       positionRequestedId = data["positionRequestedId"] ?? "";
       instrument = data["instrument"] != null ? Instrument.fromJSON(data["instrument"]) : Instrument();
-      percentageCoverage = data["percentageCoverage"];
-      distanceKm = data["distanceKm"];
+      percentageCoverage = data["percentageCoverage"] ?? 0.0;
+      distanceKm = data["distanceKm"] ?? 0.0;
       requestDecision = EnumToString.fromString(RequestDecision.values, data["requestDecision"]) ?? RequestDecision.pending;
     } catch (e) {
       AppUtilities.logger.e(e.toString());

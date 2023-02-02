@@ -2,8 +2,6 @@
 class AppConstants {
 
   static const String appTitle = "appTitle";
-  static const String appVersion = "1.4.0";
-  static const String appPreviousStable = "1.2.0";
 
   static const String firstItemlist = "firstReadlist";
   static const List<String> itemIdDemo = ["2drTDQAAQBAJ"];
@@ -18,6 +16,7 @@ class AppConstants {
   static const String eventsCalendar = "eventsCalendar";
   static const String requests = "requests";
   static const String booking = "booking";
+  static const String directory = "directory";
   static const String bands = "bands";
   static const String settingsPrivacy = "settingsPrivacy";
   static const String settings = "settings";

@@ -184,7 +184,7 @@ class CoreUtilities {
   }
 
 
-  static List<AppItem> myFirstAppItem(){
+  static List<AppItem> myFirstBook() {
     List<AppItem> myFirstAppItem = [];
     List<Genre> genres = [];
     genres.add(Genre(id: "Fiction", name: "Fiction"));
@@ -209,6 +209,27 @@ class CoreUtilities {
     return myFirstAppItem;
   }
 
+  static List<AppItem> myFirstSong() {
+    List<AppItem> myFirstAppItem = [];
+    List<Genre> genres = [];
+    genres.add(Genre(id: "Rock", name: "Rock"));
+
+    myFirstAppItem.add(
+        AppItem(
+          id: "40riOy7x9W7GXjyGp4pjAv",
+          state: AppItemState.heardIt.value,
+          albumImgUrl: "https://i.scdn.co/image/ab67616d0000b2734637341b9f507521afa9a778",
+          artist: "The Eagles" ,
+          previewUrl:"https://p.scdn.co/mp3-preview/50e82c99c20ffa4223e82250605bbd8500cb3928?cid=4e12110673b14aa5948c165a3531eea3",
+          name: "Hotel California - 2013 Remaster",
+          albumName: "Hotel California (2013 Remaster)",
+          durationMs: 391376,
+          genres: genres
+        )
+    );
+
+    return myFirstAppItem;
+  }
 
   static String createCompositeInboxId(List<String> profileIds){
     StringBuffer compositeKeyBuffer = StringBuffer();

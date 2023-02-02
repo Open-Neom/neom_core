@@ -8,7 +8,7 @@ import '../neom_commons.dart';
 class AppFlavour {
 
   static AppInUse appInUse = AppInUse.emxi;
-  static String appVersion = AppConstants.appVersion;
+  static String appVersion = "";
 
   AppFlavour({required AppInUse inUse, required String version,}) {
     appInUse = inUse;
@@ -25,7 +25,7 @@ class AppFlavour {
         return "";
     }
   }
-  
+
   static String getPlayStoreUrl() {
     switch(appInUse) {
       case AppInUse.gigmeout:
@@ -177,6 +177,17 @@ class AppFlavour {
         return "EmxiCoin";
       case AppInUse.cyberneom:
         return "NeomCoin";
+    }
+  }
+
+  static List<AppItem> getFirstAppItem() {
+    switch (appInUse) {
+      case AppInUse.gigmeout:
+        return CoreUtilities.myFirstSong();
+      case AppInUse.emxi:
+        return CoreUtilities.myFirstBook();
+      case AppInUse.cyberneom:
+        return [];
     }
   }
 

@@ -17,6 +17,6 @@ abstract class LoginService {
 
   Future<void> signOut();
   Future<void> sendEmailVerification(GlobalKey<ScaffoldState> scaffoldKey);
-  Widget selectRootPage(StatelessWidget homePage);
+  Widget selectRootPage({required StatelessWidget homePage, required int appLastStableBuild});
 
 }

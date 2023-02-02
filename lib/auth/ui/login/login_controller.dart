@@ -522,11 +522,13 @@ class LoginController extends GetxController implements LoginService {
   }
 
   @override
-  Widget selectRootPage(StatelessWidget homePage) {
+  Widget selectRootPage({required StatelessWidget homePage, required int appLastStableBuild}) {
 
     Widget rootPage = const LoginPage();
 
-    if(sharedPreferenceController.firstTime) {
+    if (appInfo.lastStableBuild > appLastStableBuild) {
+      rootPage = const PreviousVersionPage();
+    } else if(sharedPreferenceController.firstTime) {
       rootPage = const OnGoing();
       sharedPreferenceController.updateFirstTIme(false);
     } else if(authStatus == AuthStatus.loggingIn) {
@@ -539,11 +541,6 @@ class LoginController extends GetxController implements LoginService {
     ) {
       rootPage = homePage;
       isLoading = true;
-    } else if (appInfo.version.isNotEmpty
-        && (appInfo.version != AppConstants.appVersion
-            && appInfo.version != AppConstants.appPreviousStable)
-    ) {
-      rootPage = const PreviousVersionPage();
     }
 
     return rootPage;
