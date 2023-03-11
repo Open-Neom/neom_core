@@ -67,7 +67,7 @@ class AppProfile {
   Map<String, Facility>? facilities;
   Map<String, Place>? places;
 
-  bool showInBooking;
+  bool showInDirectory;
 
   AppProfile({
     this.id = "",
@@ -82,7 +82,7 @@ class AppProfile {
     this.reviewStars = 10.0,
     this.isActive = false,
     this.type = ProfileType.instrumentist,
-    this.showInBooking = false,
+    this.showInDirectory = false,
   });
 
   @override
@@ -130,7 +130,7 @@ class AppProfile {
       'requests': requests,
       'sentRequests': sentRequests,
       'invitationRequests': invitationRequests,
-      'showInBooking': showInBooking,
+      'showInDirectory': showInDirectory,
     };
   }
 
@@ -164,14 +164,14 @@ class AppProfile {
         bands = data["bands"]?.cast<String>() ?? [],
         events = data["events"]?.cast<String>() ?? [],
         reviews = data["reviews"]?.cast<String>() ?? [],
-        appItems = data["appItems"]?.cast<String>() ?? data["songs"]?.cast<String>() ?? [],
+        appItems = data["appItems"]?.cast<String>() ?? [],
         watchingEvents = data["watchingEvents"]?.cast<String>() ?? [],
         goingEvents = data["goingEvents"]?.cast<String>() ?? [],
         playingEvents = data["playingEvents"]?.cast<String>() ?? [],
         requests = data["requests"]?.cast<String>() ?? [],
         sentRequests = data["sentRequests"]?.cast<String>() ?? [],
         invitationRequests = data["invitationRequests"]?.cast<String>() ?? [],
-        showInBooking = data["showInBooking"] ?? false;
+        showInDirectory = data["showInDirectory"] ?? false;
 
 
   AppProfile.fromProfileInstruments(data) :
@@ -182,11 +182,11 @@ class AppProfile {
         aboutMe = data["aboutMe"] ?? "",
         mainFeature = data["mainFeature"] ?? "",
         position = CoreUtilities.JSONtoPosition(data["position"]),
-        appItems = data["appItems"]?.cast<String>() ?? data["songs"]?.cast<String>() ?? [],
+        appItems = data["appItems"]?.cast<String>() ?? [],
         instruments = { for (var e in data["instruments"]?.cast<String>() ?? []) e : Instrument() },
         type = ProfileType.instrumentist, coverImgUrl = "",
         isActive = true,
-        showInBooking = false;
+        showInDirectory = false;
 
 
   Map<String, dynamic> toProfileInstrumentsJSON() {

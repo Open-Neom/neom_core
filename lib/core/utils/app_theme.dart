@@ -111,6 +111,7 @@ class AppTheme {
 
   static const SizedBox heightSpace100 = SizedBox(height: 100);
   static const SizedBox heightSpace50 = SizedBox(height: 50);
+  static const SizedBox heightSpace40 = SizedBox(height: 40);
   static const SizedBox heightSpace30 = SizedBox(height: 30);
   static const SizedBox heightSpace20 = SizedBox(height: 20);
   static const SizedBox heightSpace10 = SizedBox(height: 10);

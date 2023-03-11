@@ -1,9 +1,9 @@
 enum ProfileType {
-  instrumentist("writer"),
+  instrumentist("instrumentist"),
   facilitator("facilitator"),
   host("host"),
-  fan("reader"),
-  band("collective");
+  fan("fan"),
+  band("band");
 
   final String value;
   const ProfileType(this.value);

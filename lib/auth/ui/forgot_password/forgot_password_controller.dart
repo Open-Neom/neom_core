@@ -91,7 +91,7 @@ class ForgotPasswordController extends GetxController implements ForgotPasswordS
   @override
   Future<bool> submitForm(BuildContext context) async {
 
-    String validateEmailMsg = Validator().validateEmail(_emailController.text);
+    String validateEmailMsg = Validator.validateEmail(_emailController.text);
 
     if(validateEmailMsg.isNotEmpty){
       Get.snackbar(

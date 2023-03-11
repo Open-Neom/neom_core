@@ -18,7 +18,6 @@ import '../../domain/use_cases/signup_service.dart';
 import '../../utils/enums/signed_in_with.dart';
 import '../login/login_controller.dart';
 
-
 class SignUpController extends GetxController implements SignUpService {
 
   final logger = AppUtilities.logger;
@@ -79,12 +78,6 @@ class SignUpController extends GetxController implements SignUpService {
     super.onReady();
     logger.d("");
     isLoading = false;
-    // _firstNameController.text = "JEME";
-    // _lastNameController.text = "MONTOYA";
-    // _emailController.text = "jonas"+Random().nextInt(1000).toString()+"@gmail.com";
-    // _passwordController.text = "123123123";
-    // _usernameController.text = "Jonazxvss";
-    // _confirmController.text = "123123123";
   }
 
   @override
@@ -167,16 +160,14 @@ class SignUpController extends GetxController implements SignUpService {
   @override
   Future<bool> validateInfo() async {
 
-    Validator validator = Validator();
-
-    String validatorMsg = validator.validateName(_firstNameController.text);
+    String validatorMsg = Validator.validateName(_firstNameController.text);
 
     if (validatorMsg.isEmpty) {
 
-      validatorMsg = validator.validateName(_lastNameController.text);
+      validatorMsg = Validator.validateName(_lastNameController.text);
 
       if (validatorMsg.isEmpty) {
-        validatorMsg = validator.validateUsername(_usernameController.text);
+        validatorMsg = Validator.validateUsername(_usernameController.text);
 
         if (validatorMsg.isEmpty && _emailController.text.isEmpty
             && _passwordController.text.isEmpty) {
@@ -184,10 +175,10 @@ class SignUpController extends GetxController implements SignUpService {
         }
 
         if (validatorMsg.isEmpty) {
-          validatorMsg = validator.validateEmail(_emailController.text);
+          validatorMsg = Validator.validateEmail(_emailController.text);
         }
         if (validatorMsg.isEmpty) {
-          validatorMsg = validator.validatePassword(
+          validatorMsg = Validator.validatePassword(
             _passwordController.text, _confirmController.text);
         }
       }

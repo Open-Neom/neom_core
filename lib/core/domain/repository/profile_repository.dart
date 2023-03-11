@@ -3,6 +3,7 @@ import 'package:geolocator/geolocator.dart';
 
 import '../../utils/enums/app_currency.dart';
 import '../../utils/enums/event_action.dart';
+import '../../utils/enums/facilitator_type.dart';
 import '../../utils/enums/request_type.dart';
 import '../model/app_profile.dart';
 
@@ -36,7 +37,7 @@ abstract class ProfileRepository {
   Future<QuerySnapshot> handleSearch(String query);
 
   Future<bool> addAppItem(String profileId, String itemId);
-  Future<bool> removeItem(String profileId, String itemId);
+  Future<bool> removeAppItem(String profileId, String itemId);
   Future<bool> addAllAppItemIds(String profileId, List<String> itemIds);
 
   Future<Map<String, AppProfile>> getFollowers(String profileId);
@@ -44,12 +45,20 @@ abstract class ProfileRepository {
 
   Future<bool> updatePhotoUrl(String profileId, String photoUrl);
   Future<bool> updateCoverImgUrl(String profileId, String coverImgUrl);
-  Future<Map<String,AppProfile>> retrieveProfilesBySpecs({
-    String instrumentId = "",
+  Future<Map<String,AppProfile>> retrieveProfilesByInstrument({
     String selfProfileId = "",
     Position? currentPosition,
+    String instrumentId = "",
     int maxDistance = 20,
     int maxProfiles = 10,
+  });
+
+  Future<Map<String,AppProfile>> retrieveProfilesByFacility({
+    required String selfProfileId,
+    required Position? currentPosition,
+    FacilityType? facilityType,
+    int maxDistance = 30,
+    int maxProfiles = 30,
   });
 
   Future<List<AppProfile>> retrieveProfilesFromList(List<String> profileIds);
@@ -69,4 +78,6 @@ abstract class ProfileRepository {
 
   Future<bool> addBlogEntry(String profileId, String blogEntryId);
   Future<bool> removeBlogEntry(String profileId, String blogEntryId);
+  Future<bool> removeAllAppItems(String profileId);
+
 }

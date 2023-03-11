@@ -4,7 +4,7 @@ import 'constants/message_translation_constants.dart';
 
 class Validator {
 
-  String validateEmail(String email) {
+  static String validateEmail(String email) {
     String pattern =
         r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
     RegExp regex = RegExp(pattern);
@@ -18,7 +18,7 @@ class Validator {
   }
 
 
-  String validateName(String name) {
+  static String validateName(String name) {
     if (name.isEmpty) {
       return MessageTranslationConstants.pleaseEnterFullName;
     } else if (_isNumeric(name)) {
@@ -33,7 +33,7 @@ class Validator {
   }
 
 
-  String validateUsername(String username) {
+  static String validateUsername(String username) {
     if (username.isEmpty) {
       return MessageTranslationConstants.pleaseEnterUsername;
     } else if (_isNumericOnly(username)) {
@@ -48,7 +48,7 @@ class Validator {
   }
 
 
-  bool _isNumericOnly(String s) {
+  static bool _isNumericOnly(String s) {
 
     int count = 0;
     for (int i = 0; i < s.length; i++) {
@@ -60,7 +60,7 @@ class Validator {
   }
 
 
-  bool _isNumeric(String s) {
+  static bool _isNumeric(String s) {
     for (int i = 0; i < s.length; i++) {
       if (double.tryParse(s[i]) != null) {
         return true;
@@ -70,7 +70,7 @@ class Validator {
   }
 
 
-  String validatePassword(String password, String confirmation) {
+  static String validatePassword(String password, String confirmation) {
     if (password.isEmpty) {
       return MessageTranslationConstants.pleaseEnterPassword;
     } else if (password.length < 6) {

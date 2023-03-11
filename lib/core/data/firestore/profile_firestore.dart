@@ -11,6 +11,7 @@ import '../../utils/app_utilities.dart';
 import '../../utils/constants/app_constants.dart';
 import '../../utils/enums/app_currency.dart';
 import '../../utils/enums/event_action.dart';
+import '../../utils/enums/facilitator_type.dart';
 import '../../utils/enums/profile_type.dart';
 import '../../utils/enums/request_type.dart';
 import 'constants/app_firestore_collection_constants.dart';
@@ -235,15 +236,15 @@ class ProfileFirestore implements ProfileRepository {
 
 
   @override
-  Future<Map<String,AppProfile>> retrieveProfilesBySpecs({
-    String instrumentId = "",
+  Future<Map<String,AppProfile>> retrieveProfilesByInstrument({
     String selfProfileId = "",
     Position? currentPosition,
+    String instrumentId = "",
     int maxDistance = 20,
     int maxProfiles = 10,
   }) async {
 
-    logger.d("RetrievingProfiles by specs");
+    logger.d("RetrievingProfiles by instrument");
 
     Map<String,AppProfile> mainInstrumentProfiles = <String, AppProfile>{};
     Map<String,AppProfile> noMainInstrumentProfiles = <String, AppProfile>{};
@@ -814,7 +815,7 @@ class ProfileFirestore implements ProfileRepository {
 
 
   @override
-  Future<bool> removeItem(String profileId, String itemId) async {
+  Future<bool> removeAppItem(String profileId, String itemId) async {
     logger.d("");
 
     try {
@@ -1476,6 +1477,90 @@ class ProfileFirestore implements ProfileRepository {
       logger.e(e.toString());
     }
     return false;
+  }
+
+  @override
+  Future<bool> removeAllAppItems(String profileId) async {
+    logger.d("");
+
+    try {
+
+      await profileReference.get()
+          .then((querySnapshot) async {
+        for (var document in querySnapshot.docs)  {
+          // if(document.id == profileId) {
+            await document.reference.update({
+              AppFirestoreConstants.appItems: FieldValue.delete()
+            });
+            logger.w("Deleting");
+          // }
+        }
+      });
+
+    } catch (e) {
+      logger.e(e.toString());
+      return false;
+    }
+
+    return true;
+  }
+
+  @override
+  Future<Map<String, AppProfile>> retrieveProfilesByFacility({
+    required String selfProfileId,
+    required Position? currentPosition,
+    FacilityType? facilityType,
+    int maxDistance = 30,
+    int maxProfiles = 30}) async {
+
+    logger.d("RetrievingProfiles by instrument");
+
+    Map<String,AppProfile> facilityProfiles = <String, AppProfile>{};
+    Map<String,AppProfile> noMainFacilityProfiles = <String, AppProfile>{};
+
+
+    try {
+      await profileReference.get().then((querySnapshot) async {
+        for (var document in querySnapshot.docs) {
+          AppProfile profile = AppProfile.fromJSON(document.data());
+          profile.id = document.id;
+          if(profile.id != selfProfileId && profile.type == ProfileType.facilitator
+              && facilityProfiles.length < maxProfiles
+          ) {
+            if(AppUtilities.distanceBetweenPositionsRounded(profile.position!, currentPosition!) < maxDistance) {
+
+              profile.facilities = await FacilityFirestore().retrieveFacilities(profile.id);
+              if(facilityType != null) {
+                if(profile.facilities!.keys.contains(facilityType.value)) {
+                  if((profile.facilities?[facilityType.value]?.isMain == true)) {
+                    facilityProfiles[profile.id] = profile;
+                  } else {
+                    noMainFacilityProfiles[profile.id] = profile;
+                  }
+                }
+              } else {
+                facilityProfiles[profile.id] = profile;
+              }
+            } else {
+              logger.d("Profile ${profile.id} ${profile.name} is out of max distance");
+            }
+          }
+        }
+
+        if(facilityProfiles.length < maxProfiles && noMainFacilityProfiles.isNotEmpty) {
+          noMainFacilityProfiles.forEach((profileId, profile) {
+            if(facilityProfiles.length < maxProfiles) {
+              facilityProfiles[profileId] = profile;
+            }
+          });
+        }
+      });
+    } catch (e) {
+      logger.e(e.toString());
+    }
+
+    logger.d("${facilityProfiles.length} Profiles found");
+    return facilityProfiles;
   }
 
 }

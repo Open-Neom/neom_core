@@ -469,6 +469,7 @@ class AppTranslationConstants {
   static const String totalToPay = "totalToPay";
   static const String filter = "filter";
   static const String hour = "hour";
+  static const String toContact = "toContact";
   static const String bookNow = "bookNow";
   static const String confirmAndPay = "confirmAndPay";
   static const String confirmAndProceed = "confirmAndProceed";
