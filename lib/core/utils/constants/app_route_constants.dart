@@ -106,6 +106,7 @@ class AppRouteConstants {
   static const String booking = '/booking';
   static const String bookingPlaces = '/booking/places';
   static const String bookingSearch = '/booking/search';
+  static const String directory = '/directory';
   static const String request = '/request';
   static const String requestUp = '/request-up';
   static const String requestDetails = '/request/details';

@@ -8,8 +8,6 @@ import '../../../utils/constants/app_route_constants.dart';
 
 class PushNotificationConfig {
 
-  static const String fcmKey = "AAAAZ5CTaQg:APA91bEeo7jD3lnkYZNOsPGhQuebihyOvUkYeld9ADHr5sRCAoKJJgy3to353DEXX6Dn_69We4M2wfHcT4mNHVYJPbVmW4wWDsTA6VbVvVvnsM8jDgOhUFZYk0xhEHOwWv4Q8gvrLa6";
-
   Future<void> initNotificationsUser(BuildContext contextUser) async {
     AwesomeNotifications().isNotificationAllowed().then((isAllowed) {
       if (!isAllowed) {

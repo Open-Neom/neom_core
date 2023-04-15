@@ -22,7 +22,7 @@ class AppBarChild extends StatelessWidget implements PreferredSizeWidget {
     color ??= AppColor.appBar;
 
     return AppBar(
-      title: Text(title.capitalizeFirst ?? "", style: TextStyle(color: Colors.white.withOpacity(0.8),
+      title: Text(title.capitalize ?? "", style: TextStyle(color: Colors.white.withOpacity(0.8),
           fontWeight: FontWeight.bold),
       ),
       backgroundColor: color,

@@ -2,6 +2,7 @@
 class AppGoogleConstants {
 
   static const String kGoogleApiKey = "AIzaSyCr2yQKePG9aW6q3U9u2yDG4iFQxKvuHRE";
+  static const String fcmGoogleAPIUrl = "https://fcm.googleapis.com/fcm/send";
 
   /// static const String webApiKey = 'AIzaSyDT7CVCfNKZSCmnRf3IF6pA-fzVEKsARPY';
   /// Google Sign-in

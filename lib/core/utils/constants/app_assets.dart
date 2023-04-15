@@ -5,7 +5,7 @@ class AppAssets {
   static const String genresJsonPath = 'assets/genres.json';
 
   //TODO Verify IconResource
-  static const String iconResource = 'resource://drawable/app_icon.png';
+  static const String iconResource = 'resource://drawable/ic_launcher';
   static const String icon = "assets/appIcon.png";
   static const String logo = "assets/logos/logo-app.png";
   static const String logoAppWhite = "assets/logos/logo-app-white.png";

@@ -81,6 +81,7 @@ class AppConstants {
 
   static const String wifi = "Wi-FI";
   static const String emmanuelMontoyaCeo ="Emmanuel Montoya (CEO)";
+  static const String anthonyRojasCOO ="Anthony Rojas (Director de Operaciones)";
   static const String km = "KM";
   static const String youtube = "Youtube";
   static const String appBot = "appBot";

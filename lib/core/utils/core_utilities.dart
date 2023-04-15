@@ -34,6 +34,7 @@ import 'constants/app_assets.dart';
 import 'constants/app_constants.dart';
 import 'constants/app_google_constants.dart';
 import 'constants/message_translation_constants.dart';
+import 'constants/url_constants.dart';
 import 'enums/app_currency.dart';
 import 'enums/app_item_state.dart';
 import 'enums/event_type.dart';
@@ -254,6 +255,17 @@ class CoreUtilities {
     }
   }
 
+  static void launchWhatsappURL(String phone, String message) async {
+    String url = UrlConstants.whatsAppURL.replaceAll("<phoneNumber>", phone);
+    url = url.replaceAll("<message>", message);
+
+    if (await canLaunchUrl(Uri.parse("https://$url"))) { //TODO Verify how to use constant
+      await launchUrl(Uri.parse(url));
+    } else {
+      AppUtilities.logger.i('Could not launch $url');
+    }
+  }
+
   static List<EventTypeModel> getEventTypes(){
 
     List<EventTypeModel> eventTypes = [];
@@ -267,12 +279,8 @@ class CoreUtilities {
     );
     eventTypes.add(EventTypeModel(
         imgAssetPath: AppAssets.festival,
-        type: EventType.release)
+        type: EventType.festival)
     );
-    // eventTypes.add(EventTypeModel(
-    //     imgAssetPath: AppAssets.festival,
-    //     type: EventType.festival)
-    // );
 
     //TODO Add more event types as Class, Clinic, Event for musicians, etc
 
@@ -694,7 +702,7 @@ class CoreUtilities {
     return imgLocalPath;
   }
 
-  Future<String> getLocalPath() async {
+  static Future<String> getLocalPath() async {
     final directory = await getApplicationDocumentsDirectory();
     return directory.path;
   }
@@ -712,8 +720,7 @@ class CoreUtilities {
   }
 
   ///Deprecated
-  List<ActivityFeed
-  > getActivityFeedSinceLastCheck(List<ActivityFeed> activitiesFeed) {
+  List<ActivityFeed> getActivityFeedSinceLastCheck(List<ActivityFeed> activitiesFeed) {
 
     List<ActivityFeed> activityFeedSinceLastCheck = [];
     int lastNotificationCheckDate = Get.find<SharedPreferenceController>().lastNotificationCheckDate;

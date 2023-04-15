@@ -25,6 +25,7 @@ class AppFirestoreConstants {
   static const String following = "following";
   static const String followers = "followers";
   static const String position = "position";
+  static const String address = "address";
   static const String blockTo = "blockTo";
   static const String blockedBy = "blockedBy";
 
@@ -94,4 +95,7 @@ class AppFirestoreConstants {
   static const String currentProfileId = 'currentProfileId';
 
   static const String blogEntries = "blogEntries";
+
+  static const String totalUsers = "totalUsers";
+  static const String totalLocations = "totalLocations";
 }

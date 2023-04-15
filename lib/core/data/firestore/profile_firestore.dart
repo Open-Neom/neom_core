@@ -6,12 +6,15 @@ import 'package:geolocator/geolocator.dart';
 
 import '../../domain/model/app_profile.dart';
 import '../../domain/model/app_user.dart';
+import '../../domain/model/facility.dart';
+import '../../domain/model/post.dart';
 import '../../domain/repository/profile_repository.dart';
 import '../../utils/app_utilities.dart';
 import '../../utils/constants/app_constants.dart';
 import '../../utils/enums/app_currency.dart';
 import '../../utils/enums/event_action.dart';
 import '../../utils/enums/facilitator_type.dart';
+import '../../utils/enums/place_type.dart';
 import '../../utils/enums/profile_type.dart';
 import '../../utils/enums/request_type.dart';
 import 'constants/app_firestore_collection_constants.dart';
@@ -22,6 +25,7 @@ import 'instrument_firestore.dart';
 import 'itemlist_firestore.dart';
 import 'mate_firestore.dart';
 import 'place_firestore.dart';
+import 'post_firestore.dart';
 
 class ProfileFirestore implements ProfileRepository {
 
@@ -209,7 +213,7 @@ class ProfileFirestore implements ProfileRepository {
   }
 
   @override
-  Future<List<AppProfile>> retrieveProfiles(String userId) async {
+  Future<List<AppProfile>> retrieveProfiles(String userId, {ProfileType? profileType}) async {
     logger.d("RetrievingProfiles");
     List<AppProfile> profiles = <AppProfile>[];
 
@@ -221,9 +225,11 @@ class ProfileFirestore implements ProfileRepository {
         logger.d("Snapshot is not empty");
         for (var profileSnapshot in querySnapshot.docs) {
           AppProfile profile = AppProfile.fromJSON(profileSnapshot.data());
-          profile.id = profileSnapshot.id;
-          logger.d(profile.toString());
-          profiles.add(profile);
+          if(profileType == null || profile.type == profileType) {
+            profile.id = profileSnapshot.id;
+            logger.d(profile.toString());
+            profiles.add(profile);
+          }
         }
       }
     } catch (e) {
@@ -456,12 +462,15 @@ class ProfileFirestore implements ProfileRepository {
   Future<bool> updatePosition(String profileId, Position newPosition) async {
     logger.d("$profileId updating location");
 
+    String address = await AppUtilities.getAddressFromPlacerMark(newPosition);
+
     try {
       await profileReference.get().then((querySnapshot) async {
         for (var document in querySnapshot.docs) {
           if (document.id == profileId) {
             await document.reference.update({
-              AppFirestoreConstants.position: jsonEncode(newPosition)
+              AppFirestoreConstants.position: jsonEncode(newPosition),
+              AppFirestoreConstants.address: address,
             });
           }
         }
@@ -1509,15 +1518,15 @@ class ProfileFirestore implements ProfileRepository {
   Future<Map<String, AppProfile>> retrieveProfilesByFacility({
     required String selfProfileId,
     required Position? currentPosition,
+
     FacilityType? facilityType,
     int maxDistance = 30,
     int maxProfiles = 30}) async {
 
-    logger.d("RetrievingProfiles by instrument");
+    logger.d("RetrievingProfiles by facility");
 
     Map<String,AppProfile> facilityProfiles = <String, AppProfile>{};
     Map<String,AppProfile> noMainFacilityProfiles = <String, AppProfile>{};
-
 
     try {
       await profileReference.get().then((querySnapshot) async {
@@ -1528,19 +1537,37 @@ class ProfileFirestore implements ProfileRepository {
               && facilityProfiles.length < maxProfiles
           ) {
             if(AppUtilities.distanceBetweenPositionsRounded(profile.position!, currentPosition!) < maxDistance) {
-
-              profile.facilities = await FacilityFirestore().retrieveFacilities(profile.id);
-              if(facilityType != null) {
-                if(profile.facilities!.keys.contains(facilityType.value)) {
-                  if((profile.facilities?[facilityType.value]?.isMain == true)) {
-                    facilityProfiles[profile.id] = profile;
-                  } else {
-                    noMainFacilityProfiles[profile.id] = profile;
+              if(profile.address.isEmpty && profile.position != null) {
+                profile.address = await AppUtilities.getAddressFromPlacerMark(profile.position!);
+              }
+              if(profile.posts?.isNotEmpty ?? false) {
+                List<Post> profilePosts = await PostFirestore().getProfilePosts(profile.id);
+                List<String> postImgUrls = [];
+                for (var element in profilePosts) {
+                  if(postImgUrls.length < 6) {
+                    postImgUrls.add(element.mediaUrl);
                   }
                 }
+
+                if(facilityType != null) {
+                  profile.facilities = await FacilityFirestore().retrieveFacilities(profile.id);
+                  if(profile.facilities!.keys.contains(facilityType.value)) {
+                    if((profile.facilities?[facilityType.value]?.isMain == true)) {
+                      facilityProfiles[profile.id] = profile;
+                    } else {
+                      noMainFacilityProfiles[profile.id] = profile;
+                    }
+                  }
+                } else {
+                  profile.facilities = {};
+                  profile.facilities![profile.id] = Facility();
+                  profile.facilities!.values.first.galleryImgUrls  = postImgUrls;
+                  facilityProfiles[profile.id] = profile;
+                }
               } else {
-                facilityProfiles[profile.id] = profile;
+                logger.d("Profile ${profile.id} ${profile.name} has not posts");
               }
+
             } else {
               logger.d("Profile ${profile.id} ${profile.name} is out of max distance");
             }
@@ -1563,4 +1590,79 @@ class ProfileFirestore implements ProfileRepository {
     return facilityProfiles;
   }
 
+  @override
+  Future<Map<String, AppProfile>> retrieveProfilesByPlace({
+    required String selfProfileId,
+    required Position? currentPosition,
+
+    PlaceType? placeType,
+    int maxDistance = 30,
+    int maxProfiles = 30}) async {
+
+    logger.d("RetrievingProfiles by place");
+
+    Map<String,AppProfile> hostProfiles = <String, AppProfile>{};
+    Map<String,AppProfile> noMainPlaceProfiles = <String, AppProfile>{};
+
+    try {
+      await profileReference.get().then((querySnapshot) async {
+        for (var document in querySnapshot.docs) {
+          AppProfile profile = AppProfile.fromJSON(document.data());
+          profile.id = document.id;
+          if(profile.id != selfProfileId && profile.type == ProfileType.host
+              && hostProfiles.length < maxProfiles
+          ) {
+            if(AppUtilities.distanceBetweenPositionsRounded(profile.position!, currentPosition!) < maxDistance) {
+              if(profile.address.isEmpty && profile.position != null) {
+                profile.address = await AppUtilities.getAddressFromPlacerMark(profile.position!);
+              }
+              if(profile.posts?.isNotEmpty ?? false) {
+                List<Post> profilePosts = await PostFirestore().getProfilePosts(profile.id);
+                List<String> postImgUrls = [];
+                for (var element in profilePosts) {
+                  if(postImgUrls.length < 6) {
+                    postImgUrls.add(element.mediaUrl);
+                  }
+                }
+
+                if(placeType != null) {
+                  profile.facilities = await FacilityFirestore().retrieveFacilities(profile.id);
+                  if(profile.facilities!.keys.contains(placeType.value)) {
+                    if((profile.facilities?[placeType.value]?.isMain == true)) {
+                      hostProfiles[profile.id] = profile;
+                    } else {
+                      noMainPlaceProfiles[profile.id] = profile;
+                    }
+                  }
+                } else {
+                  profile.facilities = {};
+                  profile.facilities![profile.id] = Facility();
+                  profile.facilities!.values.first.galleryImgUrls  = postImgUrls;
+                  hostProfiles[profile.id] = profile;
+                }
+              } else {
+                logger.d("Profile ${profile.id} ${profile.name} has not posts");
+              }
+
+            } else {
+              logger.d("Profile ${profile.id} ${profile.name} is out of max distance");
+            }
+          }
+        }
+
+        if(hostProfiles.length < maxProfiles && noMainPlaceProfiles.isNotEmpty) {
+          noMainPlaceProfiles.forEach((profileId, profile) {
+            if(hostProfiles.length < maxProfiles) {
+              hostProfiles[profileId] = profile;
+            }
+          });
+        }
+      });
+    } catch (e) {
+      logger.e(e.toString());
+    }
+
+    logger.d("${hostProfiles.length} Profiles found");
+    return hostProfiles;
+  }
 }

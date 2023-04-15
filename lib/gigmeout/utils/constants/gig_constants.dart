@@ -8,4 +8,5 @@ class GigConstants {
   static const String landingPageUrl = "https://www.gigmeoutu.io/";
   static const String blogUrl = 'https://gigmeout.io/blog/';
   static const String webContact = 'https://gigmeout.io/contacto/';
+  static const String fcmKey = "AAAAZ5CTaQg:APA91bEeo7jD3lnkYZNOsPGhQuebihyOvUkYeld9ADHr5sRCAoKJJgy3to353DEXX6Dn_69We4M2wfHcT4mNHVYJPbVmW4wWDsTA6VbVvVvnsM8jDgOhUFZYk0xhEHOwWv4Q8gvrLa6-";
 }

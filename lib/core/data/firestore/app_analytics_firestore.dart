@@ -1,13 +1,17 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../app_flavour.dart';
 import '../../domain/model/app_coupon.dart';
 import '../../domain/model/app_profile.dart';
 import '../../domain/model/app_user.dart';
 import '../../domain/repository/app_analytics_repository.dart';
 import '../../utils/app_utilities.dart';
+import '../../utils/core_utilities.dart';
 import 'constants/app_firestore_collection_constants.dart';
+import 'constants/app_firestore_constants.dart';
 import 'profile_firestore.dart';
 import 'user_firestore.dart';
 
@@ -32,7 +36,7 @@ class AppAnalyticsFirestore implements AppAnalyticsRepository {
   }
 
   @override
-  Future<void> setUserAnalytics() async {
+  Future<void> setUserAnalytics({bool getEmailsAsText = false}) async {
 
       logger.d("Setting App Analytics for fast access.");
 
@@ -52,8 +56,8 @@ class AppAnalyticsFirestore implements AppAnalyticsRepository {
         await analyticsReference
             .doc(AppFirestoreCollectionConstants.analytics)
             .set({
-              "totalUsers": "${users.length}",
-              "totalLocations": "${totalLocations.length}"
+              AppFirestoreConstants.totalUsers: "${users.length}",
+              AppFirestoreConstants.totalLocations: "${totalLocations.length}"
             });
 
 
@@ -68,12 +72,30 @@ class AppAnalyticsFirestore implements AppAnalyticsRepository {
           }
 
           locationTimes[locationName] = locationNameIndex;
-          await analyticsReference.doc(AppFirestoreCollectionConstants.analytics).update({
+          await analyticsReference.
+            doc(AppFirestoreCollectionConstants.analytics)
+              .update({
             locationName: "$locationNameIndex"
-          });
+              });
         }
 
+        if(getEmailsAsText) {
+          StringBuffer emailList = StringBuffer();
+          for (var user in users) {
+            if(user.email.isNotEmpty) {
+              emailList.write("${user.email}, ");
+            }
+          }
 
+          if(emailList.isNotEmpty) {
+            String localPath = await CoreUtilities.getLocalPath();
+            String emailListPath = "$localPath/${AppFlavour.appInUse.value}_email_list.txt";
+            File txtFileRef = File(emailListPath);
+            await txtFileRef.writeAsString(emailList.toString());
+            AppUtilities.logger.i("Email List created to path $emailListPath successfully.");
+          }
+
+        }
       } catch (e) {
         logger.e(e.toString());
       }

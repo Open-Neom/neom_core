@@ -191,4 +191,15 @@ class AppFlavour {
     }
   }
 
+  static String getFcmKey() {
+    switch(appInUse) {
+      case AppInUse.gigmeout:
+        return GigConstants.fcmKey;
+      case AppInUse.emxi:
+        return EmxiConstants.fcmKey;
+      case AppInUse.cyberneom:
+        return "";
+    }
+  }
+
 }

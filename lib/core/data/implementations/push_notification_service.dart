@@ -2,20 +2,103 @@ import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:get/get.dart';
 
-import '../../app_flavour.dart';
-import '../../domain/model/push_notification_message.dart';
-import '../../utils/app_utilities.dart';
-import '../../utils/constants/app_assets.dart';
-import '../../utils/constants/app_route_constants.dart';
-import '../../utils/enums/push_notification_type.dart';
-import '../api_services/push_notification/notification_channel_constants.dart';
+import '../../../neom_commons.dart';
+import 'push_notification_controller.dart';
 
 class PushNotificationService {
 
   var logger = AppUtilities.logger;
-  FirebaseMessaging messaging = FirebaseMessaging.instance;
+  // FirebaseMessaging messaging = FirebaseMessaging.instance;
   static String? token;
+  static String referenceId = "referenceId";
 
+  static Future<void> initNotifications({required bool debug}) async {
+    AwesomeNotifications().initialize(
+      AppAssets.iconResource,
+      [
+        NotificationChannel(
+            channelGroupKey: PushNotificationType.like.name,
+            channelKey: PushNotificationType.like.name,
+            channelName: 'Like Channel',
+            channelDescription: 'Like channel',
+            importance: NotificationImportance.High),
+        NotificationChannel(
+            channelGroupKey: PushNotificationType.comment.name,
+            channelKey: PushNotificationType.comment.name,
+            channelName: 'Comment Channel',
+            channelDescription: 'Comment channel',
+            importance: NotificationImportance.High),
+        NotificationChannel(
+            channelGroupKey: PushNotificationType.request.name,
+            channelKey: PushNotificationType.request.name,
+            channelName: 'Request Channel',
+            channelDescription: 'Request channel',
+            importance: NotificationImportance.Max),
+        NotificationChannel(
+            channelGroupKey: PushNotificationType.message.name,
+            channelKey: PushNotificationType.message.name,
+            channelName: 'Message Channel',
+            channelDescription: 'Message channel',
+            importance: NotificationImportance.Max),
+        NotificationChannel(
+            channelGroupKey: PushNotificationType.eventCreated.name,
+            channelKey: PushNotificationType.eventCreated.name,
+            channelName: 'Event Channel',
+            channelDescription: 'Event channel',
+            importance: NotificationImportance.Max),
+        NotificationChannel(
+            channelGroupKey: PushNotificationType.goingEvent.name,
+            channelKey: PushNotificationType.goingEvent.name,
+            channelName: 'Event Channel',
+            channelDescription: 'Event channel',
+            importance: NotificationImportance.Max),
+        NotificationChannel(
+            channelGroupKey: PushNotificationType.viewProfile.name,
+            channelKey: PushNotificationType.viewProfile.name,
+            channelName: 'View Profile Channel',
+            channelDescription: 'View Profile channel',
+            importance: NotificationImportance.Low),
+        NotificationChannel(
+            channelGroupKey: PushNotificationType.following.name,
+            channelKey: PushNotificationType.following.name,
+            channelName: 'Following Channel',
+            channelDescription: 'Following channel',
+            importance: NotificationImportance.Low),
+        NotificationChannel(
+            channelGroupKey: PushNotificationType.post.name,
+            channelKey: PushNotificationType.post.name,
+            channelName: 'Post Channel',
+            channelDescription: 'Blog channel',
+            importance: NotificationImportance.Low),
+        NotificationChannel(
+            channelGroupKey: PushNotificationType.blog.name,
+            channelKey: PushNotificationType.blog.name,
+            channelName: 'Blog Channel',
+            channelDescription: 'Blog channel',
+            importance: NotificationImportance.Low),
+        NotificationChannel(
+            channelGroupKey: PushNotificationType.appItemAdded.name,
+            channelKey: PushNotificationType.appItemAdded.name,
+            channelName: 'App Item Channel',
+            channelDescription: 'App Item channel',
+            importance: NotificationImportance.Low)
+      ],
+      channelGroups: [
+        NotificationChannelGroup(channelGroupKey: PushNotificationType.like.name, channelGroupName: PushNotificationType.like.name),
+        NotificationChannelGroup(channelGroupKey: PushNotificationType.comment.name, channelGroupName: PushNotificationType.comment.name),
+        NotificationChannelGroup(channelGroupKey: PushNotificationType.request.name, channelGroupName: PushNotificationType.request.name),
+        NotificationChannelGroup(channelGroupKey: PushNotificationType.message.name, channelGroupName: PushNotificationType.message.name),
+        NotificationChannelGroup(channelGroupKey: PushNotificationType.eventCreated.name, channelGroupName: PushNotificationType.eventCreated.name),
+        NotificationChannelGroup(channelGroupKey: PushNotificationType.goingEvent.name, channelGroupName: PushNotificationType.goingEvent.name),
+        NotificationChannelGroup(channelGroupKey: PushNotificationType.viewProfile.name, channelGroupName: PushNotificationType.viewProfile.name),
+        NotificationChannelGroup(channelGroupKey: PushNotificationType.following.name, channelGroupName: PushNotificationType.following.name),
+        NotificationChannelGroup(channelGroupKey: PushNotificationType.post.name, channelGroupName: PushNotificationType.post.name),
+        NotificationChannelGroup(channelGroupKey: PushNotificationType.blog.name, channelGroupName: PushNotificationType.blog.name),
+        NotificationChannelGroup(channelGroupKey: PushNotificationType.appItemAdded.name, channelGroupName: PushNotificationType.appItemAdded.name),
+      ],
+      debug: debug,
+    );
+  }
 
   static Future<void> backgroundHandler(RemoteMessage message) async {
     AppUtilities.logger.d('onBackground Handler ${message.messageId}');
@@ -28,7 +111,6 @@ class PushNotificationService {
 
   }
 
-
   static Future<void> onMessageHandler(RemoteMessage message) async {
     AppUtilities.logger.d('onMessageHandler Handler ${message.messageId}');
 
@@ -40,7 +122,6 @@ class PushNotificationService {
 
   }
 
-
   static Future<void> onMessageOpenApp(RemoteMessage message) async {
     AppUtilities.logger.d('onMessageOpenApp Handler ${message.messageId}');
 
@@ -51,7 +132,6 @@ class PushNotificationService {
     }
 
   }
-
 
   static void selectPushNotificationForFcm(RemoteMessage message) {
     try {
@@ -81,22 +161,44 @@ class PushNotificationService {
           buildPushNotification(pushNotificationMessage,
               NotificationCategory.Event, NotificationLayout.BigPicture);
           break;
+        case PushNotificationType.viewProfile:
+          buildPushNotification(pushNotificationMessage,
+              NotificationCategory.Social, NotificationLayout.Default);
+          break;
+        case PushNotificationType.following:
+          buildPushNotification(pushNotificationMessage,
+              NotificationCategory.Social, NotificationLayout.Default);
+          break;
+        case PushNotificationType.post:
+          buildPushNotification(pushNotificationMessage,
+              NotificationCategory.Social, NotificationLayout.BigPicture);
+          break;
+        case PushNotificationType.blog:
+          buildPushNotification(pushNotificationMessage,
+              NotificationCategory.Social, NotificationLayout.BigText);
+          break;
+        case PushNotificationType.appItemAdded:
+          buildPushNotification(pushNotificationMessage,
+              NotificationCategory.Recommendation, NotificationLayout.BigPicture);
+          break;
       }
     } catch (e) {
       AppUtilities.logger.e(e.toString());
     }
+
   }
 
-
   static void buildPushNotification(PushNotificationMessage pushNotificationMessage,
-      NotificationCategory notificationCategory, NotificationLayout notificationLayout) {
-    AwesomeNotifications().createNotification(
+      NotificationCategory notificationCategory, NotificationLayout notificationLayout) async {
+    await AwesomeNotifications().createNotification(
         content: NotificationContent(
-          category: notificationCategory,
           id: pushNotificationMessage.channelId,
           channelKey: pushNotificationMessage.channelKey,
+          largeIcon: pushNotificationMessage.fromImgUrl.isNotEmpty
+              ? pushNotificationMessage.fromImgUrl : AppFlavour.getAppLogoUrl(),
+          category: notificationCategory,
           title: "${pushNotificationMessage.fromName} ${pushNotificationMessage.title.tr}",
-          payload: {"referenceId": pushNotificationMessage.referenceId},
+          payload: {referenceId: pushNotificationMessage.referenceId},
           body: pushNotificationMessage.body,
           bigPicture: pushNotificationMessage.imgUrl?.isNotEmpty ?? false ? pushNotificationMessage.imgUrl
               : pushNotificationMessage.fromImgUrl.isNotEmpty ? pushNotificationMessage.fromImgUrl : AppFlavour.getNoImageUrl(),
@@ -105,103 +207,13 @@ class PushNotificationService {
     );
   }
 
-
-  static void initNotifications() {
-    AwesomeNotifications().initialize(
-      AppAssets.iconResource,
-      [
-        NotificationChannel(
-            channelGroupKey: 'likes',
-            channelKey: NotificationChannelConstants.like,
-            channelName: 'Like Channel',
-            channelDescription: 'Like channel',
-            importance: NotificationImportance.High),
-        NotificationChannel(
-            channelGroupKey: 'comments',
-            channelKey: NotificationChannelConstants.comment,
-            channelName: 'Comment Channel',
-            channelDescription: 'Comment channel',
-            importance: NotificationImportance.High),
-        NotificationChannel(
-            channelGroupKey: 'requests',
-            channelKey: NotificationChannelConstants.request,
-            channelName: 'Request Channel',
-            channelDescription: 'Request channel',
-            importance: NotificationImportance.Max),
-        NotificationChannel(
-            channelGroupKey: 'messages',
-            channelKey: NotificationChannelConstants.message,
-            channelName: 'Message Channel',
-            channelDescription: 'Message channel',
-            importance: NotificationImportance.Max),
-        NotificationChannel(
-            channelGroupKey: 'events',
-            channelKey: NotificationChannelConstants.event,
-            channelName: 'Event Channel',
-            channelDescription: 'Event channel',
-            importance: NotificationImportance.Max),
-      ],
-      debug: true,
-      channelGroups: [
-        NotificationChannelGroup(channelGroupKey: 'likes', channelGroupName: 'Likes Channel'),
-        NotificationChannelGroup(channelGroupKey: 'comments', channelGroupName: 'Comments Channel'),
-        NotificationChannelGroup(channelGroupKey: 'requests', channelGroupName: 'Requests Channel'),
-        NotificationChannelGroup(channelGroupKey: 'messages', channelGroupName: 'Messages Channel'),
-        NotificationChannelGroup(channelGroupKey: 'events', channelGroupName: 'Events Channel'),
-      ],
-    );
-  }
-
-
   static void actionStreamListener() {
     AwesomeNotifications().setListeners(
-        onActionReceivedMethod: NotificationController.onActionReceivedMethod,
-        onNotificationCreatedMethod:    NotificationController.onNotificationCreatedMethod,
-        onNotificationDisplayedMethod:  NotificationController.onNotificationDisplayedMethod,
-        onDismissActionReceivedMethod:  NotificationController.onDismissActionReceivedMethod
+        onActionReceivedMethod: PushNotificationController.onActionReceivedMethod,
+        onNotificationCreatedMethod: PushNotificationController.onNotificationCreatedMethod,
+        onNotificationDisplayedMethod: PushNotificationController.onNotificationDisplayedMethod,
+        onDismissActionReceivedMethod: PushNotificationController.onDismissActionReceivedMethod
     );
-  }
-
-}
-
-class NotificationController {
-
-  /// Use this method to detect when the user taps on a notification or action button
-  static Future <void> onActionReceivedMethod(ReceivedAction receivedAction) async {
-    String referenceId = receivedAction.payload?["referenceId"] ?? "";
-    AppUtilities.logger.i("Notification ReferenceId $referenceId retrieved from payload");
-    switch(receivedAction.id) {
-      case NotificationChannelConstants.likeChannelId:
-        Get.toNamed(AppRouteConstants.postDetails, arguments: [referenceId]);
-        break;
-      case NotificationChannelConstants.commentChannelId:
-        Get.toNamed(AppRouteConstants.postDetails, arguments: [referenceId]);
-        break;
-      case NotificationChannelConstants.requestChannelId:
-        Get.toNamed(AppRouteConstants.request);
-        break;
-      case NotificationChannelConstants.messageChannelId:
-        Get.toNamed(AppRouteConstants.inboxRoom, arguments: [referenceId]);
-        break;
-      case NotificationChannelConstants.eventChannelId:
-        Get.toNamed(AppRouteConstants.eventDetails, arguments: [referenceId]);
-        break;
-    }
-  }
-
-  /// Use this method to detect when a new notification or a schedule is created
-  static Future <void> onNotificationCreatedMethod(ReceivedNotification receivedNotification) async {
-    // Your code goes here
-  }
-
-  /// Use this method to detect every time that a new notification is displayed
-  static Future <void> onNotificationDisplayedMethod(ReceivedNotification receivedNotification) async {
-    // Your code goes here
-  }
-
-  /// Use this method to detect if the user dismissed a notification
-  static Future <void> onDismissActionReceivedMethod(ReceivedAction receivedAction) async {
-    // Your code goes here
   }
 
 }

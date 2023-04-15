@@ -51,15 +51,21 @@ class AppUtilities {
 
   static int distanceBetweenPositionsRounded(Position mainUserPos, Position refUserPos){
 
-    double mainLatitude = mainUserPos.latitude;
-    double mainLongitude = mainUserPos.longitude;
-    double refLatitude = refUserPos.latitude;
-    double refLongitude = refUserPos.longitude;
+    int distanceKm = 0;
+    try {
+      double mainLatitude = mainUserPos.latitude;
+      double mainLongitude = mainUserPos.longitude;
+      double refLatitude = refUserPos.latitude;
+      double refLongitude = refUserPos.longitude;
 
-    int distanceInMeters = Geolocator.distanceBetween(mainLatitude, mainLongitude, refLatitude, refLongitude).round();
-    logger.d("Distance between positions $distanceInMeters");
+      int distanceInMeters = Geolocator.distanceBetween(mainLatitude, mainLongitude, refLatitude, refLongitude).round();
+      logger.d("Distance between positions $distanceInMeters");
 
-    int distanceKm = (distanceInMeters / 1000).round();
+      distanceKm = (distanceInMeters / 1000).round();
+    } catch (e) {
+      logger.e(e.toString());
+    }
+
     return distanceKm;
   }
 

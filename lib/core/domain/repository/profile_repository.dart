@@ -4,6 +4,7 @@ import 'package:geolocator/geolocator.dart';
 import '../../utils/enums/app_currency.dart';
 import '../../utils/enums/event_action.dart';
 import '../../utils/enums/facilitator_type.dart';
+import '../../utils/enums/place_type.dart';
 import '../../utils/enums/request_type.dart';
 import '../model/app_profile.dart';
 
@@ -60,6 +61,16 @@ abstract class ProfileRepository {
     int maxDistance = 30,
     int maxProfiles = 30,
   });
+
+  Future<Map<String, AppProfile>> retrieveProfilesByPlace({
+    required String selfProfileId,
+    required Position? currentPosition,
+    PlaceType? placeType,
+    int maxDistance = 30,
+    int maxProfiles = 30,
+  });
+
+
 
   Future<List<AppProfile>> retrieveProfilesFromList(List<String> profileIds);
   Future<bool> hidePost(String profileId, String postId);

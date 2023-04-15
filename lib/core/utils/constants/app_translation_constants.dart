@@ -568,9 +568,22 @@ class AppTranslationConstants {
   static const String hasCommented = "hasCommented";
   static const String likedYourComment = "likedYourComment";
   static const String repliedYourComment = "repliedYourComment";
+  static const String hasReactedToThePostOf = "hasReactedToThePostOf";
+  static const String commentedThePostOf = "commentedThePostOf";
+  static const String sentRequestTo = "sentRequestTo";
+  static const String sentMessageTo = "sentMessageTo";
+  static const String goingToEvent = "goingToEvent";
   static const String eventCreated = "eventCreated";
   static const String hasSentRequest = "hasSentRequest";
   static const String hasSentMessage = "hasSentMessage";
+
+  static const String viewedYourProfile = "viewedYourProfile";
+  static const String viewedProfileOf = "viewedProfileOf";
+  static const String isFollowingTo = "isFollowingTo";
+  static const String hasPostedSomethingNew = "hasPostedSomethingNew";
+  static const String hasPostedInBlog = "hasPostedInBlog";
+  static const String addedAppItemToList = "addedAppItemToList";
+
   static const String receivedInvitationRequest = "receivedInvitationRequest";
   static const String hasAcceptedYourRequest = "hasAcceptedYourRequest";
   static const String hasDeclinedYourRequest = "hasDeclinedYourRequest";
@@ -679,5 +692,9 @@ class AppTranslationConstants {
   static const String playingRole = 'playingRole';
   static const String onlineEvent = 'onlineEvent';
   static const String test = 'test';
+  static const String directory = 'directory';
+
+  static const String dirWhatsappMsgA = 'dirWhatsappMsgA';
+  static const String dirWhatsappMsgB = 'dirWhatsappMsgB';
 
 }

@@ -1,5 +1,4 @@
 import 'package:enum_to_string/enum_to_string.dart';
-import '../../data/api_services/push_notification/notification_channel_constants.dart';
 import '../../utils/enums/push_notification_type.dart';
 
 class PushNotificationMessage {
@@ -28,17 +27,17 @@ class PushNotificationMessage {
 
 
   PushNotificationMessage.fromMessageData(data) :
-        title = data["title"] ?? "",
-        body = data["body"] ?? "",
-        fromId = data["fromId"] ?? "",
-        fromName = data["fromName"] ?? "",
-        fromImgUrl = data["fromImgUrl"] ?? "",
-        imgUrl = data["imgUrl"] ?? "",
-        type = EnumToString.fromString(PushNotificationType.values, data["notificationType"]
-            ?? PushNotificationType.message.name) ??  PushNotificationType.message,
-        channelKey = data["channelKey"] ?? NotificationChannelConstants.message,
-        channelId = int.parse(data["channelId"] ?? "4"),
-        referenceId = data["referenceId"] ?? "";
+    title = data["title"] ?? "",
+    body = data["body"] ?? "",
+    fromId = data["fromId"] ?? "",
+    fromName = data["fromName"] ?? "",
+    fromImgUrl = data["fromImgUrl"] ?? "",
+    imgUrl = data["imgUrl"] ?? "",
+    type = EnumToString.fromString(PushNotificationType.values, data["notificationType"]
+        ?? PushNotificationType.message.name) ??  PushNotificationType.message,
+    channelKey = data["channelKey"] ?? PushNotificationType.message.name,
+    channelId = int.parse(data["channelId"] ?? PushNotificationType.message.value.toString()),
+    referenceId = data["referenceId"] ?? "";
 
 
 }

@@ -1,10 +1,15 @@
+import 'package:geolocator/geolocator.dart';
+
 import '../../utils/enums/app_currency.dart';
+import '../../utils/enums/facilitator_type.dart';
+import '../../utils/enums/profile_type.dart';
 import '../model/app_user.dart';
 
 abstract class UserRepository {
 
   Future<bool> insert(AppUser user);
-  Future<AppUser> getById(userId);
+  Future<AppUser> getById(String userId);
+  Future<AppUser> getByProfileId(String userId);
   Future<List<AppUser>> getAll();
   Future<bool> remove(String userId);
   Future<bool> updateAndroidNotificationToken(String userId, String token);
@@ -18,5 +23,10 @@ abstract class UserRepository {
   Future<String> retrieveFcmToken(String userId);
   Future<bool> updateSpotifyToken(String userId, String spotifyToken);
   Future<void> updateLastTimeOn(String userId);
+  Future<List<AppUser>> getWithParameters({
+    bool needsPhone  = false, bool includeProfile = false,
+    List<ProfileType>? profileTypes, FacilityType? facilityType,
+    Position? currentPosition, int maxDistance = 30,});
 
+  Future<List<String>> getFCMTokens();
 }

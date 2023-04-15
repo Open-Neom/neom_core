@@ -51,6 +51,7 @@ class AppPageIdConstants {
 
   static const String activityFeed = "activityFeed";
   static const String booking = "booking";
+  static const String directory = "directory";
   static const String walletHistory = "walletHistory";
   static const String requests = "requests";
   static const String request = "request";

@@ -6,16 +6,18 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
 
+import '../../app_flavour.dart';
 import '../../data/implementations/user_controller.dart';
 import '../../domain/model/event.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/app_utilities.dart';
+import '../../utils/constants/app_constants.dart';
 import '../../utils/constants/app_route_constants.dart';
 
 
 Widget customCachedNetworkHeroImage(mediaUrl) {
   AppUtilities.logger.v("Building hero widget for image url: $mediaUrl");
-  return Hero(
+  return mediaUrl == AppFlavour.getNoImageUrl() ? Container(): Hero(
     //TODO Improve removing random int to get real hero functionality
     tag: 'img_${mediaUrl}_${Random().nextInt(1000)}',
     child: CachedNetworkImage(

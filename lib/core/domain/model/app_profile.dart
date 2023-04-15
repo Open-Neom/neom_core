@@ -28,6 +28,7 @@ class AppProfile {
   double reviewStars =  10.0;
   bool isActive;
   Position? position;
+  String address;
   ProfileType type;
   UsageReason reason;
 
@@ -73,6 +74,7 @@ class AppProfile {
     this.id = "",
     this.name = "",
     this.position,
+    this.address = "",
     this.photoUrl = "",
     this.coverImgUrl = "",
     this.aboutMe = "",
@@ -147,6 +149,7 @@ class AppProfile {
         mainFeature = data["mainFeature"] ?? "",
         isActive = data["isActive"] ?? true,
         position = CoreUtilities.JSONtoPosition(data["position"]),
+        address = data["address"] ?? "",
         bannedGenres = data["bannedGenres"]?.cast<String>() ?? [],
         itemmates = data["itemmates"]?.cast<String>() ?? [],
         eventmates = data["eventmates"]?.cast<String>() ?? [],
@@ -182,6 +185,7 @@ class AppProfile {
         aboutMe = data["aboutMe"] ?? "",
         mainFeature = data["mainFeature"] ?? "",
         position = CoreUtilities.JSONtoPosition(data["position"]),
+        address = data["address"] ?? "",
         appItems = data["appItems"]?.cast<String>() ?? [],
         instruments = { for (var e in data["instruments"]?.cast<String>() ?? []) e : Instrument() },
         type = ProfileType.instrumentist, coverImgUrl = "",
