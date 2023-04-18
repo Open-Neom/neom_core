@@ -68,19 +68,19 @@ class PushNotificationService {
             channelGroupKey: PushNotificationType.post.name,
             channelKey: PushNotificationType.post.name,
             channelName: 'Post Channel',
-            channelDescription: 'Blog channel',
+            channelDescription: 'Blog Channel',
             importance: NotificationImportance.Low),
         NotificationChannel(
             channelGroupKey: PushNotificationType.blog.name,
             channelKey: PushNotificationType.blog.name,
             channelName: 'Blog Channel',
-            channelDescription: 'Blog channel',
+            channelDescription: 'Blog Channel',
             importance: NotificationImportance.Low),
         NotificationChannel(
             channelGroupKey: PushNotificationType.appItemAdded.name,
             channelKey: PushNotificationType.appItemAdded.name,
             channelName: 'App Item Channel',
-            channelDescription: 'App Item channel',
+            channelDescription: 'App Item Channel',
             importance: NotificationImportance.Low)
       ],
       channelGroups: [

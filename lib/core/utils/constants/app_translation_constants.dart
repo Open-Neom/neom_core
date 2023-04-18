@@ -697,4 +697,7 @@ class AppTranslationConstants {
   static const String dirWhatsappMsgA = 'dirWhatsappMsgA';
   static const String dirWhatsappMsgB = 'dirWhatsappMsgB';
 
+  static const String noItemlistsMsg = 'noItemlistsMsg';
+  static const String noItemlistsMsg2 = 'noItemlistsMsg2';
+
 }

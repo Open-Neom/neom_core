@@ -76,8 +76,8 @@ class AppConstants {
   static const List<String> listCategory = ['All posts', 'Media', 'Events', 'Videos', 'Questions', 'Polls'];
 
   static const double cameraPositionZoom = 20;
-  static const int imageQuality = 60;
-  static const int videoQuality = 60;
+  static const int imageQuality = 75;
+  static const int videoQuality = 75;
 
   static const String wifi = "Wi-FI";
   static const String emmanuelMontoyaCeo ="Emmanuel Montoya (CEO)";
