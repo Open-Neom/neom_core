@@ -205,7 +205,5 @@ class MessageTranslationConstants {
 
   static const String mainEventImg = 'mainEventImg';
   static const String mainEventImgMsg = 'mainEventImgMsg';
-  
-
 
 }

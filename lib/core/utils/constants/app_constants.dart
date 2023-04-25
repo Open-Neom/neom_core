@@ -96,5 +96,6 @@ class AppConstants {
   static const int blogMinWords = 2;
   static final blogTabs = ['published', 'drafts'];
   static const String titleTextDivider = "_titleTextDivider_";
+  static const String digitalLibrary = "digitalLibrary";
 
 }

@@ -21,6 +21,7 @@ export 'auth/utils/enums/signed_in_with.dart';
 //CORE MAIN
 export 'core/app_flavour.dart';
 export 'core/core_routes.dart';
+export 'core/data/api_services/google_books/google_books_api.dart';
 //CORE DATA
 //TODO ADD ADMOB
 export 'core/data/api_services/push_notification/firebase_messaging_calls.dart';
@@ -211,5 +212,3 @@ export 'core/utils/mockups/events_mockups.dart';
 export 'core/utils/mockups/places_mockups.dart';
 export 'core/utils/mockups/requests_mockups.dart';
 export 'core/utils/validator.dart';
-export 'emxi/data/api_services/google_books/google_books_api.dart';
-export 'emxi/domain/google_book.dart';

@@ -1,3 +1,4 @@
+//TODO To remove
 class AppStaticImageUrls {
 
   static const String forums = 'https://firebasestorage.googleapis.com/v0/b/gig-me-out.appspot.com/o/AppStatics%2FBookingAssets%2FGigmeout%20-%20Forums.png?alt=media&token=84e2afbd-c52b-4e53-ac9a-95add192a9cd';
@@ -15,9 +16,8 @@ class AppStaticImageUrls {
     'https://firebasestorage.googleapis.com/v0/b/gig-me-out.appspot.com/o/RehearsalRooms%2FMexico%2FWarhead%2Fbateria.jpg?alt=media&token=2853016d-6f4a-4f9b-8494-a60921e23240',
     'https://firebasestorage.googleapis.com/v0/b/gig-me-out.appspot.com/o/RehearsalRooms%2FMexico%2FWarhead%2Fampli_guitarra.jpg?alt=media&token=d03db2e1-3939-44a8-9c3a-88a623e81610',
     'https://firebasestorage.googleapis.com/v0/b/gig-me-out.appspot.com/o/RehearsalRooms%2FMexico%2FWarhead%2Fampli_bajo.jpg?alt=media&token=10dc16a5-68a1-46f7-be6c-4931d38fcfb5'
-
-
   ];
+
   static const List<String> solazImgs = [
     'https://firebasestorage.googleapis.com/v0/b/gig-me-out.appspot.com/o/RehearsalRooms%2FMexico%2FSolaz%2Frecepcion.jpg?alt=media&token=144ec983-8f5c-4db7-afb3-74ae16c3e48e',
     'https://firebasestorage.googleapis.com/v0/b/gig-me-out.appspot.com/o/RehearsalRooms%2FMexico%2FSolaz%2F209105802_4320069204723470_6050930215324662652_n.jpg?alt=media&token=686aa837-888a-4023-b181-3067bda97902',

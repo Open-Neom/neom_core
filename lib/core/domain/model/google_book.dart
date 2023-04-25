@@ -1,7 +1,7 @@
 
-import '../../core/domain/model/app_item.dart';
-import '../../core/domain/model/genre.dart';
-import '../../core/utils/app_utilities.dart';
+import '../../utils/app_utilities.dart';
+import 'app_item.dart';
+import 'genre.dart';
 import 'google_book/access_info.dart';
 import 'google_book/sale_info.dart';
 import 'google_book/search_info.dart';

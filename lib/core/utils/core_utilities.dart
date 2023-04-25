@@ -32,7 +32,6 @@ import '../domain/model/post.dart';
 import 'app_utilities.dart';
 import 'constants/app_assets.dart';
 import 'constants/app_constants.dart';
-import 'constants/app_google_constants.dart';
 import 'constants/message_translation_constants.dart';
 import 'constants/url_constants.dart';
 import 'enums/app_currency.dart';
@@ -387,7 +386,7 @@ class CoreUtilities {
 
     try {
       GoogleMapsPlaces places = GoogleMapsPlaces(
-        apiKey: AppGoogleConstants.kGoogleApiKey,
+        apiKey: AppFlavour.getGoogleApiKey(),
         apiHeaders: await const GoogleApiHeaders().getHeaders(),
       );
 

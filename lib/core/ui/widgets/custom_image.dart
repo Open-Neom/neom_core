@@ -11,7 +11,6 @@ import '../../data/implementations/user_controller.dart';
 import '../../domain/model/event.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/app_utilities.dart';
-import '../../utils/constants/app_constants.dart';
 import '../../utils/constants/app_route_constants.dart';
 
 

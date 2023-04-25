@@ -1,26 +1,34 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-import '../emxi/utils/constants/emxi_constants.dart';
-import '../gigmeout/utils/constants/gig_constants.dart';
 import '../neom_commons.dart';
 
 class AppFlavour {
 
   static AppInUse appInUse = AppInUse.emxi;
   static String appVersion = "";
+  static dynamic appProperties = {};
 
   AppFlavour({required AppInUse inUse, required String version,}) {
     appInUse = inUse;
     appVersion = version;
   }
 
+  static Future<void> readProperties(BuildContext context) async {
+    final jsonString = await DefaultAssetBundle.of(context)
+        .loadString(AppAssets.propertiesJsonPath);
+
+    appProperties = jsonDecode(jsonString);
+  }
+
   static String getAppLogoUrl() {
     switch(appInUse) {
       case AppInUse.gigmeout:
-        return GigConstants.appLogoUrl;
+        return appProperties['appLogoUrl'];
       case AppInUse.emxi:
-        return EmxiConstants.appLogoUrl;
+        return appProperties['appLogoUrl'];
       case AppInUse.cyberneom:
         return "";
     }
@@ -29,9 +37,9 @@ class AppFlavour {
   static String getPlayStoreUrl() {
     switch(appInUse) {
       case AppInUse.gigmeout:
-        return GigConstants.playStoreUrl;
+        return appProperties['playStoreUrl'];
       case AppInUse.emxi:
-        return EmxiConstants.playStoreUrl;
+        return appProperties['playStoreUrl'];
       case AppInUse.cyberneom:
         return "";
     }
@@ -40,9 +48,9 @@ class AppFlavour {
   static String getAppStoreUrl() {
     switch(appInUse) {
       case AppInUse.gigmeout:
-        return GigConstants.appStoreUrl;
+        return appProperties['appStoreUrl'];
       case AppInUse.emxi:
-        return EmxiConstants.appStoreUrl;
+        return appProperties['appStoreUrl'];
       case AppInUse.cyberneom:
         return "";
     }
@@ -51,9 +59,9 @@ class AppFlavour {
   static String getLandingPageUrl() {
     switch(appInUse) {
       case AppInUse.gigmeout:
-        return GigConstants.landingPageUrl;
+        return appProperties['landingPageUrl'];
       case AppInUse.emxi:
-        return EmxiConstants.landingPageUrl;
+        return appProperties['landingPageUrl'];
       case AppInUse.cyberneom:
         return "";
     }
@@ -62,9 +70,9 @@ class AppFlavour {
   static String getTermsOfServiceUrl() {
     switch(appInUse) {
       case AppInUse.gigmeout:
-        return GigConstants.termsOfServiceUrl;
+        return appProperties['termsOfServiceUrl'];
       case AppInUse.emxi:
-        return EmxiConstants.termsOfServiceUrl;
+        return appProperties['termsOfServiceUrl'];
       case AppInUse.cyberneom:
         return "";
     }
@@ -73,9 +81,9 @@ class AppFlavour {
   static String getPrivacyPolicyUrl() {
     switch(appInUse) {
       case AppInUse.gigmeout:
-        return GigConstants.privacyPolicyUrl;
+        return appProperties['privacyPolicyUrl'];
       case AppInUse.emxi:
-        return EmxiConstants.privacyPolicyUrl;
+        return appProperties['privacyPolicyUrl'];
       case AppInUse.cyberneom:
         return "";
     }
@@ -84,9 +92,9 @@ class AppFlavour {
   static String getBlogUrl() {
     switch(appInUse) {
       case AppInUse.gigmeout:
-        return GigConstants.blogUrl;
+        return appProperties['blogUrl'];
       case AppInUse.emxi:
-        return EmxiConstants.blogUrl;
+        return appProperties['blogUrl'];
       case AppInUse.cyberneom:
         return "";
     }
@@ -95,9 +103,9 @@ class AppFlavour {
   static String getWebContact() {
     switch(appInUse) {
       case AppInUse.gigmeout:
-        return GigConstants.webContact;
+        return appProperties['webContact'];
       case AppInUse.emxi:
-        return EmxiConstants.webContact;
+        return appProperties['webContact'];
       case AppInUse.cyberneom:
         return "";
     }
@@ -106,9 +114,9 @@ class AppFlavour {
   static String getNoImageUrl() {
     switch(appInUse) {
       case AppInUse.gigmeout:
-        return GigConstants.noImageUrl;
+        return appProperties['noImageUrl'];
       case AppInUse.emxi:
-        return EmxiConstants.noImageUrl;
+        return appProperties['noImageUrl'];
       case AppInUse.cyberneom:
         return "";
     }
@@ -194,9 +202,77 @@ class AppFlavour {
   static String getFcmKey() {
     switch(appInUse) {
       case AppInUse.gigmeout:
-        return GigConstants.fcmKey;
+        return appProperties['fcmKey'];
+        //return GigConstants.fcmKey;
       case AppInUse.emxi:
-        return EmxiConstants.fcmKey;
+        return appProperties['fcmKey'];
+        //return EmxiConstants.fcmKey;
+      case AppInUse.cyberneom:
+        return "";
+    }
+  }
+
+  static String getGoogleApiKey() {
+    switch(appInUse) {
+      case AppInUse.gigmeout:
+        return appProperties['googleApiKey'];
+      case AppInUse.emxi:
+        return appProperties['googleApiKey'];
+      case AppInUse.cyberneom:
+        return "";
+    }
+  }
+
+  static String getECommerceUrl() {
+    switch(appInUse) {
+      case AppInUse.gigmeout:
+        return appProperties['eCommerceUrl'];
+      case AppInUse.emxi:
+        return appProperties['eCommerceUrl'];
+      case AppInUse.cyberneom:
+        return "";
+    }
+  }
+
+  static String getSpotifyClientId() {
+    switch(appInUse) {
+      case AppInUse.gigmeout:
+        return appProperties['spotifyClientId'];
+      case AppInUse.emxi:
+        return appProperties['spotifyClientId'];
+      case AppInUse.cyberneom:
+        return "";
+    }
+  }
+
+  static String getSpotifyClientSecret() {
+    switch(appInUse) {
+      case AppInUse.gigmeout:
+        return appProperties['spotifyClientSecret'];
+      case AppInUse.emxi:
+        return appProperties['spotifyClientSecret'];
+      case AppInUse.cyberneom:
+        return "";
+    }
+  }
+
+  static String getStripePublishableKey() {
+    switch(appInUse) {
+      case AppInUse.gigmeout:
+        return appProperties['stripePublishableKey'];
+      case AppInUse.emxi:
+        return appProperties['stripePublishableKey'];
+      case AppInUse.cyberneom:
+        return "";
+    }
+  }
+
+  static String getStripeSecretLiveKey() {
+    switch(appInUse) {
+      case AppInUse.gigmeout:
+        return appProperties['stripeSecretLiveKey'];
+      case AppInUse.emxi:
+        return appProperties['stripeSecretLiveKey'];
       case AppInUse.cyberneom:
         return "";
     }
