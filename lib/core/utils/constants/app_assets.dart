@@ -48,5 +48,6 @@ class AppAssets {
   static const String musicians = 'assets/elements/musicians.png';
   static const String roundMusicalComposition = 'assets/elements/round-musical-composition.png';
 
+  static const String propertiesJsonPath = 'assets/properties.json';
 
 }

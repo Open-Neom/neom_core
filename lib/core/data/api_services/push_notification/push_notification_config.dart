@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import '../../../utils/constants/app_route_constants.dart';
 
 
-//Colocar en Root para cambiar context segun pagina.
+//TODO Colocar en Root para cambiar context segun pagina.
 
 class PushNotificationConfig {
 

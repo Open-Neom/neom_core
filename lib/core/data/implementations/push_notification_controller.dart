@@ -6,7 +6,6 @@ import '../../app_flavour.dart';
 import '../../utils/app_utilities.dart';
 import '../../utils/constants/app_route_constants.dart';
 import '../../utils/enums/push_notification_type.dart';
-import '../firestore/profile_firestore.dart';
 
 class PushNotificationController extends ChangeNotifier {
 

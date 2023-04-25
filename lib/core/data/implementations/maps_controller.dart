@@ -7,14 +7,7 @@ import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_webservice/places.dart';
 
-import '../../domain/model/app_profile.dart';
-import '../../domain/use_cases/maps_service.dart';
-import '../../utils/app_utilities.dart';
-import '../../utils/constants/app_constants.dart';
-import '../../utils/constants/app_google_constants.dart';
-import '../../utils/constants/app_page_id_constants.dart';
-import '../../utils/constants/app_translation_constants.dart';
-import 'user_controller.dart';
+import '../../../neom_commons.dart';
 
 class MapsController extends GetxController implements MapsService {
 
@@ -109,7 +102,7 @@ class MapsController extends GetxController implements MapsService {
         strictbounds: false,
         mode: Mode.fullscreen,
         context: context,
-        apiKey: AppGoogleConstants.kGoogleApiKey,
+        apiKey: AppFlavour.getGoogleApiKey(),
         onError: onError,
         language: "mx",
         decoration: InputDecoration(

@@ -11,5 +11,4 @@ class AppSharedPreferenceConstants {
   static const String firstTime = "firstTime";
   static const String lastNotificationCheckDate = "lastNotificationCheckDate";
 
-
 }

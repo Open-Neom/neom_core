@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../../../domain/google_book.dart';
-import '../../../domain/google_book/book_volume.dart';
+import '../../../domain/model/google_book.dart';
+import '../../../domain/model/google_book/book_volume.dart';
 
 class GoogleBooksApi {
 
