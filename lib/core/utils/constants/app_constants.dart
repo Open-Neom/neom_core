@@ -41,7 +41,7 @@ class AppConstants {
   static const int maxInstrumentsNameLength = 22;
   static const int maxProfileNameLength = 20;
   static const int maxProfileNameSideBarLength = 15;
-  static const int timelineLimit = 12;
+  static const int timelineLimit = 20;
   static const int activityFeedLimit = 20;
   static const int sponsorsLimit = 10;
   static const int sponsorsTime = 5;
