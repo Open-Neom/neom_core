@@ -80,5 +80,6 @@ class AppPageIdConstants {
   static const String blog = "blog";
   static const String blogEntry = "blogEntry";
   static const String blogEditor = "blogEditor";
+  static const String quotation = "quotation";
 
 }

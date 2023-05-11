@@ -411,6 +411,8 @@ class AppTranslationConstants {
   static const String startPollMsg = 'startPollMsg';
   static const String shareWriting = 'shareWriting';
   static const String shareWritingMsg = 'shareWritingMsg';
+  static const String uploadYourBook = 'uploadYourBook';
+  static const String uploadYourBookMsg = 'uploadYourBookMsg';
 
 
   static const String explore = 'explore';
@@ -699,5 +701,48 @@ class AppTranslationConstants {
 
   static const String noItemlistsMsg = 'noItemlistsMsg';
   static const String noItemlistsMsg2 = 'noItemlistsMsg2';
+
+  static const String offeredServices = 'offeredServices';
+
+  static const String promotion = 'promotion';
+  static const String presskit = 'presskit';
+  static const String mediatour = 'mediatour';
+  static const String interview = 'interview';
+  static const String publishingHouse = 'publishingHouse';
+  static const String digitalPositioning = 'digitalPositioning';
+  static const String copyright = 'copyright';
+  static const String onlineClinics = 'onlineClinics';
+  static const String onlineInterview = 'onlineInterview';
+  static const String education = 'education';
+  static const String consultancy = 'consultancy';
+  static const String coverDesignUrl = 'coverDesignUrl';
+  static const String crowdfunding = 'crowdfunding';
+  static const String startCampaignUrl = 'startCampaignUrl';
+  static const String appItemQuotation = 'appItemQuotation';
+  static const String quotation = 'quotation';
+  static const String quotationWithUs = 'quotationWithUs';
+  static const String appItemSize = 'appItemSize';
+  static const String appSizeWarningMsg = 'appSizeWarningMsg';
+  static const String chooseAppItemSize = 'chooseAppItemSize';
+  static const String appItemDuration = 'appItemDuration';
+  static const String appItemDurationShort = 'appItemDurationShort';
+  static const String specifyAppItemDuration = 'specifyAppItemDuration';
+  static const String specifyAppItemQty = 'specifyAppItemQty';
+  static const String appItemQty = 'appItemQty';
+  static const String appItemQtyShort = 'appItemQtyShort';
+  static const String appDigitalItem = 'appDigitalItem';
+  static const String appPhysicalItem = 'appPhysicalItem';
+  static const String coverDesign = 'coverDesign';
+  static const String coverDesignRequired = 'coverDesignRequired';
+  static const String typeAOrB = 'typeAOrB';
+  static const String processAAndB = 'processAAndB';
+  static const String processA = 'processA';
+  static const String processB = 'processB';
+  static const String pricePerUnit = 'pricePerUnit';
+  static const String quotationTotalMsg1 = 'quotationTotalMsg1';
+  static const String quotationTotalMsg2 = 'quotationTotalMsg2';
+  static const String contactUsViaWhatsapp = 'contactUsViaWhatsapp';
+  static const String quotationWhatsappMsgA = 'quotationWhatsappMsgA';
+  static const String thanksForYourAttention = 'thanksForYourAttention';
 
 }
