@@ -136,4 +136,8 @@ class AppRouteConstants {
   static const String playlistItems = '/playlist/songs';
   static const String playlistNameDesc = '/playlist/nameDesc';
 
+  static const String services = '/services';
+  static const String quotation = '/quotation';
+  static const String appItemQuotation = '/appItems/quotation';
+
 }

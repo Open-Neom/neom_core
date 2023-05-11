@@ -9,8 +9,10 @@ import '../../utils/enums/app_in_use.dart';
 class HeaderIntro extends StatelessWidget{
 
   final String subtitle;
+  final bool showLogo;
+  final bool showPreLogo;
 
-  const HeaderIntro({this.subtitle = "", Key? key}) : super(key: key);
+  const HeaderIntro({this.subtitle = "", this.showLogo = true, this.showPreLogo = true, Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -19,18 +21,18 @@ class HeaderIntro extends StatelessWidget{
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          AppFlavour.appInUse == AppInUse.emxi
+          (AppFlavour.appInUse == AppInUse.emxi && showPreLogo)
               ? Image.asset(AppAssets.logoAppWhite,
             height: 140,
             width: 140,
           ) : Container(),
-          Image.asset(AppFlavour.appInUse == AppInUse.gigmeout
+          showLogo ? Image.asset(AppFlavour.appInUse == AppInUse.gigmeout
               ? (AppTranslationConstants.languageFromLocale(Get.locale!) == AppTranslationConstants.spanish
               ? AppAssets.logoSloganSpanish : AppAssets.logoSloganEnglish)
               : AppAssets.logoCompanyWhite,
             height: 80,
             width: 320,
-          ),
+          ) : Container(),
           subtitle.isEmpty ? Container() : Text(subtitle,
           textAlign: TextAlign.center,
           style: TextStyle(

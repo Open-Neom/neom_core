@@ -223,17 +223,6 @@ class AppFlavour {
     }
   }
 
-  static String getECommerceUrl() {
-    switch(appInUse) {
-      case AppInUse.gigmeout:
-        return appProperties['eCommerceUrl'];
-      case AppInUse.emxi:
-        return appProperties['eCommerceUrl'];
-      case AppInUse.cyberneom:
-        return "";
-    }
-  }
-
   static String getSpotifyClientId() {
     switch(appInUse) {
       case AppInUse.gigmeout:
@@ -273,6 +262,138 @@ class AppFlavour {
         return appProperties['stripeSecretLiveKey'];
       case AppInUse.emxi:
         return appProperties['stripeSecretLiveKey'];
+      case AppInUse.cyberneom:
+        return "";
+    }
+  }
+
+  static String getECommerceUrl() {
+    switch(appInUse) {
+      case AppInUse.gigmeout:
+        return appProperties['eCommerceUrl'];
+      case AppInUse.emxi:
+        return appProperties['eCommerceUrl'];
+      case AppInUse.cyberneom:
+        return "";
+    }
+  }
+
+  static String getPresskitUrl() {
+    switch(appInUse) {
+      case AppInUse.gigmeout:
+        return appProperties['presskitUrl'];
+      case AppInUse.emxi:
+        return appProperties['presskitUrl'];
+      case AppInUse.cyberneom:
+        return "";
+    }
+  }
+
+  static String getMediatourUrl() {
+    switch(appInUse) {
+      case AppInUse.gigmeout:
+        return appProperties['mediatourUrl'];
+      case AppInUse.emxi:
+        return appProperties['mediatourUrl'];
+      case AppInUse.cyberneom:
+        return "";
+    }
+  }
+
+  static String getOnlineInterviewUrl() {
+    switch(appInUse) {
+      case AppInUse.gigmeout:
+        return appProperties['onlineInterviewUrl'];
+      case AppInUse.emxi:
+        return appProperties['onlineInterviewUrl'];
+      case AppInUse.cyberneom:
+        return "";
+    }
+  }
+
+  static String getDigitalPositioningUrl() {
+    switch(appInUse) {
+      case AppInUse.gigmeout:
+        return appProperties['digitalPositioningUrl'];
+      case AppInUse.emxi:
+        return appProperties['digitalPositioningUrl'];
+      case AppInUse.cyberneom:
+        return "";
+    }
+  }
+
+  static String getConsultancyUrl() {
+    switch(appInUse) {
+      case AppInUse.gigmeout:
+        return appProperties['consultancyUrl'];
+      case AppInUse.emxi:
+        return appProperties['consultancyUrl'];
+      case AppInUse.cyberneom:
+        return "";
+    }
+  }
+
+  static String getCopyrightUrl() {
+    switch(appInUse) {
+      case AppInUse.gigmeout:
+        return appProperties['copyrightUrl'];
+      case AppInUse.emxi:
+        return appProperties['copyrightUrl'];
+      case AppInUse.cyberneom:
+        return "";
+    }
+  }
+
+  static String getCoverDesignUrl() {
+    switch(appInUse) {
+      case AppInUse.gigmeout:
+        return appProperties['coverDesignUrl'];
+      case AppInUse.emxi:
+        return appProperties['coverDesignUrl'];
+      case AppInUse.cyberneom:
+        return "";
+    }
+  }
+
+  static String getOnlineClinicUrl() {
+    switch(appInUse) {
+      case AppInUse.gigmeout:
+        return appProperties['onlineClinicUrl'];
+      case AppInUse.emxi:
+        return appProperties['onlineClinicUrl'];
+      case AppInUse.cyberneom:
+        return "";
+    }
+  }
+
+  static String getStartCampaignUrl() {
+    switch(appInUse) {
+      case AppInUse.gigmeout:
+        return "";
+      case AppInUse.emxi:
+        return appProperties['startCampaignUrl'];
+      case AppInUse.cyberneom:
+        return "";
+    }
+  }
+
+  static String getCrowdfundingUrl() {
+    switch(appInUse) {
+      case AppInUse.gigmeout:
+        return "";
+      case AppInUse.emxi:
+        return appProperties['crowdfundingUrl'];
+      case AppInUse.cyberneom:
+        return "";
+    }
+  }
+
+  static String getWhatsappBusinessNumber() {
+    switch(appInUse) {
+      case AppInUse.gigmeout:
+        return "";
+      case AppInUse.emxi:
+        return appProperties['whatsappBusinessNumber'];
       case AppInUse.cyberneom:
         return "";
     }

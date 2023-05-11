@@ -17,9 +17,11 @@ class AppConstants {
   static const String requests = "requests";
   static const String booking = "booking";
   static const String directory = "directory";
+  static const String services = "services";
   static const String bands = "bands";
   static const String settingsPrivacy = "settingsPrivacy";
   static const String settings = "settings";
+  static const String crowdfunding = "crowdfunding";
   static const String wallet = "wallet";
   static const String logout = "logout";
 
@@ -44,7 +46,7 @@ class AppConstants {
   static const int timelineLimit = 20;
   static const int activityFeedLimit = 20;
   static const int sponsorsLimit = 10;
-  static const int sponsorsTime = 5;
+  static const int sponsorsTime = 4;
   static const int eventsLimit = 30;
   static const int followingProfilesLimit = 15;
   static const int followerProfilesLimit = 15;
@@ -97,5 +99,8 @@ class AppConstants {
   static final blogTabs = ['published', 'drafts'];
   static const String titleTextDivider = "_titleTextDivider_";
   static const String digitalLibrary = "digitalLibrary";
+  static const String quotation = "quotation";
+  static const String appItemQuotation = "appItemQuotation";
 
+  static final List<String> appItemSize = ['Tamaño Carta - 21x29.7 - 8.5x11 ', 'Medía carta - 14x21.6cm - 6x9in', 'french', 'deutsch'];
 }
