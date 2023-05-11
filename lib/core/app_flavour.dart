@@ -388,4 +388,15 @@ class AppFlavour {
     }
   }
 
+  static String getWhatsappBusinessNumber() {
+    switch(appInUse) {
+      case AppInUse.gigmeout:
+        return "";
+      case AppInUse.emxi:
+        return appProperties['whatsappBusinessNumber'];
+      case AppInUse.cyberneom:
+        return "";
+    }
+  }
+
 }
