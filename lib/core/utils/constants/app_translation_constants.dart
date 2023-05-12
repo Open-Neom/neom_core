@@ -744,5 +744,6 @@ class AppTranslationConstants {
   static const String contactUsViaWhatsapp = 'contactUsViaWhatsapp';
   static const String quotationWhatsappMsgA = 'quotationWhatsappMsgA';
   static const String thanksForYourAttention = 'thanksForYourAttention';
+  static const String whatsappQuotation = 'whatsappQuotation';
 
 }
