@@ -26,11 +26,11 @@ class HeaderIntro extends StatelessWidget{
             height: 140,
             width: 140,
           ) : Container(),
-          showLogo ? Image.asset(AppFlavour.appInUse == AppInUse.gigmeout
-              ? (AppTranslationConstants.languageFromLocale(Get.locale!) == AppTranslationConstants.spanish
-              ? AppAssets.logoSloganSpanish : AppAssets.logoSloganEnglish)
-              : AppAssets.logoCompanyWhite,
-            height: 80,
+          showLogo ? Image.asset(AppFlavour.appInUse == AppInUse.emxi
+              ? AppAssets.logoCompanyWhite : (AppTranslationConstants.languageFromLocale(Get.locale!)
+              == AppTranslationConstants.spanish ? AppAssets.logoSloganSpanish
+              : AppAssets.logoSloganEnglish),
+            height: 180,
             width: 320,
           ) : Container(),
           subtitle.isEmpty ? Container() : Text(subtitle,

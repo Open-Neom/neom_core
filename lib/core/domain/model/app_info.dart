@@ -4,7 +4,7 @@ class AppInfo {
   String version;
   int lastStableBuild;
   bool coinPromo;
-  double coinAmount;
+  int coinAmount;
   bool fbLoginEnabled;
   int orderNumber;
   String suggestedUrl;
@@ -15,7 +15,7 @@ class AppInfo {
     this.lastStableBuild = 0,
     this.coinPromo = true,
     this.fbLoginEnabled = false,
-    this.coinAmount = 10.00,
+    this.coinAmount = 10,
     this.orderNumber = 1,
     this.suggestedUrl = ""
   });
@@ -31,7 +31,7 @@ class AppInfo {
     version = data["version"] ?? "",
     lastStableBuild = data["lastStableBuild"] ?? 0,
     coinPromo = data["coinPromo"] ?? true,
-    coinAmount = double.parse(data["coinAmount"].toString()),
+    coinAmount = data["coinAmount"] ?? 0,
     fbLoginEnabled = data["fbLoginEnabled"] ?? false,
     orderNumber = data["orderNumber"] ?? 1,
     suggestedUrl = data["suggestedUrl"] ?? "";
