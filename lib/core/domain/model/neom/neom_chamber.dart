@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import '../../../utils/constants/app_constants.dart';
 import '../../../utils/constants/app_translation_constants.dart';
 import '../app_profile.dart';
-import 'neom-chamber-preset.dart';
+import 'neom_chamber_preset.dart';
 
 //TODO
 //For future reference
@@ -48,9 +48,8 @@ class NeomChamber {
     isFav = true;
 
 
-  NeomChamber.createBasic(name, desc) :
+  NeomChamber.createBasic(this.name, desc) :
     id = "",
-    name = name,
     description = desc,
     href = "",
     imgUrl = "",

@@ -1,7 +1,5 @@
 import 'dart:async';
 
-import 'package:syncfusion_flutter_datepicker/datepicker.dart';
-
 import '../../utils/enums/event_type.dart';
 import '../../utils/enums/usage_reason.dart';
 import '../model/app_item.dart';
@@ -32,7 +30,7 @@ abstract class EventService {
   bool validateInfo();
 
   void addInfoToEvent();
-  void setEventDate(DateRangePickerSelectionChangedArgs args);
+  void setEventDate(DateTime date);
   void setCheckboxState();
   void setIsOnlineCheckboxState();
   void setEventTime(context);

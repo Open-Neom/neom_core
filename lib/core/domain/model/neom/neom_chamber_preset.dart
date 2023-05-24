@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'neom-frequency.dart';
-import 'neom-parameter.dart';
+import 'neom_frequency.dart';
+import 'neom_parameter.dart';
 
 class NeomChamberPreset {
 

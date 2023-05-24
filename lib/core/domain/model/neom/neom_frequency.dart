@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:enum_to_string/enum_to_string.dart';
 
-import '../../../utils/enums/scale-degree.dart';
+import '../../../utils/enums/scale_degree.dart';
 
 class NeomFrequency {
 
@@ -20,7 +20,7 @@ class NeomFrequency {
     this.name = "",
     this.description = "",
     this.frequency = 215,
-    this.scaleDegree = ScaleDegree.Tonic,
+    this.scaleDegree = ScaleDegree.tonic,
     this.isRoot = false,
     this.isMain = false,
     this.isFav = false
@@ -51,7 +51,7 @@ class NeomFrequency {
     return NeomFrequency(
       id: json["name"],
       name: json["name"],
-      scaleDegree: ScaleDegree.Tonic,
+      scaleDegree: ScaleDegree.tonic,
       isRoot: false,
       isMain: false,
       isFav: false,
@@ -99,12 +99,11 @@ class NeomFrequency {
   }
 
 
-  NeomFrequency.addBasic(name) :
+  NeomFrequency.addBasic(this.name) :
     id = "",
-    name = name,
     description = "",
     frequency = 215,
-    scaleDegree = ScaleDegree.Tonic,
+    scaleDegree = ScaleDegree.tonic,
     isRoot = false,
     isMain = false,
     isFav = true;

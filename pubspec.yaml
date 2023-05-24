@@ -1,6 +1,6 @@
 name: neom_commons
 description: Commons for Cyberneom.
-version: 1.0.2
+version: 1.0.3
 homepage: https://github.com/Cyberneom/neom_commons
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
@@ -57,7 +57,8 @@ dependencies:
 
   intl: ^0.18.1
 
-  syncfusion_flutter_datepicker: ^21.2.6
+#DEPRECATED
+#  syncfusion_flutter_datepicker: ^21.2.6
   #table_calendar: ^3.0.9
 
   #Timeline
