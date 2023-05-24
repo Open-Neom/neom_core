@@ -1,6 +1,6 @@
 name: neom_commons
 description: Commons for Cyberneom.
-version: 1.0.1
+version: 1.0.2
 homepage: https://github.com/Cyberneom/neom_commons
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
@@ -25,46 +25,46 @@ dependencies:
   font_awesome_flutter: ^10.4.0
   transparent_image: ^2.0.1
 
-  firebase_core: ^2.9.0
-  cloud_firestore: ^4.5.1
-  firebase_storage: ^11.1.0
-  firebase_auth: ^4.4.1
-  firebase_messaging: ^14.4.0
-  firebase_crashlytics: ^3.1.0
-  google_sign_in: ^6.1.0
+  firebase_core: ^2.13.0
+  cloud_firestore: ^4.7.1
+  firebase_storage: ^11.2.0
+  firebase_auth: ^4.6.1
+  firebase_messaging: ^14.6.0
+  firebase_crashlytics: ^3.3.1
+  google_sign_in: ^6.1.1
   sign_in_with_apple: ^5.0.0-dev.1
-  crypto: ^3.0.2
+  crypto: ^3.0.3
 
-  url_launcher: ^6.1.10
-  http: ^0.13.5
-  shared_preferences: ^2.1.0
-  rflutter_alert: ^2.0.4
+  url_launcher: ^6.1.11
+  http: ^0.13.6
+  shared_preferences: ^2.1.1
+  rflutter_alert: ^2.0.6
   logger: ^1.3.0
   enum_to_string: ^2.0.1
 
-  path_provider: ^2.0.14
-  image_picker: ^0.8.7+3
-  image_cropper: ^3.0.2
+  path_provider: ^2.0.15
+  image_picker: ^0.8.7+5
+  image_cropper: ^4.0.1
   cached_network_image: ^3.2.3
-  flutter_image_compress: ^1.1.3
+  flutter_image_compress: ^2.0.3
   video_player: ^2.6.1
   video_compress: ^3.1.2
 
   geolocator: ^9.0.2
   geocoding: ^2.1.0
-  google_maps_flutter: ^2.2.5
+  google_maps_flutter: ^2.2.7
   flutter_google_places: ^0.3.0
 
-  intl: ^0.17.0
+  intl: ^0.18.1
 
-  syncfusion_flutter_datepicker: ^21.1.39
+  syncfusion_flutter_datepicker: ^21.2.6
   #table_calendar: ^3.0.9
 
   #Timeline
   hashtagable: ^2.1.0
-  flutter_linkify: ^5.0.2
-  timeago: ^3.3.0 #To be Updated
-  share_plus: ^6.3.2
+  flutter_linkify: ^6.0.0
+  timeago: ^3.4.0 #To be Updated
+  share_plus: ^7.0.1
   readmore: ^2.2.0
 
   #Post with only text
@@ -73,7 +73,7 @@ dependencies:
   animated_text_kit: ^4.2.2
 
   #Push notification
-  awesome_notifications: ^0.7.4+1
+  awesome_notifications: ^0.7.5-dev.2+1
 
   upgrader: ^6.2.0
 
@@ -85,7 +85,7 @@ dependencies:
   flutter_app_badger: ^1.5.0
 
   google_fonts: ^4.0.3
-  html: ^0.15.2
+  html: ^0.15.3
 
   flutter_rating_bar: ^4.0.1
 
@@ -93,8 +93,8 @@ dependencies:
   carousel_slider: ^4.2.1
   flutter_slider_indicator: ^1.0.0
   rubber: ^1.0.1
-  qr_flutter: ^4.0.0
-  flutter_stripe: ^9.0.0+1
+  qr_flutter: ^4.1.0
+  flutter_stripe: ^9.2.0
 
   #Payment
   intl_phone_field: ^3.1.0
