@@ -28,6 +28,7 @@ class AppUser {
 
   Wallet wallet = Wallet();
   List<String> orderIds = [];
+  List<String>? releaseItemIds;
 
   //TODO
   //Add read of this values from documentSnapshot
@@ -92,6 +93,7 @@ class AppUser {
         profiles = [],
         wallet = Wallet.fromJSON(data["wallet"] ?? {}),
         orderIds = data["orderIds"]?.cast<String>() ?? [],
+        releaseItemIds = data["releaseItemIds"]?.cast<String>() ?? [],
         referralCode = data["referralCode"] ?? "",
         createdDate = data["createdDate"] ?? 0,
         lastTimeOn = data["lastTimeOn"] ?? 0,
@@ -118,6 +120,7 @@ class AppUser {
     androidNotificationToken = "",
     profiles = [],
     orderIds = [],
+    releaseItemIds = [],
     referralCode = "",
     fcmToken = "",
     spotifyToken = "",
@@ -144,6 +147,7 @@ class AppUser {
       'androidNotificationToken': androidNotificationToken,
       'wallet': wallet.toJSON(),
       'orderIds': orderIds,
+      'releaseItemIds': releaseItemIds,
       'referralCode': referralCode,
       'createdDate': createdDate,
       'lastTimeOn': lastTimeOn,

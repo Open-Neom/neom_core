@@ -370,19 +370,41 @@ class CoreUtilities {
   }
 
 
-  static Future<Place> predictionToEventPlace(Prediction p) async {
+  static Future<Place> predictionToGooglePlace(Prediction p) async {
     AppUtilities.logger.d("");
 
     Place place = Place();
+    String placeName = "";
+    Address address = Address();
+    if(p.terms.isNotEmpty) {
+      placeName = p.terms.elementAt(0).value;
 
-    String placeName = p.terms.elementAt(0).value;
-    Address address = Address(
-      street: p.terms.elementAt(1).value,
-      neighborhood: p.terms.elementAt(2).value,
-      city: p.terms.elementAt(3).value,
-      state: p.terms.elementAt(4).value,
-      country: p.terms.elementAt(5).value,
-    );
+      if(p.terms.length == 4) {
+        address = Address(
+          city: p.terms.elementAt(1).value,
+          state: p.terms.elementAt(2).value,
+          country: p.terms.elementAt(3).value,
+        );
+      } else if(p.terms.length == 5) {
+        address = Address(
+          street: p.terms.elementAt(1).value,
+          city: p.terms.elementAt(2).value,
+          state: p.terms.elementAt(3).value,
+          country: p.terms.elementAt(4).value,
+        );
+      } else if(p.terms.length == 6) {
+        address = Address(
+          street: p.terms.elementAt(1).value,
+          neighborhood: p.terms.elementAt(2).value,
+          city: p.terms.elementAt(3).value,
+          state: p.terms.elementAt(4).value,
+          country: p.terms.elementAt(5).value,
+        );
+      }
+
+    }
+
+
 
     try {
       GoogleMapsPlaces places = GoogleMapsPlaces(
@@ -450,7 +472,7 @@ class CoreUtilities {
     Map<String, Instrument> matchedInstruments = <String, Instrument>{};
 
     try {
-      for (var instrumentFulfillment in event.instrumentFulfillments) {
+      for (var instrumentFulfillment in event.instrumentsFulfillment) {
         if(profileInstruments.containsKey(instrumentFulfillment.instrument.id)
             && !instrumentFulfillment.isFulfilled) {
           matchedInstruments[instrumentFulfillment.instrument.id] = instrumentFulfillment.instrument;

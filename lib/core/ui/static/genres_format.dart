@@ -14,7 +14,7 @@ class GenresFormat extends StatefulWidget {
       {
         Key? key,
         this.alignment = Alignment.center,
-        this.fontSize = 12
+        this.fontSize = 15
       }) : super(key: key);
 
   @override
@@ -34,27 +34,33 @@ class GenresFormatState extends State<GenresFormat> {
     );
 
     return Container(
-        alignment: widget.alignment,
-        height: 25,
-        width: AppTheme.fullWidth(context),
-        child: ListView.builder(
-            itemCount: widget.genres.length,
-            shrinkWrap: true,
-            scrollDirection: Axis.horizontal,
-            itemBuilder: (context, index) {
-              return Row(
-                children: [
-                  dot,
-                  Text(
-                    widget.genres[index].capitalizeFirst!,
-                    style: TextStyle(
-                        color: widget.color,
-                        fontSize: widget.fontSize
-                    ),
-                  )
-                ]);
-              }
-              )
+      alignment: widget.alignment,
+      height: AppTheme.fullHeight(context)/12,
+      width: AppTheme.fullWidth(context),
+      child: GridView.builder(
+        itemCount: widget.genres.length,
+        shrinkWrap: true,
+        scrollDirection: Axis.horizontal,
+        itemBuilder: (context, index) {
+          return Row(
+              children: [
+                dot,
+                Text(
+                  widget.genres[index].capitalizeFirst!,
+                  style: TextStyle(
+                      color: widget.color,
+                      fontSize: widget.fontSize,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                )
+              ]
+          );
+          },
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: (widget.genres.length / 4).ceil(),
+            mainAxisExtent: AppTheme.fullWidth(context)*0.4,
+        ),
+      ),
     );
   }
 }

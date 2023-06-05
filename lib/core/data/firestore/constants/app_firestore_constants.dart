@@ -2,6 +2,7 @@
 class AppFirestoreConstants {
 
   static const String appItems = 'appItems';
+  static const String appReleaseItems = 'appReleaseItems';
 
   static const String productSales = "productSales";
   static const String eventSales = "eventSales";
@@ -69,8 +70,8 @@ class AppFirestoreConstants {
   static const String to = 'to';
   static const String from = 'from';
   static const String requestDecision = 'requestDecision';
-  static const String instrumentFulfillments = 'instrumentFulfillments';
-  static const String bandFulfillments = 'bandFulfillments';
+  static const String instrumentsFulfillment = 'instrumentsFulfillment';
+  static const String bandsFulfillment = 'bandsFulfillment';
   static const String isFulfilled = 'isFulfilled';
 
   static const String usageCount = 'usageCount';
@@ -80,6 +81,7 @@ class AppFirestoreConstants {
 
   static const String orderNumber = 'orderNumber';
   static const String orderIds = 'orderIds';
+  static const String releaseItemIds = 'releaseItemIds';
   static const String paymentIds = 'paymentIds';
   static const String invoiceIds = 'invoiceIds';
   static const String type = 'type';

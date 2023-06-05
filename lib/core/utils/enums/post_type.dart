@@ -8,5 +8,6 @@ enum PostType {
   poll,
   ad,
   blogEntry,
-  pending
+  pending,
+  releaseItem
 }

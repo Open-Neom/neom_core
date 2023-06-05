@@ -75,7 +75,7 @@ class AppItem {
     'genres': genres.map((genre) => genre.toJSON()).toList(),
     'infoUrl': infoUrl,
     'description': description,
-    'publishedDate': publishedDate
+    'publishedDate': publishedDate,
   };
 
   AppItem.forItemsCollection(AppItem appItem) :

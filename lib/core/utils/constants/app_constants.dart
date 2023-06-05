@@ -70,7 +70,7 @@ class AppConstants {
   static const passwordMaximumLength = 16;
   static const emailMaximumLength = 26;
   static const firstYearDOB = 1930;
-  static const lastYearDOB = 2007;
+  static const lastYearDOB = 2010;
 
   static const String initialTimeSeconds = '0:00';
   static const String grid = 'grid';

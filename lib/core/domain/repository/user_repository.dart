@@ -29,4 +29,5 @@ abstract class UserRepository {
     Position? currentPosition, int maxDistance = 30,});
 
   Future<List<String>> getFCMTokens();
+  Future<bool> addReleaseItem({required String userId, required String releaseItemId});
 }

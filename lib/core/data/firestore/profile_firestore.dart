@@ -1665,4 +1665,5 @@ class ProfileFirestore implements ProfileRepository {
     logger.d("${hostProfiles.length} Profiles found");
     return hostProfiles;
   }
+
 }

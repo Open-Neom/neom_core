@@ -7,7 +7,7 @@ import '../../utils/constants/app_translation_constants.dart';
 import '../../utils/core_utilities.dart';
 import 'custom_url_text.dart';
 
-class SettingRowWidget extends StatelessWidget {
+class TitleSubtitleRow extends StatelessWidget {
 
   final bool visibleSwitch, showDivider;
   final String navigateTo;
@@ -17,7 +17,7 @@ class SettingRowWidget extends StatelessWidget {
   final  Function? onPressed;
   final double vPadding, hPadding;
 
-  const SettingRowWidget(
+  const TitleSubtitleRow(
     this.title, {
     Key? key,
     this.navigateTo = "",
@@ -26,7 +26,7 @@ class SettingRowWidget extends StatelessWidget {
     this.textColor = Colors.white70,
     this.onPressed,
     this.vPadding = 0,
-    this.hPadding = 20,
+    this.hPadding = 10,
     this.showDivider = true,
     this.visibleSwitch = true,
   }) : super(key: key);
@@ -56,10 +56,12 @@ class SettingRowWidget extends StatelessWidget {
             text: title,
             style: TextStyle(fontSize: 16, color: textColor, ),
           ) : Container(),
-          subtitle: UrlText(
-            text: subtitle,
+          subtitle: Text(
+            subtitle,
             style: const TextStyle(
-                color: Colors.white70, fontWeight: FontWeight.w400),
+                color: Colors.white70, fontWeight: FontWeight.w400,
+            ),
+            textAlign: TextAlign.justify,
           ),
         ),
         !showDivider ? const SizedBox() : const Divider(height: 0)

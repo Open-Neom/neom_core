@@ -17,14 +17,14 @@ class HeaderIntro extends StatelessWidget{
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.only(left: 20, right: 20, top: 10),
+      padding: const EdgeInsets.all(20),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           (AppFlavour.appInUse == AppInUse.emxi && showPreLogo)
               ? Image.asset(AppAssets.logoAppWhite,
-            height: 140,
-            width: 140,
+            height: 150,
+            width: 150,
           ) : Container(),
           showLogo ? Image.asset(AppFlavour.appInUse == AppInUse.emxi
               ? AppAssets.logoCompanyWhite : (AppTranslationConstants.languageFromLocale(Get.locale!)
@@ -33,14 +33,18 @@ class HeaderIntro extends StatelessWidget{
             height: 180,
             width: 320,
           ) : Container(),
-          subtitle.isEmpty ? Container() : Text(subtitle,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-          color: Colors.white.withOpacity(1.0),
-          fontFamily: AppTheme.fontFamily,
-          fontSize: 20.0,
-          ),
-        ),
+          subtitle.isEmpty ? Container() : Column(
+            children: [
+              showLogo ? Container() : AppTheme.heightSpace20,
+              Text(subtitle,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white.withOpacity(1.0),
+                  fontFamily: AppTheme.fontFamily,
+                  fontSize: 20.0,
+                ),
+              ),
+            ],)
       ]),
     );
   }

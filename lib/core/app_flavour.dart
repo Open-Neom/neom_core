@@ -399,4 +399,15 @@ class AppFlavour {
     }
   }
 
+  static String getInitialPrice() {
+    switch(appInUse) {
+      case AppInUse.gigmeout:
+        return "";
+      case AppInUse.emxi:
+        return appProperties['initialPrice'];
+      case AppInUse.cyberneom:
+        return "";
+    }
+  }
+
 }

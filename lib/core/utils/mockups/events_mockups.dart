@@ -16,7 +16,7 @@ class EventsMockUps {
       name: 'First Event',
       imgUrl: 'https://firebasestorage.googleapis.com/v0/b/gig-me-out.appspot.com/o/RehearsalRooms%2FMexico%2FSolaz%2Frecepcion.jpg?alt=media&token=144ec983-8f5c-4db7-afb3-74ae16c3e48e',
       paymentPrice: Price(amount: 2500, currency: AppCurrency.mxn),
-      instrumentFulfillments: [
+      instrumentsFulfillment: [
         InstrumentFulfillment(
             id: "1",
             instrument: Instrument.addBasic("Guitar"),
@@ -31,7 +31,7 @@ class EventsMockUps {
       paymentPrice: Price(amount: 2500, currency: AppCurrency.mxn),
       name: "Salas Efectivas Evento",
       description: "Evento para estrenar las salas",
-        instrumentFulfillments: [
+        instrumentsFulfillment: [
           InstrumentFulfillment(
             id: "1",
             instrument: Instrument.addBasic("Guitar"),
@@ -45,7 +45,7 @@ class EventsMockUps {
       name: 'Second Gig Event',
       imgUrl: 'https://firebasestorage.googleapis.com/v0/b/gig-me-out.appspot.com/o/RehearsalRooms%2FMexico%2FSolaz%2Frecepcion.jpg?alt=media&token=144ec983-8f5c-4db7-afb3-74ae16c3e48e',
       paymentPrice: Price(amount: 2500, currency: AppCurrency.mxn),
-        instrumentFulfillments: [
+        instrumentsFulfillment: [
           InstrumentFulfillment(
             id: "1",
             instrument: Instrument.addBasic("Guitar"),
@@ -60,7 +60,7 @@ class EventsMockUps {
       paymentPrice: Price(amount: 2500, currency: AppCurrency.mxn),
       name: "Salas Efectivas Evento",
       description: "Evento para estrenar las salas",
-        instrumentFulfillments: [
+        instrumentsFulfillment: [
           InstrumentFulfillment(
             id: "1",
             instrument: Instrument.addBasic("Guitar"),
@@ -74,7 +74,7 @@ class EventsMockUps {
       name: 'First Gig Event',
       imgUrl: 'https://firebasestorage.googleapis.com/v0/b/gig-me-out.appspot.com/o/RehearsalRooms%2FMexico%2FSolaz%2Frecepcion.jpg?alt=media&token=144ec983-8f5c-4db7-afb3-74ae16c3e48e',
       paymentPrice: Price(amount: 2500, currency: AppCurrency.mxn),
-        instrumentFulfillments: [
+        instrumentsFulfillment: [
           InstrumentFulfillment(
             id: "1",
             instrument: Instrument.addBasic("Guitar"),
@@ -89,7 +89,7 @@ class EventsMockUps {
       paymentPrice: Price(amount: 2500, currency: AppCurrency.mxn),
       name: "Salas Efectivas Evento",
       description: "Evento para estrenar las salas",
-        instrumentFulfillments: [
+        instrumentsFulfillment: [
           InstrumentFulfillment(
             id: "1",
             instrument: Instrument.addBasic("Guitar"),

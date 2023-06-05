@@ -43,10 +43,13 @@ class AppAnalyticsFirestore implements AppAnalyticsRepository {
       try {
 
         List<AppUser> users = await UserFirestore().getAll();
+        Map<String, AppProfile> profiles = await ProfileFirestore().retrieveAllProfiles();
         List<String> totalLocations = [];
 
-        for (var user in users) {
-          totalLocations.addAll(await getProfilesLocation(user.id));
+        for (var profile in profiles.values) {
+          if(profile.position!.latitude > 0.000000) {
+            totalLocations.add(await AppUtilities.getAddressFromPlacerMark(profile.position!));
+          }
         }
 
         await analyticsReference
@@ -65,8 +68,8 @@ class AppAnalyticsFirestore implements AppAnalyticsRepository {
 
         for (var locationName in totalLocations) {
           int locationNameIndex = 1;
-          for (var subLocatioName in totalLocations) {
-            if(locationName == subLocatioName) {
+          for (var subLocationName in totalLocations) {
+            if(locationName == subLocationName) {
               locationNameIndex++;
             }
           }
@@ -75,7 +78,7 @@ class AppAnalyticsFirestore implements AppAnalyticsRepository {
           await analyticsReference.
             doc(AppFirestoreCollectionConstants.analytics)
               .update({
-            locationName: "$locationNameIndex"
+                locationName: "$locationNameIndex"
               });
         }
 
@@ -99,56 +102,6 @@ class AppAnalyticsFirestore implements AppAnalyticsRepository {
       } catch (e) {
         logger.e(e.toString());
       }
-  }
-
-  Future<List<String>> getProfilesLocation(String userId) async {
-
-    List<String> locations = [];
-    List<AppProfile> profiles = await ProfileFirestore().retrieveProfiles(userId);
-
-    //for (var profile in profiles) {
-
-      // if(profile.type == GigProfileType.musician) {
-      //   profile.instruments = await InstrumentFirestore().retrieveInstruments(profile.id);
-      //   if(profile.instruments!.isEmpty) {
-      //     logger.w("Instruments not found");
-      //   }
-      // }
-      //
-      // if(profile.type == GigProfileType.host) {
-      //   profile.places = await GigPlaceFirestore().retrievePlaces(profile.id);
-      //   if(profile.places!.isEmpty) {
-      //     logger.w("Places not found");
-      //   }
-      // }
-      //
-      // if(profile.type == GigProfileType.facilitator) {
-      //   profile.facilities = await GigFacilityFirestore().retrieveFacilities(profile.id);
-      //   if(profile.facilities!.isEmpty) {
-      //     logger.w("Facilities not found");
-      //   }
-      // }
-      //
-      // profile.genres = await GigGenreFirestore().retrieveGenres(profile.id);
-      // profile.itemlists = await ItemlistFirestore().retrieveItemlists(profile.id);
-      //
-      // if(profile.genres!.isEmpty) logger.d("Genres not found");
-      // if(profile.itemlists!.isEmpty) logger.d("Itemlists not found");
-
-    //}
-
-    if(profiles.isEmpty) {
-      logger.d("Profile not found");
-    } else {
-
-      for (var profile in profiles) {
-        if(profile.position!.latitude > 0.000000) {
-          locations.add(await AppUtilities.getAddressFromPlacerMark(profile.position!));
-        }
-      }
-    }
-
-    return locations;
   }
 
 }

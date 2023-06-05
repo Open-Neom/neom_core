@@ -258,6 +258,7 @@ class AppTranslationConstants {
   static const String home = 'home';
   static const String events = 'events';
   static const String event = 'event';
+  static const String eventDate = 'eventDate';
   static const String itemlists = 'itemlists';
   static const String inbox = 'Inbox';
 
@@ -703,6 +704,7 @@ class AppTranslationConstants {
   static const String noItemlistsMsg2 = 'noItemlistsMsg2';
 
   static const String offeredServices = 'offeredServices';
+  static const String offeredServicesMsg = 'offeredServicesMsg';
 
   static const String promotion = 'promotion';
   static const String presskit = 'presskit';
@@ -747,5 +749,36 @@ class AppTranslationConstants {
   static const String thanksForYourAttention = 'thanksForYourAttention';
   static const String whatsappQuotation = 'whatsappQuotation';
 
+  static const String releaseUploadIntro = 'releaseUploadIntro';
+  static const String releaseUploadType = 'releaseUploadType';
+  static const String releaseUploadInstr = 'releaseUploadInstr';
+  static const String releaseUploadGenres = 'releaseUploadGenres';
+  static const String releaseUploadNameDesc = 'releaseNameDesc';
+  static const String releaseUploadPLaceDate = 'releaseUploadPLaceDate';
+  static const String releaseTitle = 'releaseTitle';
+  static const String releaseDesc = 'releaseDesc';
+  static const String releaseDuration = 'releaseDuration';
+  static const String releasePrice = 'releasePrice';
+  static const String releasePriceMsg = 'releasePriceMsg';
+  static const String addReleaseFile = 'addReleaseFile';
+  static const String changeReleaseFile = 'changeReleaseFile';
+  static const String autoPublishing = 'autoPublishing';
+  static const String autoEditing = 'autoEditing';
+  static const String autoPublishingEditingMsg = 'autoPublishingEditingMsg';
+  static const String includesPhysical = 'includesPhysical';
+  static const String specifyPublishingPlace = 'specifyPublishingPlace';
+  static const String addReleaseCoverImg = 'addReleaseCoverImg';
+  static const String submitRelease = 'submitRelease';
+  static const String submitReleaseMsg = 'submitReleaseMsg';
+  static const String initialPrice = 'initialPrice';
+  static const String digitalReleasePrice = 'digitalReleasePrice';
+  static const String physicalReleasePrice = 'physicalReleasePrice';
+  static const String digitalSalesModel = 'digitalSalesModel';
+  static const String digitalSalesModelMsg = 'digitalSalesModelMsg';
+  static const String physicalSalesModel = 'physicalSalesModel';
+  static const String physicalSalesModelMsg = 'physicalSalesModelMsg';
+  static const String salesModelMsg = 'salesModelMsg';
+  static const String toStart = 'toStart';
+  static const String tapCoverToPreviewRelease = 'tapCoverToPreviewRelease';
 
 }
