@@ -321,31 +321,31 @@ class ItemlistFirestore implements ItemlistRepository {
   }
 
   @override
-  Future<bool> removeReleaseItem({required String profileId, required String itemlistId,
-    required AppReleaseItem releaseItem}) async {
-    logger.d("Removing releaseItem for profile $profileId");
+  Future<bool> removeReleaseItem({required String profileId, required String itemlistId, required AppReleaseItem releaseItem}) async {
+      try {
+        await profileReference.get()
+            .then((querySnapshot) async {
+          for (var document in querySnapshot.docs) {
+            if(document.id == profileId) {
+              DocumentSnapshot snapshot  = await document.reference.collection(AppFirestoreCollectionConstants.itemlists)
+                  .doc(itemlistId).get();
 
-    try {
-      await profileReference.get()
-          .then((querySnapshot) async {
-        for (var document in querySnapshot.docs) {
-          if(document.id == profileId) {
-            await document.reference.collection(AppFirestoreCollectionConstants.itemlists)
-                .doc(itemlistId).update({
-              AppFirestoreConstants.appReleaseItems: FieldValue.arrayRemove([releaseItem.toJSON()])
-            });
+              Itemlist itemlist = Itemlist.fromJSON(snapshot.data());
+              itemlist.appReleaseItems?.removeWhere((element) => element.id == releaseItem.id);
+              await document.reference.collection(AppFirestoreCollectionConstants.itemlists)
+                  .doc(itemlistId).update(itemlist.toJSON());
+            }
           }
-        }
-      });
+        });
 
-      logger.i("releaseItem ${releaseItem.name} was removed");
-      return true;
-    } catch (e) {
-      logger.e(e.toString());
-    }
+        logger.i("releaseItem ${releaseItem.name} was removed");
+        return true;
+      } catch (e) {
+        logger.e(e.toString());
+      }
 
-    logger.d("releaseItem ${releaseItem.name} was not removed");
-    return false;
+      logger.d("releaseItem ${releaseItem.name} was not removed");
+      return false;
   }
 
 }
