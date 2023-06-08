@@ -242,6 +242,8 @@ class AppTranslationConstants {
   static const String appliedCouponCode = 'appliedCouponCode';
   static const String appliedCouponCodeMsg = 'appliedCouponCodeMsg';
   static const String createCoupon = 'createCoupon';
+  static const String createSponsor = 'createSponsor';
+  static const String adminCenter = 'adminCenter';
 
   static const String createAccount = 'createAccount';
   static const String finishAccount = 'finishAccount';
@@ -605,6 +607,7 @@ class AppTranslationConstants {
   static const String noAvailablePreviewUrlMsg = "noAvailablePreviewUrlMsg";
   static const String goingEventWithCoverMsg = "goingEventWithCoverMsg";
   static const String paymentMethod = "paymentMethod";
+  static const String paymentDetails = "paymentDetails";
   static const String paymentCurrency = "paymentCurrency";
   static const String paymentProcessed = "paymentProcessed";
   static const String paymentProcessedMsg = "paymentProcessedMsg";
@@ -679,6 +682,7 @@ class AppTranslationConstants {
   static const String author = 'author';
   static const String publisher = 'publisher';
   static const String publishedDate = 'publishedDate';
+  static const String publishedYear = 'publishedYear';
   static const String toViewOnline = 'toViewOnline';
   static const String toReadOnline = 'toReadOnline';
   static const String readMore = 'readMore';
@@ -694,6 +698,7 @@ class AppTranslationConstants {
   static const String participation = 'participation';
   static const String playingRole = 'playingRole';
   static const String onlineEvent = 'onlineEvent';
+  static const String coverFree = 'coverFree';
   static const String test = 'test';
   static const String directory = 'directory';
 
@@ -730,6 +735,7 @@ class AppTranslationConstants {
   static const String appItemDurationShort = 'appItemDurationShort';
   static const String specifyAppItemDuration = 'specifyAppItemDuration';
   static const String specifyAppItemQty = 'specifyAppItemQty';
+  static const String qty = 'qty';
   static const String appItemQty = 'appItemQty';
   static const String appItemQtyShort = 'appItemQtyShort';
   static const String appDigitalItem = 'appDigitalItem';
@@ -749,15 +755,17 @@ class AppTranslationConstants {
   static const String thanksForYourAttention = 'thanksForYourAttention';
   static const String whatsappQuotation = 'whatsappQuotation';
 
+  static const String releaseItem = 'releaseItem';
   static const String releaseUploadIntro = 'releaseUploadIntro';
   static const String releaseUploadType = 'releaseUploadType';
   static const String releaseUploadInstr = 'releaseUploadInstr';
   static const String releaseUploadGenres = 'releaseUploadGenres';
-  static const String releaseUploadNameDesc = 'releaseNameDesc';
+  static const String releaseUploadNameDesc = 'releaseUploadNameDesc';
   static const String releaseUploadPLaceDate = 'releaseUploadPLaceDate';
   static const String releaseTitle = 'releaseTitle';
   static const String releaseDesc = 'releaseDesc';
   static const String releaseDuration = 'releaseDuration';
+  static const String releasePreview = 'releasePreview';
   static const String releasePrice = 'releasePrice';
   static const String releasePriceMsg = 'releasePriceMsg';
   static const String addReleaseFile = 'addReleaseFile';
@@ -780,5 +788,13 @@ class AppTranslationConstants {
   static const String salesModelMsg = 'salesModelMsg';
   static const String toStart = 'toStart';
   static const String tapCoverToPreviewRelease = 'tapCoverToPreviewRelease';
+  static const String releaseUploadPostCaptionMsg1 = 'releaseUploadPostCaptionMsg1';
+  static const String releaseUploadPostCaptionMsg2 = 'releaseUploadPostCaptionMsg2';
+  static const String buyReleaseItemMsg = 'buyReleaseItemMsg';
+
+  static const String analytics = 'analytics';
+  static const String seeAnalytics = 'seeAnalytics';
+  static const String runAnalyticsJobs = 'runAnalyticsJobs';
+  static const String runProfileJobs = 'runProfileJobs';
 
 }

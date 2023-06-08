@@ -149,4 +149,5 @@ class AppRouteConstants {
   static const String releaseUploadNameDesc  = '/releaseUpload/nameDesc';
   static const String releaseUploadSummary  = '/onlinePositioning/summary';
 
+  static const String analytics  = '/analytics';
 }

@@ -9,7 +9,4 @@ abstract class AppReleaseItemRepository {
   Future<void> insert(AppReleaseItem releaseItem);
   Future<bool> remove(AppReleaseItem releaseItem);
 
-  Future<bool> addAppItem(String profileId, String itemlistId, AppReleaseItem releaseItem);
-  Future<bool> removeReleaseItemFromList(String profileId, String itemlistId, AppReleaseItem releaseItem);
-
 }

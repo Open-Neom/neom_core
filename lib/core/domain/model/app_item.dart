@@ -1,6 +1,7 @@
 import 'package:spotify/spotify.dart';
 
 import '../../utils/app_utilities.dart';
+import 'app_release_item.dart';
 import 'genre.dart';
 
 class AppItem {
@@ -22,6 +23,7 @@ class AppItem {
   String publisher = "";
   String publishedDate = "";
   int currentTime = 0;
+  bool isRelease = false;
 
   AppItem({
       this.id = "",
@@ -37,13 +39,16 @@ class AppItem {
       this.genres = const [],
       this.infoUrl = "",
       this.description = "",
-      this.publishedDate = ""
+      this.publishedDate = "",
+      this.isRelease = false,
   });
+
 
   @override
   String toString() {
-    return 'AppItem{id: $id, name: $name, artist: $artist, artistId: $artistId, artistImgUrl: $artistImgUrl, albumName: $albumName, durationMs: $durationMs, albumImgUrl: $albumImgUrl, previewUrl: $previewUrl, state: $state, genres: $genres, infoUrl: $infoUrl, description: $description, publisher: $publisher, publishedDate: $publishedDate, currentTime: $currentTime}';
+    return 'AppItem{id: $id, name: $name, artist: $artist, artistId: $artistId, artistImgUrl: $artistImgUrl, albumName: $albumName, durationMs: $durationMs, albumImgUrl: $albumImgUrl, previewUrl: $previewUrl, state: $state, genres: $genres, infoUrl: $infoUrl, description: $description, publisher: $publisher, publishedDate: $publishedDate, currentTime: $currentTime, isRelease: $isRelease}';
   }
+
 
   AppItem.fromJSON(data) :
     id = data["id"] ?? "",
@@ -59,7 +64,8 @@ class AppItem {
     genres = List<Genre>.from(data["genres"].map((model)=> Genre.fromJson(model))),
     infoUrl = data["infoUrl"] ?? "",
     description = data["description"] ?? "",
-    publishedDate = data["publishedDate"] ?? "";
+    publishedDate = data["publishedDate"] ?? "",
+    isRelease = data["isRelease"] ?? false;
 
   Map<String, dynamic>  toJSON()=>{
     'id': id,
@@ -76,6 +82,7 @@ class AppItem {
     'infoUrl': infoUrl,
     'description': description,
     'publishedDate': publishedDate,
+    'isRelease': isRelease,
   };
 
   AppItem.forItemsCollection(AppItem appItem) :
@@ -89,8 +96,8 @@ class AppItem {
         durationMs = appItem.durationMs,
         previewUrl = appItem.previewUrl,
         state = 0,
-        genres = appItem.genres;
-
+        genres = appItem.genres,
+        isRelease = appItem.isRelease;
 
   static AppItem mapTrackToSong(Track track) {
 
@@ -210,5 +217,22 @@ class AppItem {
 
     return songs;
   }
+
+  AppItem.fromReleaseItem(AppReleaseItem releaseItem) :
+        id = releaseItem.id,
+        name = releaseItem.name,
+        artist = releaseItem.ownerName,
+        artistId = releaseItem.ownerId,
+        artistImgUrl = releaseItem.ownerImgUrl,
+        albumName = releaseItem.metaName,
+        albumImgUrl = releaseItem.imgUrl,
+        durationMs = releaseItem.duration,
+        previewUrl = releaseItem.previewUrl,
+        description = releaseItem.description,
+        publisher = releaseItem.publisher,
+        publishedDate = releaseItem.publishedYear.toString(),
+        state = 0,
+        genres = releaseItem.genres.map((e) => Genre(name: e)).toList(),
+        isRelease = true;
 
 }

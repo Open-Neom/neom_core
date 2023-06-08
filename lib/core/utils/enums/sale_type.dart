@@ -1,5 +1,6 @@
 enum SaleType {
   product,
   event,
-  booking
+  booking,
+  releaseItem,
 }

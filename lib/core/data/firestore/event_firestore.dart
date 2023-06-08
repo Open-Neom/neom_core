@@ -34,7 +34,7 @@ class EventFirestore implements EventRepository {
         logger.d("Snapshot is not empty");
         event = Event.fromJSON(documentSnapshot.data());
         event.id = documentSnapshot.id;
-        logger.d(event.toString());
+        logger.v(event.toString());
       }
     } catch (e) {
       logger.e(e.toString());

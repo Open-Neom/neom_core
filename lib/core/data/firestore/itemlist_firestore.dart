@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../domain/model/app_item.dart';
+import '../../domain/model/app_release_item.dart';
 import '../../domain/model/item_list.dart';
 import '../../domain/repository/itemlist_repository.dart';
 import '../../utils/app_utilities.dart';
@@ -283,6 +284,67 @@ class ItemlistFirestore implements ItemlistRepository {
     }
 
     logger.d("ItemlistItem ${appItem.name} was not updated");
+    return false;
+  }
+
+  @override
+  Future<bool> addReleaseItem({required String profileId, required String itemlistId,
+    required AppReleaseItem releaseItem}) async {
+    logger.d("Adding item for profileId $profileId");
+    logger.d("Adding item to itemlist $itemlistId");
+    bool addedItem = false;
+
+    try {
+
+      QuerySnapshot querySnapshot = await profileReference.get();
+
+      for (var document in querySnapshot.docs) {
+        if(document.id == profileId) {
+          await document.reference.collection(AppFirestoreCollectionConstants.itemlists)
+              .doc(itemlistId)
+              .update({
+            AppFirestoreConstants.appReleaseItems: FieldValue.arrayUnion([releaseItem.toJSON()])
+          });
+
+          addedItem = true;
+        }
+      }
+    } catch (e) {
+      logger.e(e.toString());
+    }
+
+    //TODO Verify if needed of if was just because async shit not well implemented
+    //await Future.delayed(const Duration(seconds: 1));
+    addedItem ? logger.d("AppItem was added to itemlist $itemlistId") :
+    logger.d("AppItem was not added to itemlist $itemlistId");
+    return addedItem;
+  }
+
+  @override
+  Future<bool> removeReleaseItem({required String profileId, required String itemlistId,
+    required AppReleaseItem releaseItem}) async {
+    logger.d("Removing releaseItem for profile $profileId");
+
+    try {
+      await profileReference.get()
+          .then((querySnapshot) async {
+        for (var document in querySnapshot.docs) {
+          if(document.id == profileId) {
+            await document.reference.collection(AppFirestoreCollectionConstants.itemlists)
+                .doc(itemlistId).update({
+              AppFirestoreConstants.appReleaseItems: FieldValue.arrayRemove([releaseItem.toJSON()])
+            });
+          }
+        }
+      });
+
+      logger.i("releaseItem ${releaseItem.name} was removed");
+      return true;
+    } catch (e) {
+      logger.e(e.toString());
+    }
+
+    logger.d("releaseItem ${releaseItem.name} was not removed");
     return false;
   }
 

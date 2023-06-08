@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -23,13 +25,15 @@ class MediaFullScreenPage extends StatelessWidget {
             child: GestureDetector(
               child: Center(
                 child: Hero(
-                    tag: 'img_hero_${_.mediaUrl}',
-                    child: CachedNetworkImage(imageUrl: _.mediaUrl,)
+                    tag: _.isRemote ? 'img_url_hero_${_.mediaUrl}' : 'img_file_hero_${_.mediaUrl}',
+                    child: _.isRemote
+                        ? CachedNetworkImage(imageUrl: _.mediaUrl,)
+                        : Image.file(File(_.mediaUrl)
+                    ),
                 ),
-
               ),
               onTap: () {
-                Get.back();
+                Navigator.pop(context);
               },
             ),
           ),

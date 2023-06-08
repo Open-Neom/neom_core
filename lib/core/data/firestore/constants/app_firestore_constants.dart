@@ -7,6 +7,7 @@ class AppFirestoreConstants {
   static const String productSales = "productSales";
   static const String eventSales = "eventSales";
   static const String bookingSales = "bookingSales";
+  static const String releaseItemSales = "releaseItemSales";
 
   static const String posts = "posts";
   static const String hiddenPosts = "hiddenPosts";

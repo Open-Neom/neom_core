@@ -3,25 +3,21 @@ import 'package:get/get.dart';
 
 import '../../utils/app_theme.dart';
 
-class GenresFormat extends StatefulWidget {
+class GenresGridView extends StatelessWidget {
 
   final List<String> genres;
   final Color color;
   final Alignment alignment;
   final double fontSize;
+  final int crossAxisCount;
 
-  const GenresFormat(this.genres, this.color,
+  const GenresGridView(this.genres, this.color,
       {
         Key? key,
         this.alignment = Alignment.center,
-        this.fontSize = 15
+        this.fontSize = 15,
+        this.crossAxisCount = 3,
       }) : super(key: key);
-
-  @override
-  GenresFormatState createState() => GenresFormatState();
-}
-
-class GenresFormatState extends State<GenresFormat> {
 
   @override
   Widget build(BuildContext context) {
@@ -30,15 +26,15 @@ class GenresFormatState extends State<GenresFormat> {
       height: 6.0,
       margin: const EdgeInsets.symmetric(horizontal: 4.0),
       decoration: BoxDecoration(
-          color: widget.color, borderRadius: BorderRadius.circular(50.0)),
+          color: color, borderRadius: BorderRadius.circular(50.0)),
     );
 
     return Container(
-      alignment: widget.alignment,
-      height: AppTheme.fullHeight(context)/12,
+      alignment: alignment,
+      height: AppTheme.fullHeight(context) / 12,
       width: AppTheme.fullWidth(context),
       child: GridView.builder(
-        itemCount: widget.genres.length,
+        itemCount: genres.length,
         shrinkWrap: true,
         scrollDirection: Axis.horizontal,
         itemBuilder: (context, index) {
@@ -46,21 +42,22 @@ class GenresFormatState extends State<GenresFormat> {
               children: [
                 dot,
                 Text(
-                  widget.genres[index].capitalizeFirst!,
+                  genres[index].capitalizeFirst!,
                   style: TextStyle(
-                      color: widget.color,
-                      fontSize: widget.fontSize,
+                    color: color,
+                    fontSize: fontSize,
                   ),
                   overflow: TextOverflow.ellipsis,
                 )
               ]
           );
-          },
+        },
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: (widget.genres.length / 4).ceil(),
-            mainAxisExtent: AppTheme.fullWidth(context)*0.4,
+          crossAxisCount: (genres.length / crossAxisCount).ceil(),
+          mainAxisExtent: AppTheme.fullWidth(context) / crossAxisCount,
         ),
       ),
     );
   }
+
 }

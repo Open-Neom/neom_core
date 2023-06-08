@@ -29,11 +29,13 @@ class Post {
 
   List<String> hashtags;
 
-  bool isCommentEnabled;
-  bool isPrivate;
   String mediaOwner;  //For future copyright references
   String referenceId;
+
+  bool isCommentEnabled;
+  bool isPrivate;
   bool isDraft;
+  bool isHidden;
 
   List<String> commentIds;
   List<PostComment> comments;
@@ -60,6 +62,7 @@ class Post {
     this.isCommentEnabled = true,
     this.isPrivate = false,
     this.isDraft = false,
+    this.isHidden = false,
     this.referenceId = "",
     this.mediaOwner = ""});
 
@@ -90,6 +93,7 @@ class Post {
         isCommentEnabled = data["isCommentEnabled"] ?? true,
         isPrivate = data["isPrivate"] ?? false,
         isDraft = data["isDraft"] ?? false,
+        isHidden = data["isHidden"] ?? false,
         mediaOwner = data["mediaOwner"] ?? "",
         referenceId = data["referenceId"] ?? "";
 
@@ -114,6 +118,7 @@ class Post {
     'isCommentEnabled': isCommentEnabled,
     'isPrivate': isPrivate,
     'isDraft': isDraft,
+    'isHidden': isHidden,
     'mediaOwner': mediaOwner,
     'referenceId': referenceId,
   };
@@ -140,6 +145,7 @@ class Post {
     isCommentEnabled = post.isCommentEnabled,
     isPrivate = post.isPrivate,
     isDraft = post.isDraft,
+    isHidden = post.isHidden,
     mediaOwner = post.mediaOwner,
     referenceId = post.referenceId;
 

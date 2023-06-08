@@ -8,7 +8,6 @@ import 'package:video_player/video_player.dart';
 
 import '../../app_flavour.dart';
 import '../../data/implementations/user_controller.dart';
-import '../../domain/model/event.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/app_utilities.dart';
 import '../../utils/constants/app_route_constants.dart';
@@ -38,28 +37,6 @@ Widget customCachedNetworkImage(mediaUrl) {
     errorWidget: (context,url,error)=>const Icon(
         Icons.image_not_supported
     ),
-  );
-}
-
-
-Widget customCachedNetworkEventImage(Event event, String mediaUrl,
-    {bool goToDetails = true, String postId = ""}) {
-  return GestureDetector(
-    child: Hero(
-      tag: '${event.id}_img_event_$mediaUrl',
-      child: CachedNetworkImage(
-        imageUrl: mediaUrl,
-        fit: BoxFit.fitHeight,
-        errorWidget: (context,url,error) => const Icon(
-          Icons.error,
-        ),
-      ),
-    ),
-    onTap: () => {
-      if(goToDetails)
-        Get.toNamed(AppRouteConstants.eventDetails,arguments: [event, postId]),
-    }
-
   );
 }
 
@@ -93,7 +70,7 @@ Widget fileImage(mediaUrl) {
         ),
       ),
     ),
-    onTap: () => Get.to(() => FullScreenStoragedMedia(mediaUrl: mediaUrl)),
+    onTap: () => Get.toNamed(AppRouteConstants.mediaFullScreen, arguments: [mediaUrl, false])
   );
 }
 
@@ -114,28 +91,6 @@ Widget cachedNetworkThumbnail(thumbnailUrl, mediaUrl) {
         mediaUrl: mediaUrl),
         transition: Transition.zoom),
   );
-}
-
-class FullScreenStoragedMedia extends StatelessWidget {
-  final String mediaUrl;
-  const FullScreenStoragedMedia({required this.mediaUrl, Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: GestureDetector(
-        child: Center(
-          child: Hero(
-              tag: 'img_hero_$mediaUrl',
-              child: Image.file(File(mediaUrl)),
-          ),
-        ),
-        onTap: () {
-          Get.back();
-        },
-      ),
-    );
-  }
 }
 
 class FullScreenVideo extends StatefulWidget {
