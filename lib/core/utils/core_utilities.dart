@@ -309,7 +309,8 @@ class CoreUtilities {
         break;
     }
 
-    return profileMainFeature;
+
+    return profileMainFeature.isNotEmpty ? profileMainFeature : profile.type.value;
   }
 
 

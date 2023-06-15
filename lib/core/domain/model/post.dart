@@ -77,7 +77,7 @@ class Post {
         profileName = data["profileName"] ?? "",
         profileImgUrl = data["profileImgUrl"] ?? "",
         caption = data["caption"] ?? "",
-        type = EnumToString.fromString(PostType.values, data["type"]) ?? PostType.caption,
+        type = EnumToString.fromString(PostType.values, data["type"] ?? PostType.caption.name) ?? PostType.caption,
         mediaUrl = data["mediaUrl"] ?? "",
         thumbnailUrl = data["thumbnailUrl"] ?? "",
         createdTime = data["createdTime"] ?? 0,

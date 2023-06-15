@@ -30,37 +30,43 @@ class GenresGridView extends StatelessWidget {
           color: color, borderRadius: BorderRadius.circular(50.0)),
     );
 
-    return Container(
-      alignment: alignment,
-      height: AppTheme.fullHeight(context) / 12,
+    return genres.isNotEmpty ? SizedBox(
+      height: AppTheme.fullHeight(context) / 10,
       width: AppTheme.fullWidth(context),
-      child: GridView.builder(
-        itemCount: genres.length,
-        shrinkWrap: true,
-        scrollDirection: Axis.horizontal,
-        itemBuilder: (context, index) {
-          String genre = genres[index];
-          return Row(
-              children: [
-                dot,
-                Text(
-                    (genre.length < AppConstants.maxGenreNameLength
-                      ? genre :  genre.substring(0, AppConstants.maxGenreNameLength)).capitalize!,
-                  style: TextStyle(
-                    color: color,
-                    fontSize: fontSize,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                )
-              ]
-          );
-        },
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: (genres.length / crossAxisCount).ceil(),
-          mainAxisExtent: AppTheme.fullWidth(context) / crossAxisCount,
+      child: SingleChildScrollView(
+        child: Container(
+          alignment: alignment,
+          height: (AppTheme.fullHeight(context) / (genres.length>15? 3:5)) / (crossAxisCount/genres.length).ceil(),
+          width: AppTheme.fullWidth(context),
+          child: GridView.builder(
+            itemCount: genres.length,
+            shrinkWrap: true,
+            scrollDirection: Axis.horizontal,
+            itemBuilder: (context, index) {
+              String genre = genres[index];
+              return Row(
+                  children: [
+                    dot,
+                    Text(
+                        (genre.length < AppConstants.maxGenreNameLength
+                          ? genre :  genre.substring(0, AppConstants.maxGenreNameLength)).capitalize!,
+                      style: TextStyle(
+                        color: color,
+                        fontSize: fontSize,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    )
+                  ]
+              );
+            },
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: (genres.length / crossAxisCount).ceil(),
+              mainAxisExtent: AppTheme.fullWidth(context) / crossAxisCount,
+            ),
+          ),
         ),
       ),
-    );
+    ) : Container();
   }
 
 }

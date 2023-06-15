@@ -365,6 +365,7 @@ class AppTranslationConstants {
   static const String reportThisPost = 'reportThisPost';
   static const String report = 'report';
   static const String toRemove = 'toRemove';
+  static const String toExpel = 'toExpel';
   static const String removePost = 'removePost';
   static const String removePostMsg = 'removePostMsg';
   static const String removeThisPost = 'removeThisPost';
@@ -668,7 +669,7 @@ class AppTranslationConstants {
   static const String version = 'version';
   static const String adding = 'adding';
   static const String outOf = 'outOf';
-  
+
   static const String category = 'category';
   static const String categories = 'categories';
   static const String startReading = 'startReading';
@@ -796,5 +797,6 @@ class AppTranslationConstants {
   static const String runAnalyticsJobs = 'runAnalyticsJobs';
   static const String runProfileJobs = 'runProfileJobs';
   static const String recentReleases = 'recentReleases';
+  static const String createEventWithFlyer = 'createEventWithFlyer';
 
 }

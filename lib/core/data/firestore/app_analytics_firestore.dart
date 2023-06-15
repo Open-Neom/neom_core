@@ -51,6 +51,7 @@ class AppAnalyticsFirestore implements AppAnalyticsRepository {
     return analytics;
 
   }
+  
   @override
   Future<Map<String, AppCoupon>> getUserAnalytics() async {
     logger.d("");

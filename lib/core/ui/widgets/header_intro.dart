@@ -30,7 +30,7 @@ class HeaderIntro extends StatelessWidget{
               ? AppAssets.logoCompanyWhite : (AppTranslationConstants.languageFromLocale(Get.locale!)
               == AppTranslationConstants.spanish ? AppAssets.logoSloganSpanish
               : AppAssets.logoSloganEnglish),
-            height: 180,
+            height: 150,
             width: 320,
           ) : Container(),
           subtitle.isEmpty ? Container() : Column(
@@ -44,7 +44,8 @@ class HeaderIntro extends StatelessWidget{
                   fontSize: 20.0,
                 ),
               ),
-            ],)
+            ],
+          )
       ]),
     );
   }

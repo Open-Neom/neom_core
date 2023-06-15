@@ -64,5 +64,6 @@ abstract class EventService {
 
   void setMessage(String text);
   Future<void> sendEventInvitation(AppProfile mate, Instrument instrument);
+  void goWithFlyer();
 
 }

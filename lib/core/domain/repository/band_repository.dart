@@ -22,5 +22,6 @@ abstract class BandRepository {
   Future<bool> removePlayingEvent(String bandId, String eventId);
   Future<bool> addAppItem(String bandId, String itemId);
   Future<bool> removeItem(String bandId, String itemId);
+  Future<bool> removeBandMember(String bandId, BandMember bandMember);
 
 }

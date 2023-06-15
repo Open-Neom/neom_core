@@ -195,7 +195,7 @@ class BandFirestore implements BandRepository {
     try {
 
     } catch (e) {
-      logger.e.toString();
+      logger.e(e.toString());
       return false;
     }
 
@@ -226,7 +226,31 @@ class BandFirestore implements BandRepository {
       await ProfileFirestore().removeBand(bandMember.profileId, bandId);
       logger.i("BandMember ${bandMember.name} has been unfulfilled");
     } catch (e) {
-      logger.e.toString();
+      logger.e(e.toString());
+      return false;
+    }
+
+    return true;
+  }
+
+  @override
+  Future<bool> removeBandMember(String bandId, BandMember bandMember) async {
+
+    logger.d("Removing bandMember ${bandMember.name} for band $bandId");
+
+    try {
+
+      await bandsReference.doc(bandId).get()
+          .then((querySnapshot) async {
+        await querySnapshot.reference
+            .collection(AppFirestoreCollectionConstants.members)
+            .doc(bandMember.id).delete();
+      });
+
+      await ProfileFirestore().removeBand(bandMember.profileId, bandId);
+      logger.i("BandMember ${bandMember.name} has been removed");
+    } catch (e) {
+      logger.e(e.toString());
       return false;
     }
 
