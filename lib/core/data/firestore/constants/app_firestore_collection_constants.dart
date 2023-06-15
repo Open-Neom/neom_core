@@ -25,6 +25,7 @@ class AppFirestoreCollectionConstants {
 
   static const String hashtags = "hashtags";
   static const String appItems = "appItems";
+  static const String appReleaseItems = "appReleaseItems";
   static const String profileInstruments = "profileInstruments";
 
   static const String users = "users";

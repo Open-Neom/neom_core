@@ -32,8 +32,8 @@ class Event {
   EventStatus status;
   Place? place;
   bool isFulfilled = false;
-  List<InstrumentFulfillment> instrumentFulfillments;
-  List<BandFulfillment> bandFulfillments;
+  List<InstrumentFulfillment> instrumentsFulfillment;
+  List<BandFulfillment> bandsFulfillment;
   List<String>? watchingProfiles;
   List<String>? goingProfiles;
   bool isOnline;
@@ -59,8 +59,8 @@ class Event {
       this.status = EventStatus.draft,
       this.place,
       this.isFulfilled = false,
-      this.instrumentFulfillments = const [],
-      this.bandFulfillments = const [],
+      this.instrumentsFulfillment = const [],
+      this.bandsFulfillment = const [],
       this.isOnline = false,
       this.isTest = false
   });
@@ -68,7 +68,7 @@ class Event {
 
   @override
   String toString() {
-    return 'Event{id: $id, name: $name, description: $description, owner: $owner, imgUrl: $imgUrl, coverImgUrl: $coverImgUrl, public: $public, createdTime: $createdTime, eventDate: $eventDate, reason: $reason, appItems: $appItems, genres: $genres, itemPercentageCoverage: $itemPercentageCoverage, distanceKm: $distanceKm, paymentPrice: $paymentPrice, coverPrice: $coverPrice, type: $type, status: $status, place: $place, isFulfilled: $isFulfilled, instrumentFulfillments: $instrumentFulfillments, bandFulfillments: $bandFulfillments, watchingProfiles: $watchingProfiles, goingProfiles: $goingProfiles, isTest: $isTest}';
+    return 'Event{id: $id, name: $name, description: $description, owner: $owner, imgUrl: $imgUrl, coverImgUrl: $coverImgUrl, public: $public, createdTime: $createdTime, eventDate: $eventDate, reason: $reason, appItems: $appItems, genres: $genres, itemPercentageCoverage: $itemPercentageCoverage, distanceKm: $distanceKm, paymentPrice: $paymentPrice, coverPrice: $coverPrice, type: $type, status: $status, place: $place, isFulfilled: $isFulfilled, instrumentsFulfillment: $instrumentsFulfillment, bandsFulfillment: $bandsFulfillment, watchingProfiles: $watchingProfiles, goingProfiles: $goingProfiles, isTest: $isTest}';
   }
 
   Event.createBasic(this.name, desc):
@@ -88,8 +88,8 @@ class Event {
     coverPrice = Price(),
     type = EventType.rehearsal,
     status = EventStatus.draft,
-    instrumentFulfillments = [],
-    bandFulfillments = [],
+    instrumentsFulfillment = [],
+    bandsFulfillment = [],
     watchingProfiles = [],
     goingProfiles = [],
     isOnline = false,
@@ -118,10 +118,10 @@ class Event {
       status = EnumToString.fromString(EventStatus.values, data["status"] ?? EventStatus.draft.name) ?? EventStatus.draft,
       place =  Place.fromJSON(data["place"] ?? {}),
       isFulfilled = data["isFulfilled"] ?? false,
-      instrumentFulfillments = data["instrumentFulfillments"]?.map<InstrumentFulfillment>((item) {
+      instrumentsFulfillment = data["instrumentsFulfillment"]?.map<InstrumentFulfillment>((item) {
         return InstrumentFulfillment.fromJSON(item);
       }).toList()  ?? [],
-      bandFulfillments = data["bandFulfillments"]?.map<BandFulfillment>((item) {
+      bandsFulfillment = data["bandsFulfillment"]?.map<BandFulfillment>((item) {
         return BandFulfillment.fromJSON(item);
       }).toList() ?? [],
       watchingProfiles = List.from(data["watchingProfiles"]?.cast<String>() ?? []),
@@ -151,8 +151,8 @@ class Event {
     'status': status.name,
     'place': place?.toJSON() ?? Place().toJSON(),
     'isFulfilled': isFulfilled,
-    'instrumentFulfillments': instrumentFulfillments.map((instrumentFulfillment) => instrumentFulfillment.toJSON()).toList(),
-    'bandFulfillments': bandFulfillments.map((bandFulfillment) => bandFulfillment.toJSON()).toList(),
+    'instrumentsFulfillment': instrumentsFulfillment.map((instrumentFulfillment) => instrumentFulfillment.toJSON()).toList(),
+    'bandsFulfillment': bandsFulfillment.map((bandFulfillment) => bandFulfillment.toJSON()).toList(),
     'watchingProfiles': [],
     'goingProfiles': [],
     'isOnline': isOnline,

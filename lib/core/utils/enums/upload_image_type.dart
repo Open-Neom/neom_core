@@ -6,5 +6,6 @@ enum UploadImageType {
   cover,
   comment,
   message,
-  itemlist
+  itemlist,
+  releaseItem
 }

@@ -62,6 +62,7 @@ class LoginPage extends StatelessWidget {
                     ],
                   ),
                   buildSignupBtn(_),
+                  AppTheme.heightSpace10,
                 ],
               ),
             ),

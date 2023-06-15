@@ -6,6 +6,7 @@ import '../../utils/app_utilities.dart';
 import '../../utils/constants/app_constants.dart';
 import '../../utils/constants/app_translation_constants.dart';
 import 'app_item.dart';
+import 'app_release_item.dart';
 
 class Itemlist {
 
@@ -17,6 +18,7 @@ class Itemlist {
   bool public;
   String uri; // A link to the Web API endpoint providing full details of the playlist.
   List<AppItem>? appItems;
+  List<AppReleaseItem>? appReleaseItems;
   bool isFav = false;
 
   Itemlist({
@@ -80,6 +82,9 @@ class Itemlist {
       return AppItem.fromJSON(item);
     }).toList() ?? data["songs"]?.map<AppItem>((item) {
       return AppItem.fromJSON(item);
+    }).toList() ?? [],
+    appReleaseItems =  data["appReleaseItems"]?.map<AppReleaseItem>((item) {
+      return AppReleaseItem.fromJSON(item);
     }).toList() ?? [];
 
 
@@ -97,6 +102,7 @@ class Itemlist {
     'public': public,
     'uri': uri,
     'appItems': appItems!.map((appItem) => appItem.toJSON()).toList(),
+    'appReleaseItems': appReleaseItems!.map((appReleaseItem) => appReleaseItem.toJSON()).toList(),
     'isFav': isFav
   };
 
@@ -125,7 +131,7 @@ class Itemlist {
 
   }
 
-  Itemlist.mapPlaylistSimpleToGiglist(PlaylistSimple playlist) :
+  Itemlist.mapPlaylistSimpleToItemlist(PlaylistSimple playlist) :
         id = playlist.id ?? "",
         name = playlist.name ?? "",
         description = playlist.description ?? "",

@@ -42,6 +42,8 @@ class AppAssets {
   static const String appCoin = "assets/images/appCoin.png";
   static const String appCoins4 = "assets/images/appCoins_4.png";
   static const String appCoins13 = "assets/images/appCoins_13.png";
+  static const String releaseUploadIntro = "assets/images/release_upload/release_upload_intro.png";
+
 
   static const String bandVector01 = 'assets/elements/band-01.png';
   static const String bandVector02 = 'assets/elements/band-02.png';

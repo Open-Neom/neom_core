@@ -34,7 +34,7 @@ class EventFirestore implements EventRepository {
         logger.d("Snapshot is not empty");
         event = Event.fromJSON(documentSnapshot.data());
         event.id = documentSnapshot.id;
-        logger.d(event.toString());
+        logger.v(event.toString());
       }
     } catch (e) {
       logger.e(e.toString());
@@ -71,12 +71,18 @@ class EventFirestore implements EventRepository {
   }
 
   @override
-  Future<String> insert(Event event) async {
+  Future<String> insert(Event event,{String eventId = ""}) async {
     logger.d("");
-    String eventId = "";
     try {
-      DocumentReference documentReference = await eventsReference.add(event.toJSON());
-      eventId = documentReference.id;
+      DocumentReference documentReference;
+      if(eventId.isEmpty) {
+        documentReference = await eventsReference.add(event.toJSON());
+        eventId = documentReference.id;
+      } else {
+        await eventsReference.doc(eventId).set(event.toJSON());
+      }
+      
+
       if(await ProfileFirestore().addEvent(event.owner!.id, eventId, EventAction.organize)){
         logger.d("Event added to Profile");
       }
@@ -98,8 +104,8 @@ class EventFirestore implements EventRepository {
       await PostFirestore().removeEventPost(event.owner!.id, event.id);
       await ActivityFeedFirestore().removeEventActivity(event.id);
       await RequestFirestore().removeEventRequests(event.id);
-      if(event.bandFulfillments.isNotEmpty) {
-        for (var bandFulfillment in event.bandFulfillments) {
+      if(event.bandsFulfillment.isNotEmpty) {
+        for (var bandFulfillment in event.bandsFulfillment) {
           if(bandFulfillment.hasAccepted) {
             await BandFirestore().removePlayingEvent(bandFulfillment.bandId, event.id);
           }
@@ -179,7 +185,7 @@ class EventFirestore implements EventRepository {
       InstrumentFulfillment previousInstrumentFulfillment = InstrumentFulfillment(
           id: appRequest.positionRequestedId, instrument: appRequest.instrument!
       );
-      for (var fulfillment in event.instrumentFulfillments) {
+      for (var fulfillment in event.instrumentsFulfillment) {
         if(appRequest.instrument!.name == fulfillment.instrument.name
             && previousInstrumentFulfillment.id == appRequest.positionRequestedId) {
           previousInstrumentFulfillment = fulfillment;
@@ -198,13 +204,13 @@ class EventFirestore implements EventRepository {
           .then((querySnapshot) async {
         await querySnapshot.reference
             .update({
-              AppFirestoreConstants.instrumentFulfillments:
+              AppFirestoreConstants.instrumentsFulfillment:
               FieldValue.arrayRemove([previousInstrumentFulfillment.toJSON()])
             });
 
         await querySnapshot.reference
             .update({
-              AppFirestoreConstants.instrumentFulfillments:
+              AppFirestoreConstants.instrumentsFulfillment:
               FieldValue.arrayUnion([instrumentFulfillment.toJSON()])
             });
         }
@@ -230,7 +236,7 @@ class EventFirestore implements EventRepository {
           id: appRequest.positionRequestedId,
           instrument: appRequest.instrument!
       );
-      for (var fulfillment in event.instrumentFulfillments) {
+      for (var fulfillment in event.instrumentsFulfillment) {
         if(appRequest.instrument!.name == fulfillment.instrument.name) {
           alreadyFulfilledInstrument = fulfillment;
         }
@@ -249,13 +255,13 @@ class EventFirestore implements EventRepository {
 
         await querySnapshot.reference
             .update({
-              AppFirestoreConstants.instrumentFulfillments:
+              AppFirestoreConstants.instrumentsFulfillment:
               FieldValue.arrayRemove([alreadyFulfilledInstrument.toJSON()])
             });
 
         await querySnapshot.reference
             .update({
-          AppFirestoreConstants.instrumentFulfillments:
+          AppFirestoreConstants.instrumentsFulfillment:
           FieldValue.arrayUnion([instrumentFulfillment.toJSON()])}
         );
       }
@@ -292,7 +298,7 @@ class EventFirestore implements EventRepository {
             isPlaying = true;
           }
 
-          for (var instrumentFulfillment in event.instrumentFulfillments) {
+          for (var instrumentFulfillment in event.instrumentsFulfillment) {
             if(instrumentFulfillment.profileId == profileId) {
               isPlaying = true;
             }
@@ -418,7 +424,7 @@ class EventFirestore implements EventRepository {
   try {
 
     BandFulfillment previousBandFulfillment = BandFulfillment(bandId: bandId);
-    for (var fulfillment in event.bandFulfillments) {
+    for (var fulfillment in event.bandsFulfillment) {
       if(bandId == fulfillment.bandId) {
         previousBandFulfillment = fulfillment;
       }
@@ -435,13 +441,13 @@ class EventFirestore implements EventRepository {
         .then((querySnapshot) async {
       await querySnapshot.reference
           .update({
-        AppFirestoreConstants.bandFulfillments:
+        AppFirestoreConstants.bandsFulfillment:
         FieldValue.arrayRemove([previousBandFulfillment.toJSON()])
       });
 
       await querySnapshot.reference
           .update({
-        AppFirestoreConstants.bandFulfillments:
+        AppFirestoreConstants.bandsFulfillment:
         FieldValue.arrayUnion([bandFulfillment.toJSON()])
       });
     }

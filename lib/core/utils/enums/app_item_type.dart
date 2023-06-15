@@ -5,4 +5,5 @@ enum AppItemType {
 
   final String value;
   const AppItemType(this.value);
+  
 }

@@ -23,6 +23,16 @@ class AppTheme {
     ),
   );
 
+  static BoxDecoration appBoxDecorationFull = BoxDecoration(
+    gradient: LinearGradient(colors: [
+      AppColor.getMain(),
+      AppColor.getMain()
+    ],
+      begin: FractionalOffset.topRight,
+      end: FractionalOffset.bottomLeft, //FractionalOffset(1.0, 1.0)
+    ),
+  );
+
   static final appBoxDecorationBlueGrey = BoxDecoration(
     border: Border.all(color: Colors.blueGrey),
     borderRadius: BorderRadius.circular(30.0),

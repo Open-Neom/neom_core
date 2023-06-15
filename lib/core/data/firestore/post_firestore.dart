@@ -263,7 +263,7 @@ class PostFirestore implements PostRepository {
         for (var postSnapshot in querySnapshot.docs) {
           Post post = Post.fromJSON(postSnapshot.data());
           post.id = postSnapshot.id;
-          if(post.eventId == eventId) {
+          if(post.referenceId == eventId) {
             logger.i("Removing post for Event $eventId");
             await postSnapshot.reference.delete();
             wasDeleted = await ProfileFirestore().removePost(ownerId, postSnapshot.reference.id);

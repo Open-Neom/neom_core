@@ -167,7 +167,6 @@ import '../login/login_controller.dart';
             fontWeight: FontWeight.w400,
           ),
         ),
-        AppTheme.heightSpace10,
         Text(
           AppTranslationConstants.signInWith.tr,
           style: AppTheme.kLabelStyle,
@@ -178,7 +177,7 @@ import '../login/login_controller.dart';
 
   Widget buildSocialBtnRow(LoginController _) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 20.0),
+      padding: const EdgeInsets.symmetric(vertical: 10.0),
       child: Row(
         mainAxisAlignment: (_.appInfo.fbLoginEnabled || _.isIOS13)
             ? MainAxisAlignment.spaceEvenly : MainAxisAlignment.center,

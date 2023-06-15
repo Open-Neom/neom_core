@@ -2,10 +2,12 @@
 class AppFirestoreConstants {
 
   static const String appItems = 'appItems';
+  static const String appReleaseItems = 'appReleaseItems';
 
   static const String productSales = "productSales";
   static const String eventSales = "eventSales";
   static const String bookingSales = "bookingSales";
+  static const String releaseItemSales = "releaseItemSales";
 
   static const String posts = "posts";
   static const String hiddenPosts = "hiddenPosts";
@@ -69,17 +71,20 @@ class AppFirestoreConstants {
   static const String to = 'to';
   static const String from = 'from';
   static const String requestDecision = 'requestDecision';
-  static const String instrumentFulfillments = 'instrumentFulfillments';
-  static const String bandFulfillments = 'bandFulfillments';
+  static const String instrumentsFulfillment = 'instrumentsFulfillment';
+  static const String bandsFulfillment = 'bandsFulfillment';
   static const String isFulfilled = 'isFulfilled';
 
   static const String usageCount = 'usageCount';
   static const String androidNotificationToken = 'androidNotificationToken';
   static const String wallet = 'wallet';
   static const String goingProfiles = 'goingProfiles';
+  static const String boughtItems = 'boughtItems';
+  static const String boughtUsers = 'boughtUsers';
 
   static const String orderNumber = 'orderNumber';
   static const String orderIds = 'orderIds';
+  static const String releaseItemIds = 'releaseItemIds';
   static const String paymentIds = 'paymentIds';
   static const String invoiceIds = 'invoiceIds';
   static const String type = 'type';
@@ -98,4 +103,5 @@ class AppFirestoreConstants {
 
   static const String totalUsers = "totalUsers";
   static const String totalLocations = "totalLocations";
+
 }

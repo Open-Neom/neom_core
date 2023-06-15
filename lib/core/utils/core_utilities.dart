@@ -309,7 +309,8 @@ class CoreUtilities {
         break;
     }
 
-    return profileMainFeature;
+
+    return profileMainFeature.isNotEmpty ? profileMainFeature : profile.type.value;
   }
 
 
@@ -370,19 +371,41 @@ class CoreUtilities {
   }
 
 
-  static Future<Place> predictionToEventPlace(Prediction p) async {
+  static Future<Place> predictionToGooglePlace(Prediction p) async {
     AppUtilities.logger.d("");
 
     Place place = Place();
+    String placeName = "";
+    Address address = Address();
+    if(p.terms.isNotEmpty) {
+      placeName = p.terms.elementAt(0).value;
 
-    String placeName = p.terms.elementAt(0).value;
-    Address address = Address(
-      street: p.terms.elementAt(1).value,
-      neighborhood: p.terms.elementAt(2).value,
-      city: p.terms.elementAt(3).value,
-      state: p.terms.elementAt(4).value,
-      country: p.terms.elementAt(5).value,
-    );
+      if(p.terms.length == 4) {
+        address = Address(
+          city: p.terms.elementAt(1).value,
+          state: p.terms.elementAt(2).value,
+          country: p.terms.elementAt(3).value,
+        );
+      } else if(p.terms.length == 5) {
+        address = Address(
+          street: p.terms.elementAt(1).value,
+          city: p.terms.elementAt(2).value,
+          state: p.terms.elementAt(3).value,
+          country: p.terms.elementAt(4).value,
+        );
+      } else if(p.terms.length == 6) {
+        address = Address(
+          street: p.terms.elementAt(1).value,
+          neighborhood: p.terms.elementAt(2).value,
+          city: p.terms.elementAt(3).value,
+          state: p.terms.elementAt(4).value,
+          country: p.terms.elementAt(5).value,
+        );
+      }
+
+    }
+
+
 
     try {
       GoogleMapsPlaces places = GoogleMapsPlaces(
@@ -450,7 +473,7 @@ class CoreUtilities {
     Map<String, Instrument> matchedInstruments = <String, Instrument>{};
 
     try {
-      for (var instrumentFulfillment in event.instrumentFulfillments) {
+      for (var instrumentFulfillment in event.instrumentsFulfillment) {
         if(profileInstruments.containsKey(instrumentFulfillment.instrument.id)
             && !instrumentFulfillment.isFulfilled) {
           matchedInstruments[instrumentFulfillment.instrument.id] = instrumentFulfillment.instrument;
@@ -595,17 +618,17 @@ class CoreUtilities {
   static String getCurrencySymbol(AppCurrency currency) {
     String currencySymbol = "\u{0024}";
     switch(currency) {
-      case (AppCurrency.usd):
+      case (AppCurrency.mxn):
         currencySymbol = "\u{0024}";
         break;
       case (AppCurrency.appCoin):
         currencySymbol = "\u{0024}";
         break;
+      case (AppCurrency.usd):
+        currencySymbol = "\u{0024}";
+        break;
       case (AppCurrency.eur):
         currencySymbol = "\u{20AC}";
-        break;
-      case (AppCurrency.mxn):
-        currencySymbol = "\u{0024}";
         break;
       case (AppCurrency.gbp):
         currencySymbol = "\u{00A3}";
@@ -618,8 +641,7 @@ class CoreUtilities {
 
   Future<void> shareApp() async {
     ShareResult shareResult = await Share.shareWithResult('${MessageTranslationConstants.shareAppMsg.tr}\n'
-        '\nAndroid: ${AppFlavour.getPlayStoreUrl()}\n'
-        '\niOS: ${AppFlavour.getAppStoreUrl()}'
+        '${AppFlavour.getLinksUrl()}'
     );
 
     if(shareResult.status == ShareResultStatus.success && shareResult.raw != "null") {
@@ -657,15 +679,13 @@ class CoreUtilities {
       shareResult = await Share.shareXFiles([XFile(thumbnailLocalPath)],
           text: '$caption${caption.isNotEmpty ? "\n\n" : ""}'
               '${MessageTranslationConstants.shareAppMsg.tr}\n'
-              '\nAndroid: ${AppFlavour.getPlayStoreUrl()}\n'
-              '\niOS: ${AppFlavour.getAppStoreUrl()}'
+              '\n${AppFlavour.getLinksUrl()}\n'
       );
     } else {
       shareResult = await Share.shareWithResult(
           '$caption${caption.isNotEmpty ? "\n\n" : ""}'
               '${MessageTranslationConstants.shareAppMsg.tr}\n'
-              '\nAndroid: ${AppFlavour.getPlayStoreUrl()}\n'
-              '\niOS: ${AppFlavour.getAppStoreUrl()}'
+              '\n${AppFlavour.getLinksUrl()}\n'
       );
     }
 

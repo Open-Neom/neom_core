@@ -61,7 +61,7 @@ class AppRequest {
       instrument = data["instrument"] != null ? Instrument.fromJSON(data["instrument"]) : Instrument();
       percentageCoverage = data["percentageCoverage"] ?? 0.0;
       distanceKm = data["distanceKm"] ?? 0.0;
-      requestDecision = EnumToString.fromString(RequestDecision.values, data["requestDecision"]) ?? RequestDecision.pending;
+      requestDecision = EnumToString.fromString(RequestDecision.values, data["requestDecision"] ?? RequestDecision.pending.name) ?? RequestDecision.pending;
     } catch (e) {
       AppUtilities.logger.e(e.toString());
     }

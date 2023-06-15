@@ -52,7 +52,7 @@ class EventTile extends StatelessWidget {
                     children: <Widget>[
                       const Icon(Icons.calendar_today, size: 12),
                       AppTheme.widthSpace5,
-                      Text(DateFormat.yMMMd(AppTranslationConstants.esMx)
+                      Text(DateFormat.yMMMd(AppTranslationConstants.es)
                             .format(DateTime.fromMillisecondsSinceEpoch(event.eventDate)),
                         style: const TextStyle(
                           fontSize: 12

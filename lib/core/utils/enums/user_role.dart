@@ -3,4 +3,5 @@ enum UserRole {
   admin,
   editor,
   subscriber,
+  superAdmin,
 }

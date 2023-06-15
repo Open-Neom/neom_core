@@ -1,9 +1,13 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
+import 'package:path_provider/path_provider.dart';
 import '../data/implementations/geolocator_controller.dart';
 import 'app_color.dart';
 import 'constants/app_route_constants.dart';
@@ -161,4 +165,38 @@ class AppUtilities {
     return numberWithFormat;
   }
 
+  static Future<File> getPdfFromUrl(String pdfUrl) async {
+    logger.d("Start download file from internet!");
+    File file = File("");
+    String filename = "";
+    try {
+      filename = pdfUrl.substring(pdfUrl.lastIndexOf("/") + 1);
+      var request = await HttpClient().getUrl(Uri.parse(pdfUrl));
+      var response = await request.close();
+      var bytes = await consolidateHttpClientResponseBytes(response);
+      var dir = await getApplicationDocumentsDirectory();
+      logger.d("Download files");
+      logger.i("PDF Path: ${dir.path}/$filename");
+      file = File("${dir.path}/$filename");
+      await file.writeAsBytes(bytes, flush: true);
+    } catch (e) {
+      throw Exception('Error parsing asset file!');
+    }
+
+    return file;
+  }
+
+  static File getFileFromPath(String filePath) {
+    logger.d("Getting PDF File From Path");
+    File file = File("");
+
+    try {
+      logger.i("File Path: $filePath");
+      file = File(filePath);
+    } catch (e) {
+      logger.e('Error getting File');
+    }
+
+    return file;
+  }
 }

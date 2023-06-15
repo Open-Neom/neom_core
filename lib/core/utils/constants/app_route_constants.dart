@@ -88,7 +88,6 @@ class AppRouteConstants {
   static const String createBandReason = '/createBand/reason';
   static const String createBandSummary = '/createBand/summary';
 
-
   static const String privacySafety = '/privacyAndSafety';
   static const String privacyAndTerms = '/privacyAndTerms';
   static const String settingsPrivacy = '/settingsAndPrivacy';
@@ -125,6 +124,7 @@ class AppRouteConstants {
   // ignore: constant_identifier_names
   static const String PDFViewer  = '/PDFViewer';
   static const String digitalLibrary  = '/digitalLibrary';
+  static const String libraryHome  = '/library/';
   static const String bookDetails  = '/book/details';
 
   static const String blog  = '/blog';
@@ -140,4 +140,15 @@ class AppRouteConstants {
   static const String quotation = '/quotation';
   static const String appItemQuotation = '/appItems/quotation';
 
+  static const String releaseUpload  = '/releaseUpload';
+  static const String releaseUploadType  = '/releaseUpload/type';
+  static const String releaseUploadInstr  = '/releaseUpload/instr';
+  static const String releaseUploadCover  = '/releaseUpload/cover';
+  static const String releaseUploadGenres  = '/releaseUpload/genres';
+  static const String releaseUploadReason  = '/releaseUpload/reason';
+  static const String releaseUploadInfo  = '/releaseUpload/info';
+  static const String releaseUploadNameDesc  = '/releaseUpload/nameDesc';
+  static const String releaseUploadSummary  = '/onlinePositioning/summary';
+
+  static const String analytics  = '/analytics';
 }

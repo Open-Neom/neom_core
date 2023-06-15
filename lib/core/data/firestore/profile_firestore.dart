@@ -124,7 +124,7 @@ class ProfileFirestore implements ProfileRepository {
           }
         }
 
-        logger.d(profile.id.isNotEmpty
+        logger.v(profile.id.isNotEmpty
             ? "Profile ${profile.toString()}"
             : "Profile not found"
         );
@@ -1664,5 +1664,45 @@ class ProfileFirestore implements ProfileRepository {
 
     logger.d("${hostProfiles.length} Profiles found");
     return hostProfiles;
+  }
+
+  @override
+  Future<bool> addBoughtItem({required String userId, required String boughtItem}) async {
+    logger.d("$userId would add $boughtItem");
+
+    try {
+      await usersReference.doc(userId)
+          .update({AppFirestoreConstants.boughtItems: FieldValue.arrayUnion([boughtItem])});
+      logger.d("$userId has added boughtItem $boughtItem");
+      return true;
+    } catch (e) {
+      logger.e(e.toString());
+    }
+    return false;
+  }
+
+
+  @override
+  Future<bool> removeBoughtItem(String profileId, String boughtItem) async {
+    logger.d("$profileId would remove $boughtItem");
+
+    try {
+      await profileReference.get()
+          .then((querySnapshot) async {
+        for (var document in querySnapshot.docs) {
+          if(document.id == profileId) {
+            await document.reference
+                .update({AppFirestoreConstants.boughtItems: FieldValue.arrayUnion([boughtItem])});
+
+          }
+        }
+      });
+
+      logger.d("$profileId has removed boughtItems $boughtItem");
+      return true;
+    } catch (e) {
+      logger.e(e.toString());
+    }
+    return false;
   }
 }

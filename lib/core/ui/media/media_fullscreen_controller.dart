@@ -5,6 +5,7 @@ class MediaFullScreenController extends GetxController {
 
   var logger = AppUtilities.logger;
   String mediaUrl = "";
+  bool isRemote = true;
 
   @override
   void onInit() async {
@@ -15,6 +16,9 @@ class MediaFullScreenController extends GetxController {
 
       if(Get.arguments != null && Get.arguments.isNotEmpty) {
         mediaUrl = Get.arguments[0];
+        if(Get.arguments.length > 1) {
+          isRemote = Get.arguments[1];
+        }
       }
 
     } catch (e) {

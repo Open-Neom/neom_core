@@ -4,11 +4,13 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../app_flavour.dart';
+import '../../domain/model/app_analytics.dart';
 import '../../domain/model/app_coupon.dart';
 import '../../domain/model/app_profile.dart';
 import '../../domain/model/app_user.dart';
 import '../../domain/repository/app_analytics_repository.dart';
 import '../../utils/app_utilities.dart';
+import '../../utils/constants/app_translation_constants.dart';
 import '../../utils/core_utilities.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
@@ -21,6 +23,35 @@ class AppAnalyticsFirestore implements AppAnalyticsRepository {
   final analyticsReference = FirebaseFirestore.instance
       .collection(AppFirestoreCollectionConstants.analytics);
 
+  @override
+  Future<List<AppAnalytics>> getAnalytics() async {
+    logger.d("Get all Users");
+
+    List<AppAnalytics> analytics = [];
+    try {
+      QuerySnapshot querySnapshot = await analyticsReference.get();
+      for (var queryDocumentSnapshot in querySnapshot.docs) {
+        if (queryDocumentSnapshot.exists) {
+          Map<String, dynamic> snapshots = queryDocumentSnapshot.data() as Map<String, dynamic>;
+          snapshots.forEach((key, value) {
+            AppAnalytics analytic = AppAnalytics(location: "", qty: 0);
+            Map<String,dynamic> mapItem = {};
+            mapItem["location"] = key;
+            mapItem["qty"] = int.parse(value);
+
+            analytic = AppAnalytics.fromJson(mapItem);
+            analytics.add(analytic);
+          });
+        }
+      }
+    } catch (e) {
+      logger.e(e.toString());
+    }
+
+    return analytics;
+
+  }
+  
   @override
   Future<Map<String, AppCoupon>> getUserAnalytics() async {
     logger.d("");
@@ -43,10 +74,13 @@ class AppAnalyticsFirestore implements AppAnalyticsRepository {
       try {
 
         List<AppUser> users = await UserFirestore().getAll();
+        Map<String, AppProfile> profiles = await ProfileFirestore().retrieveAllProfiles();
         List<String> totalLocations = [];
 
-        for (var user in users) {
-          totalLocations.addAll(await getProfilesLocation(user.id));
+        for (var profile in profiles.values) {
+          if(profile.position!.latitude > 0.000000) {
+            totalLocations.add(await AppUtilities.getAddressFromPlacerMark(profile.position!));
+          }
         }
 
         await analyticsReference
@@ -65,8 +99,8 @@ class AppAnalyticsFirestore implements AppAnalyticsRepository {
 
         for (var locationName in totalLocations) {
           int locationNameIndex = 1;
-          for (var subLocatioName in totalLocations) {
-            if(locationName == subLocatioName) {
+          for (var subLocationName in totalLocations) {
+            if(locationName == subLocationName) {
               locationNameIndex++;
             }
           }
@@ -75,7 +109,7 @@ class AppAnalyticsFirestore implements AppAnalyticsRepository {
           await analyticsReference.
             doc(AppFirestoreCollectionConstants.analytics)
               .update({
-            locationName: "$locationNameIndex"
+                locationName: "$locationNameIndex"
               });
         }
 
@@ -98,57 +132,10 @@ class AppAnalyticsFirestore implements AppAnalyticsRepository {
         }
       } catch (e) {
         logger.e(e.toString());
+        AppUtilities.showSnackBar(AppTranslationConstants.notifications, "Hubo un error al actualizar las analíticas");
       }
-  }
-
-  Future<List<String>> getProfilesLocation(String userId) async {
-
-    List<String> locations = [];
-    List<AppProfile> profiles = await ProfileFirestore().retrieveProfiles(userId);
-
-    //for (var profile in profiles) {
-
-      // if(profile.type == GigProfileType.musician) {
-      //   profile.instruments = await InstrumentFirestore().retrieveInstruments(profile.id);
-      //   if(profile.instruments!.isEmpty) {
-      //     logger.w("Instruments not found");
-      //   }
-      // }
-      //
-      // if(profile.type == GigProfileType.host) {
-      //   profile.places = await GigPlaceFirestore().retrievePlaces(profile.id);
-      //   if(profile.places!.isEmpty) {
-      //     logger.w("Places not found");
-      //   }
-      // }
-      //
-      // if(profile.type == GigProfileType.facilitator) {
-      //   profile.facilities = await GigFacilityFirestore().retrieveFacilities(profile.id);
-      //   if(profile.facilities!.isEmpty) {
-      //     logger.w("Facilities not found");
-      //   }
-      // }
-      //
-      // profile.genres = await GigGenreFirestore().retrieveGenres(profile.id);
-      // profile.itemlists = await ItemlistFirestore().retrieveItemlists(profile.id);
-      //
-      // if(profile.genres!.isEmpty) logger.d("Genres not found");
-      // if(profile.itemlists!.isEmpty) logger.d("Itemlists not found");
-
-    //}
-
-    if(profiles.isEmpty) {
-      logger.d("Profile not found");
-    } else {
-
-      for (var profile in profiles) {
-        if(profile.position!.latitude > 0.000000) {
-          locations.add(await AppUtilities.getAddressFromPlacerMark(profile.position!));
-        }
-      }
-    }
-
-    return locations;
+      
+      AppUtilities.showSnackBar(AppTranslationConstants.notifications, "Las analíticas han sido actualizadas");
   }
 
 }

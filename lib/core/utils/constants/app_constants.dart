@@ -36,6 +36,7 @@ class AppConstants {
   static const String prevVersion4 = "prevVersion4";
 
   static const int maxAppItemNameLength = 20;
+  static const int maxGenreNameLength = 15;
   static const int maxArtistNameLength = 15;
   static const int maxBandNameLength = 15;
   static const int maxBandDescLength = 30;
@@ -70,7 +71,8 @@ class AppConstants {
   static const passwordMaximumLength = 16;
   static const emailMaximumLength = 26;
   static const firstYearDOB = 1930;
-  static const lastYearDOB = 2007;
+  static const lastYearDOB = 2010;
+  static const firstReleaseYear = 1970;
 
   static const String initialTimeSeconds = '0:00';
   static const String grid = 'grid';

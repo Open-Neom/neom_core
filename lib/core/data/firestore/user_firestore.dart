@@ -543,4 +543,24 @@ class UserFirestore implements UserRepository {
     return fcmTokens;
   }
 
+  @override
+  Future<bool> addReleaseItem({required String userId, required String releaseItemId}) async {
+    logger.d("ReleaseItem $releaseItemId would be added to User $userId");
+
+    try {
+      DocumentSnapshot documentSnapshot = await userReference
+          .doc(userId).get();
+
+      await documentSnapshot.reference.update({
+        AppFirestoreConstants.releaseItemIds: FieldValue.arrayUnion([releaseItemId])
+      });
+      logger.d("ReleaseItem $releaseItemId is now at User $userId");
+      return true;
+    } catch (e) {
+      logger.e(e.toString());
+    }
+
+    return false;
+  }
+
 }

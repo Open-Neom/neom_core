@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'ui/analytics/analytics_page.dart';
 import 'ui/media/media_fullscreen_page.dart';
 import 'ui/static/previous_version_page.dart';
 import 'ui/static/splash_page.dart';
@@ -40,6 +41,11 @@ class CoreRoutes {
     GetPage(
       name: AppRouteConstants.underConstruction,
       page: () => const UnderConstructionPage(),
+      transition: Transition.zoom,
+    ),
+    GetPage(
+      name: AppRouteConstants.analytics,
+      page: () => const AnalyticsPage(),
       transition: Transition.zoom,
     ),
   ];
