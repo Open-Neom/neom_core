@@ -177,7 +177,6 @@ class AppProfile {
         invitationRequests = data["invitationRequests"]?.cast<String>() ?? [],
         showInDirectory = data["showInDirectory"] ?? false;
 
-
   AppProfile.fromProfileInstruments(data) :
         id = data["id"] ?? "",
         name = data["name"] ?? "",

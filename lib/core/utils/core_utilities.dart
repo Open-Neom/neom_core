@@ -617,17 +617,17 @@ class CoreUtilities {
   static String getCurrencySymbol(AppCurrency currency) {
     String currencySymbol = "\u{0024}";
     switch(currency) {
-      case (AppCurrency.usd):
+      case (AppCurrency.mxn):
         currencySymbol = "\u{0024}";
         break;
       case (AppCurrency.appCoin):
         currencySymbol = "\u{0024}";
         break;
+      case (AppCurrency.usd):
+        currencySymbol = "\u{0024}";
+        break;
       case (AppCurrency.eur):
         currencySymbol = "\u{20AC}";
-        break;
-      case (AppCurrency.mxn):
-        currencySymbol = "\u{0024}";
         break;
       case (AppCurrency.gbp):
         currencySymbol = "\u{00A3}";
@@ -640,8 +640,7 @@ class CoreUtilities {
 
   Future<void> shareApp() async {
     ShareResult shareResult = await Share.shareWithResult('${MessageTranslationConstants.shareAppMsg.tr}\n'
-        '\nAndroid: ${AppFlavour.getPlayStoreUrl()}\n'
-        '\niOS: ${AppFlavour.getAppStoreUrl()}'
+        '${AppFlavour.getLinksUrl()}'
     );
 
     if(shareResult.status == ShareResultStatus.success && shareResult.raw != "null") {
@@ -679,15 +678,13 @@ class CoreUtilities {
       shareResult = await Share.shareXFiles([XFile(thumbnailLocalPath)],
           text: '$caption${caption.isNotEmpty ? "\n\n" : ""}'
               '${MessageTranslationConstants.shareAppMsg.tr}\n'
-              '\nAndroid: ${AppFlavour.getPlayStoreUrl()}\n'
-              '\niOS: ${AppFlavour.getAppStoreUrl()}'
+              '\n${AppFlavour.getLinksUrl()}\n'
       );
     } else {
       shareResult = await Share.shareWithResult(
           '$caption${caption.isNotEmpty ? "\n\n" : ""}'
               '${MessageTranslationConstants.shareAppMsg.tr}\n'
-              '\nAndroid: ${AppFlavour.getPlayStoreUrl()}\n'
-              '\niOS: ${AppFlavour.getAppStoreUrl()}'
+              '\n${AppFlavour.getLinksUrl()}\n'
       );
     }
 

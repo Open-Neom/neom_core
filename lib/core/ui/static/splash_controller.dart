@@ -127,14 +127,11 @@ class SplashController extends GetxController {
       case AppRouteConstants.paymentGateway:
         await changeSubtitle(AppTranslationConstants.paymentProcessed);
         update([AppPageIdConstants.splash]);
-        if(toRoute == AppRouteConstants.wallet) {
-          await Get.offAllNamed(AppRouteConstants.home, arguments: [toRoute]);
-        } else if (toRoute == AppRouteConstants.home) {
-          //TODO VERIFY How to implement cleaner as event is not loaded
-          //Event event = Get.find<EventDetailsController>().event;
-          //await Get.offAllNamed(AppRouteConstants.home, arguments: [event]);
-          await Get.offAllNamed(AppRouteConstants.home);
-        }
+
+        //TODO VERIFY How to implement cleaner as event is not loaded
+        //Event event = Get.find<EventDetailsController>().event;
+        //await Get.offAllNamed(AppRouteConstants.home, arguments: [event]);
+        await Get.offAllNamed(AppRouteConstants.home, arguments: [toRoute]);
         break;
       case AppRouteConstants.finishingSpotifySync:
         await Get.offAllNamed(AppRouteConstants.home);

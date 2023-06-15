@@ -124,6 +124,7 @@ class AppRouteConstants {
   // ignore: constant_identifier_names
   static const String PDFViewer  = '/PDFViewer';
   static const String digitalLibrary  = '/digitalLibrary';
+  static const String libraryHome  = '/library/';
   static const String bookDetails  = '/book/details';
 
   static const String blog  = '/blog';

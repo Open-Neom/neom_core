@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../utils/app_theme.dart';
+import '../../utils/constants/app_constants.dart';
 
 class GenresGridView extends StatelessWidget {
 
@@ -38,11 +39,13 @@ class GenresGridView extends StatelessWidget {
         shrinkWrap: true,
         scrollDirection: Axis.horizontal,
         itemBuilder: (context, index) {
+          String genre = genres[index];
           return Row(
               children: [
                 dot,
                 Text(
-                  genres[index].capitalizeFirst!,
+                    (genre.length < AppConstants.maxGenreNameLength
+                      ? genre :  genre.substring(0, AppConstants.maxGenreNameLength)).capitalize!,
                   style: TextStyle(
                     color: color,
                     fontSize: fontSize,

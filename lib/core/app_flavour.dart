@@ -34,6 +34,17 @@ class AppFlavour {
     }
   }
 
+  static String getLinksUrl() {
+    switch(appInUse) {
+      case AppInUse.gigmeout:
+        return appProperties['linksUrl'];
+      case AppInUse.emxi:
+        return appProperties['linksUrl'];
+      case AppInUse.cyberneom:
+        return "";
+    }
+  }
+
   static String getPlayStoreUrl() {
     switch(appInUse) {
       case AppInUse.gigmeout:
@@ -180,11 +191,11 @@ class AppFlavour {
   static String getAppCoinName() {
     switch (appInUse) {
       case AppInUse.gigmeout:
-        return "GigCoin";
+        return "Gigcoin";
       case AppInUse.emxi:
-        return "EmxiCoin";
+        return "Emxis";
       case AppInUse.cyberneom:
-        return "NeomCoin";
+        return "Neomcoin";
     }
   }
 

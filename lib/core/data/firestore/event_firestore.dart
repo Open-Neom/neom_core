@@ -71,12 +71,18 @@ class EventFirestore implements EventRepository {
   }
 
   @override
-  Future<String> insert(Event event) async {
+  Future<String> insert(Event event,{String eventId = ""}) async {
     logger.d("");
-    String eventId = "";
     try {
-      DocumentReference documentReference = await eventsReference.add(event.toJSON());
-      eventId = documentReference.id;
+      DocumentReference documentReference;
+      if(eventId.isEmpty) {
+        documentReference = await eventsReference.add(event.toJSON());
+        eventId = documentReference.id;
+      } else {
+        await eventsReference.doc(eventId).set(event.toJSON());
+      }
+      
+
       if(await ProfileFirestore().addEvent(event.owner!.id, eventId, EventAction.organize)){
         logger.d("Event added to Profile");
       }

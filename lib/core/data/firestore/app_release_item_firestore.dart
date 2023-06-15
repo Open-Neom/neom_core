@@ -6,6 +6,7 @@ import '../../domain/model/app_release_item.dart';
 import '../../domain/repository/app_release_item_repository.dart';
 import '../../utils/app_utilities.dart';
 import 'constants/app_firestore_collection_constants.dart';
+import 'constants/app_firestore_constants.dart';
 
 class AppReleaseItemFirestore implements AppReleaseItemRepository {
 
@@ -29,6 +30,28 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
     }
 
     return releaseItemId;
+  }
+
+  @override
+  Future<Map<String, AppReleaseItem>> retrieveAll() async {
+    logger.d("Get all AppReleaseItem");
+
+    Map<String, AppReleaseItem> releaseItems = {};
+    try {
+      QuerySnapshot querySnapshot = await appReleaseItemReference.get();
+      for (var queryDocumentSnapshot in querySnapshot.docs) {
+        if (queryDocumentSnapshot.exists) {
+          AppReleaseItem releaseItem = AppReleaseItem.fromJSON(queryDocumentSnapshot.data());
+          releaseItem.id = queryDocumentSnapshot.id;
+          releaseItems[releaseItem.id] = releaseItem;
+        }
+      }
+    } catch (e) {
+      logger.e(e.toString());
+    }
+
+    logger.d("${releaseItems.length} releaseItems found");
+    return releaseItems;
   }
 
   @override
@@ -88,6 +111,30 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
       logger.d(e.toString());
       return false;
     }
+  }
+
+  @override
+  Future<bool> addBoughtUser({required String releaseItemId, required String userId}) async {
+    logger.d("$releaseItemId would add User $userId");
+
+    try {
+      await appReleaseItemReference.get()
+          .then((querySnapshot) async {
+        for (var document in querySnapshot.docs) {
+          if(document.id == releaseItemId) {
+            await document.reference
+                .update({AppFirestoreConstants.boughtUsers: FieldValue.arrayUnion([userId])});
+
+          }
+        }
+      });
+
+      logger.d("$releaseItemId has added boughtItem $userId");
+      return true;
+    } catch (e) {
+      logger.e(e.toString());
+    }
+    return false;
   }
 
 }

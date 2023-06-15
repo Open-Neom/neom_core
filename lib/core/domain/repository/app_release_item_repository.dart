@@ -8,5 +8,6 @@ abstract class AppReleaseItemRepository {
 
   Future<void> insert(AppReleaseItem releaseItem);
   Future<bool> remove(AppReleaseItem releaseItem);
+  Future<bool> addBoughtUser({required String releaseItemId, required String userId});
 
 }

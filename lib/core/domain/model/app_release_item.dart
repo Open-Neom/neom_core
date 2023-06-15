@@ -85,7 +85,7 @@ class AppReleaseItem {
     instruments = List.from(data["instruments"]?.cast<String>() ?? []),
     publisher = data["publisher"] ?? "",
     publishedYear = data["publishedYear"] ?? 0,
-    type = EnumToString.fromString(ReleaseType.values, data["type"]) ?? ReleaseType.single,
+    type = EnumToString.fromString(ReleaseType.values, data["type"] ?? ReleaseType.single.name) ?? ReleaseType.single,
     watchingProfiles = List.from(data["watchingProfiles"]?.cast<String>() ?? []),
     boughtUsers = List.from(data["boughtUsers"]?.cast<String>() ?? []),
     digitalPrice = Price.fromJSON(data["digitalPrice"] ?? {}),

@@ -116,16 +116,16 @@ class SharedPreferenceController extends GetxController implements SharedPrefere
 
     switch(appLocale) {
       case AppLocale.english:
-        locale = const Locale('en', 'US');
+        locale = const Locale('en');
         break;
       case AppLocale.spanish:
-        locale = const Locale('esp', 'MX');
+        locale = const Locale('es');
         break;
       case AppLocale.french:
-        locale = const Locale('fr', 'FR');
+        locale = const Locale('fr');
         break;
       case AppLocale.deutsch:
-        locale = const Locale('de', 'DE');
+        locale = const Locale('de');
         break;
     }
 

@@ -73,6 +73,7 @@ class AppPageIdConstants {
   static const String orderConfirmation = "orderConfirmation";
   static const String orderDetails = "orderDetails";
 
+  static const String library = "library";
   static const String readlist = "readlist";
   static const String bookDetails = "bookDetails";
   static const String pdfViewer = "pdfView";

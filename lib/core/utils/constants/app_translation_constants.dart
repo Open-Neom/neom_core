@@ -7,12 +7,12 @@ class AppTranslationConstants {
 
   static const Map<String, Locale> supportedLocales = {
     'english': Locale('en', 'US'),
-    'spanish': Locale('esp', 'MX'),
+    'spanish': Locale('es', 'MX'),
     'french': Locale('fr', 'FR'),
     'deutsch': Locale('de', 'DE')
   };
 
-  static const String esMx = 'es_MX';
+  static const String es = 'es';
 
   static String languageFromLocale(Locale locale) {
     String language = "";
@@ -138,6 +138,7 @@ class AppTranslationConstants {
   static const String unfollow = "unfollow";
   static const String follow = "follow";
   static const String message = "message";
+  static const String messages = "messages";
 
   static const List<String> choices = ["more", "about", "logout"];
   static const String itemSearch = "itemSearch";
@@ -262,7 +263,7 @@ class AppTranslationConstants {
   static const String event = 'event';
   static const String eventDate = 'eventDate';
   static const String itemlists = 'itemlists';
-  static const String inbox = 'Inbox';
+  static const String inbox = 'inbox';
 
   static const String myFirstItemlistName = 'myFirstItemlistName';
   static const String myFirstItemlistDesc = 'myFirstItemlistDesc';
@@ -396,7 +397,6 @@ class AppTranslationConstants {
   static const String unblockedProfileMsg = 'unblockedProfileMsg';
   static const String unblockedProfile = 'unblockedProfile';
 
-
   static const String sharePostMsg = 'sharePostMsg';
   static const String copy = 'copy';
   static const String save = 'save';
@@ -452,8 +452,6 @@ class AppTranslationConstants {
   static const String privateBathroom  = "privateBathroom";
   static const String sharedPlace  = "sharedPlace";
   static const String whereToGig  = "whereToGig";
-
-
 
   static const String day  = "day";
   static const String verifyAvailability  = "verifyAvailability";
@@ -677,6 +675,7 @@ class AppTranslationConstants {
   static const String readOn = 'readOn';
   static const String suggestedReading = 'suggestedReading';
   static const String digitalLibrary = 'digitalLibrary';
+  static const String library = 'library';
   static const String searchBooks = 'searchBooks';
   static const String popular = 'popular';
   static const String author = 'author';
@@ -796,5 +795,6 @@ class AppTranslationConstants {
   static const String seeAnalytics = 'seeAnalytics';
   static const String runAnalyticsJobs = 'runAnalyticsJobs';
   static const String runProfileJobs = 'runProfileJobs';
+  static const String recentReleases = 'recentReleases';
 
 }

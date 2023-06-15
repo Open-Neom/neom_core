@@ -79,6 +79,8 @@ class AppFirestoreConstants {
   static const String androidNotificationToken = 'androidNotificationToken';
   static const String wallet = 'wallet';
   static const String goingProfiles = 'goingProfiles';
+  static const String boughtItems = 'boughtItems';
+  static const String boughtUsers = 'boughtUsers';
 
   static const String orderNumber = 'orderNumber';
   static const String orderIds = 'orderIds';
@@ -101,4 +103,5 @@ class AppFirestoreConstants {
 
   static const String totalUsers = "totalUsers";
   static const String totalLocations = "totalLocations";
+
 }
