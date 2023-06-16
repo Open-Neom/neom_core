@@ -38,8 +38,9 @@ class LoginPage extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  SizedBox(height: Platform.isIOS ? 50 : 80),
+                  AppTheme.heightSpace50,
                   const HeaderIntro(),
+                  AppTheme.heightSpace30,
                   Text(AppTranslationConstants.signIn.tr,
                     style: const TextStyle(
                       color: Colors.white,
