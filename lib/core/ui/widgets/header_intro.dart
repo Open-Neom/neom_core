@@ -23,15 +23,16 @@ class HeaderIntro extends StatelessWidget{
         children: <Widget>[
           (AppFlavour.appInUse == AppInUse.emxi && showPreLogo)
               ? Image.asset(AppAssets.logoAppWhite,
-            height: 150,
-            width: 150,
+            height: AppTheme.fullWidth(context)/2.5,
+            width: AppTheme.fullWidth(context)/2.5,
           ) : Container(),
+          AppTheme.heightSpace20,
           showLogo ? Image.asset(AppFlavour.appInUse == AppInUse.emxi
               ? AppAssets.logoCompanyWhite : (AppTranslationConstants.languageFromLocale(Get.locale!)
               == AppTranslationConstants.spanish ? AppAssets.logoSloganSpanish
               : AppAssets.logoSloganEnglish),
-            height: 150,
-            width: 320,
+            width: AppTheme.fullWidth(context)*0.75,
+            fit: BoxFit.fitWidth,
           ) : Container(),
           subtitle.isEmpty ? Container() : Column(
             children: [
