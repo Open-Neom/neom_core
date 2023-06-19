@@ -587,6 +587,7 @@ class AppTranslationConstants {
   static const String hasPostedSomethingNew = "hasPostedSomethingNew";
   static const String hasPostedInBlog = "hasPostedInBlog";
   static const String addedAppItemToList = "addedAppItemToList";
+  static const String addedReleaseAppItem = "addedReleaseAppItem";
 
   static const String receivedInvitationRequest = "receivedInvitationRequest";
   static const String hasAcceptedYourRequest = "hasAcceptedYourRequest";

@@ -9,7 +9,8 @@ enum PushNotificationType {
   following(8),
   post(9),
   blog(10),
-  appItemAdded(11);
+  appItemAdded(11),
+  releaseAppItemAdded(12);
 
   final int value;
   const PushNotificationType(this.value);

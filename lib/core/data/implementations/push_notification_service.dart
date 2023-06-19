@@ -197,6 +197,10 @@ class PushNotificationService {
           buildPushNotification(pushNotificationMessage,
               NotificationCategory.Recommendation, NotificationLayout.BigPicture);
           break;
+        case PushNotificationType.releaseAppItemAdded:
+          buildPushNotification(pushNotificationMessage,
+              NotificationCategory.Recommendation, NotificationLayout.BigPicture);
+          break;
       }
     } catch (e) {
       AppUtilities.logger.e(e.toString());

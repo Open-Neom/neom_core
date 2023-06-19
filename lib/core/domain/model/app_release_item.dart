@@ -33,6 +33,7 @@ class AppReleaseItem {
   List<BandFulfillment> bandsFulfillment;
   List<String>? watchingProfiles;
   List<String>? boughtUsers;
+  int createdTime;
 
   bool isAvailable;
   bool isPhysical;
@@ -67,6 +68,7 @@ class AppReleaseItem {
       this.isAvailable = false,
       this.isTest = false,
       this.state = 0,
+      this.createdTime = 0,
   });
 
   AppReleaseItem.fromJSON(data) :
@@ -97,7 +99,8 @@ class AppReleaseItem {
     isAvailable = data["isAvailable"] ?? false,
     isPhysical = data["isPhysical"] ?? false,
     isTest = data["isFulfilled"] ?? false,
-    state = data["state"] ?? 0;
+    state = data["state"] ?? 0,
+    createdTime = data["createdTime"] ?? 0;
 
   Map<String, dynamic>  toJSON() => {
     'id': id,

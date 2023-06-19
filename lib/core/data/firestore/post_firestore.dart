@@ -139,7 +139,7 @@ class PostFirestore implements PostRepository {
         Post post = Post.fromJSON(querySnapshot.docs.elementAt(queryIndex).data());
         post.id = querySnapshot.docs.elementAt(queryIndex).id;
         logger.d(post.toString());
-        if (post.type != PostType.event) {
+        if (post.type != PostType.event && post.type != PostType.releaseItem) {
           posts.add(post);
         }
       }

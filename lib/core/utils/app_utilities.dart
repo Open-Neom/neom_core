@@ -186,13 +186,19 @@ class AppUtilities {
     return file;
   }
 
-  static File getFileFromPath(String filePath) {
+  static Future<File> getFileFromPath(String filePath) async {
     logger.d("Getting PDF File From Path");
     File file = File("");
 
     try {
       logger.i("File Path: $filePath");
-      file = File(filePath);
+
+      if(Platform.isAndroid) {
+        file = File(filePath);
+      } else {
+        file = await File.fromUri(Uri.parse(filePath)).create();
+      }
+
     } catch (e) {
       logger.e('Error getting File');
     }

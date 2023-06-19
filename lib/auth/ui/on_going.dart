@@ -68,70 +68,74 @@ class SlideTiles extends StatelessWidget {
         decoration: AppTheme.appBoxDecoration,
         width: AppTheme.fullWidth(context),
         height: AppTheme.fullHeight(context),
-        padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 40),
         child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-         Image.asset(imagePath, fit: BoxFit.fitWidth),
-          AppTheme.heightSpace20,
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              for(int i=0;i<SliderModel.getOnboardingSlides().length;i++)
-                Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 1),
-                  width: current==i ? 20:8,
-                  height: 6,
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      color: current ==  i ? AppColor.yellow : Colors.grey[400]
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+           Image.asset(imagePath,
+               height: AppTheme.fullWidth(context)/2,
+               width: AppTheme.fullWidth(context)/2,
+               fit: BoxFit.fitWidth),
+            AppTheme.heightSpace20,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                for(int i=0;i<SliderModel.getOnboardingSlides().length;i++)
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 1),
+                    width: current==i ? 20:8,
+                    height: 6,
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        color: current ==  i ? AppColor.yellow : Colors.grey[400]
+                    ),
                   ),
-                ),
-            ],
-          ),
-          AppTheme.heightSpace20,
-          Text(title,
-            style: const TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w600
+              ],
             ),
-            textAlign: TextAlign.center,
-          ),
-          AppTheme.heightSpace10,
-          Text(text,style: const TextStyle(fontSize: 18),textAlign: TextAlign.center,),
-          GestureDetector(
-            onTap: (){
-              Get.toNamed(AppRouteConstants.login);
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 30,vertical: 10),
-              margin: const EdgeInsets.symmetric(horizontal: 30,vertical: 30),
-              width: MediaQuery.of(context).size.width,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(25),
-                boxShadow: const [
-                  BoxShadow(
-                    blurRadius: 2,
-                    color: Colors.grey,
-                    offset: Offset(0,2)
-                  )
-                ]
+            AppTheme.heightSpace20,
+            Text(title,
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w600
               ),
-              child: Text(AppTranslationConstants.login.toUpperCase(),
-                style: const TextStyle(
-                  color: AppColor.textButton,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: AppTheme.fontFamily
+              textAlign: TextAlign.center,
+            ),
+            AppTheme.heightSpace10,
+            Text(text,
+              style: const TextStyle(fontSize: 18),textAlign: TextAlign.center,
+            ),
+            GestureDetector(
+              onTap: () {Get.toNamed(AppRouteConstants.login);},
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 30,vertical: 10),
+                margin: const EdgeInsets.symmetric(horizontal: 30,vertical: 30),
+                width: MediaQuery.of(context).size.width,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(25),
+                  boxShadow: const [
+                    BoxShadow(
+                      blurRadius: 2,
+                      color: Colors.grey,
+                      offset: Offset(0,2)
+                    )
+                  ]
                 ),
-                textAlign: TextAlign.center,
-              ),
+                child: Text(AppTranslationConstants.login.toUpperCase(),
+                  style: const TextStyle(
+                    color: AppColor.textButton,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: AppTheme.fontFamily
+                  ),
+                  textAlign: TextAlign.center,
+                ),
 
+              ),
             ),
-          ),
-        ],
-      ),),
+          ],
+        ),
+      ),
     );
   }
 }
