@@ -23,11 +23,13 @@ class SignupPage extends StatelessWidget {
       init: SignUpController(),
       builder: (_) => Scaffold(
       appBar: AppBarChild(),
-      body: SingleChildScrollView(
+      body: Container(
+    width: AppTheme.fullWidth(context),
+    height: AppTheme.fullHeight(context),
+    decoration: AppTheme.appBoxDecoration,
+    child: SingleChildScrollView(
         child: Container(
-          width: AppTheme.fullWidth(context),
           height: AppTheme.fullHeight(context),
-          decoration: AppTheme.appBoxDecoration,
           padding: const EdgeInsets.symmetric(horizontal: 30),
           child: Form(
             child: Column(
@@ -85,7 +87,7 @@ class SignupPage extends StatelessWidget {
             ),
           ),
         ),
-      ),
+      ),),
     ),
     );
   }
