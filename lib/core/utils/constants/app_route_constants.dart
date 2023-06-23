@@ -60,6 +60,7 @@ class AppRouteConstants {
   static const String mediaFullScreen = '/media/fullscreen';
 
   static const String createEventType = '/createEvent/type';
+  static const String createNeomEventType = '/neom/createEvent/type';
   static const String createEventBandOrMusicians = '/createEvent/bandOrMusicians';
   static const String createEventBands = '/createEvent/bands';
   static const String createEventLists = '/createEvent/lists';
@@ -151,4 +152,6 @@ class AppRouteConstants {
   static const String releaseUploadSummary  = '/onlinePositioning/summary';
 
   static const String analytics  = '/analytics';
+
+  static const String generator  = '/generator';
 }

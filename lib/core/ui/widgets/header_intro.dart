@@ -27,10 +27,7 @@ class HeaderIntro extends StatelessWidget{
             width: AppTheme.fullWidth(context)/2.5,
           ) : Container(),
           AppTheme.heightSpace20,
-          showLogo ? Image.asset(AppFlavour.appInUse == AppInUse.emxi
-              ? AppAssets.logoCompanyWhite : (AppTranslationConstants.languageFromLocale(Get.locale!)
-              == AppTranslationConstants.spanish ? AppAssets.logoSloganSpanish
-              : AppAssets.logoSloganEnglish),
+          showLogo ? Image.asset(AppFlavour.getAppLogoPath(),
             width: AppTheme.fullWidth(context)*0.75,
             fit: BoxFit.fitWidth,
           ) : Container(),

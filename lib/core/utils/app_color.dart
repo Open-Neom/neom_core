@@ -66,4 +66,6 @@ class AppColor {
 
   static const Color blogEditor = Color(0xFF1976D2);
 
+  static const Color darkViolet = Color.fromRGBO(79, 25, 100, 1);
+  static Color deepDarkViolet = const Color.fromRGBO(79, 25, 100, 1).withOpacity(0.6);
 }

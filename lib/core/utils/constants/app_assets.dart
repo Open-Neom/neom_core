@@ -3,6 +3,7 @@ class AppAssets {
 
   static const String instrumentsJsonPath = 'assets/instruments.json';
   static const String genresJsonPath = 'assets/genres.json';
+  static const String frequenciesJsonPath = 'assets/frequencies.json';
 
   //TODO Verify IconResource
   static const String iconResource = 'resource://drawable/ic_launcher';
@@ -51,5 +52,7 @@ class AppAssets {
   static const String roundMusicalComposition = 'assets/elements/round-musical-composition.png';
 
   static const String propertiesJsonPath = 'assets/properties.json';
+
+  static const String spiritualWitchy = 'assets/images/spiritual_witchy.png';
 
 }

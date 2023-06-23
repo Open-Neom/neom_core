@@ -1,7 +1,9 @@
 import 'dart:convert';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:get/get.dart';
 
 import '../neom_commons.dart';
 
@@ -24,7 +26,7 @@ class AppFlavour {
   }
 
   static String getAppLogoUrl() {
-    switch(appInUse) {
+    switch (appInUse) {
       case AppInUse.gigmeout:
         return appProperties['appLogoUrl'];
       case AppInUse.emxi:
@@ -35,7 +37,7 @@ class AppFlavour {
   }
 
   static String getLinksUrl() {
-    switch(appInUse) {
+    switch (appInUse) {
       case AppInUse.gigmeout:
         return appProperties['linksUrl'];
       case AppInUse.emxi:
@@ -46,7 +48,7 @@ class AppFlavour {
   }
 
   static String getPlayStoreUrl() {
-    switch(appInUse) {
+    switch (appInUse) {
       case AppInUse.gigmeout:
         return appProperties['playStoreUrl'];
       case AppInUse.emxi:
@@ -57,7 +59,7 @@ class AppFlavour {
   }
 
   static String getAppStoreUrl() {
-    switch(appInUse) {
+    switch (appInUse) {
       case AppInUse.gigmeout:
         return appProperties['appStoreUrl'];
       case AppInUse.emxi:
@@ -68,7 +70,7 @@ class AppFlavour {
   }
 
   static String getLandingPageUrl() {
-    switch(appInUse) {
+    switch (appInUse) {
       case AppInUse.gigmeout:
         return appProperties['landingPageUrl'];
       case AppInUse.emxi:
@@ -77,9 +79,9 @@ class AppFlavour {
         return "";
     }
   }
-  
+
   static String getTermsOfServiceUrl() {
-    switch(appInUse) {
+    switch (appInUse) {
       case AppInUse.gigmeout:
         return appProperties['termsOfServiceUrl'];
       case AppInUse.emxi:
@@ -90,7 +92,7 @@ class AppFlavour {
   }
 
   static String getPrivacyPolicyUrl() {
-    switch(appInUse) {
+    switch (appInUse) {
       case AppInUse.gigmeout:
         return appProperties['privacyPolicyUrl'];
       case AppInUse.emxi:
@@ -101,7 +103,7 @@ class AppFlavour {
   }
 
   static String getBlogUrl() {
-    switch(appInUse) {
+    switch (appInUse) {
       case AppInUse.gigmeout:
         return appProperties['blogUrl'];
       case AppInUse.emxi:
@@ -112,7 +114,7 @@ class AppFlavour {
   }
 
   static String getWebContact() {
-    switch(appInUse) {
+    switch (appInUse) {
       case AppInUse.gigmeout:
         return appProperties['webContact'];
       case AppInUse.emxi:
@@ -123,7 +125,7 @@ class AppFlavour {
   }
 
   static String getNoImageUrl() {
-    switch(appInUse) {
+    switch (appInUse) {
       case AppInUse.gigmeout:
         return appProperties['noImageUrl'];
       case AppInUse.emxi:
@@ -134,7 +136,7 @@ class AppFlavour {
   }
 
   static IconData getAppItemIcon() {
-    switch(appInUse) {
+    switch (appInUse) {
       case AppInUse.gigmeout:
         return Icons.music_note;
       case AppInUse.emxi:
@@ -145,7 +147,7 @@ class AppFlavour {
   }
 
   static IconData getInstrumentIcon() {
-    switch(appInUse) {
+    switch (appInUse) {
       case AppInUse.gigmeout:
         return FontAwesomeIcons.guitar;
       case AppInUse.emxi:
@@ -156,7 +158,7 @@ class AppFlavour {
   }
 
   static IconData getSyncIcon() {
-    switch(appInUse) {
+    switch (appInUse) {
       case AppInUse.gigmeout:
         return FontAwesomeIcons.spotify;
       case AppInUse.emxi:
@@ -184,7 +186,7 @@ class AppFlavour {
       case AppInUse.emxi:
         return AppAssets.eventVector01;
       case AppInUse.cyberneom:
-        return "";
+        return AppAssets.spiritualWitchy;
     }
   }
 
@@ -211,31 +213,31 @@ class AppFlavour {
   }
 
   static String getFcmKey() {
-    switch(appInUse) {
+    switch (appInUse) {
       case AppInUse.gigmeout:
         return appProperties['fcmKey'];
-        //return GigConstants.fcmKey;
+    //return GigConstants.fcmKey;
       case AppInUse.emxi:
         return appProperties['fcmKey'];
-        //return EmxiConstants.fcmKey;
+    //return EmxiConstants.fcmKey;
       case AppInUse.cyberneom:
         return "";
     }
   }
 
   static String getGoogleApiKey() {
-    switch(appInUse) {
+    switch (appInUse) {
       case AppInUse.gigmeout:
         return appProperties['googleApiKey'];
       case AppInUse.emxi:
         return appProperties['googleApiKey'];
       case AppInUse.cyberneom:
-        return "";
+        return appProperties['googleApiKey'];
     }
   }
 
   static String getSpotifyClientId() {
-    switch(appInUse) {
+    switch (appInUse) {
       case AppInUse.gigmeout:
         return appProperties['spotifyClientId'];
       case AppInUse.emxi:
@@ -246,7 +248,7 @@ class AppFlavour {
   }
 
   static String getSpotifyClientSecret() {
-    switch(appInUse) {
+    switch (appInUse) {
       case AppInUse.gigmeout:
         return appProperties['spotifyClientSecret'];
       case AppInUse.emxi:
@@ -257,7 +259,7 @@ class AppFlavour {
   }
 
   static String getStripePublishableKey() {
-    switch(appInUse) {
+    switch (appInUse) {
       case AppInUse.gigmeout:
         return appProperties['stripePublishableKey'];
       case AppInUse.emxi:
@@ -268,7 +270,7 @@ class AppFlavour {
   }
 
   static String getStripeSecretLiveKey() {
-    switch(appInUse) {
+    switch (appInUse) {
       case AppInUse.gigmeout:
         return appProperties['stripeSecretLiveKey'];
       case AppInUse.emxi:
@@ -279,7 +281,7 @@ class AppFlavour {
   }
 
   static String getECommerceUrl() {
-    switch(appInUse) {
+    switch (appInUse) {
       case AppInUse.gigmeout:
         return appProperties['eCommerceUrl'];
       case AppInUse.emxi:
@@ -290,7 +292,7 @@ class AppFlavour {
   }
 
   static String getPresskitUrl() {
-    switch(appInUse) {
+    switch (appInUse) {
       case AppInUse.gigmeout:
         return appProperties['presskitUrl'];
       case AppInUse.emxi:
@@ -301,7 +303,7 @@ class AppFlavour {
   }
 
   static String getMediatourUrl() {
-    switch(appInUse) {
+    switch (appInUse) {
       case AppInUse.gigmeout:
         return appProperties['mediatourUrl'];
       case AppInUse.emxi:
@@ -312,7 +314,7 @@ class AppFlavour {
   }
 
   static String getOnlineInterviewUrl() {
-    switch(appInUse) {
+    switch (appInUse) {
       case AppInUse.gigmeout:
         return appProperties['onlineInterviewUrl'];
       case AppInUse.emxi:
@@ -323,7 +325,7 @@ class AppFlavour {
   }
 
   static String getDigitalPositioningUrl() {
-    switch(appInUse) {
+    switch (appInUse) {
       case AppInUse.gigmeout:
         return appProperties['digitalPositioningUrl'];
       case AppInUse.emxi:
@@ -334,7 +336,7 @@ class AppFlavour {
   }
 
   static String getConsultancyUrl() {
-    switch(appInUse) {
+    switch (appInUse) {
       case AppInUse.gigmeout:
         return appProperties['consultancyUrl'];
       case AppInUse.emxi:
@@ -345,7 +347,7 @@ class AppFlavour {
   }
 
   static String getCopyrightUrl() {
-    switch(appInUse) {
+    switch (appInUse) {
       case AppInUse.gigmeout:
         return appProperties['copyrightUrl'];
       case AppInUse.emxi:
@@ -356,7 +358,7 @@ class AppFlavour {
   }
 
   static String getCoverDesignUrl() {
-    switch(appInUse) {
+    switch (appInUse) {
       case AppInUse.gigmeout:
         return appProperties['coverDesignUrl'];
       case AppInUse.emxi:
@@ -367,7 +369,7 @@ class AppFlavour {
   }
 
   static String getOnlineClinicUrl() {
-    switch(appInUse) {
+    switch (appInUse) {
       case AppInUse.gigmeout:
         return appProperties['onlineClinicUrl'];
       case AppInUse.emxi:
@@ -378,7 +380,7 @@ class AppFlavour {
   }
 
   static String getStartCampaignUrl() {
-    switch(appInUse) {
+    switch (appInUse) {
       case AppInUse.gigmeout:
         return "";
       case AppInUse.emxi:
@@ -389,7 +391,7 @@ class AppFlavour {
   }
 
   static String getCrowdfundingUrl() {
-    switch(appInUse) {
+    switch (appInUse) {
       case AppInUse.gigmeout:
         return "";
       case AppInUse.emxi:
@@ -400,7 +402,7 @@ class AppFlavour {
   }
 
   static String getWhatsappBusinessNumber() {
-    switch(appInUse) {
+    switch (appInUse) {
       case AppInUse.gigmeout:
         return "";
       case AppInUse.emxi:
@@ -411,7 +413,7 @@ class AppFlavour {
   }
 
   static String getInitialPrice() {
-    switch(appInUse) {
+    switch (appInUse) {
       case AppInUse.gigmeout:
         return "";
       case AppInUse.emxi:
@@ -420,5 +422,75 @@ class AppFlavour {
         return "";
     }
   }
+
+
+  static IconData getThirdTabIcon() {
+    switch (appInUse) {
+      case AppInUse.gigmeout:
+        return FontAwesomeIcons.building;
+      case AppInUse.emxi:
+        return FontAwesomeIcons.filePen;
+      case AppInUse.cyberneom:
+        return FontAwesomeIcons.calendar;
+    }
+  }
+
+  static String getThirdTabTitle() {
+    switch (appInUse) {
+      case AppInUse.gigmeout:
+        return AppTranslationConstants.directory;
+      case AppInUse.emxi:
+        return AppTranslationConstants.inspiration;
+      case AppInUse.cyberneom:
+        return AppTranslationConstants.events;
+    }
+  }
+
+  static IconData getForthTabIcon() {
+    switch (appInUse) {
+      case AppInUse.gigmeout:
+        return FontAwesomeIcons.calendar;
+      case AppInUse.emxi:
+        return FontAwesomeIcons.shop;
+      case AppInUse.cyberneom:
+        return FontAwesomeIcons.comments;
+    }
+  }
+
+  static String getFortTabTitle() {
+    switch (appInUse) {
+      case AppInUse.gigmeout:
+        return AppTranslationConstants.events;
+      case AppInUse.emxi:
+        return AppTranslationConstants.library;
+      case AppInUse.cyberneom:
+        return AppTranslationConstants.inbox;
+    }
+  }
+
+  static IconData getHomeActionBtnIcon() {
+    switch (appInUse) {
+      case AppInUse.gigmeout:
+        return CupertinoIcons.add;
+      case AppInUse.emxi:
+        return CupertinoIcons.add;
+      case AppInUse.cyberneom:
+        return FontAwesomeIcons.om;
+    }
+  }
+
+  static String getAppLogoPath() {
+    switch (appInUse) {
+      case AppInUse.gigmeout:
+        return AppTranslationConstants.languageFromLocale(Get.locale!)
+            == AppTranslationConstants.spanish ? AppAssets.logoSloganSpanish
+            : AppAssets.logoSloganEnglish;
+      case AppInUse.emxi:
+      return AppAssets.logoCompanyWhite;
+      case AppInUse.cyberneom:
+        return AppAssets.logoAppWhite;
+    }
+  }
+
 
 }

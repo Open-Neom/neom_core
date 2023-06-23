@@ -8,5 +8,7 @@ enum EventType {
   release,
   jamming,
   analysisCircle,
-  colloquium
+  colloquium,
+  camping,
+  other
 }

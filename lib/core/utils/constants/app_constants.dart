@@ -59,7 +59,7 @@ class AppConstants {
   static const int maxLocationNameLength = 28;
   static const int significantDistanceKM = 5;
 
-  static final profileTabs = ['posts', 'items', 'gigs'];
+  static final profileTabs = ['posts', 'items', 'events'];
   static final eventTabs = ['items', 'going'];
   static final walletTabs = ['all', 'events', 'booking'];
   static final requestsTabs = ['invitations', 'sent', 'requests'];
@@ -105,4 +105,5 @@ class AppConstants {
   static const String appItemQuotation = "appItemQuotation";
 
   static final List<String> appItemSize = ['Tamaño Carta - 21x29.7 - 8.5x11 ', 'Medía carta - 14x21.6cm - 6x9in', 'french', 'deutsch'];
+
 }

@@ -84,4 +84,12 @@ class AppPageIdConstants {
   static const String quotation = "quotation";
   static const String releaseUpload = "releaseUpload";
 
+  static const String generator = "generator";
+  static const String viewer360 = "viewer360";
+
+  static const String chamber = "chamber";
+  static const String chamberPreset = "chamberPreset";
+  static const String preset = "preset";
+  static const String chamberPresetDetails = "chamberPresetDetails";
+
 }
