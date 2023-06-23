@@ -50,7 +50,7 @@ class GoToButton extends StatelessWidget {
               ],
             ),
           ),
-          onPressed: () => onPressed
+          onPressed: onPressed
       ),
     );
   }
