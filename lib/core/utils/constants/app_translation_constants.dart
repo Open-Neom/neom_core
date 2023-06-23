@@ -587,6 +587,7 @@ class AppTranslationConstants {
   static const String hasPostedSomethingNew = "hasPostedSomethingNew";
   static const String hasPostedInBlog = "hasPostedInBlog";
   static const String addedAppItemToList = "addedAppItemToList";
+  static const String addedReleaseAppItem = "addedReleaseAppItem";
 
   static const String receivedInvitationRequest = "receivedInvitationRequest";
   static const String hasAcceptedYourRequest = "hasAcceptedYourRequest";
@@ -798,5 +799,22 @@ class AppTranslationConstants {
   static const String runProfileJobs = 'runProfileJobs';
   static const String recentReleases = 'recentReleases';
   static const String createEventWithFlyer = 'createEventWithFlyer';
+
+  static const String frequency = 'frequency';
+  static const String frequencyGenerator = 'frequencyGenerator';
+  static const String generator = 'generator';
+  static const String parameters = 'parameters';
+  static const String savePreset = 'savePreset';
+  static const String chamberPrefs = 'chamberPrefs';
+  static const String session = 'session';
+  static const String barter = 'barter';
+  static const String barters = 'barters';
+  static const String bartersNetwork = 'bartersNetwork';
+
+  static const String volume = 'volume';
+  static const String surroundSound = 'surroundSound';
+  static const String xAxis = 'xAxis';
+  static const String yAxis = 'yAxis';
+  static const String zAxis = 'zAxis';
 
 }

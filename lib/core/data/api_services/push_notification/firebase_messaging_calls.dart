@@ -72,6 +72,9 @@ class FirebaseMessagingCalls {
           break;
         case PushNotificationType.appItemAdded:
           break;
+        case PushNotificationType.releaseAppItemAdded:
+          // TODO: Handle this case.
+          break;
       }
 
       profileFCMToken = await ProfileFirestore().retrievedFcmToken(toProfileId);
@@ -192,6 +195,11 @@ class FirebaseMessagingCalls {
           break;
         case PushNotificationType.appItemAdded:
           notificationTitle = AppTranslationConstants.addedAppItemToList;
+          channelId = PushNotificationType.appItemAdded.value;
+          channelKey = PushNotificationType.appItemAdded.name;
+          break;
+        case PushNotificationType.releaseAppItemAdded:
+          notificationTitle = AppTranslationConstants.addedReleaseAppItem;
           channelId = PushNotificationType.appItemAdded.value;
           channelKey = PushNotificationType.appItemAdded.name;
           break;

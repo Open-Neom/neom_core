@@ -27,10 +27,8 @@ class MapsController extends GetxController implements MapsService {
 
     profile = userController.profile;
     _location = Location(lat: profile.position!.latitude, lng: profile.position!.longitude);
-
-
+    
     await goToHomePosition();
-
   }
 
   @override

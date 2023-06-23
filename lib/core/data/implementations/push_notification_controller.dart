@@ -52,6 +52,9 @@ class PushNotificationController extends ChangeNotifier {
         Get.toNamed(AppFlavour.getItemDetailsRoute(),
             arguments: [await AppItemFirestore().retrieve(referenceId)]);
         break;
+      case PushNotificationType.releaseAppItemAdded:
+        Get.toNamed(AppFlavour.getItemDetailsRoute(), arguments: [referenceId]);
+        break;
     }
   }
 

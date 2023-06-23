@@ -21,7 +21,7 @@ class SplashPage extends StatelessWidget {
             children: [
               Image.asset(
                 AppAssets.logoAppWhite,
-                height: AppFlavour.appInUse == AppInUse.emxi ? 150 : 50,
+                height: AppFlavour.appInUse == AppInUse.gigmeout ? 50 : 150,
                 width: 150,
               ),
               AppFlavour.appInUse == AppInUse.emxi ?

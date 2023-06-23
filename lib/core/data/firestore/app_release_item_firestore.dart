@@ -43,7 +43,10 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
         if (queryDocumentSnapshot.exists) {
           AppReleaseItem releaseItem = AppReleaseItem.fromJSON(queryDocumentSnapshot.data());
           releaseItem.id = queryDocumentSnapshot.id;
-          releaseItems[releaseItem.id] = releaseItem;
+
+          if(releaseItem.isAvailable || DateTime.fromMillisecondsSinceEpoch(releaseItem.createdTime).add(const Duration(days: 7)).millisecondsSinceEpoch < DateTime.now().millisecondsSinceEpoch) {
+            releaseItems[releaseItem.id] = releaseItem;
+          }
         }
       }
     } catch (e) {
