@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/model/app_item.dart';
 import '../../domain/model/app_release_item.dart';
 import '../../domain/model/item_list.dart';
+import '../../domain/model/neom/chamber_preset.dart';
 import '../../domain/repository/itemlist_repository.dart';
 import '../../utils/app_utilities.dart';
 import 'constants/app_firestore_collection_constants.dart';
@@ -346,6 +347,95 @@ class ItemlistFirestore implements ItemlistRepository {
 
       logger.d("releaseItem ${releaseItem.name} was not removed");
       return false;
+  }
+
+  @override
+  Future<bool> addPreset({required String profileId,required String chamberId,required ChamberPreset preset}) async {
+    logger.d("Adding preset for profileId $profileId");
+    logger.d("Adding preset to chamber $chamberId");
+    bool addedItem = false;
+
+    try {
+
+      QuerySnapshot querySnapshot = await profileReference.get();
+
+      for (var document in querySnapshot.docs) {
+        if(document.id == profileId) {
+          await document.reference.collection(AppFirestoreCollectionConstants.itemlists)
+              .doc(chamberId)
+              .update({
+            AppFirestoreConstants.chamberPresets: FieldValue.arrayUnion([preset.toJSON()])
+          });
+
+          addedItem = true;
+        }
+      }
+    } catch (e) {
+      logger.e(e.toString());
+    }
+
+    //TODO Verify if needed of if was just because async shit not well implemented
+    //await Future.delayed(const Duration(seconds: 1));
+    addedItem ? logger.d("Preset was added to chamber $chamberId") :
+    logger.d("Preset was not added to chamber $chamberId");
+    return addedItem;
+  }
+
+
+  @override
+  Future<bool> removePreset(String profileId, ChamberPreset preset, String chamberId) async {
+    logger.d("Removing preset from chamber $chamberId");
+
+    try {
+      await profileReference.get()
+          .then((querySnapshot) async {
+        for (var document in querySnapshot.docs) {
+          if(document.id == profileId) {
+            await document.reference
+                .collection(AppFirestoreCollectionConstants.itemlists)
+                .doc(chamberId)
+                .update({
+              AppFirestoreConstants.chamberPresets: FieldValue.arrayRemove([preset.toJSON()])
+            });
+          }
+        }
+      });
+
+      logger.d("Preset was removed from chamber $chamberId");
+      return true;
+    } catch (e) {
+      logger.e(e.toString());
+    }
+
+    logger.d("Preset was not  removed from chamber $chamberId");
+    return false;
+  }
+
+  @override
+  Future<bool> updatePreset(String profileId, String chamberId, ChamberPreset preset) async {
+    logger.d("Updating preset for profile $profileId");
+
+    try {
+
+      await profileReference.get()
+          .then((querySnapshot) async {
+        for (var document in querySnapshot.docs) {
+          if(document.id == profileId) {
+            await document.reference.collection(AppFirestoreCollectionConstants.itemlists)
+                .doc(chamberId).update({
+              AppFirestoreConstants.chamberPresets: FieldValue.arrayUnion([preset.toJSON()])
+            });
+          }}
+      });
+
+      logger.d("Preset ${preset.name} was updated to ${preset.state}");
+      return true;
+    } catch (e) {
+      logger.e(e.toString());
+    }
+
+    logger.d("Preset ${preset.name} was not updated");
+    return false;
   }
 
 }

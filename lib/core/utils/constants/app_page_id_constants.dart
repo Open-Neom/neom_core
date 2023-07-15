@@ -21,6 +21,7 @@ class AppPageIdConstants {
   static const String coupon = "coupon";
   static const String eventDetails = "eventDetails";
   static const String events = "events";
+  static const String eventActivities = "eventActivities";
 
   static const String upload = "upload";
   static const String itemlist = "itemlist";
@@ -30,6 +31,7 @@ class AppPageIdConstants {
   static const String spotifySearch = "spotifySearch";
   static const String appItemDetails = "appItemDetails";
   static const String instruments = "instruments";
+  static const String frequencies = "frequencies";
   static const String appDrawer = "appDrawer";
   static const String settingsPrivacy = "settingsPrivacy";
 

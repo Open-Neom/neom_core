@@ -38,6 +38,7 @@ class Event {
   List<String>? goingProfiles;
   bool isOnline;
   bool isTest;
+  int participantsLimit;
 
   Event({
       this.id = "",
@@ -62,7 +63,8 @@ class Event {
       this.instrumentsFulfillment = const [],
       this.bandsFulfillment = const [],
       this.isOnline = false,
-      this.isTest = false
+      this.isTest = false,
+      this.participantsLimit = 0
   });
 
 
@@ -93,7 +95,8 @@ class Event {
     watchingProfiles = [],
     goingProfiles = [],
     isOnline = false,
-    isTest = false;
+    isTest = false,
+    participantsLimit = 0;
 
   Event.fromJSON(data):
       id = data["id"] ?? "",
@@ -127,7 +130,8 @@ class Event {
       watchingProfiles = List.from(data["watchingProfiles"]?.cast<String>() ?? []),
       goingProfiles = List.from(data["goingProfiles"]?.cast<String>() ?? []),
       isOnline = data["isOnline"] ?? false,
-      isTest = data["isTest"] ?? false;
+      isTest = data["isTest"] ?? false,
+      participantsLimit = data["participantsLimit"] ?? 0;
 
 
   Map<String, dynamic> toJSON()=>{
@@ -157,6 +161,7 @@ class Event {
     'goingProfiles': [],
     'isOnline': isOnline,
     'isTest': isTest,
+    'participantsLimit': participantsLimit,
   };
 
 }

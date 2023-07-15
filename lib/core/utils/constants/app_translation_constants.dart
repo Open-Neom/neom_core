@@ -45,6 +45,7 @@ class AppTranslationConstants {
   static const String introLocale = "introLocale";
   static const String introProfileType = "introProfileType";
   static const String instrumentSelection = "instrumentSelection";
+  static const String frequencySelection = "frequencySelection";
 
   static const String close = "close";
 
@@ -62,6 +63,7 @@ class AppTranslationConstants {
   static const String createEvent = "createEvent";
   static const String checkSummary = "checkSummary";
   static const String createEventType = "createEventType";
+  static const String createEventActivities = "createEventActivities";
   static const String createEventBandOrMusicians = "createEventBandOrMusicians";
   static const String lookupForMusicians = "lookupForMusicians";
   static const String createEventBands = "createEventBands";
@@ -157,6 +159,7 @@ class AppTranslationConstants {
   static const String profile = "profile";
   static const String notifications = "notifications";
   static const String instruments = "instruments";
+  static const String frequencies = "frequencies";
   static const String eventsCalendar = "eventsCalendar";
   static const String eventsRequests = "eventsRequests";
   static const String gig = "gig";
@@ -228,6 +231,7 @@ class AppTranslationConstants {
   static const String confirmPassword = 'confirmPassword';
   static const String forgotPassword = 'forgotPassword';
   static const String passwordReset = 'passwordReset';
+  static const String passwordEmailResetSent = 'passwordEmailResetSent';
 
   static const String enterDOB = 'enterDOB';
   static const String signInWith = 'signInWith';
@@ -306,6 +310,7 @@ class AppTranslationConstants {
   static const String to = 'to';
   static const String from = 'from';
   static const String participants = 'participants';
+  static const String participantsLimit = 'participantsLimit';
   static const String musicians = 'musicians';
   static const String noFulfilledInstrumentYet = 'noFulfilledInstrumentYet';
   static const String name = 'name';
@@ -541,6 +546,7 @@ class AppTranslationConstants {
   static const String ads = "ads";
 
   static const String wantToCloseApp = "wantToCloseApp";
+  static const String wantToGoHome = "wantToGoHome";
   static const String youHave = "youHave";
   static const String youAre = "youAre";
   static const String of = "of";
@@ -678,6 +684,7 @@ class AppTranslationConstants {
   static const String suggestedReading = 'suggestedReading';
   static const String digitalLibrary = 'digitalLibrary';
   static const String library = 'library';
+  static const String bookshelf = 'bookshelf';
   static const String searchBooks = 'searchBooks';
   static const String popular = 'popular';
   static const String author = 'author';
@@ -800,11 +807,16 @@ class AppTranslationConstants {
   static const String recentReleases = 'recentReleases';
   static const String createEventWithFlyer = 'createEventWithFlyer';
 
+  static const String addFrequency = "addFrequency";
+  static const String mainFrequency = "mainFrequency";
+  static const String exploreFrequencies = "exploreFrequencies";
   static const String frequency = 'frequency';
   static const String frequencyGenerator = 'frequencyGenerator';
   static const String generator = 'generator';
   static const String parameters = 'parameters';
   static const String savePreset = 'savePreset';
+  static const String removePreset = 'removePreset';
+  static const String updatePreset = 'updatePreset';
   static const String chamberPrefs = 'chamberPrefs';
   static const String session = 'session';
   static const String barter = 'barter';
@@ -816,5 +828,10 @@ class AppTranslationConstants {
   static const String xAxis = 'xAxis';
   static const String yAxis = 'yAxis';
   static const String zAxis = 'zAxis';
+
+  static const String getDefaultNameDesc = 'getDefaultNameDesc';
+  static const String presets = 'presets';
+  static const String frequencyPreferences = 'frequencyPreferences';
+  static const String selectedAsMainFrequency = 'selectedAsMainFrequency';
 
 }

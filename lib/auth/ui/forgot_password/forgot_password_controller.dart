@@ -46,22 +46,6 @@ class ForgotPasswordController extends GetxController implements ForgotPasswordS
   bool get isButtonDisabled => _isButtonDisabled.value;
   set isButtonDisabled(bool isButtonDisabled) => _isButtonDisabled.value = isButtonDisabled;
 
-  final RxString _email = "".obs;
-  String get email => _email.value;
-  set email(String email) => _email.value = email;
-
-  final RxString _password = "".obs;
-  String get password => _password.value;
-  set password(String password) => _password.value = password;
-
-  void setEmail(text) {
-    email = text;
-  }
-
-  void setPassword(text) {
-    password = text;
-  }
-
   @override
   void onInit() async {
     super.onInit();
@@ -91,9 +75,12 @@ class ForgotPasswordController extends GetxController implements ForgotPasswordS
   @override
   Future<bool> submitForm(BuildContext context) async {
 
-    String validateEmailMsg = Validator.validateEmail(_emailController.text);
+    String email = _emailController.text.trim();
+    String validateEmailMsg = Validator.validateEmail(email);
 
-    if(validateEmailMsg.isNotEmpty){
+    if(validateEmailMsg.isEmpty) {
+      await auth.sendPasswordResetEmail(email: email);
+    } else {
       Get.snackbar(
         AppTranslationConstants.passwordReset.tr,
         validateEmailMsg.tr,
@@ -101,16 +88,8 @@ class ForgotPasswordController extends GetxController implements ForgotPasswordS
       return false;
     }
 
-    _focusNode.unfocus();
-
-    Get.toNamed(AppRouteConstants.forgotPasswordSending, arguments: [AppRouteConstants.forgotPassword]);
-
-    await Future.delayed(const Duration(seconds: 2));
-    Get.toNamed(AppRouteConstants.login);
-
-
+    await Get.toNamed(AppRouteConstants.forgotPasswordSending, arguments: [AppRouteConstants.forgotPassword]);
     return true;
   }
-
 
 }

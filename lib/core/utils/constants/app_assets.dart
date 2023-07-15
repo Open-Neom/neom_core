@@ -5,6 +5,8 @@ class AppAssets {
   static const String genresJsonPath = 'assets/genres.json';
   static const String frequenciesJsonPath = 'assets/frequencies.json';
 
+  static const String eventActivitiesJsonPath = 'assets/event_activities/{eventType}_activities.json';
+
   //TODO Verify IconResource
   static const String iconResource = 'resource://drawable/ic_launcher';
   static const String icon = "assets/appIcon.png";

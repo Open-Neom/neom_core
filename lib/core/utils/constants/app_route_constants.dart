@@ -1,4 +1,15 @@
+import 'package:neom_booking/booking/ui/booking_home_page.dart';
+import 'package:neom_events/events/ui/events_page.dart';
+import 'package:neom_inbox/inbox/ui/inbox_page.dart';
+import 'package:neom_itemlists/itemlists/ui/itemlist_page.dart';
+import 'package:neom_posts/blog/ui/blog_page.dart';
+import 'package:neom_timeline/neom_timeline.dart';
+
 class AppRouteConstants {
+
+  static final emxiHomePages = [const TimelinePage(), const ItemlistPage(), const BlogPage(), const InboxPage()];
+  static final gigHomePages = [const TimelinePage(), const ItemlistPage(), const BookingHomePage(), const EventsPage()];
+  static final neomHomePages = [const TimelinePage(), const ItemlistPage(), const EventsPage(), const InboxPage()];
 
   static const String root = "/";
   static const String login = "/login";
@@ -24,7 +35,9 @@ class AppRouteConstants {
   static const String timeline = "/timeline";
   static const String instruments = "/instrument";
   static const String instrumentsFav = '/instrument/fav';
-  static const String genresFav = '/instrument/fav';
+  static const String frequency = "/frequency";
+  static const String frequencyFav = '/frequency/fav';
+  static const String genresFav = '/genres/fav';
   static const String lists = '/list';
   static const String listItems = '/list/items';
   static const String itemDetails = '/item/details';
@@ -61,6 +74,7 @@ class AppRouteConstants {
 
   static const String createEventType = '/createEvent/type';
   static const String createNeomEventType = '/neom/createEvent/type';
+  static const String createEventActivities = '/neom/createEvent/activities';
   static const String createEventBandOrMusicians = '/createEvent/bandOrMusicians';
   static const String createEventBands = '/createEvent/bands';
   static const String createEventLists = '/createEvent/lists';
@@ -124,6 +138,8 @@ class AppRouteConstants {
   static const String readlists  = '/readlists';
   // ignore: constant_identifier_names
   static const String PDFViewer  = '/PDFViewer';
+  // ignore: constant_identifier_names
+  static const String EPUBViewer  = '/EPUBViewer';
   static const String digitalLibrary  = '/digitalLibrary';
   static const String libraryHome  = '/library/';
   static const String bookDetails  = '/book/details';
@@ -154,4 +170,6 @@ class AppRouteConstants {
   static const String analytics  = '/analytics';
 
   static const String generator  = '/generator';
+  static const String chamberPresets  = '/chamber/presets';
+
 }

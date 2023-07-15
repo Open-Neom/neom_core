@@ -206,4 +206,10 @@ class MessageTranslationConstants {
   static const String mainEventImg = 'mainEventImg';
   static const String mainEventImgMsg = 'mainEventImgMsg';
 
+  static const String frequencyNotRemoved = 'frequencyNotRemoved';
+  static const String frequencyRemoved = 'frequencyRemoved';
+  static const String atLeastOneFrequency = 'atLeastOneFrequency';
+  static const String frequencyAdded = 'frequencyAdded';
+  static const String frequencyNotAdded = 'frequencyNotAdded';
+
 }

@@ -169,7 +169,7 @@ class UserController extends GetxController implements UserService {
       email: fbaUser.email ?? "",
       id: fbaUser.providerData.first.uid ?? "",
       phoneNumber: fbaUser.phoneNumber ?? "",
-      isPremium: true,
+      isPremium: false,
       isVerified: false,
       password: "",
       );
@@ -227,7 +227,7 @@ class UserController extends GetxController implements UserService {
       newUser.wallet.amount = newUser.wallet.amount + Get.find<LoginController>().appInfo.coinAmount;
     }
 
-    await Future.delayed(const Duration(seconds: 2));
+    await Future.delayed(const Duration(seconds: 1));
 
     try {
 
@@ -423,7 +423,6 @@ class UserController extends GetxController implements UserService {
 
       }
 
-
     } catch (e) {
       Get.snackbar(
         MessageTranslationConstants.errorSigningOut.tr,
@@ -434,6 +433,18 @@ class UserController extends GetxController implements UserService {
     }
 
     logger.i("removeProfile method Finished");
+    update();
+  }
+
+  @override
+  Future<void> reloadProfileItemlists() async {
+
+    try {
+      profile.itemlists = await ItemlistFirestore().retrieveItemlists(profile.id);
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+
     update();
   }
 

@@ -434,21 +434,7 @@ class LoginController extends GetxController implements LoginService {
 
   @override
   Future<void> sendEmailVerification(GlobalKey<ScaffoldState> scaffoldKey) {
-    // TODO: implement sendEmailVerification
     throw UnimplementedError();
-    //   FBAUser.sendEmailVerification().then((_) {
-    //     GigUtilities.logEvent('email_verifcation_sent',
-    //         parameter: {gigUser.name: gigUser.email});
-    //     // GigUtilities.customSnackBar(
-    //     //   scaffoldKey,
-    //     //   'An email verification link is send to your email.',
-    //     // );
-    //   }).catchError((error) {
-    //     logger.d(error.message);
-    //     GigUtilities.logEvent('email_verifcation_block',
-    //         parameter: {gigUser.name: gigUser.email});
-    //
-    //   });
   }
 
 

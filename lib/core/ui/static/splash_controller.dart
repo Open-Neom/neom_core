@@ -108,6 +108,11 @@ class SplashController extends GetxController {
         break;
       case AppRouteConstants.forgotPassword:
         await changeSubtitle(AppTranslationConstants.sendingPasswordRecovery);
+        Get.offAllNamed(AppRouteConstants.login);
+        Get.snackbar(
+          AppTranslationConstants.passwordReset.tr,
+          AppTranslationConstants.passwordEmailResetSent.tr,
+          snackPosition: SnackPosition.bottom,);
         break;
       case AppRouteConstants.introReason:
         await changeSubtitle(AppTranslationConstants.creatingAccount);

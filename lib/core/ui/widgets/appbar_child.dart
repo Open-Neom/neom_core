@@ -10,8 +10,9 @@ class AppBarChild extends StatelessWidget implements PreferredSizeWidget {
 
   final String title;
   Color? color;
+  bool goBack;
 
-  AppBarChild({this.title = "", this.color, Key? key}) : super(key: key);
+  AppBarChild({this.title = "", this.color, this.goBack = false, Key? key}) : super(key: key);
 
   @override
   Size get preferredSize => AppTheme.appBarHeight;
