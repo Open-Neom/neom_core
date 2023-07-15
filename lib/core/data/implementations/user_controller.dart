@@ -437,7 +437,7 @@ class UserController extends GetxController implements UserService {
   }
 
   @override
-  Future<void> realoadProfileItemlists() async {
+  Future<void> reloadProfileItemlists() async {
 
     try {
       profile.itemlists = await ItemlistFirestore().retrieveItemlists(profile.id);

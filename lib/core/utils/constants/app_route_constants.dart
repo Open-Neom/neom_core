@@ -138,6 +138,7 @@ class AppRouteConstants {
   static const String readlists  = '/readlists';
   // ignore: constant_identifier_names
   static const String PDFViewer  = '/PDFViewer';
+  // ignore: constant_identifier_names
   static const String EPUBViewer  = '/EPUBViewer';
   static const String digitalLibrary  = '/digitalLibrary';
   static const String libraryHome  = '/library/';
