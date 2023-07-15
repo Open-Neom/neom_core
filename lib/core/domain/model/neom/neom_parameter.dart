@@ -29,7 +29,7 @@ class NeomParameter {
     volume = documentSnapshot.get("volume");
 
 
-  NeomParameter.fromMap(Map<dynamic, dynamic> data) :
+  NeomParameter.fromJSON(Map<dynamic, dynamic> data) :
     x = data["x"],
     y = data["y"],
     z = data["z"],

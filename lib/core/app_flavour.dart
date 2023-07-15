@@ -32,7 +32,7 @@ class AppFlavour {
       case AppInUse.emxi:
         return appProperties['appLogoUrl'];
       case AppInUse.cyberneom:
-        return "";
+        return appProperties['appLogoUrl'];
     }
   }
 
@@ -131,7 +131,7 @@ class AppFlavour {
       case AppInUse.emxi:
         return appProperties['noImageUrl'];
       case AppInUse.cyberneom:
-        return "";
+        return appProperties['noImageUrl'];
     }
   }
 
@@ -142,7 +142,7 @@ class AppFlavour {
       case AppInUse.emxi:
         return Icons.book;
       case AppInUse.cyberneom:
-        return Icons.science;
+        return FontAwesomeIcons.waveSquare;
     }
   }
 
@@ -153,7 +153,7 @@ class AppFlavour {
       case AppInUse.emxi:
         return FontAwesomeIcons.pencil;
       case AppInUse.cyberneom:
-        return Icons.science;
+        return FontAwesomeIcons.waveSquare;
     }
   }
 
@@ -175,7 +175,7 @@ class AppFlavour {
       case AppInUse.emxi:
         return AppRouteConstants.bookDetails;
       case AppInUse.cyberneom:
-        return "";
+        return AppRouteConstants.generator;
     }
   }
 
@@ -423,6 +423,38 @@ class AppFlavour {
     }
   }
 
+  static List<Widget> getHomePages() {
+    switch (appInUse) {
+      case AppInUse.cyberneom:
+        return AppRouteConstants.neomHomePages;
+      case AppInUse.gigmeout:
+        return AppRouteConstants.gigHomePages;
+      case AppInUse.emxi:
+        return AppRouteConstants.emxiHomePages;
+    }
+  }
+
+  static IconData getSecondTabIcon() {
+    switch (appInUse) {
+      case AppInUse.gigmeout:
+        return Icons.library_music;
+      case AppInUse.emxi:
+        return FontAwesomeIcons.bookOpen;
+      case AppInUse.cyberneom:
+        return Icons.surround_sound_outlined;
+    }
+  }
+
+  static String getSecondTabTitle() {
+    switch (appInUse) {
+      case AppInUse.gigmeout:
+        return AppTranslationConstants.itemlists;
+      case AppInUse.emxi:
+        return AppTranslationConstants.itemlists;
+      case AppInUse.cyberneom:
+        return AppTranslationConstants.presets;
+    }
+  }
 
   static IconData getThirdTabIcon() {
     switch (appInUse) {

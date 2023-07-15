@@ -19,7 +19,10 @@ class AppFirestoreCollectionConstants {
 
   static const String profiles = "profiles";
   static const String itemlists = "itemlists";
+  static const String chambers = "chambers";
+  static const String presets = "presets";
   static const String instruments = "instruments";
+  static const String frequencies = "frequencies";
   static const String places = "places";
   static const String facilities = "facilities";
 

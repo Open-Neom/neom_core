@@ -53,6 +53,7 @@ class AppFirestoreConstants {
   static const String isMain = 'isMain';
   static const String isFav = 'isFav';
   static const String mainFeature = 'mainFeature';
+  static const String mainFrequency = 'mainFrequenct';
   static const String mainGenre = 'mainGenre';
   static const String postId = 'postId';
   static const String postIds = 'postIds';
@@ -103,5 +104,7 @@ class AppFirestoreConstants {
 
   static const String totalUsers = "totalUsers";
   static const String totalLocations = "totalLocations";
+
+  static const String chamberPresets = "chamberPresets";
 
 }

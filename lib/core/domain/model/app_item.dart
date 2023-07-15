@@ -3,6 +3,7 @@ import 'package:spotify/spotify.dart';
 import '../../utils/app_utilities.dart';
 import 'app_release_item.dart';
 import 'genre.dart';
+import 'neom/chamber_preset.dart';
 
 class AppItem {
 
@@ -234,5 +235,22 @@ class AppItem {
         state = 0,
         genres = releaseItem.genres.map((e) => Genre(name: e)).toList(),
         isRelease = true;
+
+  AppItem.fromChamberPreset(ChamberPreset chamberPreset) :
+        id = chamberPreset.id,
+        name = chamberPreset.name,
+        artist = "",
+        artistId = chamberPreset.ownerId,
+        artistImgUrl = "",
+        albumName = "",
+        albumImgUrl = chamberPreset.imgUrl,
+        durationMs =  chamberPreset.neomFrequency?.frequency.ceil() ?? 0,
+        previewUrl = "",
+        description = chamberPreset.description.isNotEmpty ? chamberPreset.description : chamberPreset.neomFrequency?.description ?? "",
+        publisher = "",
+        publishedDate = "",
+        state = chamberPreset.state,
+        genres = [],
+        isRelease = false;
 
 }

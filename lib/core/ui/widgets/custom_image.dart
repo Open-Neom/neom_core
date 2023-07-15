@@ -29,14 +29,22 @@ Widget customCachedNetworkHeroImage(mediaUrl) {
 }
 
 
-Widget customCachedNetworkImage(mediaUrl) {
+CachedNetworkImage customCachedNetworkImage(mediaUrl) {
   AppUtilities.logger.i("Building cache network widget for image url: $mediaUrl");
   return CachedNetworkImage(
     imageUrl: mediaUrl,
     fit: BoxFit.fill,
+    placeholder: (context, url) => const CircularProgressIndicator(),
     errorWidget: (context,url,error)=>const Icon(
         Icons.image_not_supported
     ),
+  );
+}
+
+CachedNetworkImageProvider customCachedNetworkImageProvider(mediaUrl) {
+  AppUtilities.logger.v("Building cache network widget for image url: $mediaUrl");
+  return CachedNetworkImageProvider(
+    mediaUrl,
   );
 }
 

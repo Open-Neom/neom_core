@@ -10,5 +10,5 @@ enum EventType {
   analysisCircle,
   colloquium,
   camping,
-  other
+  therapy
 }

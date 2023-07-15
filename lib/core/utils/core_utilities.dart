@@ -579,7 +579,6 @@ class CoreUtilities {
     return cachedNetworkImageProvider;
   }
 
-
   Future<bool> isAvailableMediaUrl(String mediaUrl) async {
     AppUtilities.logger.i("Verifying if mediaUrl is available: $mediaUrl");
 

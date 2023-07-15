@@ -12,6 +12,7 @@ import 'facility.dart';
 import 'genre.dart';
 import 'instrument.dart';
 import 'item_list.dart';
+import 'neom/neom_frequency.dart';
 import 'place.dart';
 import 'review.dart';
 
@@ -64,6 +65,7 @@ class AppProfile {
   ///These are retrieved from a Firebase Collection
   Map<String, Itemlist>? itemlists;
   Map<String, Instrument>? instruments;
+  Map<String, NeomFrequency>? frequencies;
   Map<String, Genre>? genres;
   Map<String, Facility>? facilities;
   Map<String, Place>? places;
@@ -188,6 +190,7 @@ class AppProfile {
         address = data["address"] ?? "",
         appItems = data["appItems"]?.cast<String>() ?? [],
         instruments = { for (var e in data["instruments"]?.cast<String>() ?? []) e : Instrument() },
+        frequencies = { for (var e in data["frequencies"]?.cast<String>() ?? []) e : NeomFrequency() },
         type = ProfileType.instrumentist, coverImgUrl = "",
         isActive = true,
         showInDirectory = false;
@@ -206,6 +209,7 @@ class AppProfile {
       'genres': genres?.values.map((genre) => genre.name).toList(),
       'mainFeature': mainFeature,
       'instruments': instruments?.values.map((instrument) => instrument.name).toList(),
+      'frequencies': frequencies?.values.map((frequency) => frequency.name).toList(),
     };
   }
 

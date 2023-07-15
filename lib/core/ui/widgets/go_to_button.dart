@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
-import 'package:neom_commons/core/utils/app_color.dart';
-import 'package:neom_commons/core/utils/app_theme.dart';
-import 'package:neom_commons/core/utils/constants/app_translation_constants.dart';
+import '../../utils/app_color.dart';
+import '../../utils/app_theme.dart';
 
 class GoToButton extends StatelessWidget {
 
@@ -35,6 +33,7 @@ class GoToButton extends StatelessWidget {
           ]
       ),
       child: TextButton(
+          onPressed: onPressed,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: AppTheme.padding20),
             child: Row(
@@ -49,8 +48,7 @@ class GoToButton extends StatelessWidget {
                 const Icon(Icons.arrow_forward, color: Colors.white)
               ],
             ),
-          ),
-          onPressed: onPressed
+          )
       ),
     );
   }

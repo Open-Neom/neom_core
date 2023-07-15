@@ -1,6 +1,6 @@
 name: neom_commons
 description: Commons for Cyberneom.
-version: 1.0.6
+version: 1.0.8
 homepage: https://github.com/Cyberneom/neom_commons
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
@@ -18,6 +18,21 @@ dependencies:
   neom_itemlists:
     git:
       url: https://github.com/Cyberneom/neom_itemlists.git
+  neom_timeline:
+    git:
+      url: https://github.com/Cyberneom/neom_timeline.git
+  neom_posts:
+    git:
+      url: https://github.com/Cyberneom/neom_posts.git
+  neom_inbox:
+    git:
+      url: https://github.com/Cyberneom/neom_inbox.git
+  neom_events:
+    git:
+      url: https://github.com/Cyberneom/neom_events.git
+  neom_booking:
+    git:
+      url: https://github.com/emmanuel-montoya/neom_booking.git
 
   get: ^5.0.0-release-candidate-4
 
@@ -64,7 +79,8 @@ dependencies:
   #table_calendar: ^3.0.9
 
   #Timeline
-  hashtagable: ^2.1.0
+#  hashtagable: ^2.1.0
+  hashtagable_v3: ^3.0.0
   flutter_linkify: ^6.0.0
   timeago: ^3.4.0 #To be Updated
   share_plus: ^7.0.2
@@ -126,6 +142,16 @@ dependency_overrides:
     path: ../neom_admin
   neom_itemlists:
     path: ../neom_itemlists
+  neom_timeline:
+    path: ../neom_timeline
+  neom_posts:
+    path: ../neom_posts
+  neom_inbox:
+    path: ../neom_inbox
+  neom_events:
+    path: ../neom_events
+  neom_booking:
+    path: ../neom_booking
   intl: 0.18.1
 
 # The following section is specific to Flutter packages.
