@@ -2,6 +2,7 @@
 class AppFirestoreConstants {
 
   static const String appItems = 'appItems';
+  static const String chamberPresets = 'chamberPresets';
   static const String appReleaseItems = 'appReleaseItems';
 
   static const String productSales = "productSales";
@@ -104,7 +105,5 @@ class AppFirestoreConstants {
 
   static const String totalUsers = "totalUsers";
   static const String totalLocations = "totalLocations";
-
-  static const String chamberPresets = "chamberPresets";
 
 }

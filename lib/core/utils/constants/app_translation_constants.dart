@@ -812,6 +812,8 @@ class AppTranslationConstants {
   static const String exploreFrequencies = "exploreFrequencies";
   static const String frequency = 'frequency';
   static const String frequencyGenerator = 'frequencyGenerator';
+  static const String rootFrequency = 'rootFrequency';
+  static const String rootFrequencies = 'rootFrequencies';
   static const String generator = 'generator';
   static const String parameters = 'parameters';
   static const String savePreset = 'savePreset';

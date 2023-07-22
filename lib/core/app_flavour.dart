@@ -43,7 +43,7 @@ class AppFlavour {
       case AppInUse.emxi:
         return appProperties['linksUrl'];
       case AppInUse.cyberneom:
-        return "";
+        return appProperties['linksUrl'];
     }
   }
 
@@ -198,6 +198,17 @@ class AppFlavour {
         return "Emxis";
       case AppInUse.cyberneom:
         return "Neomcoin";
+    }
+  }
+
+  static String getFirstAppItemId() {
+    switch (appInUse) {
+      case AppInUse.gigmeout:
+        return "40riOy7x9W7GXjyGp4pjAv";
+      case AppInUse.emxi:
+        return "2drTDQAAQBAJ";
+      case AppInUse.cyberneom:
+        return "";
     }
   }
 

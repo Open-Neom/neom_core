@@ -1,4 +1,4 @@
-
+import '../../../utils/constants/app_constants.dart';
 import 'neom_frequency.dart';
 import 'neom_parameter.dart';
 
@@ -19,7 +19,9 @@ class ChamberPreset {
     this.description = "",
     this.imgUrl = "",
     this.ownerId = "",
-    this.state = 0
+    this.state = 0,
+    this.neomParameter,
+    this.neomFrequency
   });
 
 
@@ -36,8 +38,8 @@ class ChamberPreset {
     ownerId = data["ownerId"] ?? "",
     imgUrl = data["imgUrl"] ?? "",
     state = data["state"] ?? 0,
-    neomParameter = NeomParameter.fromJSON(data["neomParameter"]),
-    neomFrequency = NeomFrequency.fromJSON(data["neomFrequency"]);
+    neomParameter = NeomParameter.fromJSON(data["neomParameter"] ?? NeomParameter().toJSON()) ,
+    neomFrequency = NeomFrequency.fromJSON(data["neomFrequency"] ?? NeomFrequency().toJSON());
 
 
   Map<String, dynamic>  toJSON()=>{
@@ -47,8 +49,8 @@ class ChamberPreset {
     'ownerId': ownerId,
     'imgUrl': imgUrl,
     'state': state,
-    'neomParameter': neomParameter!.toJSON(),
-    'neomFrequency': neomFrequency!.toJSON(),
+    'neomParameter': neomParameter?.toJSON(),
+    'neomFrequency': neomFrequency?.toJSON(),
   };
 
   Map<String, dynamic>  toJsonNoId()=>{
@@ -57,18 +59,32 @@ class ChamberPreset {
     'ownerId': ownerId,
     'imgUrl': imgUrl,
     'state': state,
-    'neomParameter': neomParameter!.toJSON(),
-    'neomFrequency': neomFrequency!.toJSON(),
+    'neomParameter': neomParameter?.toJSON(),
+    'neomFrequency': neomFrequency?.toJSON(),
   };
 
   ChamberPreset.myFirstNeomChamberPreset() :
-    id = "",
+    id = AppConstants.firstChamberPreset,
     name = "Frecuencia 432 Hz",
     description = "",
     ownerId = "",
-    imgUrl = "",
-    state = 0,
+    imgUrl = "https://firebasestorage.googleapis.com/v0/b/cyberneom-edd2d.appspot.com/o/AppStatics%2FCyberneom%20Icono.png?alt=media&token=68bc867f-df6c-40fb-a8fe-e920242c21a1",
+    state = 1,
     neomParameter = NeomParameter(),
     neomFrequency = NeomFrequency();
+
+  ChamberPreset.custom({String name = "", String imgUrl = "", NeomParameter? parameter, NeomFrequency? frequency}) :
+        id = "${AppConstants.customPreset}_${frequency?.frequency}",
+        name = "",
+        description = "",
+        ownerId = "",
+        imgUrl = imgUrl.isNotEmpty ? imgUrl : "https://firebasestorage.googleapis.com/v0/b/cyberneom-edd2d.appspot.com/o/AppStatics%2FCyberneom%20Icono.png?alt=media&token=68bc867f-df6c-40fb-a8fe-e920242c21a1",
+        state = 5,
+        neomParameter = parameter,
+        neomFrequency = frequency;
+
+  ChamberPreset clone() {
+    return ChamberPreset.fromJSON(this.toJSON());
+  }
 
 }

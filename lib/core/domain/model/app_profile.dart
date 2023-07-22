@@ -54,6 +54,7 @@ class AppProfile {
   List<String>? reviews;
 
   List<String>? appItems;
+  List<String>? chamberPresets;
   List<String>? watchingEvents;
   List<String>? goingEvents;
   List<String>? playingEvents;
@@ -92,7 +93,7 @@ class AppProfile {
 
   @override
   String toString() {
-    return 'AppProfile{id: $id, name: $name, aboutMe: $aboutMe, photoUrl: $photoUrl, coverImgUrl: $coverImgUrl, mainFeature: $mainFeature, lastTimeOn: $lastTimeOn, lastSpotifySync: $lastSpotifySync, reviewStars: $reviewStars, isActive: $isActive, position: $position, address: $address, type: $type, reason: $reason, lastReview: $lastReview, bannedGenres: $bannedGenres, itemmates: $itemmates, eventmates: $eventmates, followers: $followers, following: $following, unfollowing: $unfollowing, blockTo: $blockTo, blockedBy: $blockedBy, posts: $posts, blogEntries: $blogEntries, comments: $comments, hiddenPosts: $hiddenPosts, hiddenComments: $hiddenComments, reports: $reports, bands: $bands, events: $events, reviews: $reviews, appItems: $appItems, watchingEvents: $watchingEvents, goingEvents: $goingEvents, playingEvents: $playingEvents, requests: $requests, sentRequests: $sentRequests, invitationRequests: $invitationRequests, itemlists: $itemlists, instruments: $instruments, genres: $genres, facilities: $facilities, places: $places, showInDirectory: $showInDirectory}';
+    return 'AppProfile{id: $id, name: $name, aboutMe: $aboutMe, photoUrl: $photoUrl, coverImgUrl: $coverImgUrl, mainFeature: $mainFeature, lastTimeOn: $lastTimeOn, lastSpotifySync: $lastSpotifySync, reviewStars: $reviewStars, isActive: $isActive, position: $position, address: $address, type: $type, reason: $reason, lastReview: $lastReview, bannedGenres: $bannedGenres, itemmates: $itemmates, eventmates: $eventmates, followers: $followers, following: $following, unfollowing: $unfollowing, blockTo: $blockTo, blockedBy: $blockedBy, posts: $posts, blogEntries: $blogEntries, comments: $comments, hiddenPosts: $hiddenPosts, hiddenComments: $hiddenComments, reports: $reports, bands: $bands, events: $events, reviews: $reviews, appItems: $appItems, chamberPresets: $chamberPresets, watchingEvents: $watchingEvents, goingEvents: $goingEvents, playingEvents: $playingEvents, requests: $requests, sentRequests: $sentRequests, invitationRequests: $invitationRequests, itemlists: $itemlists, instruments: $instruments, frequencies: $frequencies, genres: $genres, facilities: $facilities, places: $places, showInDirectory: $showInDirectory}';
   }
 
   Map<String, dynamic> toJSON() {
@@ -129,6 +130,7 @@ class AppProfile {
       'events': events,
       'reviews': reviews,
       'appItems': appItems,
+      'chamberPresets': chamberPresets,
       'watchingEvents': watchingEvents,
       'goingEvents': goingEvents,
       'playingEvents': playingEvents,
@@ -171,6 +173,7 @@ class AppProfile {
         events = data["events"]?.cast<String>() ?? [],
         reviews = data["reviews"]?.cast<String>() ?? [],
         appItems = data["appItems"]?.cast<String>() ?? [],
+        chamberPresets = data["chamberPresets"]?.cast<String>() ?? [],
         watchingEvents = data["watchingEvents"]?.cast<String>() ?? [],
         goingEvents = data["goingEvents"]?.cast<String>() ?? [],
         playingEvents = data["playingEvents"]?.cast<String>() ?? [],
@@ -189,6 +192,7 @@ class AppProfile {
         position = CoreUtilities.JSONtoPosition(data["position"]),
         address = data["address"] ?? "",
         appItems = data["appItems"]?.cast<String>() ?? [],
+        chamberPresets = data["chamberPresets"]?.cast<String>() ?? [],
         instruments = { for (var e in data["instruments"]?.cast<String>() ?? []) e : Instrument() },
         frequencies = { for (var e in data["frequencies"]?.cast<String>() ?? []) e : NeomFrequency() },
         type = ProfileType.instrumentist, coverImgUrl = "",
@@ -206,6 +210,7 @@ class AppProfile {
       'aboutMe': aboutMe,
       'reason': reason.name,
       'appItems': appItems,
+      'chamberPresets': chamberPresets,
       'genres': genres?.values.map((genre) => genre.name).toList(),
       'mainFeature': mainFeature,
       'instruments': instruments?.values.map((instrument) => instrument.name).toList(),

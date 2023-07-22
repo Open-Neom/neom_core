@@ -3,9 +3,9 @@ class AppConstants {
 
   static const String appTitle = "appTitle";
 
-  static const String firstItemlist = "firstReadlist";
-  static const List<String> itemIdDemo = ["2drTDQAAQBAJ"];
-
+  static const String firstItemlist = "firstItemList";
+  static const String firstChamberPreset = "firstChamberPreset";
+  static const String customPreset = "customPreset";
   static const List<String> choices = ["settings", "logout", 'toShareApp'];
 
   static const String profile = "profile";

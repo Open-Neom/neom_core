@@ -822,6 +822,29 @@ class ProfileFirestore implements ProfileRepository {
     return true;
   }
 
+  @override
+  Future<bool> addChamberPreset({required String profileId, required String chamberPresetId}) async {
+    logger.d("Adding preset $chamberPresetId to Profile $profileId");
+    try {
+
+      await profileReference.get()
+          .then((querySnapshot) async {
+        for (var document in querySnapshot.docs) {
+          if(document.id == profileId) {
+            await document.reference.update({
+              AppFirestoreConstants.chamberPresets: FieldValue.arrayUnion([chamberPresetId])
+            });
+          }
+        }
+      });
+
+    } catch (e) {
+      logger.e(e.toString());
+      return false;
+    }
+
+    return true;
+  }
 
   @override
   Future<bool> removeAppItem(String profileId, String itemId) async {

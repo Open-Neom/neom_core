@@ -6,11 +6,13 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 
 import '../../../auth/ui/login/login_controller.dart';
+import '../../app_flavour.dart';
 import '../../domain/model/app_coupon.dart';
 import '../../domain/model/app_profile.dart';
 import '../../domain/model/app_user.dart';
 import '../../domain/model/band.dart';
 import '../../domain/model/item_list.dart';
+import '../../domain/model/neom/chamber_preset.dart';
 import '../../domain/use_cases/user_service.dart';
 import '../../utils/app_utilities.dart';
 import '../../utils/constants/app_constants.dart';
@@ -20,6 +22,7 @@ import '../../utils/constants/app_route_constants.dart';
 import '../../utils/constants/app_translation_constants.dart';
 import '../../utils/constants/message_translation_constants.dart';
 import '../../utils/core_utilities.dart';
+import '../../utils/enums/app_in_use.dart';
 import '../../utils/enums/itemlist_owner.dart';
 import '../../utils/enums/profile_type.dart';
 import '../../utils/enums/user_role.dart';
@@ -208,8 +211,6 @@ class UserController extends GetxController implements UserService {
     newProfile.bands = [];
     newProfile.events = [];
     newProfile.reviews = [];
-
-    newProfile.appItems = AppConstants.itemIdDemo;
     newProfile.watchingEvents = [];
     newProfile.goingEvents = [];
     newProfile.playingEvents = [];
@@ -219,6 +220,13 @@ class UserController extends GetxController implements UserService {
     newProfile.itemlists![AppConstants.firstItemlist] = Itemlist.myFirstItemlist()
     : newProfile.itemlists![AppConstants.firstItemlist] = Itemlist.myFirstItemlistFan();
 
+    if(AppFlavour.appInUse == AppInUse.cyberneom) {
+      newProfile.itemlists![AppConstants.firstItemlist]!.chamberPresets = [];
+      newProfile.itemlists![AppConstants.firstItemlist]!.chamberPresets!.add(ChamberPreset.myFirstNeomChamberPreset());
+      newProfile.chamberPresets = [AppConstants.firstChamberPreset];
+    } else {
+      newProfile.appItems = [AppFlavour.getFirstAppItemId()];
+    }
     newUser.profiles = [newProfile];
     newUser.userRole = UserRole.subscriber;
 
@@ -301,7 +309,6 @@ class UserController extends GetxController implements UserService {
     newProfile.events = [];
     newProfile.reviews = [];
 
-    newProfile.appItems = AppConstants.itemIdDemo;
     newProfile.watchingEvents = [];
     newProfile.goingEvents = [];
     newProfile.playingEvents = [];
@@ -311,6 +318,13 @@ class UserController extends GetxController implements UserService {
     newProfile.itemlists![AppConstants.firstItemlist] = Itemlist.myFirstItemlist()
         : newProfile.itemlists![AppConstants.firstItemlist] = Itemlist.myFirstItemlistFan();
 
+    if(AppFlavour.appInUse == AppInUse.cyberneom) {
+      newProfile.itemlists![AppConstants.firstItemlist]!.chamberPresets = [];
+      newProfile.itemlists![AppConstants.firstItemlist]!.chamberPresets!.add(ChamberPreset.myFirstNeomChamberPreset());
+      newProfile.chamberPresets = [AppConstants.firstChamberPreset];
+    } else {
+      newProfile.appItems = [AppFlavour.getFirstAppItemId()];
+    }
     try {
 
       String profileId = await ProfileFirestore().insert(user!.id, newProfile);
@@ -441,6 +455,16 @@ class UserController extends GetxController implements UserService {
 
     try {
       profile.itemlists = await ItemlistFirestore().retrieveItemlists(profile.id);
+      profile.appItems?.clear();
+      profile.chamberPresets?.clear();
+
+      CoreUtilities.getTotalPresets(profile.itemlists!).forEach((key, value) {
+        profile.chamberPresets!.add(key);
+      });
+
+      CoreUtilities.getTotalItems(profile.itemlists!).forEach((key, value) {
+        profile.appItems!.add(key);
+      });
     } catch (e) {
       AppUtilities.logger.e(e.toString());
     }

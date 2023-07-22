@@ -27,6 +27,7 @@ import '../domain/model/facility.dart';
 import '../domain/model/genre.dart';
 import '../domain/model/instrument.dart';
 import '../domain/model/item_list.dart';
+import '../domain/model/neom/chamber_preset.dart';
 import '../domain/model/place.dart';
 import '../domain/model/post.dart';
 import 'app_utilities.dart';
@@ -144,6 +145,18 @@ class CoreUtilities {
     });
 
     return totalItems;
+  }
+
+  static Map<String, ChamberPreset> getTotalPresets(Map<String, Itemlist> itemlists){
+    Map<String, ChamberPreset> totalPresets = {};
+
+    itemlists.forEach((key, itemlist) {
+      for (var preset in itemlist.chamberPresets!) {
+        totalPresets[preset.id] = preset;
+      }
+    });
+
+    return totalPresets;
   }
 
   static Widget ratingImage(String asset) {
@@ -300,7 +313,9 @@ class CoreUtilities {
         break;
       case(ProfileType.host):
         profileMainFeature = getMainPlace(profile.places ?? <String, Place>{});
-
+        break;
+      case(ProfileType.researcher):
+        profileMainFeature = CoreUtilities.getMainGenre(profile.genres ?? <String, Genre>{});
         break;
       case(ProfileType.fan):
         profileMainFeature = CoreUtilities.getMainGenre(profile.genres ?? <String, Genre>{});
