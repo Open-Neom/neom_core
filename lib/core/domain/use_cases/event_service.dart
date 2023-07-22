@@ -66,4 +66,8 @@ abstract class EventService {
   Future<void> sendEventInvitation(AppProfile mate, Instrument instrument);
   void goWithFlyer();
 
+  void addActivity(int index);
+  void removeActivity(int index);
+  void setDefaultNameDesc();
+
 }
