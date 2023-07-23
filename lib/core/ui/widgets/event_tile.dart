@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -35,12 +36,12 @@ class EventTile extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  event.isTest ? Text(AppTranslationConstants.test.tr,
+                  kDebugMode && event.isTest ? Text(AppTranslationConstants.test.tr,
                       style: const TextStyle(fontWeight: FontWeight.bold)
                   ) : Container(),
                   Text(
-                      event.name.length <= AppConstants.maxEventNameLength ? event.name.capitalizeFirst!
-                          : "${event.name.substring(0,AppConstants.maxEventNameLength).capitalizeFirst}...",
+                      event.name.length <= AppConstants.maxEventNameLength ? event.name
+                          : "${event.name.substring(0,AppConstants.maxEventNameLength)}...",
                       style: const TextStyle(fontWeight: FontWeight.bold)
                   ),
                   AppTheme.heightSpace5,

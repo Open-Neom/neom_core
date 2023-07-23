@@ -709,6 +709,7 @@ class AppTranslationConstants {
   static const String coverFree = 'coverFree';
   static const String test = 'test';
   static const String directory = 'directory';
+  static const String businessDirectory = 'businessDirectory';
 
   static const String dirWhatsappMsgA = 'dirWhatsappMsgA';
   static const String dirWhatsappMsgB = 'dirWhatsappMsgB';
