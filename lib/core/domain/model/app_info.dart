@@ -6,6 +6,7 @@ class AppInfo {
   bool coinPromo;
   int coinAmount;
   bool fbLoginEnabled;
+  bool googleLoginEnabled;
   int orderNumber;
   String suggestedUrl;
 
@@ -13,8 +14,9 @@ class AppInfo {
     this.id = "",
     this.version = "",
     this.lastStableBuild = 0,
-    this.coinPromo = true,
+    this.coinPromo = false,
     this.fbLoginEnabled = false,
+    this.googleLoginEnabled = true,
     this.coinAmount = 10,
     this.orderNumber = 1,
     this.suggestedUrl = ""
@@ -33,6 +35,7 @@ class AppInfo {
     coinPromo = data["coinPromo"] ?? true,
     coinAmount = data["coinAmount"] ?? 0,
     fbLoginEnabled = data["fbLoginEnabled"] ?? false,
+    googleLoginEnabled = data["googleLoginEnabled"] ?? true,
     orderNumber = data["orderNumber"] ?? 1,
     suggestedUrl = data["suggestedUrl"] ?? "";
 
@@ -44,6 +47,7 @@ class AppInfo {
       'coinPromo': coinPromo,
       'coinAmount': coinAmount,
       'fbLoginEnabled': fbLoginEnabled,
+      'googleLoginEnabled': googleLoginEnabled,
       'suggestedUrl': suggestedUrl,
     };
   }

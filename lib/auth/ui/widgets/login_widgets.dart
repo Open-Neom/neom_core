@@ -179,7 +179,7 @@ import '../login/login_controller.dart';
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10.0),
       child: Row(
-        mainAxisAlignment: (_.appInfo.fbLoginEnabled || _.isIOS13)
+        mainAxisAlignment: (_.isIOS13 && _.appInfo.googleLoginEnabled)
             ? MainAxisAlignment.spaceEvenly : MainAxisAlignment.center,
         children: <Widget>[
           _.isIOS13 ? GestureDetector(
@@ -209,7 +209,7 @@ import '../login/login_controller.dart';
                 ),
               )
           ) : Container(),
-          TextButton(
+          _.appInfo.googleLoginEnabled ? TextButton(
             onPressed: () async => {
               if(!_.isButtonDisabled) {
                 await _.handleLogin(LoginMethod.google)
@@ -233,7 +233,7 @@ import '../login/login_controller.dart';
                 ),
               ),
             ),
-          ),
+          ) : Container(),
         ],
       ),
     );
