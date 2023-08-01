@@ -6,8 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
-import 'package:google_api_headers/google_api_headers.dart';
-import 'package:google_maps_webservice/places.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -16,7 +14,6 @@ import 'package:url_launcher/url_launcher.dart';
 import '../app_flavour.dart';
 import '../data/implementations/shared_preference_controller.dart';
 import '../domain/model/activity_feed.dart';
-import '../domain/model/address.dart';
 import '../domain/model/app_item.dart';
 import '../domain/model/app_profile.dart';
 import '../domain/model/band.dart';
@@ -380,70 +377,9 @@ class CoreUtilities {
     return mainFacility.type.name;
   }
 
-
   static String getAppItemHeroTag(int index) {
     return "APP_ITEM_HERO_TAG_$index";
   }
-
-
-  static Future<Place> predictionToGooglePlace(Prediction p) async {
-    AppUtilities.logger.d("");
-
-    Place place = Place();
-    String placeName = "";
-    Address address = Address();
-    if(p.terms.isNotEmpty) {
-      placeName = p.terms.elementAt(0).value;
-
-      if(p.terms.length == 4) {
-        address = Address(
-          city: p.terms.elementAt(1).value,
-          state: p.terms.elementAt(2).value,
-          country: p.terms.elementAt(3).value,
-        );
-      } else if(p.terms.length == 5) {
-        address = Address(
-          street: p.terms.elementAt(1).value,
-          city: p.terms.elementAt(2).value,
-          state: p.terms.elementAt(3).value,
-          country: p.terms.elementAt(4).value,
-        );
-      } else if(p.terms.length == 6) {
-        address = Address(
-          street: p.terms.elementAt(1).value,
-          neighborhood: p.terms.elementAt(2).value,
-          city: p.terms.elementAt(3).value,
-          state: p.terms.elementAt(4).value,
-          country: p.terms.elementAt(5).value,
-        );
-      }
-
-    }
-
-
-
-    try {
-      GoogleMapsPlaces places = GoogleMapsPlaces(
-        apiKey: AppFlavour.getGoogleApiKey(),
-        apiHeaders: await const GoogleApiHeaders().getHeaders(),
-      );
-
-      PlacesDetailsResponse detail = await places.getDetailsByPlaceId(p.placeId!);
-
-      place.name = placeName;
-      place.address = address;
-      place.position = Position(
-          latitude: detail.result.geometry!.location.lat,
-          longitude: detail.result.geometry!.location.lng,
-          timestamp: DateTime.now(), accuracy: 0, altitude: 0, heading: 0, speed: 0, speedAccuracy: 0);
-      AppUtilities.logger.i(place.toString());
-    } catch (e) {
-      AppUtilities.logger.e(e.toString());
-    }
-
-    return place;
-  }
-
 
   static Future<List<Genre>> loadGenres() async {
     AppUtilities.logger.d("");

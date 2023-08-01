@@ -49,8 +49,11 @@ class AppUtilities {
     );
   }
 
-  static void showSnackBar(String title, String message) {
-    Get.snackbar(title.tr, message.tr, snackPosition: SnackPosition.bottom,duration: const Duration(seconds: 2));
+  static void showSnackBar(String title, String message, {Duration duration = const Duration(seconds: 2)}) {
+    Get.snackbar(title.tr, message.tr,
+        snackPosition: SnackPosition.bottom,
+        duration: duration
+    );
   }
 
   static int distanceBetweenPositionsRounded(Position mainUserPos, Position refUserPos){
@@ -140,7 +143,7 @@ class AppUtilities {
     formattedDate = DateFormat(dateFormat)
         .format(DateTime.fromMillisecondsSinceEpoch(dateMsSinceEpoch));
 
-    AppUtilities.logger.d("Date formatted to: $formattedDate");
+    AppUtilities.logger.v("Date formatted to: $formattedDate");
 
     return formattedDate;
   }

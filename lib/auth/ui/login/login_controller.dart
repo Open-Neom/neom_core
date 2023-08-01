@@ -495,6 +495,12 @@ class LoginController extends GetxController implements LoginService {
       }
     } catch (e) {
       logger.e(e.toString());
+      AppUtilities.showSnackBar(
+        MessageTranslationConstants.underConstruction.tr,
+        e.toString(),
+          duration: const Duration(seconds: 2)
+
+      );
     }
 
     update([AppPageIdConstants.login]);

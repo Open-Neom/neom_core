@@ -33,6 +33,9 @@ dependencies:
   neom_booking:
     git:
       url: https://github.com/emmanuel-montoya/neom_booking.git
+  neom_home:
+    git:
+      url: https://github.com/emmanuel-montoya/neom_home.git
 
   get: ^5.0.0-release-candidate-4
 
@@ -154,6 +157,8 @@ dependency_overrides:
     path: ../neom_events
   neom_booking:
     path: ../neom_booking
+  neom_home:
+    path: ../neom_home
   intl: 0.18.1
 
 # The following section is specific to Flutter packages.

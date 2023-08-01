@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -39,7 +40,7 @@ class LoginPage extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   AppTheme.heightSpace50,
-                  const HeaderIntro(),
+                  const HeaderIntro(title: kDebugMode ? "Dev" : "",),
                   AppTheme.heightSpace30,
                   Text(AppTranslationConstants.signIn.tr,
                     style: const TextStyle(

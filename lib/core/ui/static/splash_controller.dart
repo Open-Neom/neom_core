@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:neom_home/home/ui/home_controller.dart';
 
 import '../../../auth/ui/login/login_controller.dart';
 import '../../data/implementations/user_controller.dart';
@@ -84,7 +85,7 @@ class SplashController extends GetxController {
   void onReady() async {
     super.onReady();
 
-    await Future.delayed(const Duration(seconds: 2));
+    await Future.delayed(const Duration(seconds: 1));
 
     switch(fromRoute){
       case AppRouteConstants.home:
@@ -133,9 +134,7 @@ class SplashController extends GetxController {
         await changeSubtitle(AppTranslationConstants.paymentProcessed);
         update([AppPageIdConstants.splash]);
 
-        //TODO VERIFY How to implement cleaner as event is not loaded
-        //Event event = Get.find<EventDetailsController>().event;
-        //await Get.offAllNamed(AppRouteConstants.home, arguments: [event]);
+        Get.delete<HomeController>();
         await Get.offAllNamed(AppRouteConstants.home, arguments: [toRoute]);
         break;
       case AppRouteConstants.finishingSpotifySync:
@@ -158,7 +157,7 @@ class SplashController extends GetxController {
 
   Future<void> changeSubtitle(String newSubtitle) async {
     subtitle = newSubtitle;
-    await Future.delayed(const Duration(seconds: 2));
+    await Future.delayed(const Duration(seconds: 1));
     update([AppPageIdConstants.splash]);
   }
 

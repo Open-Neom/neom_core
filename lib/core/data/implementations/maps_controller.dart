@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_google_places/flutter_google_places.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
+import 'package:google_api_headers/google_api_headers.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_webservice/places.dart';
 
@@ -84,7 +85,7 @@ class MapsController extends GetxController implements MapsService {
 
 
   @override
-  Future<Prediction> placeAutocomplate(BuildContext context, String startText) async {
+  Future<Prediction> placeAutoComplete(BuildContext context, String startText) async {
     logger.d("Entering placeAutocomplate method");
 
     Prediction prediction = Prediction();
@@ -124,6 +125,63 @@ class MapsController extends GetxController implements MapsService {
       target: LatLng(position.latitude, position.longitude),
       zoom: AppConstants.cameraPositionZoom,
     );
+  }
+
+  @override
+  Future<Place> predictionToGooglePlace(Prediction p) async {
+    AppUtilities.logger.d("");
+
+    Place place = Place();
+    String placeName = "";
+    Address address = Address();
+    if(p.terms.isNotEmpty) {
+      placeName = p.terms.elementAt(0).value;
+
+      if(p.terms.length == 4) {
+        address = Address(
+          city: p.terms.elementAt(1).value,
+          state: p.terms.elementAt(2).value,
+          country: p.terms.elementAt(3).value,
+        );
+      } else if(p.terms.length == 5) {
+        address = Address(
+          street: p.terms.elementAt(1).value,
+          city: p.terms.elementAt(2).value,
+          state: p.terms.elementAt(3).value,
+          country: p.terms.elementAt(4).value,
+        );
+      } else if(p.terms.length == 6) {
+        address = Address(
+          street: p.terms.elementAt(1).value,
+          neighborhood: p.terms.elementAt(2).value,
+          city: p.terms.elementAt(3).value,
+          state: p.terms.elementAt(4).value,
+          country: p.terms.elementAt(5).value,
+        );
+      }
+
+    }
+
+    try {
+      GoogleMapsPlaces places = GoogleMapsPlaces(
+        apiKey: AppFlavour.getGoogleApiKey(),
+        apiHeaders: await const GoogleApiHeaders().getHeaders(),
+      );
+
+      PlacesDetailsResponse detail = await places.getDetailsByPlaceId(p.placeId!);
+
+      place.name = placeName;
+      place.address = address;
+      place.position = Position(
+          latitude: detail.result.geometry!.location.lat,
+          longitude: detail.result.geometry!.location.lng,
+          timestamp: DateTime.now(), accuracy: 0, altitude: 0, heading: 0, speed: 0, speedAccuracy: 0);
+      AppUtilities.logger.i(place.toString());
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+
+    return place;
   }
 
 }

@@ -310,7 +310,7 @@ class AppTranslationConstants {
   static const String to = 'to';
   static const String from = 'from';
   static const String participants = 'participants';
-  static const String participantsLimit = 'participantsLimit';
+  static const String participantsMax = 'participantsMax';
   static const String musicians = 'musicians';
   static const String noFulfilledInstrumentYet = 'noFulfilledInstrumentYet';
   static const String name = 'name';
@@ -836,5 +836,9 @@ class AppTranslationConstants {
   static const String presets = 'presets';
   static const String frequencyPreferences = 'frequencyPreferences';
   static const String selectedAsMainFrequency = 'selectedAsMainFrequency';
+
+  static const String inAppPurchase = 'inAppPurchase';
+  static const String payWithInAppPurchaseAndroid = 'payWithInAppPurchaseAndroid';
+  static const String payWithInAppPurchaseIOS = 'payWithInAppPurchaseIOS';
 
 }
