@@ -337,45 +337,45 @@ class AppFlavour {
 
   static String getDigitalPositioningUrl() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
-        return appProperties['digitalPositioningUrl'];
-      case AppInUse.emxi:
-        return appProperties['digitalPositioningUrl'];
       case AppInUse.cyberneom:
         return "";
+      case AppInUse.gigmeout:
+        return "";
+      case AppInUse.emxi:
+        return appProperties['digitalPositioningUrl'];
     }
   }
 
   static String getConsultancyUrl() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
-        return appProperties['consultancyUrl'];
-      case AppInUse.emxi:
-        return appProperties['consultancyUrl'];
       case AppInUse.cyberneom:
         return "";
+      case AppInUse.gigmeout:
+        return "";
+      case AppInUse.emxi:
+        return appProperties['consultancyUrl'];
     }
   }
 
   static String getCopyrightUrl() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
-        return appProperties['copyrightUrl'];
-      case AppInUse.emxi:
-        return appProperties['copyrightUrl'];
       case AppInUse.cyberneom:
         return "";
+      case AppInUse.gigmeout:
+        return "";
+      case AppInUse.emxi:
+        return appProperties['copyrightUrl'];
     }
   }
 
   static String getCoverDesignUrl() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
-        return appProperties['coverDesignUrl'];
-      case AppInUse.emxi:
-        return appProperties['coverDesignUrl'];
       case AppInUse.cyberneom:
         return "";
+      case AppInUse.gigmeout:
+        return "";
+      case AppInUse.emxi:
+        return appProperties['coverDesignUrl'];
     }
   }
 
@@ -426,7 +426,7 @@ class AppFlavour {
   static String getInitialPrice() {
     switch (appInUse) {
       case AppInUse.gigmeout:
-        return "";
+        return appProperties['initialPrice'];
       case AppInUse.emxi:
         return appProperties['initialPrice'];
       case AppInUse.cyberneom:

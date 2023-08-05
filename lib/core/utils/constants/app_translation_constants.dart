@@ -420,8 +420,9 @@ class AppTranslationConstants {
   static const String startPollMsg = 'startPollMsg';
   static const String shareWriting = 'shareWriting';
   static const String shareWritingMsg = 'shareWritingMsg';
-  static const String uploadYourBook = 'uploadYourBook';
-  static const String uploadYourBookMsg = 'uploadYourBookMsg';
+  static const String releaseUpload = 'releaseUpload';
+  static const String uploadYourReleaseItem = 'uploadYourReleaseItem';
+  static const String uploadYourReleaseItemMsg = 'uploadYourReleaseItemMsg';
 
 
   static const String explore = 'explore';
@@ -840,5 +841,7 @@ class AppTranslationConstants {
   static const String inAppPurchase = 'inAppPurchase';
   static const String payWithInAppPurchaseAndroid = 'payWithInAppPurchaseAndroid';
   static const String payWithInAppPurchaseIOS = 'payWithInAppPurchaseIOS';
+  static const String freeDistribution = 'freeDistribution';
+  static const String freeAccess = 'freeAccess';
 
 }
