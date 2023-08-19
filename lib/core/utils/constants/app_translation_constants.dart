@@ -684,6 +684,8 @@ class AppTranslationConstants {
   static const String readOn = 'readOn';
   static const String suggestedReading = 'suggestedReading';
   static const String digitalLibrary = 'digitalLibrary';
+  static const String music = 'music';
+  static const String player = 'player';
   static const String library = 'library';
   static const String bookshelf = 'bookshelf';
   static const String searchBooks = 'searchBooks';
@@ -843,5 +845,20 @@ class AppTranslationConstants {
   static const String payWithInAppPurchaseIOS = 'payWithInAppPurchaseIOS';
   static const String freeDistribution = 'freeDistribution';
   static const String freeAccess = 'freeAccess';
+
+  static const String likeMyWork = 'likeMyWork';
+  static const String buyCoffee = 'buyCoffee';
+  static const String contactUs = 'contactUs';
+  static const String gmail = 'gmail';
+  static const String contactUsSub = 'contactUsSub';
+  static const String insta = 'insta';
+  static const String joinWhats = 'joinWhats';
+  static const String joinWhatsSub = 'joinWhatsSub';
+  static const String whatsapp = 'whatsapp';
+  static const String whatsRock = 'whatsRock';
+  static const String whatsCommunity = 'whatsCommunity';
+  static const String whatsContact = 'whatsContact';
+  static const String searchResults = 'searchResults';
+  static const String searchedText = 'searchedText';
 
 }

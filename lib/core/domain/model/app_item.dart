@@ -26,6 +26,11 @@ class AppItem {
   int currentTime = 0;
   bool isRelease = false;
 
+  //TODO ADD INSTANCE OF VARIABLES
+  String lyrics = "";
+  String language = "";
+  int likes = 0;
+
   AppItem({
       this.id = "",
       this.name = "",

@@ -8,6 +8,7 @@ import '../../domain/model/item_list.dart';
 import '../../domain/model/neom/chamber_preset.dart';
 import '../../domain/repository/itemlist_repository.dart';
 import '../../utils/app_utilities.dart';
+import '../../utils/constants/app_constants.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
 
@@ -15,6 +16,7 @@ class ItemlistFirestore implements ItemlistRepository {
 
   var logger = AppUtilities.logger;
   final profileReference = FirebaseFirestore.instance.collectionGroup(AppFirestoreCollectionConstants.profiles);
+  final itemlistReference = FirebaseFirestore.instance.collectionGroup(AppFirestoreCollectionConstants.itemlists);
 
   @override
   Future<bool> addAppItem(String profileId, AppItem item, String itemlistId) async {
@@ -120,6 +122,50 @@ class ItemlistFirestore implements ItemlistRepository {
     return itemlistId;
   }
 
+  @override
+  Future<Map<String,Itemlist>> retrieveAll() async {
+    logger.d("RetrievingProfiles");
+    Map<String,Itemlist> itemlists = <String, Itemlist>{};
+
+    try {
+      await itemlistReference.limit(100).get().then((querySnapshot) {
+        for (var document in querySnapshot.docs) {
+          Itemlist itemlist = Itemlist.fromJSON(document.data());
+          itemlist.id = document.id;
+          itemlists[itemlist.id] = itemlist;
+        }
+      });
+    } catch (e) {
+      logger.e(e.toString());
+    }
+
+    logger.i("${itemlists .length} itemlists found");
+    return itemlists;
+  }
+
+  @override
+  Future<List<Itemlist>> fetchAll({bool onlyPublic = false, bool excludeFirstlist = true, int minItems = 0}) async {
+    logger.d("Retrieving Itemlists");
+    List<Itemlist> itemlists = [];
+
+    try {
+      await itemlistReference.limit(100).get().then((querySnapshot) {
+        for (var document in querySnapshot.docs) {
+          Itemlist itemlist = Itemlist.fromJSON(document.data());
+          itemlist.id = document.id;
+          if(itemlist.getTotalItems() >= minItems && (!onlyPublic || itemlist.public) && (!excludeFirstlist
+              || (itemlist.id != AppConstants.firstItemlist || itemlist.id != "firstReadlist"))) {
+            itemlists.add(itemlist);
+          }
+        }
+      });
+    } catch (e) {
+      logger.e(e.toString());
+    }
+
+    logger.i("${itemlists .length} itemlists found in total.");
+    return itemlists;
+  }
 
   @override
   Future<Map<String, Itemlist>> retrieveItemlists(String profileId) async {
@@ -128,18 +174,20 @@ class ItemlistFirestore implements ItemlistRepository {
 
     try {
       QuerySnapshot querySnapshot = await profileReference.get();
-        for (var document in querySnapshot.docs) {
-          if(document.id == profileId) {
-            QuerySnapshot querySnapshot = await document.reference.collection(
-                AppFirestoreCollectionConstants.itemlists).get();
+      for (var document in querySnapshot.docs) {
+        if(document.id == profileId) {
+          QuerySnapshot querySnapshot = await document.reference.collection(
+              AppFirestoreCollectionConstants.itemlists).get();
 
-            for (var queryDocumentSnapshot in querySnapshot.docs) {
-              Itemlist itemlist = Itemlist.fromJSON(queryDocumentSnapshot.data());
-              itemlist.id = queryDocumentSnapshot.id;
-              itemlists[itemlist.id] = itemlist;
-            }
+          int index = 0;
+          for (var queryDocumentSnapshot in querySnapshot.docs) {
+
+            Itemlist itemlist = Itemlist.fromJSON(queryDocumentSnapshot.data());
+            itemlist.id = queryDocumentSnapshot.id;
+            itemlists[itemlist.id] = itemlist;
           }
         }
+      }
     } catch (e) {
       logger.e(e.toString());
     }

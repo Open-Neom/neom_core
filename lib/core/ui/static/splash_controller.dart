@@ -25,7 +25,7 @@ class SplashController extends GetxController {
 
   @override
   void onInit() async {
-    logger.d("");
+    logger.v("");
     super.onInit();
 
     try {

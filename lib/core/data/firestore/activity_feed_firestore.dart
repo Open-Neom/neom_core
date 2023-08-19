@@ -89,7 +89,7 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
   @override
   Future<List<ActivityFeed>> retrieve(String profileId) async {
 
-    logger.d("");
+    logger.v("");
     List<ActivityFeed> feedItems=[];
 
     try {
@@ -100,9 +100,7 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
           .get();
 
       for (var doc in querySnapshot.docs) {
-        feedItems.add(
-            ActivityFeed.fromJSON(doc.data())..id = doc.id
-        );
+        feedItems.add(ActivityFeed.fromJSON(doc.data())..id = doc.id);
       }
     } catch (e) {
       logger.e(e.toString());

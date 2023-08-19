@@ -40,20 +40,21 @@ dependencies:
   get: ^5.0.0-release-candidate-4
 
   cupertino_icons: ^1.0.5
+  material_design_icons_flutter: 5.0.5955-rc.1
   font_awesome_flutter: ^10.4.0
   transparent_image: ^2.0.1
 
-  firebase_core: ^2.13.0
-  cloud_firestore: ^4.7.1
-  firebase_storage: ^11.2.1
-  firebase_auth: ^4.6.1
-  firebase_messaging: ^14.6.1
-  firebase_crashlytics: ^3.3.1
+  firebase_core: ^2.15.0
+  cloud_firestore: ^4.8.4
+  firebase_storage: ^11.2.5
+  firebase_auth: ^4.7.2
+  firebase_messaging: ^14.6.5
+  firebase_crashlytics: ^3.3.4
   google_sign_in: ^6.1.4
-  sign_in_with_apple: ^5.0.0-dev.1
+  sign_in_with_apple: ^5.0.0
   crypto: ^3.0.3
 
-  url_launcher: ^6.1.11
+  url_launcher: ^6.1.12
   http: ^0.13.3
   dio: ^4.0.4
   shared_preferences: ^2.1.1
@@ -77,13 +78,6 @@ dependencies:
   flutter_google_places: ^0.3.0
 
   intl: ^0.18.1
-
-#DEPRECATED
-#  syncfusion_flutter_datepicker: ^21.2.6
-  #table_calendar: ^3.0.9
-
-  #Timeline
-#  hashtagable: ^2.1.0
   hashtagable_v3: ^3.0.0
   flutter_linkify: ^6.0.0
   timeago: ^3.4.0 #To be Updated
@@ -133,6 +127,7 @@ dependencies:
   flutter_localization: ^0.1.12
   webview_flutter: ^4.2.2
   webview_flutter_wkwebview: ^3.7.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -141,6 +136,7 @@ dev_dependencies:
   freezed: ^2.3.2
   json_serializable: ^6.6.1
   flutter_lints: ^2.0.0
+  flutter_launcher_icons: "^0.13.1"
 
 dependency_overrides:
   neom_admin:

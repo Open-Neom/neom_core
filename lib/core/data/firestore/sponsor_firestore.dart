@@ -36,7 +36,7 @@ class SponsorFirestore implements SponsorRepository {
 
   @override
   Future<Map<String, Sponsor>> getSponsorsTimeline() async {
-    logger.d("");
+    logger.v("");
     Map<String, Sponsor> sponsors = {};
 
     try {

@@ -10,6 +10,7 @@ class AppAssets {
   //TODO Verify IconResource
   static const String iconResource = 'resource://drawable/ic_launcher';
   static const String icon = "assets/appIcon.png";
+  static const String iconWhite = "assets/appIcon_white.png";
   static const String logo = "assets/logos/logo-app.png";
   static const String logoAppWhite = "assets/logos/logo-app-white.png";
   static const String logoCompanyWhite = "assets/logos/logo-company-white.png";
@@ -56,5 +57,23 @@ class AppAssets {
   static const String propertiesJsonPath = 'assets/properties.json';
 
   static const String spiritualWitchy = 'assets/images/spiritual_witchy.png';
+
+  static const String musicPlayerAlbum = 'assets/images/music_player/album.png';
+  static const String musicPlayerArtist = 'assets/images/music_player/artist.png';
+  static const String musicPlayerCover = 'assets/images/music_player/cover.jpg';
+  static const String musicPlayerLyrics = 'assets/images/music_player/lyrics.png';
+  static const String musicPlayerSong = 'assets/images/music_player/song.png';
+  static const String musicPlayerYTCover = 'assets/images/music_player/ytCover.png';
+  static const String musicPlayerIconWhiteTrans = 'assets/appIcon_white.png';
+
+  static const String githubLogo = 'assets/images/music_player/xtras/GitHub_Logo.png';
+  static const String githubLogoWhite = 'assets/images/music_player/xtras/GitHub_Logo_White.png';
+
+  static const String musicPlayerHeader = 'assets/images/music_player/xtras/header.jpg';
+  static const String musicPlayerHeaderDark = 'assets/images/music_player/xtras/header-dark.jpg';
+
+  static const String donateGooglePayWhite = 'assets/images/donate-gpay-white.jpg';
+  static const String donateGooglePayBlack = 'assets/images/donate-gpay-black.jpg';
+  static const String buyMeACoffeeButtonBlack = 'assets/images/music_player/xtras/buy_me_a_coffee_black_btn.png';
 
 }

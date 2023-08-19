@@ -115,7 +115,7 @@ class LoginController extends GetxController implements LoginService {
 
   @override
   Future<void> handleAuthChanged(user) async {
-    logger.d("");
+    logger.v("");
     authStatus = AuthStatus.waiting;
 
     try {
@@ -368,7 +368,7 @@ class LoginController extends GetxController implements LoginService {
   @override
   Future<void> googleLogin() async {
 
-    logger.d("Entering Logging Method with Google Account");
+    logger.i("Entering Logging Method with Google Account");
 
     try {
 

@@ -98,7 +98,7 @@ class SharedPreferenceController extends GetxController implements SharedPrefere
 
   @override
   Future<void> setFirstTime(bool fTime) async {
-    logger.d("Setting firsTime to $firstTime");
+    logger.v("Setting firsTime to $firstTime");
 
     try {
       firstTime = fTime;

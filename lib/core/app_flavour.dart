@@ -254,7 +254,7 @@ class AppFlavour {
       case AppInUse.emxi:
         return appProperties['spotifyClientId'];
       case AppInUse.cyberneom:
-        return "";
+        return appProperties['spotifyClientId'];
     }
   }
 
@@ -492,7 +492,7 @@ class AppFlavour {
   static IconData getForthTabIcon() {
     switch (appInUse) {
       case AppInUse.gigmeout:
-        return FontAwesomeIcons.calendar;
+        return Icons.play_circle_fill;
       case AppInUse.emxi:
         return FontAwesomeIcons.shop;
       case AppInUse.cyberneom:
@@ -503,7 +503,7 @@ class AppFlavour {
   static String getFortTabTitle() {
     switch (appInUse) {
       case AppInUse.gigmeout:
-        return AppTranslationConstants.events;
+        return AppTranslationConstants.music;
       case AppInUse.emxi:
         return AppTranslationConstants.library;
       case AppInUse.cyberneom:
@@ -535,5 +535,26 @@ class AppFlavour {
     }
   }
 
+  static String getIconPath() {
+    switch (appInUse) {
+      case AppInUse.gigmeout:
+        return AppAssets.iconWhite;
+      case AppInUse.emxi:
+        return AppAssets.iconWhite;
+      case AppInUse.cyberneom:
+        return AppAssets.iconWhite;
+    }
+  }
+
+  static String getBuyMeACoffeURL() {
+    switch (appInUse) {
+      case AppInUse.gigmeout:
+        return 'https://www.buymeacoffee.com/gigmeout';
+      case AppInUse.emxi:
+        return 'https://www.buymeacoffee.com/escritoresmxi';
+      case AppInUse.cyberneom:
+        return 'https://www.buymeacoffee.com/cyberneom';
+    }
+  }
 
 }

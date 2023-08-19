@@ -66,7 +66,7 @@ class AppUtilities {
       double refLongitude = refUserPos.longitude;
 
       int distanceInMeters = Geolocator.distanceBetween(mainLatitude, mainLongitude, refLatitude, refLongitude).round();
-      logger.d("Distance between positions $distanceInMeters");
+      logger.v("Distance between positions $distanceInMeters");
 
       distanceKm = (distanceInMeters / 1000).round();
     } catch (e) {

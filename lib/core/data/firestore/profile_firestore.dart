@@ -111,7 +111,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<AppProfile> retrieve(String profileId) async {
-    logger.d("Retrieving Profile $profileId");
+    logger.v("Retrieving Profile $profileId");
     AppProfile profile = AppProfile();
 
     try {
@@ -222,12 +222,12 @@ class ProfileFirestore implements ProfileRepository {
           .collection(AppFirestoreCollectionConstants.profiles).get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        logger.d("Snapshot is not empty");
+        logger.v("Snapshot is not empty");
         for (var profileSnapshot in querySnapshot.docs) {
           AppProfile profile = AppProfile.fromJSON(profileSnapshot.data());
           if(profileType == null || profile.type == profileType) {
             profile.id = profileSnapshot.id;
-            logger.d(profile.toString());
+            logger.v(profile.toString());
             profiles.add(profile);
           }
         }
@@ -236,7 +236,7 @@ class ProfileFirestore implements ProfileRepository {
       logger.e(e.toString());
     }
 
-    logger.d("${profiles .length} profiles found");
+    logger.v("${profiles .length} profiles found");
     return profiles;
   }
 
@@ -1427,8 +1427,8 @@ class ProfileFirestore implements ProfileRepository {
 
       profile.genres = await GenreFirestore().retrieveGenres(profile.id);
       profile.itemlists = await ItemlistFirestore().retrieveItemlists(profile.id);
-      if(profile.genres!.isEmpty) logger.d("Genres not found");
-      if(profile.itemlists!.isEmpty) logger.d("Itemlists not found");
+      if(profile.genres!.isEmpty) logger.v("Genres not found");
+      if(profile.itemlists!.isEmpty) logger.v("Itemlists not found");
 
     } catch(e) {
       logger.e(e.toString());

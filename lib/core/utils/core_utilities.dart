@@ -256,9 +256,11 @@ class CoreUtilities {
   //       : print("[EVENT]: $event");
   // }
 
-  static void launchURL(String url) async {
+  static void launchURL(String url, {bool openInApp = true}) async {
     if (await canLaunchUrl(Uri.parse(url))) {
-      await launchUrl(Uri.parse(url));
+      await launchUrl(Uri.parse(url),
+        mode: openInApp ? LaunchMode.inAppWebView : LaunchMode.externalApplication
+      );
     } else {
       AppUtilities.logger.i('Could not launch $url');
     }

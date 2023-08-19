@@ -357,7 +357,7 @@ class UserFirestore implements UserRepository {
 
   @override
   Future<void> updateLastTimeOn(String userId) async {
-    logger.d("updating LastTimeOn for user $userId");
+    logger.v("updating LastTimeOn for user $userId");
 
     try {
       DocumentSnapshot documentSnapshot = await userReference.doc(userId).get();

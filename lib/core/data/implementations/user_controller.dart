@@ -382,7 +382,7 @@ class UserController extends GetxController implements UserService {
     try {
       AppUser userFromFirestore = await UserFirestore().getById(userId);
       if(userFromFirestore.id.isNotEmpty){
-        logger.d("User $userId exists!!");
+        logger.v("User $userId exists!!");
         user = userFromFirestore;
         profile = user!.profiles.first;
       } else {

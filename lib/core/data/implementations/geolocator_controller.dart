@@ -139,7 +139,7 @@ class GeoLocatorController implements GeoLocatorService {
 
   @override
   Future<Position> updateLocation(String profileId, Position? currentPosition) async {
-    logger.d("Updating Location for ProfileId $profileId");
+    logger.v("Updating Location for ProfileId $profileId");
 
     Position newPosition = Position(longitude: 0, latitude: 0, timestamp: DateTime.now(),
         accuracy: 0, altitude: 0, heading: 0, speed: 0, speedAccuracy: 0);
@@ -149,7 +149,7 @@ class GeoLocatorController implements GeoLocatorService {
       if(currentPosition != null) {
         int distance = AppUtilities.distanceBetweenPositionsRounded(currentPosition, newPosition);
         if(distance > AppConstants.significantDistanceKM){
-          logger.d("GpsLocation would be updated as distance difference is significant");
+          logger.v("GpsLocation would be updated as distance difference is significant");
           if(await ProfileFirestore().updatePosition(profileId, newPosition)){
             logger.i("GpsLocation was updated as distance was significant ${distance}Kms");
           }

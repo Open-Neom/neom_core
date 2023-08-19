@@ -14,7 +14,7 @@ class TitleSubtitleRow extends StatelessWidget {
   final String url;
   final String subtitle, title;
   final Color textColor;
-  final  Function? onPressed;
+  final Function? onPressed;
   final double vPadding, hPadding;
 
   const TitleSubtitleRow(

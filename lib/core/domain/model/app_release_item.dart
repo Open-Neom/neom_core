@@ -10,11 +10,15 @@ class AppReleaseItem {
   String id;
   String name;
   String description;
+  String lyrics;
+  String language;
+  String metaName;
+  String metaId;
+  
   String imgUrl;
   int duration;
   String previewUrl;
-  String metaName;
-
+  
   String ownerName;
   String ownerId;
   String ownerImgUrl;
@@ -40,6 +44,10 @@ class AppReleaseItem {
   bool isTest;
   int state;
 
+  List<String>? featArtists;
+  List<Map<String, String>>? featArtistsIds;
+  int likes;
+
   @override
   String toString() {
     return 'AppReleaseItem{id: $id, name: $name, description: $description, imgUrl: $imgUrl, duration: $duration, ownerName: $ownerName, ownerId: $ownerId, ownerImgUrl: $ownerImgUrl, appItemIds: $appItemIds, genres: $genres, instruments: $instruments, publisher: $publisher, publishedYear: $publishedYear, type: $type, price: $digitalPrice, bandsFulfillment: $bandsFulfillment, watchedProfiles: $watchingProfiles, boughtProfiles: $boughtUsers, isAvailable: $isAvailable, isPhysical: $isPhysical, isTest: $isTest}';
@@ -49,6 +57,9 @@ class AppReleaseItem {
       this.id = "",
       this.name = "",
       this.metaName = "",
+      this.metaId = '',
+      this.lyrics = '',
+      this.language = '',
       this.ownerName = "",
       this.ownerId = "",
       this.ownerImgUrl = "",
@@ -69,6 +80,9 @@ class AppReleaseItem {
       this.isTest = false,
       this.state = 0,
       this.createdTime = 0,
+      this.featArtists,
+      this.featArtistsIds,
+      this.likes = 0
   });
 
   AppReleaseItem.fromJSON(data) :
@@ -78,7 +92,10 @@ class AppReleaseItem {
     imgUrl = data["imgUrl"] ?? "",
     duration = data["duration"] ?? 0,
     previewUrl = data["previewUrl"] ?? "",
+    language = data["language"] ?? "",
+    lyrics = data["lyrics"] ?? "",
     metaName = data["metaName"] ?? "",
+    metaId = data["metaId"] ?? "",
     ownerName = data["ownerName"] ?? "",
     ownerId = data["ownerId"] ?? "",
     ownerImgUrl = data["ownerImgUrl"] ?? "",
@@ -100,7 +117,10 @@ class AppReleaseItem {
     isPhysical = data["isPhysical"] ?? false,
     isTest = data["isFulfilled"] ?? false,
     state = data["state"] ?? 0,
-    createdTime = data["createdTime"] ?? 0;
+    createdTime = data["createdTime"] ?? 0,
+    featArtists = List.from(data["featArtists"]?.cast<String>() ?? []),
+    featArtistsIds = List.from(data["featArtistsIds"]?.cast<Map<String,String>>() ?? []),
+    likes = data["likes"] ?? 0;
 
   Map<String, dynamic>  toJSON() => {
     'id': id,
@@ -109,7 +129,10 @@ class AppReleaseItem {
     'imgUrl': imgUrl,
     'duration': duration,
     'previewUrl': previewUrl,
+    'lyrics': lyrics,
+    'language': language,
     'metaName': metaName,
+    'metaId': metaId,
     'ownerName': ownerName,
     'ownerId': ownerId,
     'ownerImgUrl': ownerImgUrl,
@@ -128,7 +151,10 @@ class AppReleaseItem {
     'isAvailable': isAvailable,
     'isPhysical': isPhysical,
     'isTest': isTest,
+    'featArtists': featArtists,
+    'featArtistsIds': featArtistsIds,
     'state': state,
+    'likes': likes,
   };
 
 }

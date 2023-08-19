@@ -17,7 +17,7 @@ class PlaceFirestore implements PlaceRepository {
 
   @override
   Future<Map<String,Place>> retrievePlaces(profileId) async {
-    logger.d("Retrieving Place by Profile $profileId");
+    logger.v("Retrieving Place by Profile $profileId");
 
     Map<String, Place> places = {};
 
@@ -36,10 +36,10 @@ class PlaceFirestore implements PlaceRepository {
         }
       }
     } catch (e) {
-      logger.e("No Places found");
+      logger.w("No Places found");
     }
 
-    logger.d("${places.length} Places found");
+    logger.v("${places.length} Places found");
     return places;
   }
 
