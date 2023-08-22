@@ -4,6 +4,7 @@ import '../../utils/enums/event_status.dart';
 import '../../utils/enums/event_type.dart';
 import '../../utils/enums/usage_reason.dart';
 import 'app_item.dart';
+import 'app_media_item.dart';
 import 'app_profile.dart';
 import 'band_fulfillment.dart';
 import 'instrument_fulfillment.dart';
@@ -22,7 +23,6 @@ class Event {
   int createdTime;
   int eventDate;
   UsageReason reason;
-  List<AppItem> appItems;
   List<String>? genres;
   double itemPercentageCoverage;
   int distanceKm;
@@ -32,14 +32,15 @@ class Event {
   EventStatus status;
   Place? place;
   bool isFulfilled = false;
+  List<AppMediaItem>? appMediaItems;
   List<InstrumentFulfillment> instrumentsFulfillment;
   List<BandFulfillment> bandsFulfillment;
   List<String>? watchingProfiles;
   List<String>? goingProfiles;
+  int participantsLimit;
   bool isOnline;
   bool isTest;
-  int participantsLimit;
-
+  
   Event({
       this.id = "",
       this.name = "",
@@ -50,7 +51,6 @@ class Event {
       this.createdTime = 0,
       this.eventDate = 0,
       this.reason = UsageReason.any,
-      this.appItems = const [],
       this.genres,
       this.itemPercentageCoverage = 0.0,
       this.distanceKm = 0,
@@ -70,7 +70,7 @@ class Event {
 
   @override
   String toString() {
-    return 'Event{id: $id, name: $name, description: $description, owner: $owner, imgUrl: $imgUrl, coverImgUrl: $coverImgUrl, public: $public, createdTime: $createdTime, eventDate: $eventDate, reason: $reason, appItems: $appItems, genres: $genres, itemPercentageCoverage: $itemPercentageCoverage, distanceKm: $distanceKm, paymentPrice: $paymentPrice, coverPrice: $coverPrice, type: $type, status: $status, place: $place, isFulfilled: $isFulfilled, instrumentsFulfillment: $instrumentsFulfillment, bandsFulfillment: $bandsFulfillment, watchingProfiles: $watchingProfiles, goingProfiles: $goingProfiles, isTest: $isTest}';
+    return 'Event{id: $id, name: $name, description: $description, owner: $owner, imgUrl: $imgUrl, coverImgUrl: $coverImgUrl, public: $public, createdTime: $createdTime, eventDate: $eventDate, reason: $reason, appMediaItems: $appMediaItems, genres: $genres, itemPercentageCoverage: $itemPercentageCoverage, distanceKm: $distanceKm, paymentPrice: $paymentPrice, coverPrice: $coverPrice, type: $type, status: $status, place: $place, isFulfilled: $isFulfilled, instrumentsFulfillment: $instrumentsFulfillment, bandsFulfillment: $bandsFulfillment, watchingProfiles: $watchingProfiles, goingProfiles: $goingProfiles, isTest: $isTest}';
   }
 
   Event.createBasic(this.name, desc):
@@ -79,7 +79,7 @@ class Event {
     imgUrl = "",
     coverImgUrl = "",
     public = true,
-    appItems = [],
+    appMediaItems = [],
     genres = [],
     eventDate =  0,
     reason = UsageReason.any,
@@ -109,8 +109,8 @@ class Event {
       createdTime = data["createdTime"] ?? 0,
       eventDate = data["eventDate"] ?? 0,
       reason = EnumToString.fromString(UsageReason.values, data["reason"] ?? UsageReason.any.name) ?? UsageReason.any,
-      appItems = data["appItems"]?.map<AppItem>((item) {
-        return AppItem.fromJSON(item);
+      appMediaItems = data["appMediaItems"]?.map<AppMediaItem>((item) {
+        return AppMediaItem.fromJSON(item);
       }).toList() ?? [],
       genres = List.from(data["genres"]?.cast<String>() ?? []),
       itemPercentageCoverage = data["itemPercentageCoverage"] ?? 0,
@@ -145,7 +145,7 @@ class Event {
     'createdTime': createdTime,
     'eventDate': eventDate,
     'reason': reason.name,
-    'appItems': appItems.map((appItem) => appItem.toJSON()).toList(),
+    'appMediaItems': appMediaItems?.map((appMediaItem) => appMediaItem.toJSON()).toList(),
     'genres': genres,
     'itemPercentageCoverage': itemPercentageCoverage,
     'distanceKm': distanceKm,

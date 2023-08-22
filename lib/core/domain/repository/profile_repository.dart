@@ -37,9 +37,9 @@ abstract class ProfileRepository {
 
   Future<QuerySnapshot> handleSearch(String query);
 
-  Future<bool> addAppItem(String profileId, String itemId);
-  Future<bool> removeAppItem(String profileId, String itemId);
-  Future<bool> addAllAppItemIds(String profileId, List<String> itemIds);
+  Future<bool> addAppMediaItem(String profileId, String itemId);
+  Future<bool> removeAppMediaItem(String profileId, String itemId);
+  Future<bool> addAllAppMediaItemIds(String profileId, List<String> itemIds);
 
   Future<Map<String, AppProfile>> getFollowers(String profileId);
   Future<Map<String, AppProfile>> getFollowed(String profileId);

@@ -44,6 +44,7 @@ class Band {
   List<String>? reviews;
 
   List<String>? appItems;
+  List<String>? appMediaItems;
   List<String>? playingEvents;
 
   List<String>? requests;

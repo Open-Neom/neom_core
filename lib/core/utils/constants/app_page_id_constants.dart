@@ -30,6 +30,7 @@ class AppPageIdConstants {
 
   static const String spotifySearch = "spotifySearch";
   static const String appItemDetails = "appItemDetails";
+  static const String appMediaItemDetails = "appMediaItemDetails";
   static const String instruments = "instruments";
   static const String frequencies = "frequencies";
   static const String appDrawer = "appDrawer";
@@ -37,6 +38,7 @@ class AppPageIdConstants {
 
   static const String itemlistItem = "itemlistItem";
   static const String appItem = "appItem";
+  static const String appMediaItem = "appMediaItem";
   static const String playlistSong = "playlistSong";
   static const String playlistNameDesc = "playlistNameDesc";
 

@@ -448,7 +448,7 @@ class AppFlavour {
   static IconData getSecondTabIcon() {
     switch (appInUse) {
       case AppInUse.gigmeout:
-        return Icons.library_music;
+        return FontAwesomeIcons.building;
       case AppInUse.emxi:
         return FontAwesomeIcons.bookOpen;
       case AppInUse.cyberneom:
@@ -459,7 +459,7 @@ class AppFlavour {
   static String getSecondTabTitle() {
     switch (appInUse) {
       case AppInUse.gigmeout:
-        return AppTranslationConstants.itemlists;
+        return AppTranslationConstants.directory;
       case AppInUse.emxi:
         return AppTranslationConstants.itemlists;
       case AppInUse.cyberneom:
@@ -470,7 +470,7 @@ class AppFlavour {
   static IconData getThirdTabIcon() {
     switch (appInUse) {
       case AppInUse.gigmeout:
-        return FontAwesomeIcons.building;
+        return FontAwesomeIcons.calendar;
       case AppInUse.emxi:
         return FontAwesomeIcons.filePen;
       case AppInUse.cyberneom:
@@ -481,7 +481,7 @@ class AppFlavour {
   static String getThirdTabTitle() {
     switch (appInUse) {
       case AppInUse.gigmeout:
-        return AppTranslationConstants.directory;
+        return AppTranslationConstants.events;
       case AppInUse.emxi:
         return AppTranslationConstants.inspiration;
       case AppInUse.cyberneom:

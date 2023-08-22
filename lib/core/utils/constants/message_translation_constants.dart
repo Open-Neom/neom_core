@@ -195,7 +195,10 @@ class MessageTranslationConstants {
   static const String shareAppMsg = 'shareAppMsg';
   static const String sharedApp = 'sharedApp';
   static const String sharedAppMsg = 'sharedAppMsg';
-
+  static const String shareMediaItem = 'shareMediaItem';
+  static const String shareMediaItemMsg = 'shareMediaItemMsg';
+  static const String sharedMediaItem = 'sharedMediaItem';
+  static const String sharedMediaItemMsg = 'sharedMediaItemMsg';
   static const String errorCreatingOrder = 'errorCreatingOrder';
   static const String errorCreatingOrderMsg = 'errorCreatingOrderMsg';
 

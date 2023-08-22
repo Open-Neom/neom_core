@@ -3,6 +3,7 @@ import 'dart:async';
 import '../../utils/enums/event_type.dart';
 import '../../utils/enums/usage_reason.dart';
 import '../model/app_item.dart';
+import '../model/app_media_item.dart';
 import '../model/app_profile.dart';
 import '../model/band.dart';
 import '../model/instrument.dart';
@@ -15,8 +16,8 @@ abstract class EventService {
   void removeInstrument(int index);
   void createInstrumentFulfillment();
 
-  void addAppItem(AppItem appItem);
-  void removeAppItem(AppItem appItem);
+  void addAppMediaItem(AppMediaItem appMediaItem);
+  void removeAppMediaItem(AppMediaItem appMediaItem);
   void addItemsToEvent();
 
   void setReason(UsageReason reason);

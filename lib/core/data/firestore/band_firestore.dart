@@ -454,7 +454,7 @@ class BandFirestore implements BandRepository {
 
 
   @override
-  Future<bool> addAppItem(String bandId, String itemId) async {
+  Future<bool> addAppMediaItem(String bandId, String itemId) async {
     logger.d("");
     try {
 

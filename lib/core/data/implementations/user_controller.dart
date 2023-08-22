@@ -217,15 +217,15 @@ class UserController extends GetxController implements UserService {
     newProfile.itemlists = {};
 
     (newProfile.type == ProfileType.instrumentist) ?
-    newProfile.itemlists![AppConstants.firstItemlist] = Itemlist.myFirstItemlist()
-    : newProfile.itemlists![AppConstants.firstItemlist] = Itemlist.myFirstItemlistFan();
+    newProfile.itemlists![AppConstants.myFavorites] = Itemlist.myFirstItemlist()
+    : newProfile.itemlists![AppConstants.myFavorites] = Itemlist.myFirstItemlistFan();
 
     if(AppFlavour.appInUse == AppInUse.cyberneom) {
-      newProfile.itemlists![AppConstants.firstItemlist]!.chamberPresets = [];
-      newProfile.itemlists![AppConstants.firstItemlist]!.chamberPresets!.add(ChamberPreset.myFirstNeomChamberPreset());
+      newProfile.itemlists![AppConstants.myFavorites]!.chamberPresets = [];
+      newProfile.itemlists![AppConstants.myFavorites]!.chamberPresets!.add(ChamberPreset.myFirstNeomChamberPreset());
       newProfile.chamberPresets = [AppConstants.firstChamberPreset];
     } else {
-      newProfile.appItems = [AppFlavour.getFirstAppItemId()];
+      // newProfile.appItems = [AppFlavour.getFirstAppItemId()];
     }
     newUser.profiles = [newProfile];
     newUser.userRole = UserRole.subscriber;
@@ -315,15 +315,15 @@ class UserController extends GetxController implements UserService {
     newProfile.itemlists = {};
 
     (newProfile.type == ProfileType.instrumentist) ?
-    newProfile.itemlists![AppConstants.firstItemlist] = Itemlist.myFirstItemlist()
-        : newProfile.itemlists![AppConstants.firstItemlist] = Itemlist.myFirstItemlistFan();
+    newProfile.itemlists![AppConstants.myFavorites] = Itemlist.myFirstItemlist()
+        : newProfile.itemlists![AppConstants.myFavorites] = Itemlist.myFirstItemlistFan();
 
     if(AppFlavour.appInUse == AppInUse.cyberneom) {
-      newProfile.itemlists![AppConstants.firstItemlist]!.chamberPresets = [];
-      newProfile.itemlists![AppConstants.firstItemlist]!.chamberPresets!.add(ChamberPreset.myFirstNeomChamberPreset());
+      newProfile.itemlists![AppConstants.myFavorites]!.chamberPresets = [];
+      newProfile.itemlists![AppConstants.myFavorites]!.chamberPresets!.add(ChamberPreset.myFirstNeomChamberPreset());
       newProfile.chamberPresets = [AppConstants.firstChamberPreset];
     } else {
-      newProfile.appItems = [AppFlavour.getFirstAppItemId()];
+      newProfile.appMediaItems = [AppFlavour.getFirstAppItemId()];
     }
     try {
 
@@ -455,7 +455,7 @@ class UserController extends GetxController implements UserService {
 
     try {
       profile.itemlists = await ItemlistFirestore().retrieveItemlists(profile.id);
-      profile.appItems?.clear();
+      profile.appMediaItems?.clear();
       profile.chamberPresets?.clear();
 
       CoreUtilities.getTotalPresets(profile.itemlists!).forEach((key, value) {
@@ -463,7 +463,7 @@ class UserController extends GetxController implements UserService {
       });
 
       CoreUtilities.getTotalItems(profile.itemlists!).forEach((key, value) {
-        profile.appItems!.add(key);
+        profile.appMediaItems!.add(key);
       });
     } catch (e) {
       AppUtilities.logger.e(e.toString());

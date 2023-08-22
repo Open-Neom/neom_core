@@ -1,0 +1,435 @@
+/*
+ *  This file is part of BlackHole (https://github.com/Sangwan5688/BlackHole).
+ *
+ * BlackHole is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * BlackHole is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with BlackHole.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Copyright (c) 2021-2023, Ankit Sangwan
+ */
+
+import 'dart:convert';
+import 'package:enum_to_string/enum_to_string.dart';
+import 'package:neom_commons/core/domain/model/app_item.dart';
+import 'package:neom_commons/core/domain/model/app_release_item.dart';
+import 'package:neom_commons/core/domain/model/item_list.dart';
+import 'package:spotify/spotify.dart';
+import '../../utils/app_utilities.dart';
+import 'package:on_audio_query/on_audio_query.dart';
+
+import '../../utils/enums/app_media_source.dart';
+import '../../utils/enums/media_item_type.dart';
+import 'genre.dart';
+import 'neom/chamber_preset.dart';
+
+class AppMediaItem {
+  
+  String id;
+  String name;
+  String? description;
+  String artist;
+  String artistId; ///IF ARTISTA IS ON GIGMEOUT
+  String album;
+  String? albumId; ///IF ALBUM IS ON GIGMEOUT
+  int duration; ///DURATION IN SECONDS
+  
+  List<String>? featArtists;
+  List<Map<String, String>>? featArtistsIds;
+  
+  String? genre;
+  List<String>? genres;
+  String lyrics;  
+  String? language;
+  
+  String imgUrl;
+  List<String>? allImgs;
+
+  String publisher = "";
+  int publishedDate; ///YEAR RELEASE TO PUBLIC
+  int releaseDate; ///RELEASED AT GIGMEOUT INTERNAL PURPOSES
+
+  String url; ///URL FOR STREAMING PURPOSE
+  List<String>? allUrls; ///ADDITIONAL URLS FOR QUALITIES
+  String permaUrl; ///URL FOR EXTERNAL USE
+  String? path; ///IN CASE IS OFFLINE
+  
+  int? trackNumber;
+  int? discNumber;
+
+  int? quality; ///TO DEFINE QUALITY 0-1-2-3-4-5 ...
+  bool is320Kbps;
+  int likes;
+  int state;
+  MediaItemType type;
+  AppMediaSource mediaSource;
+  int? expireAt; //TIME WHEN EXPIRES IF APPLY
+
+
+  AppMediaItem({
+    this.id = '',
+    this.album = '',
+    this.albumId,
+    this.artist = '',
+    this.artistId = '',
+    this.featArtists,
+    this.featArtistsIds,
+    this.duration = 0,
+    this.genre = '',
+    this.genres,
+    this.imgUrl = '',
+    this.allImgs,
+    this.language,
+    this.description,
+    this.name = '',
+    this.url = '',
+    this.allUrls,
+    this.publishedDate = 0, ///YEAR
+    this.quality,
+    this.permaUrl = '',
+    this.releaseDate = 0,
+    this.lyrics = '',
+    this.trackNumber,
+    this.discNumber,
+    this.mediaSource = AppMediaSource.internal,
+    this.is320Kbps = false,
+    this.likes = 0,
+    this.path,
+    this.type = MediaItemType.song,
+    this.state = 0,
+  });
+
+  factory AppMediaItem.fromJSON(map) {
+    try {
+      int dur = 0;
+
+      if(map['duration'] is String && map['duration'].toString().contains(":")) {
+        final List<String> parts = map['duration'].toString().split(':');
+        for (int i = 0; i < parts.length; i++) {
+          dur += int.parse(parts[i]) * (60 ^ (parts.length - i - 1));
+        }
+      }
+
+      final appMediaItem = AppMediaItem(
+        id: map['id'].toString() ?? '',
+        type: EnumToString.fromString(MediaItemType.values, map['type'].toString()) ?? MediaItemType.song,
+        album: map['album']?.toString() ?? '',
+        publishedDate: int.tryParse(map['publishedDate'].toString()) ?? 0,
+        duration: dur,
+        language: map['language']?.toString(),
+        genre: map['genre'].toString(),
+        is320Kbps: map['is320Kbps'] as bool? ?? false,
+        lyrics: map['lyrics']?.toString() ?? '',
+        albumId: map['albumId']?.toString(),
+        description: map['description']?.toString(),
+        name: map['name'].toString(),
+        artist: map['artist'].toString(),
+        featArtistsIds: map['featArtistsIds'] as List<Map<String, String>>?,
+        featArtists: map['featArtists'] as List<String>? ??
+            map['artist']?.split(',') as List<String>? ?? [],
+        imgUrl: map['imgUrl'].toString(),
+        allImgs: map['allImgs'] as List<String>? ??
+            map['allImgs'] as List<String>? ??
+            (map['imgUrl']?.toString() != null
+                ? [map['imgUrl']!.toString()]
+                : []),
+        url: map['url']?.toString() ?? '',
+        permaUrl: map['permaUrl'].toString(),
+        allUrls: map['allUrls'] as List<String>? ??
+            ((map['url'] != null && map['url'] != '')
+                ? [map['url'].toString()]
+                : []),
+
+        quality: int.tryParse(map['quality'].toString()),
+        releaseDate: int.tryParse(map['releaseDate'].toString()) ?? 0,
+        trackNumber: int.tryParse(map['trackNumber'].toString()),
+        discNumber: int.tryParse(map['discNumber'].toString()),
+        mediaSource: EnumToString.fromString(AppMediaSource.values, map["mediaSource"].toString() ?? AppMediaSource.internal.name) ?? AppMediaSource.internal,
+        likes: int.parse(map['likes']?.toString() ?? '0'),
+        path: map['path']?.toString(),
+        state: map['state'] ?? 0,
+      );
+      return appMediaItem;
+    } catch (e) {
+      throw Exception('Error parsing song item: $e');
+    }
+  }
+
+  Map<String, dynamic> toJSON() {
+    return <String, dynamic>{
+      'id': id,
+      'album': album,
+      'duration': duration,
+      'genre': genre,
+      'imgUrl': imgUrl,
+      'allImgs': allImgs,
+      'language': language,
+      'releaseDate': releaseDate,
+      'description': description,
+      'name': name,
+      'url': url,
+      'allUrls': allUrls,
+      'publishedDate': publishedDate,
+      'quality': quality,
+      'permaUrl': permaUrl,
+      'lyrics': lyrics,
+      'trackNumber': trackNumber,
+      'discNumber': discNumber,
+      'albumId': albumId,
+      'featArtists': featArtists,
+      'featArtistsIds': featArtistsIds,
+      'mediaSource': mediaSource.name,
+      'is320Kbps': is320Kbps,
+      'artist': artist,
+      'artistId': artistId,
+      'likes': likes,
+      'path': path,
+      'state': state,
+      'type': type.value,
+    };
+  }
+
+
+  static List<AppMediaItem> listFromMap(Map<String, List<dynamic>> map) {
+    List<AppMediaItem> items = [];
+    try {
+
+    } catch (e) {
+      throw Exception('Error parsing song item: $e');
+    }
+
+    return items;
+  }
+
+  static List<AppMediaItem> listFromList(List<dynamic>? list) {
+    List<AppMediaItem> items = [];
+    try {
+
+    } catch (e) {
+      throw Exception('Error parsing song item: $e');
+    }
+
+    return items;
+  }
+
+  static List<AppMediaItem> listFromSongModel(List<SongModel>? list) {
+    List<AppMediaItem> items = [];
+    try {
+
+
+    } catch (e) {
+      throw Exception('Error parsing song item: $e');
+    }
+
+    return items;
+  }
+
+  static AppMediaItem fromSongModel(SongModel songModel) {
+    return AppMediaItem(
+      id: songModel.id.toString(),
+      album: songModel.album ?? '',
+      artist: songModel.artist ?? '',
+      duration: songModel.duration ?? 0,
+      name: songModel.title,
+      genre: songModel.genre ?? '',
+      description: songModel.composer,
+      url: songModel.uri ?? '',
+    );
+  }
+
+  static AppMediaItem fromAppReleaseItem(AppReleaseItem releaseItem) {
+    try {
+      return AppMediaItem(
+        id: releaseItem.id,
+        name: releaseItem.name,
+        description: releaseItem.description,
+        lyrics: releaseItem.lyrics,
+        language: releaseItem.language,
+        album: releaseItem.metaName,
+        albumId: releaseItem.metaId,
+        featArtists: releaseItem.featArtists,
+        duration: releaseItem.duration,
+        genre: releaseItem.genres.join(', '),
+        imgUrl: releaseItem.imgUrl,
+        allImgs: [releaseItem.ownerImgUrl],
+        url: releaseItem.previewUrl,
+        publishedDate: releaseItem.createdTime,
+        permaUrl: releaseItem.previewUrl,
+        featArtistsIds: releaseItem.featArtistsIds,
+        artist: releaseItem.ownerName,
+        artistId: releaseItem.ownerId,
+        likes: releaseItem.likes,
+        state: releaseItem.state,
+        mediaSource: AppMediaSource.internal,
+      );
+    } catch (e) {
+      throw Exception('Error parsing song item: $e');
+    }
+  }
+
+  static AppMediaItem fromAppItem(AppItem appItem) {
+    try {
+      return AppMediaItem(
+        id: appItem.id,
+        name: appItem.name,
+        description: appItem.description,
+        lyrics: appItem.lyrics,
+        language: appItem.language,
+        album: appItem.albumName,
+        duration: Duration(milliseconds: appItem.durationMs,).inSeconds,
+        genre: appItem.genres.join(', '),
+        imgUrl: appItem.albumImgUrl,
+        allImgs: [appItem.artistImgUrl],
+        releaseDate: 0,//appItem.publishedDate,
+        url: appItem.previewUrl,
+        permaUrl: appItem.previewUrl,
+        artist: appItem.artist,
+        artistId: appItem.artistId,
+        state: appItem.state
+      );
+    } catch (e) {
+      throw Exception('Error parsing song item: $e');
+    }
+  }
+
+  static List<AppMediaItem> mapItemsFromItemlist(Itemlist itemlist) {
+
+    List<AppMediaItem> appMediaItems = [];
+
+    if(itemlist.appItems != null) {
+      itemlist.appItems!.forEach((element) {
+        appMediaItems.add(AppMediaItem.fromAppItem(element));
+      });
+    }
+
+    if(itemlist.appReleaseItems != null) {
+      itemlist.appReleaseItems!.forEach((element) {
+        appMediaItems.add(AppMediaItem.fromAppReleaseItem(element));
+      });
+    }
+
+    // if(itemlist.chamberPresets != null) {
+    //   itemlist.chamberPresets!.forEach((element) {
+    //     appMediaItems.add(AppMediaItem.fromAppItem(element));
+    //   });
+    // }
+
+    AppUtilities.logger.v("Retrieving ${appMediaItems.length} total AppMediaItems.");
+    return appMediaItems;
+  }
+
+  static AppMediaItem mapTrackToSong(Track track) {
+    AppMediaItem song = AppMediaItem();
+    String artistName = "";
+    String albumImgUrl = "";
+
+    try {
+      if (track.artists!.length > 1) {
+        for (var artists in track.artists!) {
+          artistName.isEmpty ? artistName = (artists.name ?? "")
+              : artistName = "$artistName, ${artists.name ?? ""}";
+        }
+      } else {
+        artistName = track.artists?.first.name ?? "";
+        albumImgUrl = track.album?.images?.first.url ?? "";
+      }
+
+      song = AppMediaItem(
+          id: track.id ?? "",
+          state: 1,
+          name: track.name ?? "",
+          artist: artistName,
+          artistId: track.artists?.first.id ?? "",
+          album: track.album?.name ?? "",
+          duration: ((track.durationMs ?? 0) / 1000).ceil(),
+          imgUrl: albumImgUrl,
+          url: track.previewUrl ?? "",
+          genres: Genre.listFromJSON(track.artists?.first.genres ?? []).map((e) => e.name).toList(),
+          mediaSource: AppMediaSource.spotify,
+          type: MediaItemType.song,
+          permaUrl: track.externalUrls?.spotify ?? ''
+      );
+
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+
+    return song;
+  }
+
+  static List<AppMediaItem> mapTracksToSongs(Paging<Track> tracks) {
+    List<AppMediaItem> songs = [];
+    String artistName = "";
+    String albumImgUrl = "";
+
+    try {
+      for (var playlistTrack in tracks.itemsNative!) {
+
+        Track track = Track.fromJson(playlistTrack["track"]);
+
+        if (track.artists!.length > 1) {
+          for (var artists in track.artists!) {
+            artistName.isEmpty ? artistName = (artists.name ?? "")
+                : artistName = "$artistName, ${artists.name ?? ""}";
+          }
+        } else {
+          artistName = track.artists?.first.name ?? "";
+          albumImgUrl = track.album?.images?.first.url ?? "";
+        }
+
+        songs.add(
+            AppMediaItem(
+              id: track.id ?? "",
+              state: 1,
+              name: track.name ?? "",
+              artist: artistName,
+              artistId: track.artists?.first.id ?? "",
+              album: track.album?.name ?? "",
+              duration: ((track.durationMs ?? 0) / 1000).ceil(),
+              imgUrl: albumImgUrl,
+              url: track.previewUrl ?? "",
+              genres: Genre.listFromJSON(track.artists?.first.genres ?? []).map((e) => e.name).toList(),
+              mediaSource: AppMediaSource.spotify,
+              type: MediaItemType.song,
+            )
+        );
+      }
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+
+    return songs;
+  }
+
+  AppMediaItem.fromChamberPreset(ChamberPreset chamberPreset) :
+        id = chamberPreset.id,
+        name = chamberPreset.name,
+        artist = "",
+        artistId = chamberPreset.ownerId,
+        album = "",
+        imgUrl = chamberPreset.imgUrl,
+        duration =  chamberPreset.neomFrequency?.frequency.ceil() ?? 0,
+        url = "",
+        description = chamberPreset.description.isNotEmpty ? chamberPreset.description : chamberPreset.neomFrequency?.description ?? "",
+        publisher = "",
+        state = chamberPreset.state,
+        genres = [],
+        mediaSource = AppMediaSource.internal,
+  releaseDate = 0,
+  is320Kbps = true,
+  likes = 0,
+  lyrics = '',
+  permaUrl = chamberPreset.imgUrl,
+  publishedDate = 0,
+  type = MediaItemType.neomPreset
+
+  ;
+}

@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:spotify/spotify.dart';
 
@@ -5,8 +8,10 @@ import '../../app_flavour.dart';
 import '../../utils/app_utilities.dart';
 import '../../utils/constants/app_constants.dart';
 import '../../utils/constants/app_translation_constants.dart';
+import '../../utils/core_utilities.dart';
 import '../../utils/enums/itemlist_type.dart';
 import 'app_item.dart';
+import 'app_media_item.dart';
 import 'app_release_item.dart';
 import 'neom/chamber_preset.dart';
 
@@ -23,8 +28,9 @@ class Itemlist {
   List<AppItem>? appItems;
   List<AppReleaseItem>? appReleaseItems;
   List<ChamberPreset>? chamberPresets;
-  bool isFav = false;
+  List<AppMediaItem>? appMediaItems;
   ItemlistType type = ItemlistType.playlist;
+  Position? position;
 
   Itemlist({
     this.id = "",
@@ -36,32 +42,30 @@ class Itemlist {
     this.public = true,
     this.uri = "",
     this.appItems,
-    this.isFav = false
+    this.position,
   });
 
 
   Itemlist.myFirstItemlist() :
-    id = AppConstants.firstItemlist,
-    name = AppTranslationConstants.myFirstItemlistName.tr,
-    description = AppTranslationConstants.myFirstItemlistDesc.tr,
+    id = AppConstants.myFavorites,
+    name = AppTranslationConstants.myFavItemlistName.tr,
+    description = AppTranslationConstants.myFavItemlistDesc.tr,
     href = "",
     imgUrl = "",
-    public = true,
+    public = false,
     uri = "",
-    appItems = [],//AppFlavour.getFirstAppItem(), ///VERIFY IF ITS Better to have empty first list
-    isFav = true;
+    appMediaItems = [];
 
 
   Itemlist.myFirstItemlistFan() :
-        id = AppConstants.firstItemlist,
-        name = AppTranslationConstants.myFirstItemlistName.tr,
-        description = AppTranslationConstants.myFirstItemlistFanDesc.tr,
+        id = AppConstants.myFavorites,
+        name = AppTranslationConstants.myFavItemlistName.tr,
+        description = AppTranslationConstants.myFavItemlistFanDesc.tr,
         href = "",
         imgUrl = "",
-        public = true,
+        public = false,
         uri = "",
-        appItems = [],//AppFlavour.getFirstAppItem(), ///VERIFY IF ITS Better to have empty first list
-        isFav = true;
+        appMediaItems = [];
 
 
   Itemlist.createBasic(this.name, desc) :
@@ -72,10 +76,8 @@ class Itemlist {
     ownerId = "",
     public = true,
     uri = "",
-    appItems = [],
-    appReleaseItems = [],
-    chamberPresets = [],
-    isFav = false;
+    appMediaItems = [],
+    chamberPresets = [];
 
 
   Itemlist.fromJSON(data) :
@@ -87,7 +89,9 @@ class Itemlist {
     public = data["public"] ?? true,
     ownerId = data["ownerId"] ?? "",
     uri = data["uri"],
-    isFav = data["isFav"] ?? false,
+    appMediaItems =  data["appMediaItems"]?.map<AppItem>((item) {
+      return AppMediaItem.fromJSON(item);
+    }).toList(),
     appItems =  data["appItems"]?.map<AppItem>((item) {
       return AppItem.fromJSON(item);
     }).toList() ?? data["songs"]?.map<AppItem>((item) {
@@ -98,12 +102,13 @@ class Itemlist {
     }).toList() ?? [],
     chamberPresets =  data["chamberPresets"]?.map<ChamberPreset>((preset) {
       return ChamberPreset.fromJSON(preset);
-    }).toList() ?? [];
+    }).toList() ?? [],
+    position = CoreUtilities.JSONtoPosition(data["position"]);
 
 
   @override
   String toString() {
-    return 'Itemlist{id: $id, name: $name, description: $description, href: $href, imgUrl: $imgUrl, public: $public, uri: $uri, appItems: $appItems, isFav: $isFav}';
+    return 'Itemlist{id: $id, name: $name, description: $description, href: $href, imgUrl: $imgUrl, public: $public, uri: $uri, appItems: $appItems';
   }
 
   Map<String, dynamic>  toJSON()=>{
@@ -115,10 +120,10 @@ class Itemlist {
     'ownerId': ownerId,
     'public': public,
     'uri': uri,
-    'appItems': appItems?.map((appItem) => appItem.toJSON()).toList() ?? [],
+    'appMediaItems': appMediaItems?.map((appMediaItem) => appMediaItem.toJSON()).toList() ?? [],
     'appReleaseItems': appReleaseItems?.map((appReleaseItem) => appReleaseItem.toJSON()).toList() ?? [],
     'chamberPresets': chamberPresets?.map((appReleaseItem) => appReleaseItem.toJSON()).toList() ?? [],
-    'isFav': isFav
+    'position': jsonEncode(position),
   };
 
   static Future<Itemlist> mapPlaylistToItemlist(Playlist playlist) async {

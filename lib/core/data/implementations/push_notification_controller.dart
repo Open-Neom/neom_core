@@ -2,6 +2,7 @@ import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:neom_itemlists/itemlists/data/firestore/app_item_firestore.dart';
+import 'package:neom_itemlists/itemlists/data/firestore/app_media_item_firestore.dart';
 import '../../app_flavour.dart';
 import '../../utils/app_utilities.dart';
 import '../../utils/constants/app_route_constants.dart';
@@ -50,7 +51,7 @@ class PushNotificationController extends ChangeNotifier {
         break;
       case PushNotificationType.appItemAdded:
         Get.toNamed(AppFlavour.getItemDetailsRoute(),
-            arguments: [await AppItemFirestore().retrieve(referenceId)]);
+            arguments: [await AppMediaItemFirestore().retrieve(referenceId)]);
         break;
       case PushNotificationType.releaseAppItemAdded:
         Get.toNamed(AppFlavour.getItemDetailsRoute(), arguments: [referenceId]);

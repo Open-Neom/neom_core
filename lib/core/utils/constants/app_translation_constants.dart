@@ -146,6 +146,7 @@ class AppTranslationConstants {
   static const String itemSearch = "itemSearch";
   static const String search = "search";
   static const String searchOnSpotify = "searchOnSpotify";
+  static const String searchOnGigmeoutAndSpotify = "searchOnGigmeoutAndSpotify";
   static const String synchronizeSpotifyPlaylists = "synchronizeSpotifyPlaylists";
   static const String synchronizePlaylists = "synchronizePlaylists";
   static const String finishingSpotifySync = "finishingSpotifySync";
@@ -261,17 +262,19 @@ class AppTranslationConstants {
   static const String addNewItemlist = 'addNewItemlist';
   static const String itemlistName = 'itemlistName';
   static const String description = 'description';
+  static const String publicList = 'publicList';
   static const String add = 'add';
   static const String home = 'home';
   static const String events = 'events';
   static const String event = 'event';
   static const String eventDate = 'eventDate';
   static const String itemlists = 'itemlists';
+  static const String myItemlists = 'myItemlists';
   static const String inbox = 'inbox';
 
-  static const String myFirstItemlistName = 'myFirstItemlistName';
-  static const String myFirstItemlistDesc = 'myFirstItemlistDesc';
-  static const String myFirstItemlistFanDesc = 'myFirstItemlistFanDesc';
+  static const String myFavItemlistName = 'myFavItemlistName';
+  static const String myFavItemlistDesc = 'myFavItemlistDesc';
+  static const String myFavItemlistFanDesc = 'myFavItemlistFanDesc';
 
   static const String addInstrument = "addInstrument";
   static const String mainInstrument = "mainInstrument";
@@ -860,5 +863,6 @@ class AppTranslationConstants {
   static const String whatsContact = 'whatsContact';
   static const String searchResults = 'searchResults';
   static const String searchedText = 'searchedText';
+  static const String aroundYou = 'aroundYou';
 
 }

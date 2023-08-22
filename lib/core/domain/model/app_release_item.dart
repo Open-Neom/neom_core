@@ -10,6 +10,8 @@ class AppReleaseItem {
   String id;
   String name;
   String description;
+  String ownerName;
+  String ownerId;
   String lyrics;
   String language;
   String metaName;
@@ -19,8 +21,7 @@ class AppReleaseItem {
   int duration;
   String previewUrl;
   
-  String ownerName;
-  String ownerId;
+
   String ownerImgUrl;
 
   List<String> appItemIds;

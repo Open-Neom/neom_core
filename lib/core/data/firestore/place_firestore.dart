@@ -36,7 +36,7 @@ class PlaceFirestore implements PlaceRepository {
         }
       }
     } catch (e) {
-      logger.w("No Places found");
+      logger.v("No Places found");
     }
 
     logger.v("${places.length} Places found");

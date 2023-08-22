@@ -2,6 +2,7 @@ enum ItemlistType {
   playlist("playlist"),
   giglist("giglist"),
   readlist("readlist"),
+  audiobook("audiobook"),
   album("album"),
   ep("ep"),
   single("single"),

@@ -7,6 +7,7 @@ import 'package:geolocator/geolocator.dart';
 import '../../domain/model/app_profile.dart';
 import '../../domain/model/app_user.dart';
 import '../../domain/model/facility.dart';
+import '../../domain/model/item_list.dart';
 import '../../domain/model/post.dart';
 import '../../domain/repository/profile_repository.dart';
 import '../../utils/app_utilities.dart';
@@ -92,7 +93,9 @@ class ProfileFirestore implements ProfileRepository {
         });
       }
 
-      await ItemlistFirestore().insert(profileId, profile.itemlists!.values.first);
+      Itemlist firstlist = profile.itemlists!.values.first;
+      firstlist.ownerId = profileId;
+      await ItemlistFirestore().insert(firstlist);
       logger.i("Profile ${profile.toString()} inserted successfully.");
 
     } catch (e) {
@@ -799,7 +802,7 @@ class ProfileFirestore implements ProfileRepository {
 
 
   @override
-  Future<bool> addAppItem(String profileId, String itemId) async {
+  Future<bool> addAppMediaItem(String profileId, String itemId) async {
     logger.d("Adding item $itemId to Profile $profileId");
     try {
 
@@ -808,7 +811,7 @@ class ProfileFirestore implements ProfileRepository {
         for (var document in querySnapshot.docs) {
           if(document.id == profileId) {
             await document.reference.update({
-              AppFirestoreConstants.appItems: FieldValue.arrayUnion([itemId])
+              AppFirestoreConstants.appMediaItems: FieldValue.arrayUnion([itemId])
             });
           }
         }
@@ -847,7 +850,7 @@ class ProfileFirestore implements ProfileRepository {
   }
 
   @override
-  Future<bool> removeAppItem(String profileId, String itemId) async {
+  Future<bool> removeAppMediaItem(String profileId, String itemId) async {
     logger.d("");
 
     try {
@@ -857,7 +860,7 @@ class ProfileFirestore implements ProfileRepository {
         for (var document in querySnapshot.docs)  {
           if(document.id == profileId) {
             await document.reference.update({
-              AppFirestoreConstants.appItems: FieldValue.arrayRemove([itemId])
+              AppFirestoreConstants.appMediaItems: FieldValue.arrayRemove([itemId])
             });
           }
         }
@@ -924,7 +927,7 @@ class ProfileFirestore implements ProfileRepository {
 
 
   @override
-  Future<bool> addAllAppItemIds(String profileId, List<String> itemIds) async {
+  Future<bool> addAllAppMediaItemIds(String profileId, List<String> itemIds) async {
     logger.d("");
     try {
 
@@ -933,7 +936,7 @@ class ProfileFirestore implements ProfileRepository {
         for (var document in querySnapshot.docs) {
           if(document.id == profileId) {
             await document.reference.update({
-              AppFirestoreConstants.appItems: itemIds
+              AppFirestoreConstants.appMediaItems: itemIds
             });
           }
         }
@@ -1414,7 +1417,7 @@ class ProfileFirestore implements ProfileRepository {
       if(profile.type == ProfileType.host) {
         profile.places = await PlaceFirestore().retrievePlaces(profile.id);
         if(profile.places!.isEmpty) {
-          logger.w("Places not found");
+          logger.v("Places not found");
         }
       }
 
@@ -1516,7 +1519,6 @@ class ProfileFirestore implements ProfileRepository {
     logger.d("");
 
     try {
-
       await profileReference.get()
           .then((querySnapshot) async {
         for (var document in querySnapshot.docs)  {
@@ -1525,6 +1527,32 @@ class ProfileFirestore implements ProfileRepository {
               AppFirestoreConstants.appItems: FieldValue.delete()
             });
             logger.w("Deleting");
+          // }
+        }
+      });
+
+    } catch (e) {
+      logger.e(e.toString());
+      return false;
+    }
+
+    return true;
+  }
+
+  @override
+  Future<bool> removeAllAppMediaItems(String profileId) async {
+    logger.d("");
+
+    try {
+
+      await profileReference.get()
+          .then((querySnapshot) async {
+        for (var document in querySnapshot.docs)  {
+          // if(document.id == profileId) {
+          await document.reference.update({
+            AppFirestoreConstants.appMediaItems: FieldValue.delete()
+          });
+          logger.w("Deleting");
           // }
         }
       });

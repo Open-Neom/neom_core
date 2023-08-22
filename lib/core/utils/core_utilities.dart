@@ -15,6 +15,7 @@ import '../app_flavour.dart';
 import '../data/implementations/shared_preference_controller.dart';
 import '../domain/model/activity_feed.dart';
 import '../domain/model/app_item.dart';
+import '../domain/model/app_media_item.dart';
 import '../domain/model/app_profile.dart';
 import '../domain/model/band.dart';
 import '../domain/model/band_member.dart';
@@ -35,6 +36,7 @@ import 'constants/url_constants.dart';
 import 'enums/app_currency.dart';
 import 'enums/app_item_state.dart';
 import 'enums/event_type.dart';
+import 'enums/media_item_type.dart';
 import 'enums/post_type.dart';
 import 'enums/profile_type.dart';
 import 'enums/usage_reason.dart';
@@ -105,39 +107,39 @@ class CoreUtilities {
     return itemlistItems;
   }
 
-  static AppItemState getItemState(int state){
+  static AppItemState getItemState(int itemState){
 
-    AppItemState appItem = AppItemState.noState;
-    switch (state) {
+    AppItemState state = AppItemState.noState;
+    switch (itemState) {
       case 0:
-        appItem = AppItemState.noState;
+        state = AppItemState.noState;
         break;
       case 1:
-        appItem = AppItemState.heardIt;
+        state = AppItemState.heardIt;
         break;
       case 2:
-        appItem = AppItemState.learningIt;
+        state = AppItemState.learningIt;
         break;
       case 3:
-        appItem = AppItemState.needToPractice;
+        state = AppItemState.needToPractice;
         break;
       case 4:
-        appItem = AppItemState.readyToPlay;
+        state = AppItemState.readyToPlay;
         break;
       case 5:
-        appItem = AppItemState.knowByHeart;
+        state = AppItemState.knowByHeart;
         break;
     }
 
-    return appItem;
+    return state;
   }
 
-  static Map<String, AppItem> getTotalItems(Map<String, Itemlist> itemlists){
-    Map<String, AppItem> totalItems = {};
+  static Map<String, AppMediaItem> getTotalItems(Map<String, Itemlist> itemlists){
+    Map<String, AppMediaItem> totalItems = {};
 
     itemlists.forEach((key, itemlist) {
-      for (var appItem in itemlist.appItems!) {
-        totalItems[appItem.id] = appItem;
+      for (var appMediaItem in itemlist.appMediaItems!) {
+        totalItems[appMediaItem.id] = appMediaItem;
       }
     });
 
@@ -404,9 +406,9 @@ class CoreUtilities {
   }
 
 
-  static Map<String, AppItem> getItemMatches(Map<String, AppItem> totalItems, List<String> profileItems){
+  static Map<String, AppMediaItem> getItemMatches(Map<String, AppMediaItem> totalItems, List<String> profileItems){
     AppUtilities.logger.d("");
-    Map<String, AppItem> matchedItemms = <String,AppItem>{};
+    Map<String, AppMediaItem> matchedItemms = <String,AppMediaItem>{};
 
     try {
       totalItems.forEach((itemId, item) {
@@ -477,8 +479,8 @@ class CoreUtilities {
 
   static bool fulfillmentMatchedRequirements({
     required Event event,
-    required  Map<String, AppItem> requiredItems,
-    required  Map<String, AppItem> matchedItems,
+    required  Map<String, AppMediaItem> requiredItems,
+    required  Map<String, AppMediaItem> matchedItems,
     required Map<String,Instrument> matchedInstruments,
     UsageReason profileReason = UsageReason.any,
     int profileDistanceKm = 0})
@@ -610,7 +612,10 @@ class CoreUtilities {
     String thumbnailLocalPath = "";
 
     if(post.thumbnailUrl.isNotEmpty || post.mediaUrl.isNotEmpty ) {
-      thumbnailLocalPath = await downloadImage(post);
+      String imgUrl = post.thumbnailUrl.isNotEmpty ? post.thumbnailUrl : post.mediaUrl;
+      if(imgUrl.isNotEmpty) {
+        thumbnailLocalPath = await downloadImage(imgUrl);
+      }
     }
 
     ShareResult? shareResult;
@@ -650,27 +655,74 @@ class CoreUtilities {
 
   }
 
-  Future<String> downloadImage(Post post) async {
+  Future<void> shareAppWithMediaItem(AppMediaItem mediaItem) async {
+
+    String thumbnailLocalPath = "";
+
+    if(mediaItem.imgUrl.isNotEmpty || (mediaItem.allImgs?.isNotEmpty ?? false) ) {
+      String imgUrl = mediaItem.imgUrl.isNotEmpty ? mediaItem.imgUrl : mediaItem.allImgs?.first ?? "";
+      if(imgUrl.isNotEmpty) {
+        thumbnailLocalPath = await downloadImage(imgUrl, imgName: mediaItem.artist+"_"+mediaItem.name);
+      }
+    }
+
+    ShareResult? shareResult;
+    String caption = mediaItem.name;
+    if(mediaItem.type == MediaItemType.song) {
+      if(caption.contains(AppConstants.titleTextDivider)) {
+        caption = caption.replaceAll(AppConstants.titleTextDivider, "\n\n");
+      }
+      String dotsLine = "";
+      for(int i = 0; i < mediaItem.artist.length; i++) {
+        dotsLine = "$dotsLine.";
+      }
+      caption = "$caption\n\n${mediaItem.artist}\n$dotsLine";
+    }
+
+
+    if(thumbnailLocalPath.isNotEmpty) {
+      shareResult = await Share.shareXFiles([XFile(thumbnailLocalPath)],
+          text: '$caption${caption.isNotEmpty ? "\n\n" : ""}'
+              '${MessageTranslationConstants.shareMediaItem.tr}\n'
+              '\n${AppFlavour.getLinksUrl()}\n'
+      );
+    } else {
+      shareResult = await Share.shareWithResult(
+          '$caption${caption.isNotEmpty ? "\n\n" : ""}'
+              '${MessageTranslationConstants.shareMediaItemMsg.tr}\n'
+              '\n${AppFlavour.getLinksUrl()}\n'
+      );
+    }
+
+
+    if(shareResult.status == ShareResultStatus.success && shareResult.raw != "null") {
+      Get.snackbar(MessageTranslationConstants.sharedMediaItem.tr,
+          MessageTranslationConstants.sharedMediaItemMsg.tr,
+          snackPosition: SnackPosition.bottom);
+    }
+
+  }
+
+  Future<String> downloadImage(String imgUrl, {String imgName = ''}) async {
     AppUtilities.logger.d("Entering downloadImage method");
-    String imgLocalPath = "";
+    String localPath = "";
+    String name = imgName.isNotEmpty ? imgName : imgUrl;
     try {
 
-      final response = await http.get(Uri.parse(
-          post.thumbnailUrl.isNotEmpty ? post.thumbnailUrl : post.mediaUrl
-      ));
-
+      final response = await http.get(Uri.parse(imgUrl));
       if (response.statusCode == 200) {
+        name = name.replaceAll(".", "").replaceAll(":", "").replaceAll("/", "");
         // Get the document directory path
-        String localPath = await getLocalPath();
-        imgLocalPath = "$localPath/${post.id}.jpeg";
-        File jpegFileRef = File(imgLocalPath);
+        localPath = await getLocalPath();
+        localPath = "$localPath/$name.jpeg";
+        File jpegFileRef = File(localPath);
         await jpegFileRef.writeAsBytes(response.bodyBytes);
-        AppUtilities.logger.i("Image downloaded to path $imgLocalPath successfully.");
+        AppUtilities.logger.i("Image downloaded to path $localPath successfully.");
       }
     } catch (e) {
       AppUtilities.logger.e(e.toString());
     }
-    return imgLocalPath;
+    return localPath;
   }
 
   static Future<String> getLocalPath() async {

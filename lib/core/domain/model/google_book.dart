@@ -1,6 +1,7 @@
 
 import '../../utils/app_utilities.dart';
 import 'app_item.dart';
+import 'app_media_item.dart';
 import 'genre.dart';
 import 'google_book/access_info.dart';
 import 'google_book/sale_info.dart';
@@ -68,9 +69,9 @@ class GoogleBook {
     return map;
   }
 
-  static AppItem toAppItem(GoogleBook googleBook) {
+  static AppMediaItem toAppMediaItem(GoogleBook googleBook) {
 
-    AppItem appItem = AppItem();
+    AppMediaItem appItem = AppMediaItem();
     List<Genre> genres = [];
 
     try {
@@ -96,20 +97,20 @@ class GoogleBook {
         });
       }
 
-      appItem =  AppItem(
+      appItem =  AppMediaItem(
           id: googleBook.id ?? "",
           name: googleBook.volumeInfo?.title ?? "",
-          albumName: googleBook.volumeInfo?.publisher ?? "",
+          album: googleBook.volumeInfo?.publisher ?? "",
           artist: authors,
-          artistImgUrl: googleBook.volumeInfo?.imageLinks?.smallThumbnail ?? "",
-          durationMs: googleBook.volumeInfo?.pageCount ?? 0,
-          albumImgUrl: googleBook.volumeInfo?.imageLinks?.thumbnail ?? "",
-          infoUrl: googleBook.volumeInfo?.infoLink ?? "",
-          previewUrl: googleBook.volumeInfo?.previewLink ?? "",
+          allImgs: [googleBook.volumeInfo?.imageLinks?.smallThumbnail ?? ""],
+          duration: googleBook.volumeInfo?.pageCount ?? 0, ///NUMBER OF PAGES
+          imgUrl: googleBook.volumeInfo?.imageLinks?.thumbnail ?? "",
+          permaUrl: googleBook.volumeInfo?.infoLink ?? "",
+          url: googleBook.volumeInfo?.previewLink ?? "",
           state: 0,
-          genres: genres,
+          genres: genres.map((e) => e.name).toList(),
           description: googleBook.volumeInfo?.description ?? "",
-          publishedDate: googleBook.volumeInfo?.publishedDate ?? ""
+          publishedDate: 0, ///VERIFY HOW TO HANDLE THIS DATE TO SINCEEPOCH googleBook.volumeInfo?.publishedDate ?? ""
       );
     } catch (e) {
       AppUtilities.logger.e(e.toString());

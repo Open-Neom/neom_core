@@ -8,7 +8,7 @@ import 'package:neom_timeline/neom_timeline.dart';
 class AppRouteConstants {
 
   static final emxiHomePages = [const TimelinePage(), const ItemlistPage(), const BlogPage(), const InboxPage()];
-  static final gigHomePages = [const TimelinePage(), const ItemlistPage(), const BookingHomePage(), const EventsPage()];
+  static final gigHomePages = [const TimelinePage(), const BookingHomePage(), const EventsPage(), const EventsPage()];
   static final neomHomePages = [const TimelinePage(), const ItemlistPage(), const EventsPage(), const InboxPage()];
 
   static const String root = "/";
