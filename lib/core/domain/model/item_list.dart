@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:enum_to_string/enum_to_string.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:spotify/spotify.dart';
@@ -25,11 +26,11 @@ class Itemlist {
   String imgUrl;
   bool public;
   String uri; // A link to the Web API endpoint providing full details of the playlist.
-  List<AppItem>? appItems;
+  // List<AppItem>? appItems;
   List<AppReleaseItem>? appReleaseItems;
   List<ChamberPreset>? chamberPresets;
   List<AppMediaItem>? appMediaItems;
-  ItemlistType type = ItemlistType.playlist;
+  ItemlistType type;
   Position? position;
 
   Itemlist({
@@ -41,7 +42,9 @@ class Itemlist {
     this.ownerId = "",
     this.public = true,
     this.uri = "",
-    this.appItems,
+    this.appMediaItems,
+    this.chamberPresets,
+    this.type = ItemlistType.playlist,
     this.position,
   });
 
@@ -54,18 +57,21 @@ class Itemlist {
     imgUrl = "",
     public = false,
     uri = "",
-    appMediaItems = [];
+    appMediaItems = [],
+    type = ItemlistType.playlist;
 
 
   Itemlist.myFirstItemlistFan() :
-        id = AppConstants.myFavorites,
-        name = AppTranslationConstants.myFavItemlistName.tr,
-        description = AppTranslationConstants.myFavItemlistFanDesc.tr,
-        href = "",
-        imgUrl = "",
-        public = false,
-        uri = "",
-        appMediaItems = [];
+    id = AppConstants.myFavorites,
+    name = AppTranslationConstants.myFavItemlistName.tr,
+    description = AppTranslationConstants.myFavItemlistFanDesc.tr,
+    href = "",
+    imgUrl = "",
+    public = false,
+    uri = "",
+    appMediaItems = [],
+    chamberPresets = [],
+    type = ItemlistType.playlist;
 
 
   Itemlist.createBasic(this.name, desc) :
@@ -77,7 +83,8 @@ class Itemlist {
     public = true,
     uri = "",
     appMediaItems = [],
-    chamberPresets = [];
+    chamberPresets = [],
+    type = ItemlistType.playlist;
 
 
   Itemlist.fromJSON(data) :
@@ -89,26 +96,22 @@ class Itemlist {
     public = data["public"] ?? true,
     ownerId = data["ownerId"] ?? "",
     uri = data["uri"],
-    appMediaItems =  data["appMediaItems"]?.map<AppItem>((item) {
+    appMediaItems =  data["appMediaItems"]?.map<AppMediaItem>((item) {
       return AppMediaItem.fromJSON(item);
     }).toList(),
-    appItems =  data["appItems"]?.map<AppItem>((item) {
-      return AppItem.fromJSON(item);
-    }).toList() ?? data["songs"]?.map<AppItem>((item) {
-      return AppItem.fromJSON(item);
-    }).toList() ?? [],
     appReleaseItems =  data["appReleaseItems"]?.map<AppReleaseItem>((item) {
       return AppReleaseItem.fromJSON(item);
     }).toList() ?? [],
     chamberPresets =  data["chamberPresets"]?.map<ChamberPreset>((preset) {
       return ChamberPreset.fromJSON(preset);
     }).toList() ?? [],
-    position = CoreUtilities.JSONtoPosition(data["position"]);
+    position = CoreUtilities.JSONtoPosition(data["position"]),
+    type = EnumToString.fromString(ItemlistType.values, data["type"] ?? ItemlistType.playlist.name) ?? ItemlistType.playlist;
 
 
   @override
   String toString() {
-    return 'Itemlist{id: $id, name: $name, description: $description, href: $href, imgUrl: $imgUrl, public: $public, uri: $uri, appItems: $appItems';
+    return 'Itemlist{id: $id, name: $name, description: $description, href: $href, imgUrl: $imgUrl, public: $public, uri: $uri, appMediaItems: $appMediaItems';
   }
 
   Map<String, dynamic>  toJSON()=>{
@@ -128,44 +131,44 @@ class Itemlist {
 
   static Future<Itemlist> mapPlaylistToItemlist(Playlist playlist) async {
     AppUtilities.logger.i("Mapping Spotify Playlist ${playlist.name} to Itemlist");
-    List<AppItem> songs = [];
+    List<AppMediaItem> appMediaItems = [];
 
     try {
       if (playlist.tracks != null && (playlist.tracks?.total ?? 0) > 1) {
-        songs = await AppItem.mapTracksToSongs(playlist.tracks!);
+        appMediaItems = await AppMediaItem.mapTracksToSongs(playlist.tracks!);
       }
     } catch (e) {
       AppUtilities.logger.e(e.toString());
     }
 
     return Itemlist(
-        id: playlist.id ?? "",
-        name: playlist.name ?? "",
-        description: playlist.description ?? "",
-        href: playlist.href ?? "",
-        imgUrl: playlist.images?.first.url ?? "",
-        public: playlist.public ?? true,
-        uri: playlist.uri ?? "",
-        appItems: songs);
-
+      id: playlist.id ?? "",
+      name: playlist.name ?? "",
+      description: playlist.description ?? "",
+      href: playlist.href ?? "",
+      imgUrl: playlist.images?.first.url ?? "",
+      public: playlist.public ?? true,
+      uri: playlist.uri ?? "",
+      appMediaItems: appMediaItems
+    );
   }
 
   Itemlist.mapPlaylistSimpleToItemlist(PlaylistSimple playlist) :
-        id = playlist.id ?? "",
-        name = playlist.name ?? "",
-        description = playlist.description ?? "",
-        href = playlist.href ?? "",
-        imgUrl = (playlist.images?.isNotEmpty ?? false) ? playlist.images?.first.url ?? "" : "",
-        public = playlist.public ?? true,
-        uri = playlist.uri ?? "";
+    id = playlist.id ?? "",
+    name = playlist.name ?? "",
+    description = playlist.description ?? "",
+    href = playlist.href ?? "",
+    imgUrl = (playlist.images?.isNotEmpty ?? false) ? playlist.images?.first.url ?? "" : "",
+    public = playlist.public ?? true,
+    uri = playlist.uri ?? "",
+    type = ItemlistType.playlist;
 
   int getTotalItems() {
 
     int totalItems = 0;
-
-    if(appItems != null) {
-      totalItems = totalItems + (appItems?.length ?? 0);
-    }
+    // if(appItems != null) {
+    //   totalItems = totalItems + (appItems?.length ?? 0);
+    // }
 
     if(appReleaseItems != null) {
       totalItems = totalItems + (appReleaseItems?.length ?? 0);
@@ -187,24 +190,24 @@ class Itemlist {
       imgUrls.add(imgUrl);
     }
 
-    if(appItems != null) {
-      appItems!.forEach((element) {
-        if(element.albumImgUrl.isNotEmpty) {
-          imgUrls.add(element.albumImgUrl);
-        } else if(element.artistImgUrl.isNotEmpty) {
-          imgUrls.add(element.artistImgUrl);
+    if(appMediaItems != null) {
+      for (var element in appMediaItems!) {
+        if(element.imgUrl.isNotEmpty) {
+          imgUrls.add(element.imgUrl);
+        } else if(element.allUrls?.isNotEmpty ?? false) {
+          imgUrls.add(element.allUrls!.first);
         }
-      });
+      }
     }
 
     if(appReleaseItems != null) {
-      appReleaseItems!.forEach((element) {
+      for (var element in appReleaseItems!) {
         if(element.imgUrl.isNotEmpty) {
           imgUrls.add(element.imgUrl);
         } else if(element.ownerImgUrl.isNotEmpty) {
           imgUrls.add(element.ownerImgUrl);
         }
-      });
+      }
 
     }
 

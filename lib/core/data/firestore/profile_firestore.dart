@@ -1524,7 +1524,7 @@ class ProfileFirestore implements ProfileRepository {
         for (var document in querySnapshot.docs)  {
           // if(document.id == profileId) {
             await document.reference.update({
-              AppFirestoreConstants.appItems: FieldValue.delete()
+              AppFirestoreConstants.appMediaItems: FieldValue.delete()
             });
             logger.w("Deleting");
           // }

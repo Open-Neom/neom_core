@@ -75,7 +75,7 @@ dependencies:
   geolocator: ^9.0.2
   geocoding: ^2.1.0
   google_maps_flutter: ^2.2.8
-  flutter_google_places: ^0.3.0
+  flutter_google_places: ^0.3.0 #TODO UPDATE
 
   intl: ^0.18.1
   hashtagable_v3: ^3.0.0

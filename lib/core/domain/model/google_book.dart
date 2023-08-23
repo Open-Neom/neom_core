@@ -110,7 +110,7 @@ class GoogleBook {
           state: 0,
           genres: genres.map((e) => e.name).toList(),
           description: googleBook.volumeInfo?.description ?? "",
-          publishedDate: 0, ///VERIFY HOW TO HANDLE THIS DATE TO SINCEEPOCH googleBook.volumeInfo?.publishedDate ?? ""
+          publishedYear: 0, ///VERIFY HOW TO HANDLE THIS DATE TO SINCEEPOCH googleBook.volumeInfo?.publishedDate ?? ""
       );
     } catch (e) {
       AppUtilities.logger.e(e.toString());

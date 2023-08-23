@@ -80,7 +80,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
 
   @override
   Future<Map<String, AppReleaseItem>> retrieveFromList(List<String> appItemIds) async {
-    logger.d("Getting appItems from list");
+    logger.d("Getting appReleaseItems from list");
 
     Map<String, AppReleaseItem> appItems = {};
 

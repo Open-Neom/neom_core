@@ -54,7 +54,7 @@ class AppMediaItem {
   List<String>? allImgs;
 
   String publisher = "";
-  int publishedDate; ///YEAR RELEASE TO PUBLIC
+  int publishedYear; ///YEAR RELEASE TO PUBLIC
   int releaseDate; ///RELEASED AT GIGMEOUT INTERNAL PURPOSES
 
   String url; ///URL FOR STREAMING PURPOSE
@@ -92,7 +92,7 @@ class AppMediaItem {
     this.name = '',
     this.url = '',
     this.allUrls,
-    this.publishedDate = 0, ///YEAR
+    this.publishedYear = 0, ///YEAR
     this.quality,
     this.permaUrl = '',
     this.releaseDate = 0,
@@ -122,7 +122,7 @@ class AppMediaItem {
         id: map['id'].toString() ?? '',
         type: EnumToString.fromString(MediaItemType.values, map['type'].toString()) ?? MediaItemType.song,
         album: map['album']?.toString() ?? '',
-        publishedDate: int.tryParse(map['publishedDate'].toString()) ?? 0,
+        publishedYear: int.tryParse(map['publishedYear'].toString()) ?? 0,
         duration: dur,
         language: map['language']?.toString(),
         genre: map['genre'].toString(),
@@ -177,7 +177,7 @@ class AppMediaItem {
       'name': name,
       'url': url,
       'allUrls': allUrls,
-      'publishedDate': publishedDate,
+      'publishedYear': publishedYear,
       'quality': quality,
       'permaUrl': permaUrl,
       'lyrics': lyrics,
@@ -261,7 +261,7 @@ class AppMediaItem {
         imgUrl: releaseItem.imgUrl,
         allImgs: [releaseItem.ownerImgUrl],
         url: releaseItem.previewUrl,
-        publishedDate: releaseItem.createdTime,
+        publishedYear: releaseItem.createdTime,
         permaUrl: releaseItem.previewUrl,
         featArtistsIds: releaseItem.featArtistsIds,
         artist: releaseItem.ownerName,
@@ -275,39 +275,37 @@ class AppMediaItem {
     }
   }
 
-  static AppMediaItem fromAppItem(AppItem appItem) {
-    try {
-      return AppMediaItem(
-        id: appItem.id,
-        name: appItem.name,
-        description: appItem.description,
-        lyrics: appItem.lyrics,
-        language: appItem.language,
-        album: appItem.albumName,
-        duration: Duration(milliseconds: appItem.durationMs,).inSeconds,
-        genre: appItem.genres.join(', '),
-        imgUrl: appItem.albumImgUrl,
-        allImgs: [appItem.artistImgUrl],
-        releaseDate: 0,//appItem.publishedDate,
-        url: appItem.previewUrl,
-        permaUrl: appItem.previewUrl,
-        artist: appItem.artist,
-        artistId: appItem.artistId,
-        state: appItem.state
-      );
-    } catch (e) {
-      throw Exception('Error parsing song item: $e');
-    }
-  }
+  // static AppMediaItem fromAppItem(AppItem appItem) {
+  //   try {
+  //     return AppMediaItem(
+  //       id: appItem.id,
+  //       name: appItem.name,
+  //       description: appItem.description,
+  //       lyrics: appItem.lyrics,
+  //       language: appItem.language,
+  //       album: appItem.albumName,
+  //       duration: Duration(milliseconds: appItem.durationMs,).inSeconds,
+  //       genre: appItem.genres.join(', '),
+  //       imgUrl: appItem.albumImgUrl,
+  //       allImgs: [appItem.artistImgUrl],
+  //       releaseDate: 0,//appItem.publishedYear,
+  //       url: appItem.previewUrl,
+  //       permaUrl: appItem.previewUrl,
+  //       artist: appItem.artist,
+  //       artistId: appItem.artistId,
+  //       state: appItem.state
+  //     );
+  //   } catch (e) {
+  //     throw Exception('Error parsing song item: $e');
+  //   }
+  // }
 
   static List<AppMediaItem> mapItemsFromItemlist(Itemlist itemlist) {
 
     List<AppMediaItem> appMediaItems = [];
 
-    if(itemlist.appItems != null) {
-      itemlist.appItems!.forEach((element) {
-        appMediaItems.add(AppMediaItem.fromAppItem(element));
-      });
+    if(itemlist.appMediaItems != null) {
+      appMediaItems.addAll(itemlist.appMediaItems!);
     }
 
     if(itemlist.appReleaseItems != null) {
@@ -428,7 +426,7 @@ class AppMediaItem {
   likes = 0,
   lyrics = '',
   permaUrl = chamberPreset.imgUrl,
-  publishedDate = 0,
+  publishedYear = 0,
   type = MediaItemType.neomPreset
 
   ;

@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 
 import '../../domain/model/app_item.dart';
+import '../../domain/model/app_media_item.dart';
 import '../../domain/model/app_profile.dart';
 import '../../domain/use_cases/geolocator_service.dart';
 import '../../domain/use_cases/mate_service.dart';
@@ -43,9 +44,9 @@ class MateController extends GetxController implements MateService {
   double get distance => _distance.value;
   set distance(double distance) => _distance.value = distance;
 
-  final RxMap<String, AppItem> _totalItems = <String, AppItem>{}.obs;
-  Map<String, AppItem> get totalItems => _totalItems;
-  set totalItems(Map<String, AppItem> totalItems) => _totalItems.value = totalItems;
+  final RxMap<String, AppMediaItem> _totalItems = <String, AppMediaItem>{}.obs;
+  Map<String, AppMediaItem> get totalItems => _totalItems;
+  set totalItems(Map<String, AppMediaItem> totalItems) => _totalItems.value = totalItems;
 
   final RxMap<String, AppProfile> _totalProfiles = <String, AppProfile>{}.obs;
   Map<String, AppProfile> get totalProfiles => _totalProfiles;

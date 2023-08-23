@@ -463,7 +463,7 @@ class BandFirestore implements BandRepository {
         for (var document in querySnapshot.docs) {
           if(document.id == bandId) {
             await document.reference.update({
-              AppFirestoreConstants.appItems: FieldValue.arrayUnion([itemId])
+              AppFirestoreConstants.appMediaItems: FieldValue.arrayUnion([itemId])
             });
           }
         }
@@ -488,7 +488,7 @@ class BandFirestore implements BandRepository {
         for (var document in querySnapshot.docs) {
           if(document.id == bandId) {
             await document.reference.update({
-              AppFirestoreConstants.appItems: FieldValue.arrayRemove([itemId])
+              AppFirestoreConstants.appMediaItems: FieldValue.arrayRemove([itemId])
             });
           }
         }

@@ -6,6 +6,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 
 import '../neom_commons.dart';
+import 'domain/model/app_media_item.dart';
 
 class AppFlavour {
 
@@ -212,7 +213,7 @@ class AppFlavour {
     }
   }
 
-  static List<AppItem> getFirstAppItem() {
+  static List<AppMediaItem> getFirstAppItem() {
     switch (appInUse) {
       case AppInUse.gigmeout:
         return CoreUtilities.myFirstSong();

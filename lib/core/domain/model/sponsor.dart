@@ -16,9 +16,9 @@ class Sponsor {
   String phoneNumber = "";
   String countryCode = "";
   String description = "";
+  String profileId = ""; ///Sponsor Profile Id if on app.
   String imgUrl = "";
-  String ownerId = "";
-  String profileId = "";
+  String ownerId = ""; ///WHO CREATED THIS SPONSOR ADMIN PURPOSES
   SponsorType type;
   Address? address;
   Position? position;
@@ -60,10 +60,12 @@ class Sponsor {
     'description': description,
     'ownerId': ownerId,
     'imgUrl': imgUrl,
+    'profileId': profileId,
     'type': type.name,
     'address': address?.toJSON() ?? Address().toJSON(),
     'position': jsonEncode(position),
     'isActive': isActive,
+    'externalUrl': externalUrl,
     'galleryImgUrls': galleryImgUrls
   };
 
@@ -75,8 +77,10 @@ class Sponsor {
     'countryCode': countryCode,
     'description': description,
     'type': type.name,
+    'externalUrl': externalUrl,
     'address': address?.toJSON() ?? Address().toJSON(),
     'position': jsonEncode(position),
+    'isActive': isActive,
     'galleryImgUrls': galleryImgUrls,
   };
 
@@ -86,12 +90,14 @@ class Sponsor {
     phoneNumber = data["phoneNumber"] ?? "",
     countryCode = data["countryCode"] ?? "",
     description = data["description"] ?? "",
-    address = Address.fromJSON(data["address"]),
-    ownerId = data["ownerId"] ?? "",
     profileId = data["ownerId"] ?? "",
     imgUrl = data["imgUrl"] ?? AppFlavour.getNoImageUrl(),
-    position = CoreUtilities.JSONtoPosition(data["position"]),
+    ownerId = data["ownerId"] ?? "",
     type = EnumToString.fromString(SponsorType.values, data["type"] ?? SponsorType.publicSpace.name) ?? SponsorType.publicSpace,
+    address = Address.fromJSON(data["address"]),
+    position = CoreUtilities.JSONtoPosition(data["position"]),
+    isActive = data["isActive"] ?? true,
+    externalUrl = data["externalUrl"] ?? "",
     galleryImgUrls = data["galleryImgUrls"].cast<String>() ?? [];
 
 }

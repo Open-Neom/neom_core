@@ -89,14 +89,14 @@ class CoreUtilities {
   }
 
   // ignore: non_constant_identifier_names
-  static List<AppItem> JSONtoItemlistItems(itemsIdsSnapshot){
+  static List<AppMediaItem> JSONtoItemlistItems(itemsIdsSnapshot){
     final itemIdString = jsonDecode(itemsIdsSnapshot.toString());
-    List<AppItem> itemlistItems = [];
+    List<AppMediaItem> itemlistItems = [];
     try {
       if(!itemIdString["itemId"].isNullOrBlank) {
         List<dynamic> itemsJSON = jsonDecode(itemsIdsSnapshot);
         for (var itemJSON in itemsJSON) {
-          itemlistItems.add(AppItem(
+          itemlistItems.add(AppMediaItem(
               id: itemJSON.id, state: itemJSON.itemState));
         }
       }
@@ -196,47 +196,46 @@ class CoreUtilities {
   }
 
 
-  static List<AppItem> myFirstBook() {
-    List<AppItem> myFirstAppItem = [];
+  static List<AppMediaItem> myFirstBook() {
+    List<AppMediaItem> myFirstAppItem = [];
     List<Genre> genres = [];
     genres.add(Genre(id: "Fiction", name: "Fiction"));
 
     myFirstAppItem.add(
-        AppItem(
+        AppMediaItem(
           id: "2drTDQAAQBAJ",
           state: AppItemState.heardIt.value,
-          albumImgUrl: "http://books.google.com/books/content?id=2drTDQAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api",
           artist: "Antoine de Saint-Exupéry" ,
-          artistImgUrl: "http://books.google.com/books/content?id=2drTDQAAQBAJ&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api",
-          previewUrl:"https://p.scdn.co/mp3-preview/50e82c99c20ffa4223e82250605bbd8500cb3928?cid=4e12110673b14aa5948c165a3531eea3",
-          infoUrl: "https://play.google.com/store/books/details?id=2drTDQAAQBAJ&source=gbs_api",
+          imgUrl: "http://books.google.com/books/content?id=2drTDQAAQBAJ&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api",
+          url:"https://play.google.com/store/books/details?id=2drTDQAAQBAJ&source=gbs_api",
+          permaUrl: "https://play.google.com/store/books/details?id=2drTDQAAQBAJ&source=gbs_api",
           name: "El Principito",
-          albumName: "SELECTOR",
-          durationMs: 104,
-          publishedDate: "2017-01-01",
-          genres: genres
+          album: "SELECTOR",
+          duration: 104,
+          publishedYear: 2017,
+          genres: genres.map((e) => e.name).toList()
         )
     );
 
     return myFirstAppItem;
   }
 
-  static List<AppItem> myFirstSong() {
-    List<AppItem> myFirstAppItem = [];
+  static List<AppMediaItem> myFirstSong() {
+    List<AppMediaItem> myFirstAppItem = [];
     List<Genre> genres = [];
     genres.add(Genre(id: "Rock", name: "Rock"));
 
     myFirstAppItem.add(
-        AppItem(
+        AppMediaItem(
           id: "40riOy7x9W7GXjyGp4pjAv",
           state: AppItemState.heardIt.value,
-          albumImgUrl: "https://i.scdn.co/image/ab67616d0000b2734637341b9f507521afa9a778",
+          imgUrl: "https://i.scdn.co/image/ab67616d0000b2734637341b9f507521afa9a778",
           artist: "The Eagles" ,
-          previewUrl:"https://p.scdn.co/mp3-preview/50e82c99c20ffa4223e82250605bbd8500cb3928?cid=4e12110673b14aa5948c165a3531eea3",
+          url:"https://p.scdn.co/mp3-preview/50e82c99c20ffa4223e82250605bbd8500cb3928?cid=4e12110673b14aa5948c165a3531eea3",
           name: "Hotel California - 2013 Remaster",
-          albumName: "Hotel California (2013 Remaster)",
-          durationMs: 391376,
-          genres: genres
+          album: "Hotel California (2013 Remaster)",
+          duration: 391,
+          genres: genres.map((e) => e.name).toList(),
         )
     );
 
