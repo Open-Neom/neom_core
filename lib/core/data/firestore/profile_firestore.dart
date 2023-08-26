@@ -23,10 +23,10 @@ import 'constants/app_firestore_constants.dart';
 import 'facility_firestore.dart';
 import 'genre_firestore.dart';
 import 'instrument_firestore.dart';
-import 'itemlist_firestore.dart';
 import 'mate_firestore.dart';
 import 'place_firestore.dart';
 import 'post_firestore.dart';
+import 'itemlist_firestore.dart';
 
 class ProfileFirestore implements ProfileRepository {
 
@@ -93,11 +93,11 @@ class ProfileFirestore implements ProfileRepository {
         });
       }
 
-      Itemlist firstlist = profile.itemlists!.values.first;
-      firstlist.ownerId = profileId;
-      await ItemlistFirestore().insert(firstlist);
-      logger.i("Profile ${profile.toString()} inserted successfully.");
-
+      ///DEPRECATED
+      // Itemlist firstlist = profile.itemlists!.values.first;
+      // firstlist.ownerId = profileId;
+      // await ItemlistFirestore().insert(firstlist);
+      // logger.i("Profile ${profile.toString()} inserted successfully.");
     } catch (e) {
       if(await remove(userId: userId, profileId: profileId)){
         logger.i("Profile Rollback");
@@ -105,7 +105,6 @@ class ProfileFirestore implements ProfileRepository {
       } else {
         logger.e(e.toString());
       }
-
     }
 
     return profileId;
@@ -802,7 +801,7 @@ class ProfileFirestore implements ProfileRepository {
 
 
   @override
-  Future<bool> addAppMediaItem(String profileId, String itemId) async {
+  Future<bool> addFavoriteItem(String profileId, String itemId) async {
     logger.d("Adding item $itemId to Profile $profileId");
     try {
 
@@ -811,7 +810,7 @@ class ProfileFirestore implements ProfileRepository {
         for (var document in querySnapshot.docs) {
           if(document.id == profileId) {
             await document.reference.update({
-              AppFirestoreConstants.appMediaItems: FieldValue.arrayUnion([itemId])
+              AppFirestoreConstants.favoriteItems: FieldValue.arrayUnion([itemId])
             });
           }
         }
@@ -825,6 +824,31 @@ class ProfileFirestore implements ProfileRepository {
     return true;
   }
 
+  @override
+  Future<bool> removeFavoriteItem(String profileId, String itemId) async {
+    logger.d("");
+
+    try {
+
+      await profileReference.get()
+          .then((querySnapshot) async {
+        for (var document in querySnapshot.docs)  {
+          if(document.id == profileId) {
+            await document.reference.update({
+              AppFirestoreConstants.favoriteItems: FieldValue.arrayRemove([itemId])
+            });
+          }
+        }
+      });
+
+    } catch (e) {
+      logger.e(e.toString());
+      return false;
+    }
+
+    return true;
+  }
+  
   @override
   Future<bool> addChamberPreset({required String profileId, required String chamberPresetId}) async {
     logger.d("Adding preset $chamberPresetId to Profile $profileId");
@@ -848,32 +872,6 @@ class ProfileFirestore implements ProfileRepository {
 
     return true;
   }
-
-  @override
-  Future<bool> removeAppMediaItem(String profileId, String itemId) async {
-    logger.d("");
-
-    try {
-
-      await profileReference.get()
-          .then((querySnapshot) async {
-        for (var document in querySnapshot.docs)  {
-          if(document.id == profileId) {
-            await document.reference.update({
-              AppFirestoreConstants.appMediaItems: FieldValue.arrayRemove([itemId])
-            });
-          }
-        }
-      });
-
-    } catch (e) {
-      logger.e(e.toString());
-      return false;
-    }
-
-    return true;
-  }
-
 
   @override
   Future<bool> addBand(String profileId, String bandId) async {
@@ -925,30 +923,30 @@ class ProfileFirestore implements ProfileRepository {
     return true;
   }
 
-
-  @override
-  Future<bool> addAllAppMediaItemIds(String profileId, List<String> itemIds) async {
-    logger.d("");
-    try {
-
-      await profileReference.get()
-          .then((querySnapshot) async {
-        for (var document in querySnapshot.docs) {
-          if(document.id == profileId) {
-            await document.reference.update({
-              AppFirestoreConstants.appMediaItems: itemIds
-            });
-          }
-        }
-      });
-
-    } catch (e) {
-      logger.e(e.toString());
-      return false;
-    }
-
-    return true;
-  }
+  ///DEPRECATED
+  // @override
+  // Future<bool> addAllAppMediaItemIds(String profileId, List<String> itemIds) async {
+  //   logger.d("");
+  //   try {
+  //
+  //     await profileReference.get()
+  //         .then((querySnapshot) async {
+  //       for (var document in querySnapshot.docs) {
+  //         if(document.id == profileId) {
+  //           await document.reference.update({
+  //             AppFirestoreConstants.appMediaItems: itemIds
+  //           });
+  //         }
+  //       }
+  //     });
+  //
+  //   } catch (e) {
+  //     logger.e(e.toString());
+  //     return false;
+  //   }
+  //
+  //   return true;
+  // }
 
 
   @override
@@ -1429,7 +1427,7 @@ class ProfileFirestore implements ProfileRepository {
       }
 
       profile.genres = await GenreFirestore().retrieveGenres(profile.id);
-      profile.itemlists = await ItemlistFirestore().retrieveItemlists(profile.id);
+      profile.itemlists = await ItemlistFirestore().fetchAll(profileId: profile.id);
       if(profile.genres!.isEmpty) logger.v("Genres not found");
       if(profile.itemlists!.isEmpty) logger.v("Itemlists not found");
 
@@ -1515,7 +1513,7 @@ class ProfileFirestore implements ProfileRepository {
   }
 
   @override
-  Future<bool> removeAllAppItems(String profileId) async {
+  Future<bool> removeAllFavoriteItems(String profileId) async {
     logger.d("");
 
     try {
@@ -1524,7 +1522,7 @@ class ProfileFirestore implements ProfileRepository {
         for (var document in querySnapshot.docs)  {
           // if(document.id == profileId) {
             await document.reference.update({
-              AppFirestoreConstants.appMediaItems: FieldValue.delete()
+              AppFirestoreConstants.favoriteItems: FieldValue.delete()
             });
             logger.w("Deleting");
           // }
@@ -1539,31 +1537,6 @@ class ProfileFirestore implements ProfileRepository {
     return true;
   }
 
-  @override
-  Future<bool> removeAllAppMediaItems(String profileId) async {
-    logger.d("");
-
-    try {
-
-      await profileReference.get()
-          .then((querySnapshot) async {
-        for (var document in querySnapshot.docs)  {
-          // if(document.id == profileId) {
-          await document.reference.update({
-            AppFirestoreConstants.appMediaItems: FieldValue.delete()
-          });
-          logger.w("Deleting");
-          // }
-        }
-      });
-
-    } catch (e) {
-      logger.e(e.toString());
-      return false;
-    }
-
-    return true;
-  }
 
   @override
   Future<Map<String, AppProfile>> retrieveProfilesByFacility({

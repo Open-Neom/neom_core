@@ -5,7 +5,8 @@ enum AppMediaSource {
   spotify('spotify'),
   apple('apple'),
   jiosaavn('jiosaavn'),
-  deezer('deezer');
+  deezer('deezer'),
+  other('other');
 
   final String value;
   const AppMediaSource(this.value);

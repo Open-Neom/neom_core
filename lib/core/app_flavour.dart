@@ -202,16 +202,17 @@ class AppFlavour {
     }
   }
 
-  static String getFirstAppItemId() {
-    switch (appInUse) {
-      case AppInUse.gigmeout:
-        return "40riOy7x9W7GXjyGp4pjAv";
-      case AppInUse.emxi:
-        return "2drTDQAAQBAJ";
-      case AppInUse.cyberneom:
-        return "";
-    }
-  }
+  ///DEPRECATED
+  // static String getFirstAppItemId() {
+  //   switch (appInUse) {
+  //     case AppInUse.gigmeout:
+  //       return "40riOy7x9W7GXjyGp4pjAv";
+  //     case AppInUse.emxi:
+  //       return "2drTDQAAQBAJ";
+  //     case AppInUse.cyberneom:
+  //       return "";
+  //   }
+  // }
 
   static List<AppMediaItem> getFirstAppItem() {
     switch (appInUse) {

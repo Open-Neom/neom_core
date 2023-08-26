@@ -37,9 +37,9 @@ abstract class ProfileRepository {
 
   Future<QuerySnapshot> handleSearch(String query);
 
-  Future<bool> addAppMediaItem(String profileId, String itemId);
-  Future<bool> removeAppMediaItem(String profileId, String itemId);
-  Future<bool> addAllAppMediaItemIds(String profileId, List<String> itemIds);
+  Future<bool> addFavoriteItem(String profileId, String itemId);
+  Future<bool> removeFavoriteItem(String profileId, String itemId);
+  // Future<bool> addAllAppMediaItemIds(String profileId, List<String> itemIds);
 
   Future<Map<String, AppProfile>> getFollowers(String profileId);
   Future<Map<String, AppProfile>> getFollowed(String profileId);
@@ -89,7 +89,7 @@ abstract class ProfileRepository {
 
   Future<bool> addBlogEntry(String profileId, String blogEntryId);
   Future<bool> removeBlogEntry(String profileId, String blogEntryId);
-  Future<bool> removeAllAppItems(String profileId);
+  Future<bool> removeAllFavoriteItems(String profileId);
 
   Future<bool> addBoughtItem({required String userId, required String boughtItem});
   Future<bool> removeBoughtItem(String profileId, String boughtItem);

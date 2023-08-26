@@ -119,46 +119,46 @@ class AppMediaItem {
       }
 
       final appMediaItem = AppMediaItem(
-        id: map['id'].toString() ?? '',
+        id: map['id'] ?? '',
         type: EnumToString.fromString(MediaItemType.values, map['type'].toString()) ?? MediaItemType.song,
-        album: map['album']?.toString() ?? '',
-        publishedYear: int.tryParse(map['publishedYear'].toString()) ?? 0,
+        album: map['album'] ?? '',
+        publishedYear: map['publishedYear'] ?? 0,
         duration: dur,
-        language: map['language']?.toString(),
-        genre: map['genre'].toString(),
+        language: map['language'] ?? '',
+        genre: map['genre'] ?? '',
         is320Kbps: map['is320Kbps'] as bool? ?? false,
-        lyrics: map['lyrics']?.toString() ?? '',
-        albumId: map['albumId']?.toString(),
-        description: map['description']?.toString(),
-        name: map['name'].toString(),
-        artist: map['artist'].toString(),
+        lyrics: map['lyrics'] ?? '',
+        albumId: map['albumId'] ?? '',
+        description: map['description'] ?? '',
+        name: map['name'] ?? '',
+        artist: map['artist'] ?? '',
         featArtistsIds: map['featArtistsIds'] as List<Map<String, String>>?,
         featArtists: map['featArtists'] as List<String>? ??
             map['artist']?.split(',') as List<String>? ?? [],
-        imgUrl: map['imgUrl'].toString(),
+        imgUrl: map['imgUrl'] ?? '',
         allImgs: map['allImgs'] as List<String>? ??
             map['allImgs'] as List<String>? ??
             (map['imgUrl']?.toString() != null
                 ? [map['imgUrl']!.toString()]
                 : []),
         url: map['url']?.toString() ?? '',
-        permaUrl: map['permaUrl'].toString(),
+        permaUrl: map['permaUrl'] ?? '',
         allUrls: map['allUrls'] as List<String>? ??
             ((map['url'] != null && map['url'] != '')
                 ? [map['url'].toString()]
                 : []),
-
         quality: int.tryParse(map['quality'].toString()),
-        releaseDate: int.tryParse(map['releaseDate'].toString()) ?? 0,
-        trackNumber: int.tryParse(map['trackNumber'].toString()),
-        discNumber: int.tryParse(map['discNumber'].toString()),
-        mediaSource: EnumToString.fromString(AppMediaSource.values, map["mediaSource"].toString() ?? AppMediaSource.internal.name) ?? AppMediaSource.internal,
-        likes: int.parse(map['likes']?.toString() ?? '0'),
-        path: map['path']?.toString(),
+        releaseDate: map['releaseDate'] ?? 0,
+        trackNumber: map['trackNumber'],
+        discNumber: map['discNumber'],
+        mediaSource: EnumToString.fromString(AppMediaSource.values, map["mediaSource"] ?? AppMediaSource.internal.name) ?? AppMediaSource.internal,
+        likes: map['likes'] ?? 0,
+        path: map['path'] ?? '',
         state: map['state'] ?? 0,
       );
       return appMediaItem;
     } catch (e) {
+      AppUtilities.logger.e(e.toString());
       throw Exception('Error parsing song item: $e');
     }
   }

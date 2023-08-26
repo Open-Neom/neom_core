@@ -19,7 +19,6 @@ class AppFirestoreCollectionConstants {
 
   static const String profiles = "profiles";
   static const String itemlists = "itemlists";
-  static const String publicItemlists = "publicItemlists";
   static const String chambers = "chambers";
   static const String presets = "presets";
   static const String instruments = "instruments";
@@ -28,7 +27,7 @@ class AppFirestoreCollectionConstants {
   static const String facilities = "facilities";
 
   static const String hashtags = "hashtags";
-  static const String appItems = "appItems";
+  // static const String appItems = "appItems"; ///DEPRECATED
   static const String appReleaseItems = "appReleaseItems";
   static const String appMediaItems = "appMediaItems";
   static const String profileInstruments = "profileInstruments";

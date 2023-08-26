@@ -3,6 +3,7 @@ class AppFirestoreConstants {
 
   static const String appItems = 'appItems';
   static const String appMediaItems = 'appMediaItems';
+  static const String favoriteItems = 'favoriteItems';
   static const String chamberPresets = 'chamberPresets';
   static const String appReleaseItems = 'appReleaseItems';
 

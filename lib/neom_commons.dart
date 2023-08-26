@@ -40,7 +40,6 @@ export 'core/data/firestore/genre_firestore.dart';
 export 'core/data/firestore/hashtag_firestore.dart';
 export 'core/data/firestore/inbox_firestore.dart';
 export 'core/data/firestore/instrument_firestore.dart';
-export 'core/data/firestore/itemlist_firestore.dart';
 export 'core/data/firestore/mate_firestore.dart';
 export 'core/data/firestore/place_firestore.dart';
 export 'core/data/firestore/post_firestore.dart';

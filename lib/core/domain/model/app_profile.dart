@@ -53,7 +53,8 @@ class AppProfile {
   List<String>? events;
   List<String>? reviews;
 
-  List<String>? appMediaItems;
+  List<String>? favoriteItems; ///EACH LIKED APPMEDIAITEM ID GOES HERE TO FETCH FROM GLOBAL DB
+  // List<String>? appMediaItems; //TODOVERIFY IF NEEDED TO ANOTHER TYPE OF SORT
   List<String>? chamberPresets;
   List<String>? watchingEvents;
   List<String>? goingEvents;
@@ -93,7 +94,7 @@ class AppProfile {
 
   @override
   String toString() {
-    return 'AppProfile{id: $id, name: $name, aboutMe: $aboutMe, photoUrl: $photoUrl, coverImgUrl: $coverImgUrl, mainFeature: $mainFeature, lastTimeOn: $lastTimeOn, lastSpotifySync: $lastSpotifySync, reviewStars: $reviewStars, isActive: $isActive, position: $position, address: $address, type: $type, reason: $reason, lastReview: $lastReview, bannedGenres: $bannedGenres, itemmates: $itemmates, eventmates: $eventmates, followers: $followers, following: $following, unfollowing: $unfollowing, blockTo: $blockTo, blockedBy: $blockedBy, posts: $posts, blogEntries: $blogEntries, comments: $comments, hiddenPosts: $hiddenPosts, hiddenComments: $hiddenComments, reports: $reports, bands: $bands, events: $events, reviews: $reviews, appItems: $appMediaItems, chamberPresets: $chamberPresets, watchingEvents: $watchingEvents, goingEvents: $goingEvents, playingEvents: $playingEvents, requests: $requests, sentRequests: $sentRequests, invitationRequests: $invitationRequests, itemlists: $itemlists, instruments: $instruments, frequencies: $frequencies, genres: $genres, facilities: $facilities, places: $places, showInDirectory: $showInDirectory}';
+    return 'AppProfile{id: $id, name: $name, aboutMe: $aboutMe, photoUrl: $photoUrl, coverImgUrl: $coverImgUrl, mainFeature: $mainFeature, lastTimeOn: $lastTimeOn, lastSpotifySync: $lastSpotifySync, reviewStars: $reviewStars, isActive: $isActive, position: $position, address: $address, type: $type, reason: $reason, lastReview: $lastReview, bannedGenres: $bannedGenres, itemmates: $itemmates, eventmates: $eventmates, followers: $followers, following: $following, unfollowing: $unfollowing, blockTo: $blockTo, blockedBy: $blockedBy, posts: $posts, blogEntries: $blogEntries, comments: $comments, hiddenPosts: $hiddenPosts, hiddenComments: $hiddenComments, reports: $reports, bands: $bands, events: $events, reviews: $reviews, appItems: $favoriteItems, chamberPresets: $chamberPresets, watchingEvents: $watchingEvents, goingEvents: $goingEvents, playingEvents: $playingEvents, requests: $requests, sentRequests: $sentRequests, invitationRequests: $invitationRequests, itemlists: $itemlists, instruments: $instruments, frequencies: $frequencies, genres: $genres, facilities: $facilities, places: $places, showInDirectory: $showInDirectory}';
   }
 
   Map<String, dynamic> toJSON() {
@@ -129,7 +130,8 @@ class AppProfile {
       'bands': bands,
       'events': events,
       'reviews': reviews,
-      'appMediaItems': appMediaItems,
+      'favoriteItems': favoriteItems,
+      // 'appMediaItems': appMediaItems,
       'chamberPresets': chamberPresets,
       'watchingEvents': watchingEvents,
       'goingEvents': goingEvents,
@@ -172,7 +174,8 @@ class AppProfile {
         bands = data["bands"]?.cast<String>() ?? [],
         events = data["events"]?.cast<String>() ?? [],
         reviews = data["reviews"]?.cast<String>() ?? [],
-        appMediaItems = data["appMediaItems"]?.cast<String>() ?? [],
+        favoriteItems = data["favoriteItems"]?.cast<String>() ?? [],
+        // appMediaItems = data["appMediaItems"]?.cast<String>() ?? [],
         chamberPresets = data["chamberPresets"]?.cast<String>() ?? [],
         watchingEvents = data["watchingEvents"]?.cast<String>() ?? [],
         goingEvents = data["goingEvents"]?.cast<String>() ?? [],
@@ -191,7 +194,7 @@ class AppProfile {
         mainFeature = data["mainFeature"] ?? "",
         position = CoreUtilities.JSONtoPosition(data["position"]),
         address = data["address"] ?? "",
-        appMediaItems = data["appMediaItems"]?.cast<String>() ?? [],
+        favoriteItems = data["favoriteItems"]?.cast<String>() ?? [],
         chamberPresets = data["chamberPresets"]?.cast<String>() ?? [],
         instruments = { for (var e in data["instruments"]?.cast<String>() ?? []) e : Instrument() },
         frequencies = { for (var e in data["frequencies"]?.cast<String>() ?? []) e : NeomFrequency() },
@@ -209,7 +212,7 @@ class AppProfile {
       'photoUrl': photoUrl,
       'aboutMe': aboutMe,
       'reason': reason.name,
-      'appMediaItems': appMediaItems,
+      // 'appMediaItems': appMediaItems,
       'chamberPresets': chamberPresets,
       'genres': genres?.values.map((genre) => genre.name).toList(),
       'mainFeature': mainFeature,

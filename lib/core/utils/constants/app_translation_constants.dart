@@ -864,5 +864,7 @@ class AppTranslationConstants {
   static const String searchResults = 'searchResults';
   static const String searchedText = 'searchedText';
   static const String aroundYou = 'aroundYou';
+  static const String selectedPlaylist = "selectedPlaylist";
+  static const String playlistToChoose = "playlistToChoose";
 
 }
