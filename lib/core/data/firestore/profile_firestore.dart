@@ -714,6 +714,28 @@ class ProfileFirestore implements ProfileRepository {
     return false;
   }
 
+  @override
+  Future<bool> updateAddress(String profileId, String address) async {
+    logger.i("Updating profile $profileId to address $address");
+
+    try {
+      await profileReference.get()
+          .then((querySnapshot) async {
+        for (var document in querySnapshot.docs) {
+          if(document.id == profileId) {
+            await document.reference.update({
+              AppFirestoreConstants.address: address,
+            });
+          }
+        }
+      });
+      return true;
+    } catch (e) {
+      logger.e(e.toString());
+    }
+
+    return false;
+  }
 
   @override
   Future<bool> addEvent(String profileId, String eventId, EventAction eventAction) async {

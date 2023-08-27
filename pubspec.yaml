@@ -24,6 +24,9 @@ dependencies:
   neom_posts:
     git:
       url: https://github.com/Cyberneom/neom_posts.git
+  neom_music_player:
+    git:
+      url: https://github.com/Cyberneom/neom_music_player.git
   neom_inbox:
     git:
       url: https://github.com/Cyberneom/neom_inbox.git
@@ -155,6 +158,8 @@ dependency_overrides:
     path: ../neom_booking
   neom_home:
     path: ../neom_home
+  neom_music_player:
+    path: ../neom_music_player
   intl: 0.18.1
 
 # The following section is specific to Flutter packages.

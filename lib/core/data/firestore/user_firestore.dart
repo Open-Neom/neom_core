@@ -434,6 +434,7 @@ class UserFirestore implements UserRepository {
     try {
       QuerySnapshot querySnapshot = await userReference.get();
       QuerySnapshot profileQuerySnapshot = await profileReference.get();
+      List<Post> totalPosts = await PostFirestore().retrievePosts();
       for (var queryDocumentSnapshot in querySnapshot.docs) {
         if (queryDocumentSnapshot.exists) {
           AppUser user = AppUser.fromJSON(queryDocumentSnapshot.data());
@@ -453,7 +454,7 @@ class UserFirestore implements UserRepository {
                 if(profileTypes == null || profileTypes.contains(profile.type)) {
                   if(profile.posts?.isNotEmpty ?? false) {
                     if(AppUtilities.distanceBetweenPositionsRounded(profile.position!, currentPosition!) < maxDistance) {
-                      List<Post> profilePosts = await PostFirestore().getProfilePosts(profile.id);
+                      List<Post> profilePosts = totalPosts.where((element) => element.ownerId == profile.id).toList();
                       List<String> postImgUrls = [];
                       for (var profilePost in profilePosts) {
                         if(postImgUrls.length < 6 && profilePost.mediaUrl.isNotEmpty) {
@@ -495,13 +496,14 @@ class UserFirestore implements UserRepository {
 
                       if(profile.address.isEmpty && profile.position != null) {
                         profile.address = await AppUtilities.getAddressFromPlacerMark(profile.position!);
+                        ProfileFirestore().updateAddress(profile.id, profile.address);
                       }
                       user.profiles.add(profile);
                     } else {
-                      logger.d("Profile ${profile.id} ${profile.name} is out of max distance");
+                      logger.v("Profile ${profile.id} ${profile.name} is out of max distance");
                     }
                   } else {
-                    logger.d("Profile ${profile.id} ${profile.name} has not posts");
+                    logger.v("Profile ${profile.id} ${profile.name} has not posts");
                   }
 
                 }

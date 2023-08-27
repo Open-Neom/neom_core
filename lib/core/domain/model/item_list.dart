@@ -145,6 +145,11 @@ class Itemlist {
   int getTotalItems() {
 
     int totalItems = 0;
+
+    if(appMediaItems != null) {
+      totalItems = totalItems + (appMediaItems?.length ?? 0);
+    }
+
     if(appReleaseItems != null) {
       totalItems = totalItems + (appReleaseItems?.length ?? 0);
     }

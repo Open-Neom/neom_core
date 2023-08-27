@@ -20,11 +20,9 @@ class AppReleaseItem {
   String imgUrl;
   int duration;
   String previewUrl;
-  
-
   String ownerImgUrl;
 
-  List<String> appItemIds;
+  List<String> appMediaItemIds;
   List<String> genres;
   List<String> instruments;
 
@@ -45,13 +43,13 @@ class AppReleaseItem {
   bool isTest;
   int state;
 
-  List<String>? featArtists;
-  List<Map<String, String>>? featArtistsIds;
+  List<String>? externalArtists;
+  Map<String, String>? featInternalArtists; //key: artist Id - value: name
   int likes;
 
   @override
   String toString() {
-    return 'AppReleaseItem{id: $id, name: $name, description: $description, imgUrl: $imgUrl, duration: $duration, ownerName: $ownerName, ownerId: $ownerId, ownerImgUrl: $ownerImgUrl, appItemIds: $appItemIds, genres: $genres, instruments: $instruments, publisher: $publisher, publishedYear: $publishedYear, type: $type, price: $digitalPrice, bandsFulfillment: $bandsFulfillment, watchedProfiles: $watchingProfiles, boughtProfiles: $boughtUsers, isAvailable: $isAvailable, isPhysical: $isPhysical, isTest: $isTest}';
+    return 'AppReleaseItem{id: $id, name: $name, description: $description, imgUrl: $imgUrl, duration: $duration, ownerName: $ownerName, ownerId: $ownerId, ownerImgUrl: $ownerImgUrl, appItemIds: $appMediaItemIds, genres: $genres, instruments: $instruments, publisher: $publisher, publishedYear: $publishedYear, type: $type, price: $digitalPrice, bandsFulfillment: $bandsFulfillment, watchedProfiles: $watchingProfiles, boughtProfiles: $boughtUsers, isAvailable: $isAvailable, isPhysical: $isPhysical, isTest: $isTest}';
   }
 
   AppReleaseItem({
@@ -67,7 +65,7 @@ class AppReleaseItem {
       this.imgUrl = "",
       this.duration = 0,
       this.previewUrl = "",
-      this.appItemIds = const [],
+      this.appMediaItemIds = const [],
       this.genres = const [],
       this.instruments = const [],
       this.description = "",
@@ -81,8 +79,8 @@ class AppReleaseItem {
       this.isTest = false,
       this.state = 0,
       this.createdTime = 0,
-      this.featArtists,
-      this.featArtistsIds,
+      this.externalArtists,
+      this.featInternalArtists,
       this.likes = 0
   });
 
@@ -100,7 +98,7 @@ class AppReleaseItem {
     ownerName = data["ownerName"] ?? "",
     ownerId = data["ownerId"] ?? "",
     ownerImgUrl = data["ownerImgUrl"] ?? "",
-    appItemIds = List.from(data["appItemIds"]?.cast<String>() ?? []),
+    appMediaItemIds = List.from(data["appMediaItemIds"]?.cast<String>() ?? []),
     genres = List.from(data["genres"]?.cast<String>() ?? []),
     instruments = List.from(data["instruments"]?.cast<String>() ?? []),
     publisher = data["publisher"] ?? "",
@@ -119,8 +117,8 @@ class AppReleaseItem {
     isTest = data["isFulfilled"] ?? false,
     state = data["state"] ?? 0,
     createdTime = data["createdTime"] ?? 0,
-    featArtists = List.from(data["featArtists"]?.cast<String>() ?? []),
-    featArtistsIds = List.from(data["featArtistsIds"]?.cast<Map<String,String>>() ?? []),
+    externalArtists = List.from(data["externalArtists"]?.cast<String>() ?? []),
+    featInternalArtists = data["featInternalArtists"]?.cast<Map<String,String>>() ?? [],
     likes = data["likes"] ?? 0;
 
   Map<String, dynamic>  toJSON() => {
@@ -137,7 +135,7 @@ class AppReleaseItem {
     'ownerName': ownerName,
     'ownerId': ownerId,
     'ownerImgUrl': ownerImgUrl,
-    'appItemIds': appItemIds,
+    'appMediaItemIds': appMediaItemIds,
     'genres': genres,
     'instruments': instruments,
     'publisher': publisher,
@@ -152,8 +150,8 @@ class AppReleaseItem {
     'isAvailable': isAvailable,
     'isPhysical': isPhysical,
     'isTest': isTest,
-    'featArtists': featArtists,
-    'featArtistsIds': featArtistsIds,
+    'externalArtists': externalArtists,
+    'featInternalArtists': featInternalArtists,
     'state': state,
     'likes': likes,
   };

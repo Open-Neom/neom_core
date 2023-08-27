@@ -37,13 +37,13 @@ class AppMediaItem {
   String name;
   String? description;
   String artist;
-  String artistId; ///IF ARTISTA IS ON GIGMEOUT
+  String artistId; ///IF ARTIST IS ON GIGMEOUT
   String album;
   String? albumId; ///IF ALBUM IS ON GIGMEOUT
   int duration; ///DURATION IN SECONDS
   
-  List<String>? featArtists;
-  List<Map<String, String>>? featArtistsIds;
+  Map<String, String>? featInternalArtists; //key: artistId - value: artist name
+  List<String>? externalArtists; ///
   
   String? genre;
   List<String>? genres;
@@ -80,8 +80,8 @@ class AppMediaItem {
     this.albumId,
     this.artist = '',
     this.artistId = '',
-    this.featArtists,
-    this.featArtistsIds,
+    this.externalArtists,
+    this.featInternalArtists,
     this.duration = 0,
     this.genre = '',
     this.genres,
@@ -132,8 +132,8 @@ class AppMediaItem {
         description: map['description'] ?? '',
         name: map['name'] ?? '',
         artist: map['artist'] ?? '',
-        featArtistsIds: map['featArtistsIds'] as List<Map<String, String>>?,
-        featArtists: map['featArtists'] as List<String>? ??
+        featInternalArtists: map['featInternalArtists'] as Map<String, String>?,
+        externalArtists: map['externalArtists'] as List<String>? ??
             map['artist']?.split(',') as List<String>? ?? [],
         imgUrl: map['imgUrl'] ?? '',
         allImgs: map['allImgs'] as List<String>? ??
@@ -184,8 +184,8 @@ class AppMediaItem {
       'trackNumber': trackNumber,
       'discNumber': discNumber,
       'albumId': albumId,
-      'featArtists': featArtists,
-      'featArtistsIds': featArtistsIds,
+      'externalArtists': externalArtists,
+      'featInternalArtists': featInternalArtists,
       'mediaSource': mediaSource.name,
       'is320Kbps': is320Kbps,
       'artist': artist,
@@ -255,7 +255,7 @@ class AppMediaItem {
         language: releaseItem.language,
         album: releaseItem.metaName,
         albumId: releaseItem.metaId,
-        featArtists: releaseItem.featArtists,
+        externalArtists: releaseItem.featInternalArtists?.values.toList(),
         duration: releaseItem.duration,
         genre: releaseItem.genres.join(', '),
         imgUrl: releaseItem.imgUrl,
@@ -263,7 +263,7 @@ class AppMediaItem {
         url: releaseItem.previewUrl,
         publishedYear: releaseItem.createdTime,
         permaUrl: releaseItem.previewUrl,
-        featArtistsIds: releaseItem.featArtistsIds,
+        featInternalArtists: releaseItem.featInternalArtists,
         artist: releaseItem.ownerName,
         artistId: releaseItem.ownerId,
         likes: releaseItem.likes,
@@ -370,35 +370,8 @@ class AppMediaItem {
 
     try {
       for (var playlistTrack in tracks.itemsNative!) {
-
         Track track = Track.fromJson(playlistTrack["track"]);
-
-        if (track.artists!.length > 1) {
-          for (var artists in track.artists!) {
-            artistName.isEmpty ? artistName = (artists.name ?? "")
-                : artistName = "$artistName, ${artists.name ?? ""}";
-          }
-        } else {
-          artistName = track.artists?.first.name ?? "";
-          albumImgUrl = track.album?.images?.first.url ?? "";
-        }
-
-        songs.add(
-            AppMediaItem(
-              id: track.id ?? "",
-              state: 1,
-              name: track.name ?? "",
-              artist: artistName,
-              artistId: track.artists?.first.id ?? "",
-              album: track.album?.name ?? "",
-              duration: ((track.durationMs ?? 0) / 1000).ceil(),
-              imgUrl: albumImgUrl,
-              url: track.previewUrl ?? "",
-              genres: Genre.listFromJSON(track.artists?.first.genres ?? []).map((e) => e.name).toList(),
-              mediaSource: AppMediaSource.spotify,
-              type: MediaItemType.song,
-            )
-        );
+        songs.add(mapTrackToSong(track));
       }
     } catch (e) {
       AppUtilities.logger.e(e.toString());

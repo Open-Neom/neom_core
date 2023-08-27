@@ -27,18 +27,18 @@ class PostFirestore implements PostRepository {
       QuerySnapshot querySnapshot = await postsReference.get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        logger.d("Snapshot is not empty");
+        logger.v("Snapshot is not empty");
         for (var postSnapshot in querySnapshot.docs) {
           Post post = Post.fromJSON(postSnapshot.data());
           post.id = postSnapshot.id;
-          logger.d(post.toString());
+          logger.v(post.toString());
           posts.add(post);
         }
-        logger.d("${posts.length} posts found");
+        logger.v("${posts.length} posts found");
       }
     } catch (e) {
       logger.e(e.toString());
-      logger.d("No Posts Found");
+      logger.w("No Posts Found");
     }
 
     return posts;

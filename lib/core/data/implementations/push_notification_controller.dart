@@ -1,7 +1,6 @@
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:neom_itemlists/itemlists/data/firestore/app_item_firestore.dart';
 import 'package:neom_itemlists/itemlists/data/firestore/app_media_item_firestore.dart';
 import '../../app_flavour.dart';
 import '../../utils/app_utilities.dart';
