@@ -40,7 +40,7 @@ dependencies:
     git:
       url: https://github.com/emmanuel-montoya/neom_home.git
 
-  get: ^5.0.0-release-candidate-4
+  get: 5.0.0-release-candidate-4
 
   cupertino_icons: ^1.0.5
   material_design_icons_flutter: 5.0.5955-rc.1

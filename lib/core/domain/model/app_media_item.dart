@@ -109,6 +109,7 @@ class AppMediaItem {
 
   factory AppMediaItem.fromJSON(map) {
     try {
+      AppUtilities.logger.v("AppMediaItem fromJSON: ${map['name'] ?? ''}");
       int dur = 0;
 
       if(map['duration'] is String && map['duration'].toString().contains(":")) {
@@ -133,20 +134,12 @@ class AppMediaItem {
         name: map['name'] ?? '',
         artist: map['artist'] ?? '',
         featInternalArtists: map['featInternalArtists'] as Map<String, String>?,
-        externalArtists: map['externalArtists'] as List<String>? ??
-            map['artist']?.split(',') as List<String>? ?? [],
+        externalArtists: (map['externalArtists'] as List<dynamic>?)?.map((e) => e.toString()).toList(),
         imgUrl: map['imgUrl'] ?? '',
-        allImgs: map['allImgs'] as List<String>? ??
-            map['allImgs'] as List<String>? ??
-            (map['imgUrl']?.toString() != null
-                ? [map['imgUrl']!.toString()]
-                : []),
+        allImgs: (map['allImgs'] as List<dynamic>?)?.map((e) => e.toString()).toList(),
         url: map['url']?.toString() ?? '',
         permaUrl: map['permaUrl'] ?? '',
-        allUrls: map['allUrls'] as List<String>? ??
-            ((map['url'] != null && map['url'] != '')
-                ? [map['url'].toString()]
-                : []),
+        allUrls: (map['allUrls'] as List<dynamic>?)?.map((e) => e.toString()).toList(),
         quality: int.tryParse(map['quality'].toString()),
         releaseDate: map['releaseDate'] ?? 0,
         trackNumber: map['trackNumber'],

@@ -702,7 +702,7 @@ class CoreUtilities {
 
   }
 
-  Future<String> downloadImage(String imgUrl, {String imgName = ''}) async {
+  static Future<String> downloadImage(String imgUrl, {String imgName = ''}) async {
     AppUtilities.logger.d("Entering downloadImage method");
     String localPath = "";
     String name = imgName.isNotEmpty ? imgName : imgUrl;
