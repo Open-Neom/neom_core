@@ -17,18 +17,16 @@
  * Copyright (c) 2021-2023, Ankit Sangwan
  */
 
-import 'dart:convert';
 import 'package:enum_to_string/enum_to_string.dart';
-import 'package:neom_commons/core/domain/model/app_item.dart';
-import 'package:neom_commons/core/domain/model/app_release_item.dart';
-import 'package:neom_commons/core/domain/model/item_list.dart';
-import 'package:spotify/spotify.dart';
-import '../../utils/app_utilities.dart';
 import 'package:on_audio_query/on_audio_query.dart';
+import 'package:spotify/spotify.dart';
 
+import '../../utils/app_utilities.dart';
 import '../../utils/enums/app_media_source.dart';
 import '../../utils/enums/media_item_type.dart';
+import 'app_release_item.dart';
 import 'genre.dart';
+import 'item_list.dart';
 import 'neom/chamber_preset.dart';
 
 class AppMediaItem {

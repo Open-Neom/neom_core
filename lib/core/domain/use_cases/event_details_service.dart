@@ -1,4 +1,3 @@
-import '../model/app_item.dart';
 import '../model/app_media_item.dart';
 
 abstract class EventDetailsService {

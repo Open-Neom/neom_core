@@ -24,11 +24,10 @@ import '../../utils/constants/message_translation_constants.dart';
 import '../../utils/core_utilities.dart';
 import '../../utils/enums/app_in_use.dart';
 import '../../utils/enums/itemlist_owner.dart';
-import '../../utils/enums/profile_type.dart';
 import '../../utils/enums/user_role.dart';
 import '../firestore/coupon_firestore.dart';
-import '../firestore/profile_firestore.dart';
 import '../firestore/itemlist_firestore.dart';
+import '../firestore/profile_firestore.dart';
 import '../firestore/user_firestore.dart';
 import 'shared_preference_controller.dart';
 
@@ -215,19 +214,21 @@ class UserController extends GetxController implements UserService {
     newProfile.goingEvents = [];
     newProfile.playingEvents = [];
     newProfile.itemlists = {};
+    newProfile.favoriteItems = [];
 
     ///DEPRECATED
     // (newProfile.type == ProfileType.instrumentist) ?
     // newProfile.itemlists![AppConstants.myFavorites] = Itemlist.myFirstItemlist()
     // : newProfile.itemlists![AppConstants.myFavorites] = Itemlist.myFirstItemlistFan();
 
-    if(AppFlavour.appInUse == AppInUse.cyberneom) {
-      newProfile.itemlists![AppConstants.myFavorites]!.chamberPresets = [];
-      newProfile.itemlists![AppConstants.myFavorites]!.chamberPresets!.add(ChamberPreset.myFirstNeomChamberPreset());
-      newProfile.chamberPresets = [AppConstants.firstChamberPreset];
-    } else {
-      // newProfile.appItems = [AppFlavour.getFirstAppItemId()];
-    }
+    // if(AppFlavour.appInUse == AppInUse.cyberneom) {
+    //   // newProfile.itemlists![AppConstants.myFavorites] = Itemlist()..chamberPresets = [];
+    //   // newProfile.itemlists![AppConstants.myFavorites]!.chamberPresets!.add(ChamberPreset.myFirstNeomChamberPreset());
+    //   // newProfile.chamberPresets = [AppConstants.firstChamberPreset];
+    // } else {
+    //   // newProfile.appItems = [AppFlavour.getFirstAppItemId()];
+    // }
+
     newUser.profiles = [newProfile];
     newUser.userRole = UserRole.subscriber;
 
@@ -314,19 +315,21 @@ class UserController extends GetxController implements UserService {
     newProfile.goingEvents = [];
     newProfile.playingEvents = [];
     newProfile.itemlists = {};
+    newProfile.favoriteItems = [];
 
     ///DEPRECATED
     // (newProfile.type == ProfileType.instrumentist) ?
     // newProfile.itemlists![AppConstants.myFavorites] = Itemlist.myFirstItemlist()
     //     : newProfile.itemlists![AppConstants.myFavorites] = Itemlist.myFirstItemlistFan();
 
-    if(AppFlavour.appInUse == AppInUse.cyberneom) {
-      newProfile.itemlists![AppConstants.myFavorites]!.chamberPresets = [];
-      newProfile.itemlists![AppConstants.myFavorites]!.chamberPresets!.add(ChamberPreset.myFirstNeomChamberPreset());
-      newProfile.chamberPresets = [AppConstants.firstChamberPreset];
-    } else {
-      newProfile.favoriteItems = [];
-    }
+    // if(AppFlavour.appInUse == AppInUse.cyberneom) {
+    //   // newProfile.itemlists![AppConstants.myFavorites]!.chamberPresets = [];
+    //   // newProfile.itemlists![AppConstants.myFavorites]!.chamberPresets!.add(ChamberPreset.myFirstNeomChamberPreset());
+    //   // newProfile.chamberPresets = [AppConstants.firstChamberPreset];
+    // } else {
+    //   newProfile.favoriteItems = [];
+    // }
+
     try {
 
       String profileId = await ProfileFirestore().insert(user!.id, newProfile);
@@ -471,7 +474,7 @@ class UserController extends GetxController implements UserService {
       AppUtilities.logger.e(e.toString());
     }
 
-    update();
+    update([]);
   }
 
 }

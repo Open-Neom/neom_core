@@ -220,11 +220,11 @@ class ItemlistFirestore { //implements ItemlistRepository {
     bool addedItem = false;
 
     try {
-
       DocumentReference documentReference = itemlistReference.doc(chamberId);
       await documentReference.update({
         AppFirestoreConstants.chamberPresets: FieldValue.arrayUnion([preset.toJSON()])
       });
+      addedItem = true;
     } catch (e) {
       logger.e(e.toString());
     }

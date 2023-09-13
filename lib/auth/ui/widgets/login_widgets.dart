@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -209,7 +210,8 @@ import '../login/login_controller.dart';
                 ),
               )
           ) : Container(),
-          _.appInfo.googleLoginEnabled ? TextButton(
+          (_.appInfo.googleLoginEnabled || kDebugMode)
+              ? TextButton(
             onPressed: () async => {
               if(!_.isButtonDisabled) {
                 await _.handleLogin(LoginMethod.google)

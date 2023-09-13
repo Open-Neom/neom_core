@@ -7,7 +7,6 @@ import 'package:geolocator/geolocator.dart';
 import '../../domain/model/app_profile.dart';
 import '../../domain/model/app_user.dart';
 import '../../domain/model/facility.dart';
-import '../../domain/model/item_list.dart';
 import '../../domain/model/post.dart';
 import '../../domain/repository/profile_repository.dart';
 import '../../utils/app_utilities.dart';
@@ -23,10 +22,10 @@ import 'constants/app_firestore_constants.dart';
 import 'facility_firestore.dart';
 import 'genre_firestore.dart';
 import 'instrument_firestore.dart';
+import 'itemlist_firestore.dart';
 import 'mate_firestore.dart';
 import 'place_firestore.dart';
 import 'post_firestore.dart';
-import 'itemlist_firestore.dart';
 
 class ProfileFirestore implements ProfileRepository {
 

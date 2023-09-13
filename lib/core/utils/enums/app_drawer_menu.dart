@@ -6,6 +6,7 @@ enum AppDrawerMenu {
   digitalLibrary("digitalLibrary"),
   bands("bands"),
   events("events"),
+  inbox("inbox"),
   calendar("calendar"),
   services("services"),
   requests("requests"),

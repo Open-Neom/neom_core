@@ -63,15 +63,15 @@ class ChamberPreset {
     'neomFrequency': neomFrequency?.toJSON(),
   };
 
-  ChamberPreset.myFirstNeomChamberPreset() :
-    id = AppConstants.firstChamberPreset,
-    name = "Frecuencia 432 Hz",
-    description = "",
-    ownerId = "",
-    imgUrl = "https://firebasestorage.googleapis.com/v0/b/cyberneom-edd2d.appspot.com/o/AppStatics%2FCyberneom%20Icono.png?alt=media&token=68bc867f-df6c-40fb-a8fe-e920242c21a1",
-    state = 1,
-    neomParameter = NeomParameter(),
-    neomFrequency = NeomFrequency();
+  // ChamberPreset.myFirstNeomChamberPreset() :
+  //   id = AppConstants.firstChamberPreset,
+  //   name = "Frecuencia 432 Hz",
+  //   description = "",
+  //   ownerId = "",
+  //   imgUrl = "https://firebasestorage.googleapis.com/v0/b/cyberneom-edd2d.appspot.com/o/AppStatics%2FCyberneom%20Icono.png?alt=media&token=68bc867f-df6c-40fb-a8fe-e920242c21a1",
+  //   state = 1,
+  //   neomParameter = NeomParameter(),
+  //   neomFrequency = NeomFrequency();
 
   ChamberPreset.custom({String name = "", String imgUrl = "", NeomParameter? parameter, NeomFrequency? frequency}) :
         id = "${AppConstants.customPreset}_${frequency?.frequency}",

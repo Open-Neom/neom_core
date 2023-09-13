@@ -56,7 +56,8 @@ class LoginPage extends StatelessWidget {
                   buildPasswordTF(_),
                   buildForgotPasswordBtn(_),
                   buildLoginBtn(_),
-                  ((Platform.isIOS && !_.isIOS13) || !_.appInfo.googleLoginEnabled) ? Container() :
+                  ((Platform.isIOS && !_.isIOS13) || (!_.appInfo.googleLoginEnabled && !kDebugMode))
+                      ? Container() :
                   Column(
                     children: [
                       buildSignInWithText(),

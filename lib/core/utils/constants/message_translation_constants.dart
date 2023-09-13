@@ -123,7 +123,7 @@ class MessageTranslationConstants {
   static const String removeThisAccount = 'removeThisAccount';
   static const String addNewItemlist = 'addNewItemlist';
   static const String pleaseFillItemlistInfo = 'pleaseFillItemlistInfo';
-  static const String pleaseAddDescription = 'pleaseFillDescription';
+  static const String pleaseAddDescription = 'pleaseAddDescription';
   static const String pleaseAddName = 'pleaseAddName';
   static const String itemlistName = 'itemlistName';
   static const String description = 'description';
