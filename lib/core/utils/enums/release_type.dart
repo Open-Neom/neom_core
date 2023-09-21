@@ -1,8 +1,10 @@
 enum ReleaseType {
-  album("album"),
+  single("single"), 
   ep("ep"),
-  single("single"),
-  demo("demo");
+  album("album"),
+  demo("demo"),
+  episode("episode"), ///PODCAST
+  chapter("chapter"); ///AUDIOBOOK
 
   final String value;
   const ReleaseType(this.value);

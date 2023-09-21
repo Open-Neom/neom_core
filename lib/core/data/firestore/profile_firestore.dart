@@ -1366,7 +1366,7 @@ class ProfileFirestore implements ProfileRepository {
 
       for (var profile in querySnapshot.docs) {
         if(profile.id == profileId) {
-          logger.w("Reference id: ${profile.reference.parent.parent?.id ?? ""}");
+          logger.v("Reference id: ${profile.reference.parent.parent?.id ?? ""}");
           DocumentReference documentReference = profile.reference;
           userId = documentReference.parent.parent?.id ?? "";
 

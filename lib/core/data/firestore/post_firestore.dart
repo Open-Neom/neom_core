@@ -47,7 +47,7 @@ class PostFirestore implements PostRepository {
   @override
   Future<bool> handleLikePost(String profileId, String postId,
       bool isLiked) async {
-    logger.d("");
+    logger.d("Handle Like Post");
     try {
       if (isLiked) {
         await postsReference.doc(postId).update({

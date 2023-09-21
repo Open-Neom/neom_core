@@ -29,7 +29,7 @@ class AppReleaseItem {
   String publisher = "";
   int publishedYear;
   Place? place;
-  ReleaseType type = ReleaseType.single;
+  ReleaseType type;
 
   Price? digitalPrice;
   Price? physicalPrice;
@@ -81,7 +81,8 @@ class AppReleaseItem {
       this.createdTime = 0,
       this.externalArtists,
       this.featInternalArtists,
-      this.likes = 0
+      this.likes = 0,
+      this.type = ReleaseType.single,
   });
 
   AppReleaseItem.fromJSON(data) :

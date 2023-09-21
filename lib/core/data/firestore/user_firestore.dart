@@ -15,6 +15,7 @@ import '../../utils/enums/app_currency.dart';
 import '../../utils/enums/facilitator_type.dart';
 import '../../utils/enums/place_type.dart';
 import '../../utils/enums/profile_type.dart';
+import '../../utils/enums/usage_reason.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
 import 'facility_firestore.dart';
@@ -420,7 +421,7 @@ class UserFirestore implements UserRepository {
   Future<List<AppUser>> getWithParameters({
     bool needsPhone  = false, bool includeProfile = false,
     List<ProfileType>? profileTypes, FacilityType? facilityType, PlaceType? placeType,
-    Position? currentPosition, int maxDistance = 30,}) async {
+    List<UsageReason>? usageReasons, Position? currentPosition, int maxDistance = 30,}) async {
     logger.d("Get all Users by paremeters");
 
     List<AppUser> users = [];
@@ -451,7 +452,8 @@ class UserFirestore implements UserRepository {
               if(document.reference.parent.parent!.id == user.id) {
                 profile = AppProfile.fromJSON(document.data());
                 profile.id = document.id;
-                if(profileTypes == null || profileTypes.contains(profile.type)) {
+                if((profileTypes == null || profileTypes.contains(profile.type))
+                    && (usageReasons == null || usageReasons.contains(profile.reason))) {
                   if(profile.posts?.isNotEmpty ?? false) {
                     if(AppUtilities.distanceBetweenPositionsRounded(profile.position!, currentPosition!) < maxDistance) {
                       List<Post> profilePosts = totalPosts.where((element) => element.ownerId == profile.id).toList();

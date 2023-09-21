@@ -869,6 +869,9 @@ class AppTranslationConstants {
   static const String lookingForNewMusic = "lookingForNewMusic";
   static const String lookingForInspiration = "lookingForInspiration";
   static const String tryOurPlatform = "tryOurPlatform";
-  static const String goBackHome = "goBackHome";  
+  static const String goBackHome = "goBackHome";
+  static const String noResultsWereFound = "noResultsWereFound";
+  static const String noNearResultsWereFound = "noNearResultsWereFound";
+  static const String appReleaseItemsQty = "appReleaseItemsQty";
 
 }

@@ -65,7 +65,7 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
   @override
   Future<String> insert(ActivityFeed activityFeed) async {
     //add only activity my by other user (to avoid getting notification for our own like)
-    logger.d("");
+    logger.v("Insert Activity Feed");
     bool isNotActivityOwner = activityFeed.profileId != activityFeed.ownerId;
     String activityFeedId = "";
 

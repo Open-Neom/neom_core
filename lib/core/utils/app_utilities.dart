@@ -105,7 +105,7 @@ class AppUtilities {
       address = country;
     }
 
-    logger.d(address);
+    logger.v(address);
     return address;
   }
 
