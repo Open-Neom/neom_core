@@ -45,7 +45,7 @@ class EventTile extends StatelessWidget {
                       style: const TextStyle(fontWeight: FontWeight.bold)
                   ),
                   AppTheme.heightSpace5,
-                  Text(event.description.length <= AppConstants.maxEventNameDescLength ? event.description.capitalizeFirst!
+                  Text(event.description.length <= AppConstants.maxEventNameDescLength ? event.description.capitalizeFirst
                       : "${event.description.substring(0,30).capitalizeFirst}..."
                   ),
                   AppTheme.heightSpace5,

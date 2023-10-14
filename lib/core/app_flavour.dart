@@ -498,6 +498,7 @@ class AppFlavour {
       case AppInUse.emxi:
         return FontAwesomeIcons.shop;
       case AppInUse.cyberneom:
+      ///CHANGE TO MUSIC IN NEXT VERSION
         return FontAwesomeIcons.comments;
     }
   }
@@ -509,6 +510,7 @@ class AppFlavour {
       case AppInUse.emxi:
         return AppTranslationConstants.library;
       case AppInUse.cyberneom:
+        ///CHANGE TO MUSIC IN NEXT VERSION
         return AppTranslationConstants.inbox;
     }
   }
@@ -548,14 +550,25 @@ class AppFlavour {
     }
   }
 
-  static String getBuyMeACoffeURL() {
+  static String getBuyMeACoffeeURL() {
     switch (appInUse) {
       case AppInUse.gigmeout:
-        return 'https://www.buymeacoffee.com/gigmeout';
+        return appProperties['buyMeACoffeeUrl'];
       case AppInUse.emxi:
-        return 'https://www.buymeacoffee.com/escritoresmxi';
+        return appProperties['buyMeACoffeeUrl'];
       case AppInUse.cyberneom:
-        return 'https://www.buymeacoffee.com/cyberneom';
+        return appProperties['buyMeACoffeeUrl'];
+    }
+  }
+
+  static String getHubName() {
+    switch (appInUse) {
+      case AppInUse.gigmeout:
+        return appProperties['audioHubName'];
+      case AppInUse.emxi:
+        return appProperties['audioHubName'];
+      case AppInUse.cyberneom:
+        return appProperties['audioHubName'];
     }
   }
 

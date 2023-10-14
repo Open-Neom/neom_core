@@ -2,7 +2,6 @@ import 'dart:async';
 
 import '../../utils/enums/event_type.dart';
 import '../../utils/enums/usage_reason.dart';
-import '../model/app_item.dart';
 import '../model/app_media_item.dart';
 import '../model/app_profile.dart';
 import '../model/band.dart';

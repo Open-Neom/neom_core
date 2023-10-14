@@ -99,7 +99,7 @@ class GeoLocatorController implements GeoLocatorService {
     LocationPermission permission;
 
     Position position = Position(longitude: 0, latitude: 0, timestamp: DateTime.now(),
-        accuracy: 0, altitude: 0, heading: 0, speed: 0, speedAccuracy: 0);
+        accuracy: 0, altitude: 0, heading: 0, speed: 0, speedAccuracy: 0, altitudeAccuracy: 1, headingAccuracy: 1);
 
     try {
 
@@ -142,7 +142,7 @@ class GeoLocatorController implements GeoLocatorService {
     logger.v("Updating Location for ProfileId $profileId");
 
     Position newPosition = Position(longitude: 0, latitude: 0, timestamp: DateTime.now(),
-        accuracy: 0, altitude: 0, heading: 0, speed: 0, speedAccuracy: 0);
+        accuracy: 0, altitude: 0, heading: 0, speed: 0, speedAccuracy: 0, altitudeAccuracy: 1, headingAccuracy: 1);
 
     try {
       newPosition =  (await getCurrentPosition());

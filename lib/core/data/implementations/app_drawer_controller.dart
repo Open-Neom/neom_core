@@ -83,7 +83,7 @@ class AppDrawerController extends GetxController {
                             title: Text(profile.name,
                               style: const TextStyle(fontSize: 18),
                             ),
-                            subtitle: Text("${profile.type.name.tr.capitalize!} - ${profile.mainFeature.tr.capitalize!}"),
+                            subtitle: Text("${profile.type.name.tr.capitalize} - ${profile.mainFeature.tr.capitalize}"),
                             onTap: () async {
                               isButtonDisabled = true;
                               if(appProfile.id != profile.id) {

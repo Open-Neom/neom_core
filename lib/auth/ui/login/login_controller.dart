@@ -91,14 +91,7 @@ class LoginController extends GetxController implements LoginService {
 
 
     if(Platform.isIOS) {
-      logger.i(Platform.operatingSystemVersion);
-      if(Platform.operatingSystemVersion.contains('13')
-        || Platform.operatingSystemVersion.contains('14')
-        || Platform.operatingSystemVersion.contains('15')
-        || Platform.operatingSystemVersion.contains('16')
-      ) {
-        isIOS13 = true;
-      }
+      isIOS13 = AppUtilities.isDeviceSupportedVersion(isIOS: Platform.isIOS);
     } else if (Platform.isAndroid) {
       logger.i(Platform.version);
     }

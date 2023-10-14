@@ -175,7 +175,9 @@ class MapsController extends GetxController implements MapsService {
       place.position = Position(
           latitude: detail.result.geometry!.location.lat,
           longitude: detail.result.geometry!.location.lng,
-          timestamp: DateTime.now(), accuracy: 0, altitude: 0, heading: 0, speed: 0, speedAccuracy: 0);
+          timestamp: DateTime.now(), accuracy: 0, altitude: 0, heading: 0, speed: 0, speedAccuracy: 0,
+          altitudeAccuracy: 1, headingAccuracy: 1
+      );
       AppUtilities.logger.i(place.toString());
     } catch (e) {
       AppUtilities.logger.e(e.toString());

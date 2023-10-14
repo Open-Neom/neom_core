@@ -23,9 +23,9 @@ class GenresGridView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget dot = Container(
-      width: 6.0,
-      height: 6.0,
-      margin: const EdgeInsets.symmetric(horizontal: 4.0),
+      width: 5.0,
+      height: 5.0,
+      margin: const EdgeInsets.symmetric(horizontal: 5.0),
       decoration: BoxDecoration(
           color: color, borderRadius: BorderRadius.circular(50.0)),
     );
@@ -33,22 +33,22 @@ class GenresGridView extends StatelessWidget {
     double gridHeight = AppTheme.fullHeight(context);
 
     if(genres.length <= crossAxisCount) {
-      gridHeight = (AppTheme.fullHeight(context) / 8) / (crossAxisCount/genres.length).ceil();
+      gridHeight = (AppTheme.fullHeight(context) / 10) / (crossAxisCount/genres.length).ceil();
     } else if(genres.length<15) {
-      gridHeight = (AppTheme.fullHeight(context) / 12) / (crossAxisCount/genres.length).ceil();
+      gridHeight = (AppTheme.fullHeight(context) / 10) / (crossAxisCount/genres.length).ceil();
     } else if(genres.length>=15) {
-      gridHeight = (AppTheme.fullHeight(context) / 3) / (crossAxisCount/genres.length).ceil();
+      gridHeight = (AppTheme.fullHeight(context) / 6) / (crossAxisCount/genres.length).ceil();
     } else {
-      gridHeight = (AppTheme.fullHeight(context) / 5) / (crossAxisCount/genres.length).ceil();
+      gridHeight = (AppTheme.fullHeight(context) / 6) / (crossAxisCount/genres.length).ceil();
     }
-    return genres.isNotEmpty ? SizedBox(
-      height: AppTheme.fullHeight(context) / 10,
-      width: AppTheme.fullWidth(context),
+    return genres.isNotEmpty ? Container(
+      constraints: BoxConstraints(
+        maxHeight: AppTheme.fullHeight(context)/10,
+      ),
       child: SingleChildScrollView(
         child: Container(
           alignment: alignment,
           height: gridHeight,
-          width: AppTheme.fullWidth(context),
           child: GridView.builder(
             itemCount: genres.length,
             shrinkWrap: true,
@@ -56,11 +56,12 @@ class GenresGridView extends StatelessWidget {
             itemBuilder: (context, index) {
               String genre = genres[index];
               return Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     dot,
                     Text(
                         (genre.length < AppConstants.maxGenreNameLength
-                          ? genre :  genre.substring(0, AppConstants.maxGenreNameLength)).capitalize!,
+                          ? genre :  genre.substring(0, AppConstants.maxGenreNameLength)).capitalize,
                       style: TextStyle(
                         color: color,
                         fontSize: fontSize,
@@ -72,8 +73,9 @@ class GenresGridView extends StatelessWidget {
             },
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: (genres.length / crossAxisCount).ceil(),
-              mainAxisExtent: AppTheme.fullWidth(context) / crossAxisCount,
+              mainAxisExtent: (AppTheme.fullWidth(context)-20) / crossAxisCount,
             ),
+            padding: EdgeInsets.zero,
           ),
         ),
       ),

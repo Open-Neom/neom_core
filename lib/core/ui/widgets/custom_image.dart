@@ -26,11 +26,11 @@ Widget customCachedNetworkHeroImage(mediaUrl) {
   );
 }
 
-CachedNetworkImage customCachedNetworkImage(mediaUrl) {
+CachedNetworkImage customCachedNetworkImage(mediaUrl, {BoxFit fit = BoxFit.fill}) {
   AppUtilities.logger.i("Building cache network widget for image url: $mediaUrl");
   return CachedNetworkImage(
     imageUrl: mediaUrl,
-    fit: BoxFit.fill,
+    fit: fit,
     placeholder: (context, url) => const CircularProgressIndicator(),
     errorWidget: (context,url,error)=>const Icon(
         Icons.image_not_supported

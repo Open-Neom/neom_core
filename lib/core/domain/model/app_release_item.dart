@@ -14,8 +14,8 @@ class AppReleaseItem {
   String ownerId;
   String lyrics;
   String language;
-  String metaName;
-  String metaId;
+  String metaName; ///itemlistName
+  String metaId; ///ItemlistId
   
   String imgUrl;
   int duration;
@@ -33,18 +33,18 @@ class AppReleaseItem {
 
   Price? digitalPrice;
   Price? physicalPrice;
-  List<BandFulfillment> bandsFulfillment;
   List<String>? watchingProfiles;
   List<String>? boughtUsers;
-  int createdTime;
+  List<BandFulfillment> bandsFulfillment;
 
+  int createdTime;
   bool isAvailable;
   bool isPhysical;
   bool isTest;
   int state;
 
   List<String>? externalArtists;
-  Map<String, String>? featInternalArtists; //key: artist Id - value: name
+  Map<String, String>? featInternalArtists; //key: artistId - value: name
   int likes;
 
   @override
@@ -119,9 +119,9 @@ class AppReleaseItem {
     state = data["state"] ?? 0,
     createdTime = data["createdTime"] ?? 0,
     externalArtists = List.from(data["externalArtists"]?.cast<String>() ?? []),
-    featInternalArtists = data["featInternalArtists"]?.cast<Map<String,String>>() ?? [],
+    featInternalArtists = data["featInternalArtists"] as Map<String,String>?,
     likes = data["likes"] ?? 0;
-
+  
   Map<String, dynamic>  toJSON() => {
     'id': id,
     'name': name,

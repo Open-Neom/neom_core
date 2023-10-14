@@ -34,7 +34,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
 
   @override
   Future<Map<String, AppReleaseItem>> retrieveAll() async {
-    logger.d("Get all AppReleaseItem");
+    logger.v("Get all AppReleaseItem");
 
     Map<String, AppReleaseItem> releaseItems = {};
     try {
@@ -44,7 +44,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
           AppReleaseItem releaseItem = AppReleaseItem.fromJSON(queryDocumentSnapshot.data());
           releaseItem.id = queryDocumentSnapshot.id;
 
-          if(releaseItem.isAvailable || DateTime.fromMillisecondsSinceEpoch(releaseItem.createdTime).add(const Duration(days: 7)).millisecondsSinceEpoch < DateTime.now().millisecondsSinceEpoch) {
+          if(releaseItem.isAvailable || DateTime.fromMillisecondsSinceEpoch(releaseItem.createdTime).add(const Duration(days: 28)).millisecondsSinceEpoch < DateTime.now().millisecondsSinceEpoch) {
             releaseItems[releaseItem.id] = releaseItem;
           }
         }
@@ -53,7 +53,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
       logger.e(e.toString());
     }
 
-    logger.d("${releaseItems.length} releaseItems found");
+    logger.v("${releaseItems.length} releaseItems found");
     return releaseItems;
   }
 

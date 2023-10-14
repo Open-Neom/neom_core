@@ -107,7 +107,7 @@ class Itemlist {
 
     try {
       if (playlist.tracks != null && (playlist.tracks?.total ?? 0) > 1) {
-        appMediaItems = await AppMediaItem.mapTracksToSongs(playlist.tracks!);
+        appMediaItems = AppMediaItem.mapTracksToSongs(playlist.tracks!);
       }
     } catch (e) {
       AppUtilities.logger.e(e.toString());
@@ -194,7 +194,7 @@ class Itemlist {
       }
     }
 
-    AppUtilities.logger.v("Retrieving ${imgUrls.length} total Images for itemlist ${name}.");
+    AppUtilities.logger.v("Retrieving ${imgUrls.length} total Images for itemlist $name.");
     return imgUrls;
   }
 

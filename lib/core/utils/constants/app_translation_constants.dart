@@ -776,9 +776,13 @@ class AppTranslationConstants {
   static const String releaseUploadInstr = 'releaseUploadInstr';
   static const String releaseUploadGenres = 'releaseUploadGenres';
   static const String releaseUploadNameDesc = 'releaseUploadNameDesc';
+  static const String releaseUploadItemlistNameDesc1 = 'releaseUploadItemlistNameDesc1';
+  static const String releaseUploadItemlistNameDesc2 = 'releaseUploadItemlistNameDesc2';
   static const String releaseUploadPLaceDate = 'releaseUploadPLaceDate';
   static const String releaseTitle = 'releaseTitle';
   static const String releaseDesc = 'releaseDesc';
+  static const String releaseItemlistTitle = 'releaseItemlistTitle';
+  static const String releaseItemlistDesc = 'releaseItemlistDesc';
   static const String releaseDuration = 'releaseDuration';
   static const String releasePreview = 'releasePreview';
   static const String releasePrice = 'releasePrice';
@@ -873,5 +877,11 @@ class AppTranslationConstants {
   static const String noResultsWereFound = "noResultsWereFound";
   static const String noNearResultsWereFound = "noNearResultsWereFound";
   static const String appReleaseItemsQty = "appReleaseItemsQty";
-
+  static const String seconds = "seconds";
+  static const String minutes = "minutes";  
+  static const String releaseItemDurationMsg = "releaseItemDurationMsg";
+  static const String releaseItemNameMsg = "releaseItemNameMsg";
+  static const String releaseItemFileMsg = "releaseItemFileMsg";
+  static const String noLyricsAvailable = "noLyricsAvailable";
+  
 }

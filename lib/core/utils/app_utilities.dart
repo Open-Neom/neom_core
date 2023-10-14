@@ -200,11 +200,46 @@ class AppUtilities {
       } else {
         file = await File.fromUri(Uri.parse(filePath)).create();
       }
-
     } catch (e) {
       logger.e('Error getting File');
     }
 
     return file;
   }
+
+  static String secondsToMinutes(int seconds, {bool clockView = true}) {
+    // Calculate the number of minutes and remaining seconds
+    int minutes = seconds ~/ 60;
+    int remainingSeconds = seconds % 60;
+
+    // Format the minutes and seconds as two-digit strings
+    String minutesStr = minutes.toString().padLeft(2, '0');
+    String secondsStr = remainingSeconds.toString().padLeft(2, '0');
+
+    // Create the formatted string
+    String formattedTime = '';
+
+    if(clockView) {
+      formattedTime = '$minutesStr:$secondsStr';
+    } else {
+      formattedTime = '$minutesStr ${AppTranslationConstants.minutes.tr} - $secondsStr ${AppTranslationConstants.seconds.tr}';
+    }
+
+
+    return formattedTime;
+  }
+  
+  static bool isDeviceSupportedVersion({bool isIOS = false}){
+    logger.i(Platform.operatingSystemVersion);
+    if(isIOS) {
+      return Platform.operatingSystemVersion.contains('13')
+          || Platform.operatingSystemVersion.contains('14')
+          || Platform.operatingSystemVersion.contains('15')
+          || Platform.operatingSystemVersion.contains('16')
+          || Platform.operatingSystemVersion.contains('17');
+    } else {
+      return true;
+    }
+  }
+
 }

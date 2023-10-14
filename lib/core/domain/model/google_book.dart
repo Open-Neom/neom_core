@@ -1,6 +1,5 @@
 
 import '../../utils/app_utilities.dart';
-import 'app_item.dart';
 import 'app_media_item.dart';
 import 'genre.dart';
 import 'google_book/access_info.dart';

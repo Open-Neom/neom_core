@@ -63,7 +63,8 @@ class FullScreenVideoState extends State<FullScreenVideo> {
 
   @override
   void initState() {
-    _controller = VideoPlayerController.network(widget.mediaUrl!);
+    ///DEPRECATED _controller = VideoPlayerController.network(widget.mediaUrl!);
+    _controller = VideoPlayerController.networkUrl(Uri.parse(widget.mediaUrl ?? ''));
     _initializeVideoPlayerFuture = _controller.initialize();
     _controller.play();
     super.initState();

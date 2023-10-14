@@ -73,6 +73,7 @@ class AppConstants {
   static const firstYearDOB = 1930;
   static const lastYearDOB = 2010;
   static const firstReleaseYear = 1970;
+  static const maxAudioDuration = 1500;
 
   static const String initialTimeSeconds = '0:00';
   static const String grid = 'grid';

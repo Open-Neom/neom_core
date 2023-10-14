@@ -14,7 +14,6 @@ import 'package:url_launcher/url_launcher.dart';
 import '../app_flavour.dart';
 import '../data/implementations/shared_preference_controller.dart';
 import '../domain/model/activity_feed.dart';
-import '../domain/model/app_item.dart';
 import '../domain/model/app_media_item.dart';
 import '../domain/model/app_profile.dart';
 import '../domain/model/band.dart';
@@ -45,7 +44,13 @@ class CoreUtilities {
 
   // ignore: non_constant_identifier_names
   static Position JSONtoPosition(positionSnapshot){
-    Position position = Position(longitude: 0, latitude: 0, timestamp: DateTime.now(), accuracy: 0, altitude: 0, heading: 0, speed: 0, speedAccuracy: 0);
+    Position position = Position(
+        longitude: 0, latitude: 0,
+        timestamp: DateTime.now(),
+        accuracy: 0, altitude: 0,
+        heading: 0, speed: 0, speedAccuracy: 0,
+        altitudeAccuracy: 1, headingAccuracy: 1
+    );
     try {
       if(positionSnapshot != null && positionSnapshot != "null") {
         dynamic positionJSON = jsonDecode(positionSnapshot);
@@ -67,7 +72,10 @@ class CoreUtilities {
             heading: heading,
             speed: speed,
             speedAccuracy: speedAccuracy,
-            isMocked: isMocked);
+            isMocked: isMocked,
+            altitudeAccuracy: 1,
+            headingAccuracy: 1
+        );
       }
     } catch (e) {
       AppUtilities.logger.e(e.toString());
@@ -534,7 +542,7 @@ class CoreUtilities {
   }
 
   Future<bool> isAvailableMediaUrl(String mediaUrl) async {
-    AppUtilities.logger.i("Verifying if mediaUrl is available: $mediaUrl");
+    AppUtilities.logger.v("Verifying if mediaUrl is available: $mediaUrl");
 
     bool isAvailable = true;
     try {
@@ -661,7 +669,7 @@ class CoreUtilities {
     if(mediaItem.imgUrl.isNotEmpty || (mediaItem.allImgs?.isNotEmpty ?? false) ) {
       String imgUrl = mediaItem.imgUrl.isNotEmpty ? mediaItem.imgUrl : mediaItem.allImgs?.first ?? "";
       if(imgUrl.isNotEmpty) {
-        thumbnailLocalPath = await downloadImage(imgUrl, imgName: mediaItem.artist+"_"+mediaItem.name);
+        thumbnailLocalPath = await downloadImage(imgUrl, imgName: "${mediaItem.artist}_${mediaItem.name}");
       }
     }
 

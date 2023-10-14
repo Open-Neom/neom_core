@@ -46,6 +46,7 @@ class AppFirestoreConstants {
   static const String invalidEmail = 'invalid-email';
   static const String userNotFound = 'user-not-found';
   static const String emailInUse = 'email-already-in-use';
+  static const String operationNotAllowed = 'operation-not-allowed';
   static const String unknown = 'unknown';
 
   static const String imgUrl = 'imgUrl';

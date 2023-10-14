@@ -176,8 +176,7 @@ class UserFirestore implements UserRepository {
 
   @override
   Future<bool> isAvailableEmail(String email) async {
-
-    logger.d("Verify if email $email is already in use");
+    logger.v("Verify if email $email is already in use");
 
     try {
       QuerySnapshot querySnapshot = await userReference
@@ -189,7 +188,7 @@ class UserFirestore implements UserRepository {
         return false;
       }
 
-      logger.d("Email is available");
+      logger.v("Email is available");
       return true;
 
     } catch (e) {
@@ -282,7 +281,7 @@ class UserFirestore implements UserRepository {
 
   @override
   Future<bool> updatePhotoUrl(String userId, String photoUrl) async {
-    logger.d("");
+    logger.v("updatePhotoUrl");
 
     try {
       DocumentSnapshot documentSnapshot = await userReference.doc(userId).get();

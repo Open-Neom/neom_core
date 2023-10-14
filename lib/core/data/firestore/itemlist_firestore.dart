@@ -6,12 +6,13 @@ import '../../domain/model/app_media_item.dart';
 import '../../domain/model/app_release_item.dart';
 import '../../domain/model/item_list.dart';
 import '../../domain/model/neom/chamber_preset.dart';
+import '../../domain/repository/itemlist_repository.dart';
 import '../../utils/app_utilities.dart';
 import '../../utils/constants/app_constants.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
 
-class ItemlistFirestore { //implements ItemlistRepository {
+class ItemlistFirestore implements ItemlistRepository {
 
   var logger = AppUtilities.logger;
   final itemlistReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.itemlists);

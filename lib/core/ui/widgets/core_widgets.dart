@@ -35,7 +35,7 @@ Widget buildActionChip({
   return ActionChip(
     backgroundColor: isSelected ? AppColor.bondiBlue : AppColor.bottomNavigationBar,
     shape: AppTheme.outlinedBorderChip,
-    label: Text((appEnum as Enum).name.tr.capitalizeFirst ?? "",
+    label: Text((appEnum as Enum).name.tr.capitalizeFirst,
       style: TextStyle(
         fontSize: AppTheme.chipsFontSize,
         color: isActive ? null : AppColor.white50,

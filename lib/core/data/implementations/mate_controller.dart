@@ -1,6 +1,5 @@
 import 'package:get/get.dart';
 
-import '../../domain/model/app_item.dart';
 import '../../domain/model/app_media_item.dart';
 import '../../domain/model/app_profile.dart';
 import '../../domain/use_cases/geolocator_service.dart';

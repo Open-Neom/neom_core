@@ -300,9 +300,9 @@ class AppMediaItem {
     }
 
     if(itemlist.appReleaseItems != null) {
-      itemlist.appReleaseItems!.forEach((element) {
+      for (var element in itemlist.appReleaseItems!) {
         appMediaItems.add(AppMediaItem.fromAppReleaseItem(element));
-      });
+      }
     }
 
     // if(itemlist.chamberPresets != null) {
@@ -355,9 +355,12 @@ class AppMediaItem {
   }
 
   static List<AppMediaItem> mapTracksToSongs(Paging<Track> tracks) {
+
     List<AppMediaItem> songs = [];
-    String artistName = "";
-    String albumImgUrl = "";
+
+    ///DEPRECATED
+    // String artistName = "";
+    // String albumImgUrl = "";
 
     try {
       for (var playlistTrack in tracks.itemsNative!) {

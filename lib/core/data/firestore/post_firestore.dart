@@ -133,7 +133,7 @@ class PostFirestore implements PostRepository {
         AppFirestoreConstants.ownerId, isEqualTo: profileId).get();
 
     if (querySnapshot.docs.isNotEmpty) {
-      logger.d("Snapshot is not empty");
+      logger.v("Snapshot is not empty");
       for (int queryIndex = 0; queryIndex <
           querySnapshot.docs.length; queryIndex++) {
         Post post = Post.fromJSON(querySnapshot.docs.elementAt(queryIndex).data());

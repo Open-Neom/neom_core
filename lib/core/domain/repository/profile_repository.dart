@@ -95,5 +95,5 @@ abstract class ProfileRepository {
   Future<bool> removeBoughtItem(String profileId, String boughtItem);
 
   Future<bool> addChamberPreset({required String profileId, required String chamberPresetId});
-
+  Future<bool> updateAddress(String profileId, String address);
 }
