@@ -31,6 +31,7 @@ class AppColor {
   static Color main25 = getMain().withOpacity(0.25);
   static Color main50 = getMain().withOpacity(0.5);
   static Color main75 = getMain().withOpacity(0.75);
+  static Color main95 = getMain().withOpacity(0.95);
   static final Color bottomNavigationBar = getMain().withOpacity(0.5);
   static final Color messageComposer = getMain().withOpacity(0.5);
   static final Color drawer = getMain().withOpacity(0.5);

@@ -1,38 +1,24 @@
-import 'dart:ui';
-
-import 'package:get/get.dart';
 import 'dart:core';
 
-import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 
-import '../../app_flavour.dart';
-import '../../data/firestore/report_firestore.dart';
 import '../../data/implementations/user_controller.dart';
-import '../../domain/model/app_profile.dart';
-import '../../domain/model/report.dart';
-import '../../domain/use_cases/report_service.dart';
-import '../../utils/app_color.dart';
-import '../../utils/app_theme.dart';
-import '../../utils/app_utilities.dart';
-import '../../utils/constants/app_page_id_constants.dart';
-import '../../utils/constants/app_translation_constants.dart';
-import '../../utils/enums/reference_type.dart';
-import '../../utils/enums/report_type.dart';
 import '../../domain/model/app_media_item.dart';
 import '../../domain/model/app_profile.dart';
 import '../../domain/use_cases/geolocator_service.dart';
 import '../../domain/use_cases/mate_service.dart';
+import '../../utils/app_color.dart';
+import '../../utils/app_theme.dart';
 import '../../utils/app_utilities.dart';
 import '../../utils/constants/app_page_id_constants.dart';
 import '../../utils/constants/app_route_constants.dart';
+import '../../utils/constants/app_translation_constants.dart';
 import '../firestore/mate_firestore.dart';
 import '../firestore/profile_firestore.dart';
 import 'geolocator_controller.dart';
-import 'user_controller.dart';
 
 class MateController extends GetxController implements MateService {
 

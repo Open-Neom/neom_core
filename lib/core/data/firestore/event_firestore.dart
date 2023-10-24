@@ -72,7 +72,7 @@ class EventFirestore implements EventRepository {
 
   @override
   Future<String> insert(Event event,{String eventId = ""}) async {
-    logger.d("");
+    logger.t("insert");
     try {
       DocumentReference documentReference;
       if(eventId.isEmpty) {

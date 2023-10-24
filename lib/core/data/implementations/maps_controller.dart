@@ -92,7 +92,6 @@ class MapsController extends GetxController implements MapsService {
 
     try {
       Prediction? retrievedPrediction =  await PlacesAutocomplete.show(
-        //logo: Text(""),
         startText: startText,
         offset: 0,
         radius: 1000,
@@ -106,7 +105,9 @@ class MapsController extends GetxController implements MapsService {
         language: "mx",
         decoration: InputDecoration(
           hintText: AppTranslationConstants.search.tr,
+          fillColor: AppColor.yellow
         ),
+
         components: [Component(Component.country, "mx")],
       );
 

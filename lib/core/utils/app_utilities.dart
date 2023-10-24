@@ -11,10 +11,6 @@ import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../neom_commons.dart';
-import '../data/implementations/geolocator_controller.dart';
-import 'app_color.dart';
-import 'constants/app_route_constants.dart';
-import 'constants/app_translation_constants.dart';
 
 class AppUtilities {
 
@@ -113,7 +109,7 @@ class AppUtilities {
     return address;
   }
 
-  static List<DateTime> getDaysFromNow({days = 21}){
+  static List<DateTime> getDaysFromNow({days = 28}){
 
     List<DateTime> dates = [];
 

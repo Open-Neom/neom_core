@@ -37,9 +37,10 @@ class PostComment {
       this.modifiedTime = 0,
   });
 
+
   @override
   String toString() {
-    return 'PostComment{id: $id, postOwnerId: $postOwnerId, text: $text, likedProfiles: $likedProfiles, type: $type, replies: $replies, isHidden: $isHidden, profileId: $ownerId, profileImgUrl: $ownerImgUrl, profileName: $ownerName, mediaUrl: $mediaUrl, createdTime: $createdTime, modifiedTime: $modifiedTime, postId: $postId}';
+    return 'PostComment{id: $id, postOwnerId: $postOwnerId, text: $text, likedProfiles: $likedProfiles, type: $type, replies: $replies, isHidden: $isHidden, ownerId: $ownerId, ownerImgUrl: $ownerImgUrl, ownerName: $ownerName, mediaUrl: $mediaUrl, createdTime: $createdTime, modifiedTime: $modifiedTime, postId: $postId}';
   }
 
   Map<String, dynamic> toJSON() {
@@ -48,7 +49,7 @@ class PostComment {
       'likedProfiles': likedProfiles,
       'type': type.name,
       'isHidden': isHidden,
-      'profileId': ownerId,
+      'ownerId': ownerId,
       'ownerImgUrl': ownerImgUrl,
       'ownerName': ownerName,
       'postOwnerId': postOwnerId,

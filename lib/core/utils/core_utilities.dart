@@ -7,7 +7,6 @@ import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
-import 'package:image_cropper/image_cropper.dart';
 import 'package:neom_music_player/ui/widgets/snackbar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -371,7 +370,7 @@ class CoreUtilities {
   }
 
   static Future<List<Genre>> loadGenres() async {
-    AppUtilities.logger.d("");
+    AppUtilities.logger.t("loadGenres");
     List<Genre> genreList = [];
 
     try {

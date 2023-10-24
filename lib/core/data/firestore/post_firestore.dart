@@ -67,7 +67,7 @@ class PostFirestore implements PostRepository {
 
   @override
   Future<String> insert(Post post) async {
-    logger.d("");
+    logger.t("insert");
     String postId = "";
     try {
       DocumentReference documentReference = await postsReference

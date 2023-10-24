@@ -1,12 +1,10 @@
 import 'dart:core';
 
 import 'package:enum_to_string/enum_to_string.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 
-import '../../app_flavour.dart';
 import '../../data/firestore/report_firestore.dart';
 import '../../data/implementations/user_controller.dart';
 import '../../domain/model/app_profile.dart';

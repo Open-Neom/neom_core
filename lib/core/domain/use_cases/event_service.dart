@@ -60,7 +60,7 @@ abstract class EventService {
 
   Future<void> sendEventRequest(String bandId);
   void setCurrency(String chosenCurrency);
-  void filterEventsBy(EventType eventType);
+  void filterEventsBy({EventType eventType = EventType.any});
 
   void setMessage(String text);
   Future<void> sendEventInvitation(AppProfile mate, Instrument instrument);
