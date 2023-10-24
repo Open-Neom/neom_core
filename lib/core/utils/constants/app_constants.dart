@@ -46,7 +46,7 @@ class AppConstants {
   static const int maxProfileNameSideBarLength = 15;
   static const int timelineLimit = 20;
   static const int activityFeedLimit = 20;
-  static const int sponsorsLimit = 10;
+  static const int sponsorsLimit = 20;
   static const int sponsorsTime = 4;
   static const int eventsLimit = 30;
   static const int followingProfilesLimit = 15;
@@ -89,6 +89,7 @@ class AppConstants {
   static const String anthonyRojasCOO ="Anthony Rojas (Director de Operaciones)";
   static const String km = "KM";
   static const String youtube = "Youtube";
+  static const String spotify = "Spotify";
   static const String appBot = "appBot";
 
   //TODO Change with env and flavour to bot of each app
@@ -106,5 +107,9 @@ class AppConstants {
   static const String appItemQuotation = "appItemQuotation";
 
   static final List<String> appItemSize = ['Tamaño Carta - 21x29.7 - 8.5x11 ', 'Medía carta - 14x21.6cm - 6x9in', 'french', 'deutsch'];
+  static const int maxVideoFileSize = 60000000;
+  static const int verifiedMaxVideoDurationInSeconds = 30;
+  static const int adminMaxVideoDurationInSeconds = 90;
+  static const List<double> playbackRates = [0.75, 1.0, 1.5, 2.0, 2.5, 3.0,];
 
 }

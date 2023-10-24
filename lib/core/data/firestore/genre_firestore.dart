@@ -16,7 +16,7 @@ class GenreFirestore implements GenreRepository {
 
   @override
   Future<Map<String,Genre>> retrieveGenres(profileId) async {
-    logger.v("Retrieving Genre by Profile $profileId");
+    logger.t("Retrieving Genre by Profile $profileId");
 
     Map<String, Genre> genres = {};
 
@@ -37,7 +37,7 @@ class GenreFirestore implements GenreRepository {
       logger.e("No genres found");
     }
 
-    logger.v("${genres.length} genres found");
+    logger.t("${genres.length} genres found");
     return genres;
   }
 

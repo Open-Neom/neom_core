@@ -13,7 +13,7 @@ class PostTile extends StatelessWidget {
   final Post post;
   final Event? event;
 
-  const PostTile(this.post, this.event, {Key? key}) : super(key: key);
+  const PostTile(this.post, this.event, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +21,7 @@ class PostTile extends StatelessWidget {
     child: post.type == PostType.image ?
       customCachedNetworkHeroImage(post.mediaUrl)
         : post.type == PostType.video ?
-      cachedNetworkThumbnail(post.thumbnailUrl, post.mediaUrl)
+      cachedNetworkThumbnail(thumbnailUrl: post.thumbnailUrl, mediaUrl: post.mediaUrl)
         : customCachedNetworkHeroImage(event?.imgUrl ?? AppFlavour.getNoImageUrl()),
       onTap:()=> {
         //TODO VERIFY ITS WORKING

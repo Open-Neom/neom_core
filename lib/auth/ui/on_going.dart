@@ -9,7 +9,7 @@ import '../../core/utils/constants/app_route_constants.dart';
 import '../../core/utils/constants/app_translation_constants.dart';
 
 class OnGoing extends StatefulWidget {
-  const OnGoing({Key? key}) : super(key: key);
+  const OnGoing({super.key});
 
   @override
   OnGoingState createState() => OnGoingState();
@@ -31,7 +31,7 @@ class OnGoingState extends State<OnGoing> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColor.main50,
       body: PageView.builder(
         itemBuilder: (context,index){
           return SingleChildScrollView(
@@ -59,7 +59,7 @@ class SlideTiles extends StatelessWidget {
   final String imagePath,text,title;
   final int current;
 
-  const SlideTiles(this.imagePath, this.text, this.title,this.current, {Key? key}) : super(key: key);
+  const SlideTiles(this.imagePath, this.text, this.title,this.current, {super.key});
 
   @override
   Widget build(BuildContext context) {

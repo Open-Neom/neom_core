@@ -7,38 +7,16 @@ import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_cropper/image_cropper.dart';
+import 'package:neom_music_player/ui/widgets/snackbar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../app_flavour.dart';
-import '../data/implementations/shared_preference_controller.dart';
-import '../domain/model/activity_feed.dart';
+import '../../neom_commons.dart';
 import '../domain/model/app_media_item.dart';
-import '../domain/model/app_profile.dart';
-import '../domain/model/band.dart';
-import '../domain/model/band_member.dart';
-import '../domain/model/event.dart';
-import '../domain/model/event_type_model.dart';
-import '../domain/model/facility.dart';
-import '../domain/model/genre.dart';
-import '../domain/model/instrument.dart';
-import '../domain/model/item_list.dart';
 import '../domain/model/neom/chamber_preset.dart';
-import '../domain/model/place.dart';
-import '../domain/model/post.dart';
-import 'app_utilities.dart';
-import 'constants/app_assets.dart';
-import 'constants/app_constants.dart';
-import 'constants/message_translation_constants.dart';
-import 'constants/url_constants.dart';
-import 'enums/app_currency.dart';
-import 'enums/app_item_state.dart';
-import 'enums/event_type.dart';
 import 'enums/media_item_type.dart';
-import 'enums/post_type.dart';
-import 'enums/profile_type.dart';
-import 'enums/usage_reason.dart';
 
 class CoreUtilities {
 
@@ -542,7 +520,7 @@ class CoreUtilities {
   }
 
   Future<bool> isAvailableMediaUrl(String mediaUrl) async {
-    AppUtilities.logger.v("Verifying if mediaUrl is available: $mediaUrl");
+    AppUtilities.logger.t("Verifying if mediaUrl is available: $mediaUrl");
 
     bool isAvailable = true;
     try {
@@ -738,32 +716,55 @@ class CoreUtilities {
   }
 
   ///Deprecated
-  String getYouTubeUrl(String content) {
-    RegExp regExp = RegExp(
-        r'((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?'
-    );
-    String matches = regExp.stringMatch(content) ?? "";
-
-    final String youTubeUrl = matches;
-
-    return youTubeUrl;
-  }
+  // String getYouTubeUrl(String content) {
+  //   RegExp regExp = RegExp(
+  //       r'((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?'
+  //   );
+  //   String matches = regExp.stringMatch(content) ?? "";
+  //
+  //   final String youTubeUrl = matches;
+  //
+  //   return youTubeUrl;
+  // }
 
   ///Deprecated
-  List<ActivityFeed> getActivityFeedSinceLastCheck(List<ActivityFeed> activitiesFeed) {
+  // List<ActivityFeed> getActivityFeedSinceLastCheck(List<ActivityFeed> activitiesFeed) {
+  //
+  //   List<ActivityFeed> activityFeedSinceLastCheck = [];
+  //   int lastNotificationCheckDate = Get.find<SharedPreferenceController>().lastNotificationCheckDate;
+  //   DateTime lastNotificationCheckDateTime = DateTime.fromMillisecondsSinceEpoch(lastNotificationCheckDate);
+  //
+  //   for (var activityFeed in activitiesFeed) {
+  //     DateTime activityDate = DateTime.fromMillisecondsSinceEpoch(activityFeed.createdTime);
+  //     if(activityDate.compareTo(lastNotificationCheckDateTime) > 0) {
+  //       activityFeedSinceLastCheck.add(activityFeed);
+  //     }
+  //   }
+  //
+  //   return activityFeedSinceLastCheck;
+  // }
 
-    List<ActivityFeed> activityFeedSinceLastCheck = [];
-    int lastNotificationCheckDate = Get.find<SharedPreferenceController>().lastNotificationCheckDate;
-    DateTime lastNotificationCheckDateTime = DateTime.fromMillisecondsSinceEpoch(lastNotificationCheckDate);
-
-    for (var activityFeed in activitiesFeed) {
-      DateTime activityDate = DateTime.fromMillisecondsSinceEpoch(activityFeed.createdTime);
-      if(activityDate.compareTo(lastNotificationCheckDateTime) > 0) {
-        activityFeedSinceLastCheck.add(activityFeed);
-      }
+  static String removeQueryParameters(String url) {
+    final int questionMarkIndex = url.indexOf('?');
+    if (questionMarkIndex == -1) {
+      return url;
     }
 
-    return activityFeedSinceLastCheck;
+    return url.substring(0, questionMarkIndex);
+  }
+
+  static void copyToClipboard({
+    required BuildContext context,
+    required String text,
+    String? displayText,
+  }) {
+    Clipboard.setData(
+      ClipboardData(text: text),
+    );
+    ShowSnackBar().showSnackBar(
+      context,
+      displayText ?? AppTranslationConstants.copied.tr,
+    );
   }
 
 }

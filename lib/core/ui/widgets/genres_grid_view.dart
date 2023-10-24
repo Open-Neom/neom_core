@@ -14,11 +14,11 @@ class GenresGridView extends StatelessWidget {
 
   const GenresGridView(this.genres, this.color,
       {
-        Key? key,
+        super.key,
         this.alignment = Alignment.center,
         this.fontSize = 15,
         this.crossAxisCount = 3,
-      }) : super(key: key);
+      });
 
   @override
   Widget build(BuildContext context) {

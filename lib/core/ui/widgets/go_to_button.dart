@@ -12,9 +12,9 @@ class GoToButton extends StatelessWidget {
   final double fontSize;
 
   const GoToButton(this.text,{
-    Key? key, this.onPressed,
+    super.key, this.onPressed,
     this.isEnabled = true, this.color, this.fontSize = 20,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

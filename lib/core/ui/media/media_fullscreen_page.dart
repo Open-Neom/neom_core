@@ -10,7 +10,7 @@ import '../../utils/constants/app_page_id_constants.dart';
 import 'media_fullscreen_controller.dart';
 
 class MediaFullScreenPage extends StatelessWidget {
-  const MediaFullScreenPage({Key? key}) : super(key: key);
+  const MediaFullScreenPage({super.key});
 
   @override
   Widget build(BuildContext context) {

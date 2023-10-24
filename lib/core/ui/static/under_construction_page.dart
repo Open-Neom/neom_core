@@ -11,7 +11,7 @@ class UnderConstructionPage extends StatelessWidget {
 
   final Color? color;
 
-  const UnderConstructionPage({this.color, Key? key}) : super(key: key);
+  const UnderConstructionPage({this.color, super.key});
 
   @override
   Widget build(BuildContext context) {

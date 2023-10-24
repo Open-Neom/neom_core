@@ -38,7 +38,8 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
   Future<void> removeByReferenceActivity(String ownerId, ActivityFeedType activityFeedType,
       {String activityReferenceId = ""}) async {
 
-    logger.d("");
+    logger.d("removeByReferenceActivity");
+
 
     try {
       QuerySnapshot querySnapshot = await activityFeedReference
@@ -65,7 +66,7 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
   @override
   Future<String> insert(ActivityFeed activityFeed) async {
     //add only activity my by other user (to avoid getting notification for our own like)
-    logger.v("Insert Activity Feed");
+    logger.d("Insert Activity Feed");
     bool isNotActivityOwner = activityFeed.profileId != activityFeed.ownerId;
     String activityFeedId = "";
 
@@ -89,7 +90,7 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
   @override
   Future<List<ActivityFeed>> retrieve(String profileId) async {
 
-    logger.v("");
+    logger.t("");
     List<ActivityFeed> feedItems=[];
 
     try {

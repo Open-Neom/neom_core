@@ -153,7 +153,7 @@ class Itemlist {
       totalItems = totalItems + (chamberPresets?.length ?? 0);
     }
 
-    AppUtilities.logger.v("Retrieving $totalItems Total Items.");
+    AppUtilities.logger.t("Retrieving $totalItems Total Items.");
     return totalItems;
   }
 
@@ -194,7 +194,7 @@ class Itemlist {
       }
     }
 
-    AppUtilities.logger.v("Retrieving ${imgUrls.length} total Images for itemlist $name.");
+    AppUtilities.logger.t("Retrieving ${imgUrls.length} total Images for itemlist $name.");
     return imgUrls;
   }
 

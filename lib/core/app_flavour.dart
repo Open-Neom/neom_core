@@ -572,4 +572,67 @@ class AppFlavour {
     }
   }
 
+  static String getSplashSubtitle() {
+    switch (appInUse) {
+      case AppInUse.gigmeout:
+        return appProperties['splashSubText'];
+      case AppInUse.emxi:
+        return appProperties['splashSubText'];
+      case AppInUse.cyberneom:
+        return appProperties['splashSubText'];
+    }
+  }
+
+  static List<BlogArticle> getBlogArticles() {
+    List<BlogArticle> articles = [];
+    switch (appInUse) {
+      case AppInUse.gigmeout:
+        articles = [
+          BlogArticle(
+              writerName: appProperties['blogWriterName_0'],
+              writeImgUrl: appProperties['blogWriterImgUrl_0'],
+              articleDescription: appProperties['blogArticleDescription_0'],
+              articleUrl: appProperties['blogArticleUrl_0'],
+          ),
+          BlogArticle(
+            writerName: appProperties['blogWriterName_1'],
+            writeImgUrl: appProperties['blogWriterImgUrl_1'],
+            articleDescription: appProperties['blogArticleDescription_1'],
+            articleUrl: appProperties['blogArticleUrl_1'],
+          ),
+          BlogArticle(
+            writerName: appProperties['blogWriterName_2'],
+            writeImgUrl: appProperties['blogWriterImgUrl_2'],
+            articleDescription: appProperties['blogArticleDescription_2'],
+            articleUrl: appProperties['blogArticleUrl_2'],
+          ),
+        ];
+      case AppInUse.emxi:
+        articles = [
+          BlogArticle(
+            writerName: appProperties['blogWriterName_0'],
+            writeImgUrl: appProperties['blogWriterImgUrl_0'],
+            articleDescription: appProperties['blogArticleDescription_0'],
+            articleUrl: appProperties['blogArticleUrl_0'],
+          ),
+          BlogArticle(
+            writerName: appProperties['blogWriterName_1'],
+            writeImgUrl: appProperties['blogWriterImgUrl_1'],
+            articleDescription: appProperties['blogArticleDescription_1'],
+            articleUrl: appProperties['blogArticleUrl_1'],
+          ),
+          BlogArticle(
+            writerName: appProperties['blogWriterName_2'],
+            writeImgUrl: appProperties['blogWriterImgUrl_2'],
+            articleDescription: appProperties['blogArticleDescription_2'],
+            articleUrl: appProperties['blogArticleUrl_2'],
+          ),
+        ];
+      case AppInUse.cyberneom:
+        break;
+    }
+
+    return articles;
+  }
+
 }

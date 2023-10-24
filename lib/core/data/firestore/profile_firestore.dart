@@ -112,7 +112,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<AppProfile> retrieve(String profileId) async {
-    logger.v("Retrieving Profile $profileId");
+    logger.t("Retrieving Profile $profileId");
     AppProfile profile = AppProfile();
 
     try {
@@ -125,7 +125,7 @@ class ProfileFirestore implements ProfileRepository {
           }
         }
 
-        logger.v(profile.id.isNotEmpty
+        logger.t(profile.id.isNotEmpty
             ? "Profile ${profile.toString()}"
             : "Profile not found"
         );
@@ -223,12 +223,12 @@ class ProfileFirestore implements ProfileRepository {
           .collection(AppFirestoreCollectionConstants.profiles).get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        logger.v("Snapshot is not empty");
+        logger.t("Snapshot is not empty");
         for (var profileSnapshot in querySnapshot.docs) {
           AppProfile profile = AppProfile.fromJSON(profileSnapshot.data());
           if(profileType == null || profile.type == profileType) {
             profile.id = profileSnapshot.id;
-            logger.v(profile.toString());
+            logger.t(profile.toString());
             profiles.add(profile);
           }
         }
@@ -237,7 +237,7 @@ class ProfileFirestore implements ProfileRepository {
       logger.e(e.toString());
     }
 
-    logger.v("${profiles .length} profiles found");
+    logger.t("${profiles .length} profiles found");
     return profiles;
   }
 
@@ -515,7 +515,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> removePost(String profileId, String postId) async {
-    logger.d("$profileId would remove $postId");
+    logger.t("$profileId would remove $postId");
 
     try {
 
@@ -1366,7 +1366,7 @@ class ProfileFirestore implements ProfileRepository {
 
       for (var profile in querySnapshot.docs) {
         if(profile.id == profileId) {
-          logger.v("Reference id: ${profile.reference.parent.parent?.id ?? ""}");
+          logger.t("Reference id: ${profile.reference.parent.parent?.id ?? ""}");
           DocumentReference documentReference = profile.reference;
           userId = documentReference.parent.parent?.id ?? "";
 
@@ -1436,7 +1436,7 @@ class ProfileFirestore implements ProfileRepository {
       if(profile.type == ProfileType.host) {
         profile.places = await PlaceFirestore().retrievePlaces(profile.id);
         if(profile.places!.isEmpty) {
-          logger.v("Places not found");
+          logger.t("Places not found");
         }
       }
 
@@ -1449,8 +1449,8 @@ class ProfileFirestore implements ProfileRepository {
 
       profile.genres = await GenreFirestore().retrieveGenres(profile.id);
       profile.itemlists = await ItemlistFirestore().fetchAll(profileId: profile.id);
-      if(profile.genres!.isEmpty) logger.v("Genres not found");
-      if(profile.itemlists!.isEmpty) logger.v("Itemlists not found");
+      if(profile.genres!.isEmpty) logger.t("Genres not found");
+      if(profile.itemlists!.isEmpty) logger.t("Itemlists not found");
 
     } catch(e) {
       logger.e(e.toString());

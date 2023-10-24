@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../core/ui/widgets/header_intro.dart';
+import '../../../core/utils/app_color.dart';
 import '../../../core/utils/app_theme.dart';
 import '../../../core/utils/constants/app_page_id_constants.dart';
 import '../../../core/utils/constants/app_translation_constants.dart';
@@ -12,7 +13,7 @@ import '../widgets/login_widgets.dart';
 import 'login_controller.dart';
 
 class LoginPage extends StatelessWidget {
-  const LoginPage({Key? key}) : super(key: key);
+  const LoginPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -20,23 +21,23 @@ class LoginPage extends StatelessWidget {
         id: AppPageIdConstants.login,
         init: LoginController(),
         builder: (_) => Scaffold(
-          body: Container(
-            width: AppTheme.fullWidth(context),
-            height: AppTheme.fullHeight(context),
-            decoration: AppTheme.appBoxDecoration,
-            child: _.isLoading ? Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const CircularProgressIndicator(),
-                AppTheme.heightSpace20,
-                Text(AppTranslationConstants.loadingAccount.tr,
-                  style: const TextStyle(fontSize: 20)
-                )
-              ])
-              : SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
+          backgroundColor: AppColor.main50,
+          body: SingleChildScrollView(
+            child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 40.0),
-              child: Column(
+              width: AppTheme.fullWidth(context),
+              height: AppTheme.fullHeight(context),
+              decoration: AppTheme.appBoxDecoration,
+              child: _.isLoading ? Center(child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const CircularProgressIndicator(),
+                    AppTheme.heightSpace20,
+                    Text(AppTranslationConstants.loadingAccount.tr,
+                        style: const TextStyle(fontSize: 20)
+                    )
+                  ]))
+                  : Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   AppTheme.heightSpace50,

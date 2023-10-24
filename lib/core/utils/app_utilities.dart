@@ -2,12 +2,15 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
+import '../../neom_commons.dart';
 import '../data/implementations/geolocator_controller.dart';
 import 'app_color.dart';
 import 'constants/app_route_constants.dart';
@@ -49,7 +52,8 @@ class AppUtilities {
     );
   }
 
-  static void showSnackBar(String title, String message, {Duration duration = const Duration(seconds: 2)}) {
+  static void showSnackBar({String title = '', String message = '', Duration duration = const Duration(seconds: 3)}) {
+    if(title.isEmpty) title = AppFlavour.appInUse.value;
     Get.snackbar(title.tr, message.tr,
         snackPosition: SnackPosition.bottom,
         duration: duration
@@ -66,7 +70,7 @@ class AppUtilities {
       double refLongitude = refUserPos.longitude;
 
       int distanceInMeters = Geolocator.distanceBetween(mainLatitude, mainLongitude, refLatitude, refLongitude).round();
-      logger.v("Distance between positions $distanceInMeters");
+      logger.t("Distance between positions $distanceInMeters");
 
       distanceKm = (distanceInMeters / 1000).round();
     } catch (e) {
@@ -84,7 +88,7 @@ class AppUtilities {
     double refLongitude = refUserPos.longitude;
 
     int distanceInMeters = Geolocator.distanceBetween(mainLatitude, mainLongitude, refLatitude, refLongitude).round();
-    logger.v("Distance between positions $distanceInMeters");
+    logger.t("Distance between positions $distanceInMeters");
 
     return (distanceInMeters / 1000);
   }
@@ -105,7 +109,7 @@ class AppUtilities {
       address = country;
     }
 
-    logger.v(address);
+    logger.t(address);
     return address;
   }
 
@@ -142,7 +146,7 @@ class AppUtilities {
     formattedDate = DateFormat(dateFormat)
         .format(DateTime.fromMillisecondsSinceEpoch(dateMsSinceEpoch));
 
-    AppUtilities.logger.v("Date formatted to: $formattedDate");
+    AppUtilities.logger.t("Date formatted to: $formattedDate");
 
     return formattedDate;
   }
@@ -240,6 +244,77 @@ class AppUtilities {
     } else {
       return true;
     }
+  }
+
+  static Future<File> cropImage(XFile mediaFile, {double ratioX = 1, double ratioY = 1}) async {
+    AppUtilities.logger.d("Initializing Image Cropper");
+
+    File croppedImageFile = File("");
+    try {
+      CroppedFile? croppedFile = await ImageCropper().cropImage(
+        sourcePath: mediaFile.path,
+        aspectRatio: CropAspectRatio(
+            ratioX: ratioX,
+            ratioY: ratioY
+        ),
+        uiSettings: [
+          AndroidUiSettings(
+              toolbarTitle: AppTranslationConstants.adjustImage.tr,
+              backgroundColor: AppColor.getMain(),
+              toolbarColor: AppColor.getMain(),
+              toolbarWidgetColor: AppColor.white,
+              statusBarColor: AppColor.getMain(),
+              dimmedLayerColor: AppColor.main50,
+              activeControlsWidgetColor: AppColor.yellow,
+              // initAspectRatio: CropAspectRatioPreset.square,
+          ),
+          IOSUiSettings(
+            title: AppTranslationConstants.adjustImage.tr,
+            cancelButtonTitle: AppTranslationConstants.cancel.tr,
+            doneButtonTitle: AppTranslationConstants.done.tr,
+            minimumAspectRatio: 1.0,
+            showCancelConfirmationDialog: true,
+            aspectRatioLockEnabled: true,
+          )
+        ],
+        aspectRatioPresets: [
+          CropAspectRatioPreset.square,
+          CropAspectRatioPreset.ratio3x2,
+          CropAspectRatioPreset.original,
+          CropAspectRatioPreset.ratio4x3,
+          CropAspectRatioPreset.ratio16x9
+        ],
+      );
+
+      croppedImageFile = File(croppedFile?.path ?? "");
+
+
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+    AppUtilities.logger.d("Cropped Image in file ${croppedImageFile.path}");
+
+    return croppedImageFile;
+  }
+
+  static Future<XFile> compressImageFile(XFile imageFile) async {
+
+    XFile compressedImageFile = XFile('');
+
+    try {
+      final lastIndex = imageFile.path.lastIndexOf(RegExp(r'.jp'));
+
+      if(lastIndex >= 0) {
+        String subPath = imageFile.path.substring(0, (lastIndex));
+        String outPath = "${subPath}_out${imageFile.path.substring(lastIndex)}";
+        compressedImageFile = await FlutterImageCompress.compressAndGetFile(imageFile.path, outPath) ?? XFile("");
+      }
+    } catch(e) {
+      AppUtilities.logger.e(e.toString());
+    }
+
+
+    return compressedImageFile;
   }
 
 }

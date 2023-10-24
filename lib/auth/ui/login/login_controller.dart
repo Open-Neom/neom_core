@@ -108,7 +108,7 @@ class LoginController extends GetxController implements LoginService {
 
   @override
   Future<void> handleAuthChanged(user) async {
-    logger.v("");
+    logger.t("");
     authStatus = AuthStatus.waiting;
 
     try {
@@ -489,10 +489,8 @@ class LoginController extends GetxController implements LoginService {
     } catch (e) {
       logger.e(e.toString());
       AppUtilities.showSnackBar(
-        MessageTranslationConstants.underConstruction.tr,
-        e.toString(),
-          duration: const Duration(seconds: 2)
-
+        title: MessageTranslationConstants.underConstruction.tr,
+        message: e.toString(),
       );
     }
 

@@ -5,7 +5,7 @@ class StarRating extends StatefulWidget {
 
   final double rating;
 
-  const StarRating(this.rating, {Key? key}) : super(key: key);
+  const StarRating(this.rating, {super.key});
 
   @override
   StarRatingState createState() => StarRatingState();

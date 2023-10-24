@@ -11,7 +11,7 @@ class HeaderIntro extends StatelessWidget{
   final bool showLogo;
   final bool showPreLogo;
 
-  const HeaderIntro({this.title = "", this.subtitle = "", this.showLogo = true, this.showPreLogo = true, Key? key}) : super(key: key);
+  const HeaderIntro({this.title = "", this.subtitle = "", this.showLogo = true, this.showPreLogo = true, super.key});
 
   @override
   Widget build(BuildContext context) {

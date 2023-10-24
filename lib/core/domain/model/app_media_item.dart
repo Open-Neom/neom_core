@@ -107,7 +107,7 @@ class AppMediaItem {
 
   factory AppMediaItem.fromJSON(map) {
     try {
-      AppUtilities.logger.v("AppMediaItem fromJSON: ${map['name'] ?? ''}");
+      AppUtilities.logger.t("AppMediaItem fromJSON: ${map['name'] ?? ''}");
       int dur = 0;
 
       if(map['duration'] is String && map['duration'].toString().contains(":")) {
@@ -311,7 +311,7 @@ class AppMediaItem {
     //   });
     // }
 
-    AppUtilities.logger.v("Retrieving ${appMediaItems.length} total AppMediaItems.");
+    AppUtilities.logger.t("Retrieving ${appMediaItems.length} total AppMediaItems.");
     return appMediaItems;
   }
 

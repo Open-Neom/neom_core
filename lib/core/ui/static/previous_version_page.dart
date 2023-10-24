@@ -6,7 +6,7 @@ import '../../utils/constants/app_constants.dart';
 
 
 class PreviousVersionPage extends StatelessWidget {
-  const PreviousVersionPage({Key? key}) : super(key: key);
+  const PreviousVersionPage({super.key});
 
   @override
   Widget build(BuildContext context) {

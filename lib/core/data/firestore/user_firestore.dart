@@ -176,7 +176,7 @@ class UserFirestore implements UserRepository {
 
   @override
   Future<bool> isAvailableEmail(String email) async {
-    logger.v("Verify if email $email is already in use");
+    logger.t("Verify if email $email is already in use");
 
     try {
       QuerySnapshot querySnapshot = await userReference
@@ -188,7 +188,7 @@ class UserFirestore implements UserRepository {
         return false;
       }
 
-      logger.v("Email is available");
+      logger.t("Email is available");
       return true;
 
     } catch (e) {
@@ -281,7 +281,7 @@ class UserFirestore implements UserRepository {
 
   @override
   Future<bool> updatePhotoUrl(String userId, String photoUrl) async {
-    logger.v("updatePhotoUrl");
+    logger.t("updatePhotoUrl");
 
     try {
       DocumentSnapshot documentSnapshot = await userReference.doc(userId).get();
@@ -357,7 +357,7 @@ class UserFirestore implements UserRepository {
 
   @override
   Future<void> updateLastTimeOn(String userId) async {
-    logger.v("updating LastTimeOn for user $userId");
+    logger.t("updating LastTimeOn for user $userId");
 
     try {
       DocumentSnapshot documentSnapshot = await userReference.doc(userId).get();
@@ -442,7 +442,7 @@ class UserFirestore implements UserRepository {
 
           if(needsPhone && user.phoneNumber.isEmpty) {
             usersWOPhone.add(user);
-            logger.v("${user.name} has no phone number");
+            logger.t("${user.name} has no phone number");
             continue;
           }
 
@@ -501,10 +501,10 @@ class UserFirestore implements UserRepository {
                       }
                       user.profiles.add(profile);
                     } else {
-                      logger.v("Profile ${profile.id} ${profile.name} is out of max distance");
+                      logger.t("Profile ${profile.id} ${profile.name} is out of max distance");
                     }
                   } else {
-                    logger.v("Profile ${profile.id} ${profile.name} has not posts");
+                    logger.t("Profile ${profile.id} ${profile.name} has not posts");
                   }
 
                 }

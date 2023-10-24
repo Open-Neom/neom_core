@@ -883,5 +883,21 @@ class AppTranslationConstants {
   static const String releaseItemNameMsg = "releaseItemNameMsg";
   static const String releaseItemFileMsg = "releaseItemFileMsg";
   static const String noLyricsAvailable = "noLyricsAvailable";
-  
+  static const String splashSubtitle = "splashSubtitle";
+  static const String poweredBy = 'Powered by';
+  static const String listenOnSpotify = 'listenOnSpotify';
+  static const String copied = 'copied';
+  static const String videoAboveSizeMsg = 'videoAboveSizeMsg';
+  static const String loose = 'loose';
+  static const String allowedContentReminderMsg = 'allowedContentReminderMsg';
+
+  static const String openCropPage = 'openCropPage';
+  static const String videoEditor = 'videoEditor';
+  static const String videoCropper = 'videoCropper';
+  static const String leaveVideoEditor = 'leaveVideoEditor';
+  static const String processingVideo = 'processingVideo';
+  static const String processVideo = 'processVideo';
+  static const String wantToCloseEditor = 'wantToCloseEditor';
+  static const String removeThisComment = 'removeThisComment';
+
 }

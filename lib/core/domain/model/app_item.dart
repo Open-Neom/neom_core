@@ -1,4 +1,4 @@
-///DEPRECATED
+//DEPRECATED
 // import 'package:spotify/spotify.dart';
 //
 // import '../../utils/app_utilities.dart';

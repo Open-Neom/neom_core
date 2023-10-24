@@ -27,14 +27,14 @@ class PostFirestore implements PostRepository {
       QuerySnapshot querySnapshot = await postsReference.get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        logger.v("Snapshot is not empty");
+        logger.t("Snapshot is not empty");
         for (var postSnapshot in querySnapshot.docs) {
           Post post = Post.fromJSON(postSnapshot.data());
           post.id = postSnapshot.id;
-          logger.v(post.toString());
+          logger.t(post.toString());
           posts.add(post);
         }
-        logger.v("${posts.length} posts found");
+        logger.t("${posts.length} posts found");
       }
     } catch (e) {
       logger.e(e.toString());
@@ -98,7 +98,7 @@ class PostFirestore implements PostRepository {
 
   @override
   Future<bool> remove(String profileId, String postId) async {
-    logger.d("");
+    logger.t("remove Post");
     bool wasDeleted = false;
     try {
       await postsReference.doc(postId).delete();
@@ -133,7 +133,7 @@ class PostFirestore implements PostRepository {
         AppFirestoreConstants.ownerId, isEqualTo: profileId).get();
 
     if (querySnapshot.docs.isNotEmpty) {
-      logger.v("Snapshot is not empty");
+      logger.t("Snapshot is not empty");
       for (int queryIndex = 0; queryIndex <
           querySnapshot.docs.length; queryIndex++) {
         Post post = Post.fromJSON(querySnapshot.docs.elementAt(queryIndex).data());
@@ -150,7 +150,7 @@ class PostFirestore implements PostRepository {
 
   @override
   Future<Map<String, Post>> getTimeline() async {
-    logger.v("");
+    logger.t("");
     Map<String, Post> posts = {};
 
     try {

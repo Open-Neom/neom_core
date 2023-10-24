@@ -5,7 +5,7 @@ import '../../utils/app_color.dart';
 import '../../utils/app_theme.dart';
 
 class CustomBackButton extends StatelessWidget {
-  const CustomBackButton({Key? key}) : super(key: key);
+  const CustomBackButton({super.key});
 
   @override
   Widget build(BuildContext context) {

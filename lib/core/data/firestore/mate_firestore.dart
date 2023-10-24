@@ -34,7 +34,7 @@ class MateFirestore implements MateRepository {
         }
       });
 
-      logger.v("Itemmate ${mate.toString()}");
+      logger.t("Itemmate ${mate.toString()}");
     } catch (e) {
       logger.e(e.toString());
     }

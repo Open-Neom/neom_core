@@ -35,7 +35,7 @@ class GeoLocatorController implements GeoLocatorService {
 
   @override
   Future<String> getAddressSimple(Position currentPos) async {
-    logger.d(currentPos.toString());
+    logger.t(currentPos.toString());
     String address = "";
     List<Placemark> placeMarks = [];
 
@@ -58,7 +58,7 @@ class GeoLocatorController implements GeoLocatorService {
     }
 
 
-    logger.d(address);
+    logger.t(address);
     return address;
   }
 
@@ -128,7 +128,7 @@ class GeoLocatorController implements GeoLocatorService {
       }
 
       position = await Geolocator.getCurrentPosition();
-      logger.v("Position: ${position.toString()}");
+      logger.t("Position: ${position.toString()}");
     } catch (e) {
       logger.e(e.toString());
     }
@@ -139,7 +139,7 @@ class GeoLocatorController implements GeoLocatorService {
 
   @override
   Future<Position> updateLocation(String profileId, Position? currentPosition) async {
-    logger.v("Updating Location for ProfileId $profileId");
+    logger.t("Updating Location for ProfileId $profileId");
 
     Position newPosition = Position(longitude: 0, latitude: 0, timestamp: DateTime.now(),
         accuracy: 0, altitude: 0, heading: 0, speed: 0, speedAccuracy: 0, altitudeAccuracy: 1, headingAccuracy: 1);
@@ -149,7 +149,7 @@ class GeoLocatorController implements GeoLocatorService {
       if(currentPosition != null) {
         int distance = AppUtilities.distanceBetweenPositionsRounded(currentPosition, newPosition);
         if(distance > AppConstants.significantDistanceKM){
-          logger.v("GpsLocation would be updated as distance difference is significant");
+          logger.t("GpsLocation would be updated as distance difference is significant");
           if(await ProfileFirestore().updatePosition(profileId, newPosition)){
             logger.i("GpsLocation was updated as distance was significant ${distance}Kms");
           }

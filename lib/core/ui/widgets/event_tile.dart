@@ -15,7 +15,7 @@ import '../../utils/constants/app_translation_constants.dart';
 class EventTile extends StatelessWidget {
 
   final Event event;
-  const EventTile(this.event, {Key? key}) : super(key: key);
+  const EventTile(this.event, {super.key});
 
   @override
   Widget build(BuildContext context) {

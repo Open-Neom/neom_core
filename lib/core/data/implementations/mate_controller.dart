@@ -1,5 +1,27 @@
-import 'package:get/get.dart';
+import 'dart:ui';
 
+import 'package:get/get.dart';
+import 'dart:core';
+
+import 'package:enum_to_string/enum_to_string.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
+
+import '../../app_flavour.dart';
+import '../../data/firestore/report_firestore.dart';
+import '../../data/implementations/user_controller.dart';
+import '../../domain/model/app_profile.dart';
+import '../../domain/model/report.dart';
+import '../../domain/use_cases/report_service.dart';
+import '../../utils/app_color.dart';
+import '../../utils/app_theme.dart';
+import '../../utils/app_utilities.dart';
+import '../../utils/constants/app_page_id_constants.dart';
+import '../../utils/constants/app_translation_constants.dart';
+import '../../utils/enums/reference_type.dart';
+import '../../utils/enums/report_type.dart';
 import '../../domain/model/app_media_item.dart';
 import '../../domain/model/app_profile.dart';
 import '../../domain/use_cases/geolocator_service.dart';
@@ -16,54 +38,21 @@ class MateController extends GetxController implements MateService {
 
   var logger = AppUtilities.logger;
   final userController = Get.find<UserController>();
-
-  final RxMap<String, AppProfile> _mates = <String, AppProfile>{}.obs;
-  Map<String, AppProfile> get mates => _mates;
-  set mates(Map<String, AppProfile> mates) => _mates.value = mates;
-
-  final RxMap<String, AppProfile> _followingProfiles = <String, AppProfile>{}.obs;
-  Map<String, AppProfile> get followingProfiles => _followingProfiles;
-  set followingProfiles(Map<String, AppProfile> followingProfiles) => _followingProfiles.value = followingProfiles;
-
-  final RxMap<String, AppProfile> _followerProfiles = <String, AppProfile>{}.obs;
-  Map<String, AppProfile> get followerProfiles => _followerProfiles;
-  set followerProfiles(Map<String, AppProfile> followerProfiles) => _followerProfiles.value = followerProfiles;
-
-  final RxMap<String, AppProfile> _profiles = <String, AppProfile>{}.obs;
-  Map<String, AppProfile> get profiles => _profiles;
-  set profiles(Map<String, AppProfile> profiles) => _profiles.value = profiles;
-
   AppProfile profile = AppProfile();
 
-  final RxString _address = "".obs;
-  String get address => _address.value;
-  set address(String address) => _address.value = address;
-
-  final RxDouble _distance = 0.0.obs;
-  double get distance => _distance.value;
-  set distance(double distance) => _distance.value = distance;
-
-  final RxMap<String, AppMediaItem> _totalItems = <String, AppMediaItem>{}.obs;
-  Map<String, AppMediaItem> get totalItems => _totalItems;
-  set totalItems(Map<String, AppMediaItem> totalItems) => _totalItems.value = totalItems;
-
-  final RxMap<String, AppProfile> _totalProfiles = <String, AppProfile>{}.obs;
-  Map<String, AppProfile> get totalProfiles => _totalProfiles;
-  set totalProfiles(Map<String, AppProfile> totalProfiles) => _totalProfiles.value = totalProfiles;
-
-  final RxBool _following = false.obs;
-  bool get following => _following.value;
-  set following(bool following) => _following.value = following;
-
-  final RxBool _isLoading = true.obs;
-  bool get isLoading => _isLoading.value;
-  set isLoading(bool isLoading) => _isLoading.value = isLoading;
+  final RxMap<String, AppProfile> mates = <String, AppProfile>{}.obs;
+  final RxMap<String, AppProfile> followingProfiles = <String, AppProfile>{}.obs;
+  final RxMap<String, AppProfile> followerProfiles = <String, AppProfile>{}.obs;
+  final RxMap<String, AppProfile> profiles = <String, AppProfile>{}.obs;
+  final RxString address = "".obs;
+  final RxDouble distance = 0.0.obs;
+  final RxMap<String, AppMediaItem> totalItems = <String, AppMediaItem>{}.obs;
+  final RxMap<String, AppProfile> totalProfiles = <String, AppProfile>{}.obs;
+  final RxBool following = false.obs;
+  final RxBool isLoading = true.obs;
+  final RxBool isButtonDisabled = false.obs;
 
   GeoLocatorService geoLocatorService = GeoLocatorController();
-
-  final RxBool _isButtonDisabled = false.obs;
-  bool get isButtonDisabled => _isButtonDisabled.value;
-  set isButtonDisabled(bool isButtonDisabled) => _isButtonDisabled.value = isButtonDisabled;
 
   List<String> mateIds = [];
   String mateId = "";
@@ -105,13 +94,13 @@ class MateController extends GetxController implements MateService {
 
     try {
       if(profile.itemmates?.isNotEmpty ?? false) {
-        mates = await MateFirestore().getMatesFromList(profile.itemmates!);
+        mates.value = await MateFirestore().getMatesFromList(profile.itemmates!);
       }
     } catch (e) {
       logger.e(e.toString());
     }
 
-    isLoading = false;
+    isLoading.value = false;
     update([AppPageIdConstants.mates, AppPageIdConstants.search]);
   }
 
@@ -121,14 +110,14 @@ class MateController extends GetxController implements MateService {
 
     try {
       if(profile.following?.isNotEmpty ?? false) {
-        followingProfiles = await MateFirestore().getMatesFromList(profile.following!);
+        followingProfiles.value = await MateFirestore().getMatesFromList(profile.following!);
       }
 
     } catch (e) {
       logger.e(e.toString());
     }
 
-    isLoading = false;
+    isLoading.value = false;
     logger.d("${followingProfiles.length} followingProfiles  found ");
     update([AppPageIdConstants.mates, AppPageIdConstants.search]);
   }
@@ -139,13 +128,13 @@ class MateController extends GetxController implements MateService {
 
     try {
       if(profile.followers?.isNotEmpty ?? false) {
-        followerProfiles = await MateFirestore().getMatesFromList(profile.followers!);
+        followerProfiles.value = await MateFirestore().getMatesFromList(profile.followers!);
       }
     } catch (e) {
       logger.e(e.toString());
     }
 
-    isLoading = false;
+    isLoading.value = false;
     logger.d("${followingProfiles.length} followingProfiles  found ");
     update([AppPageIdConstants.mates, AppPageIdConstants.search]);
   }
@@ -156,20 +145,20 @@ class MateController extends GetxController implements MateService {
     logger.d("");
 
     try {
-      mates = await MateFirestore().getMatesFromList(mateIds);
+      mates.value = await MateFirestore().getMatesFromList(mateIds);
     } catch (e) {
       logger.e(e.toString());
     }
 
     logger.d("${mates.length} mates found ");
-    isLoading = false;
+    isLoading.value = false;
     update([AppPageIdConstants.mates, AppPageIdConstants.search,
       AppPageIdConstants.following, AppPageIdConstants.followers, AppPageIdConstants.likes]);
   }
 
 
   void clear() {
-    mates = <String, AppProfile>{};
+    mates.value = <String, AppProfile>{};
   }
 
   @override
@@ -183,6 +172,7 @@ class MateController extends GetxController implements MateService {
           if(profile.name.toLowerCase().contains(name.toLowerCase())
               || profile.mainFeature.toLowerCase().contains(name.toLowerCase())
               || profile.mainFeature.tr.toLowerCase().contains(name.toLowerCase())
+              || profile.address.toLowerCase().contains(name.toLowerCase())
           ){
             filteredProfiles[profile.id] = profile;
           }
@@ -208,31 +198,47 @@ class MateController extends GetxController implements MateService {
   }
 
   @override
-  Future<void> loadProfiles() async {
+  Future<void> loadProfiles({bool includeAddress = false}) async {
     logger.d("");
     try {
-      profiles = await ProfileFirestore().retrieveAllProfiles();
+      profiles.value = await ProfileFirestore().retrieveAllProfiles();
       profiles.remove(profile.id);
+
+      ///VERIFY IF NEEDED
+      // if(includeAddress) {
+      //   Map<String, AppProfile> profilesWithAddress = {};
+      //   profiles.forEach((key, value) async {
+      //     if(value.position != null) {
+      //       String address = await AppUtilities.getAddressFromPlacerMark(value.position!);
+      //       if(address.isNotEmpty) {
+      //         value.address = address;
+      //         profilesWithAddress[key] = value;
+      //       }
+      //     } else {
+      //       profilesWithAddress[key] = value;
+      //     }
+      //   });
+      //
+      //   profiles.clear();
+      //   profiles = profilesWithAddress;
+      // }
     } catch (e) {
       logger.e(e.toString());
     }
 
-    isLoading = false;
+    isLoading.value = false;
     logger.d("${profiles.length} profiles found ");
     update([AppPageIdConstants.mates, AppPageIdConstants.search]);
   }
 
 
   @override
-  Future<void> block(String mateId) async {
+  Future<void> blockMate(String mateId) async {
     logger.d("");
     try {
-      if (await ProfileFirestore().blockProfile(
-          profileId: profile.id,
-          profileToBlock: mateId)) {
-
+      if (await ProfileFirestore().blockProfile(profileId: profile.id, profileToBlock: mateId)) {
         userController.profile.following!.remove(mateId);
-        following = false;
+        following.value = false;
         userController.profile.blockTo!.add(mateId);
       } else {
         logger.i("Something happened while blocking profile");
@@ -240,11 +246,52 @@ class MateController extends GetxController implements MateService {
     } catch (e) {
       logger.e(e.toString());
     }
-
-    Get.back();
-    Get.back();
-    update([AppPageIdConstants.mate, AppPageIdConstants.profile]);
+    
+    update([AppPageIdConstants.mate, AppPageIdConstants.profile, AppPageIdConstants.timeline]);
   }
 
-
+  @override
+  Future<void> showBlockProfileAlert(BuildContext context, String postOwnerId) async {
+    Alert(
+        context: context,
+        style: AlertStyle(
+          backgroundColor: AppColor.main50,
+          titleStyle: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        title: AppTranslationConstants.blockProfile.tr,
+        content: Column(
+          children: [
+            Text(AppTranslationConstants.blockProfileMsg.tr,
+              style: const TextStyle(fontSize: 15),
+            ),
+            AppTheme.heightSpace10,
+            Text(AppTranslationConstants.blockProfileMsg2.tr,
+              style: const TextStyle(fontSize: 15),
+            ),
+          ],),
+        buttons: [
+          DialogButton(
+            color: AppColor.bondiBlue75,
+            onPressed: () => Navigator.pop(context),
+            child: Text(AppTranslationConstants.goBack.tr,
+              style: const TextStyle(fontSize: 15),
+            ),
+          ),
+          DialogButton(
+            color: AppColor.bondiBlue75,
+            onPressed: () async {
+              if(!isButtonDisabled.value) {
+                await blockMate(postOwnerId);
+                Navigator.pop(context);
+                Navigator.pop(context);
+                AppUtilities.showSnackBar(message: AppTranslationConstants.blockedProfileMsg);
+              }
+            },
+            child: Text(AppTranslationConstants.toBlock.tr,
+              style: const TextStyle(fontSize: 15),
+            ),
+          )
+        ]
+    ).show();
+  }
 }

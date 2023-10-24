@@ -33,10 +33,9 @@ class SponsorFirestore implements SponsorRepository {
     return sponsorId;
   }
 
-
   @override
   Future<Map<String, Sponsor>> getSponsorsTimeline() async {
-    logger.v("");
+    logger.t("");
     Map<String, Sponsor> sponsors = {};
 
     try {
@@ -59,7 +58,6 @@ class SponsorFirestore implements SponsorRepository {
     //documentTimelineCounter++;
     return sponsors;
   }
-
 
   @override
   Future<Map<String, Sponsor>> getNextSponsorsTimeline() async {

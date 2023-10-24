@@ -34,7 +34,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
 
   @override
   Future<Map<String, AppReleaseItem>> retrieveAll() async {
-    logger.v("Get all AppReleaseItem");
+    logger.t("Get all AppReleaseItem");
 
     Map<String, AppReleaseItem> releaseItems = {};
     try {
@@ -53,7 +53,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
       logger.e(e.toString());
     }
 
-    logger.v("${releaseItems.length} releaseItems found");
+    logger.t("${releaseItems.length} releaseItems found");
     return releaseItems;
   }
 

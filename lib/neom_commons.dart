@@ -145,7 +145,6 @@ export 'core/ui/widgets/custom_widgets.dart';
 export 'core/ui/widgets/diagonally_cut_colored_image.dart';
 export 'core/ui/widgets/event_tile.dart';
 export 'core/ui/widgets/genres_grid_view.dart';
-export 'core/ui/widgets/header.dart';
 export 'core/ui/widgets/header_intro.dart';
 export 'core/ui/widgets/position_back_button.dart';
 export 'core/ui/widgets/post_tile.dart';

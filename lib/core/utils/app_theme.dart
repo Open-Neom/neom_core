@@ -85,7 +85,7 @@ class AppTheme {
   static const double requestIconSize = 15.0;
 
   static const String fontFamily = "Open-Sans";
-  static const double aspectRatio = 16/9;
+  static const double landscapeAspectRatio = 16/9;
 
   static const TextStyle textStyle = TextStyle(
       fontFamily: AppTheme.fontFamily,
