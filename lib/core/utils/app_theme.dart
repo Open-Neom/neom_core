@@ -167,4 +167,10 @@ class AppTheme {
 
   static double imageRadius = 15;
 
+  static TextStyle eventTitleStyle = TextStyle(fontSize: 25.0, fontWeight: FontWeight.bold,);
+  static TextStyle headerTitleStyle = TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold, color: Colors.white);
+  static TextStyle headerSubtitleStyle = TextStyle(fontSize: 20.0, color: Colors.white);
+  static TextStyle eventMsgStyle = TextStyle(fontSize: 23.0, fontWeight: FontWeight.bold,);
+
+
 }

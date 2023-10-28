@@ -61,6 +61,8 @@ class AppConstants {
 
   static final profileTabs = ['posts', 'items', 'events'];
   static final eventTabs = ['items', 'going'];
+  static final itemTab = 'items';
+  static final goingTab = 'going';
   static final walletTabs = ['all', 'events', 'booking'];
   static final requestsTabs = ['invitations', 'sent', 'requests'];
 

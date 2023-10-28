@@ -14,6 +14,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../neom_commons.dart';
 import '../domain/model/app_media_item.dart';
+import '../domain/model/app_release_item.dart';
 import '../domain/model/neom/chamber_preset.dart';
 import 'enums/media_item_type.dart';
 
@@ -119,12 +120,24 @@ class CoreUtilities {
     return state;
   }
 
-  static Map<String, AppMediaItem> getTotalItems(Map<String, Itemlist> itemlists){
+  static Map<String, AppMediaItem> getTotalMediaItems(Map<String, Itemlist> itemlists){
     Map<String, AppMediaItem> totalItems = {};
 
     itemlists.forEach((key, itemlist) {
       for (var appMediaItem in itemlist.appMediaItems!) {
         totalItems[appMediaItem.id] = appMediaItem;
+      }
+    });
+
+    return totalItems;
+  }
+
+  static Map<String, AppReleaseItem> getTotalReleaseItems(Map<String, Itemlist> itemlists){
+    Map<String, AppReleaseItem> totalItems = {};
+
+    itemlists.forEach((key, itemlist) {
+      for (var appReleaseItem in itemlist.appReleaseItems!) {
+        totalItems[appReleaseItem.id] = appReleaseItem;
       }
     });
 
@@ -243,23 +256,59 @@ class CoreUtilities {
   // }
 
   static void launchURL(String url, {bool openInApp = true}) async {
-    if (await canLaunchUrl(Uri.parse(url))) {
-      await launchUrl(Uri.parse(url),
-        mode: openInApp ? LaunchMode.inAppWebView : LaunchMode.externalApplication
-      );
-    } else {
-      AppUtilities.logger.i('Could not launch $url');
+    try {
+      if (await canLaunchUrl(Uri.parse(url))) {
+        await launchUrl(Uri.parse(url),
+            mode: openInApp ? LaunchMode.inAppWebView : LaunchMode.externalApplication
+        );
+      } else {
+        AppUtilities.logger.i('Could not launch $url');
+      }
+    } catch(e) {
+      AppUtilities.logger.e(e.toString());
     }
   }
 
   static void launchWhatsappURL(String phone, String message) async {
-    String url = UrlConstants.whatsAppURL.replaceAll("<phoneNumber>", phone);
-    url = url.replaceAll("<message>", message);
+    try {
+      String url = UrlConstants.whatsAppURL.replaceAll("<phoneNumber>", phone);
+      url = url.replaceAll("<message>", message);
 
-    if (await canLaunchUrl(Uri.parse("https://$url"))) { //TODO Verify how to use constant
-      await launchUrl(Uri.parse(url));
-    } else {
-      AppUtilities.logger.i('Could not launch $url');
+      if (await canLaunchUrl(Uri.parse("https://$url"))) { //TODO Verify how to use constant
+        await launchUrl(Uri.parse(url));
+      } else {
+        AppUtilities.logger.i('Could not launch $url');
+      }
+    } catch(e) {
+      AppUtilities.logger.e(e.toString());
+    }
+  }
+
+  static void launchGoogleMaps({String? address, Place? place}) async {
+    try {
+      String mapsQuery = '';
+      if(address != null) {
+        mapsQuery = address;
+      } else if(place != null) {
+        StringBuffer placeAddress = StringBuffer();
+        placeAddress.write(place.name);
+        placeAddress.write(',');
+        placeAddress.write(place.address!.street);
+        placeAddress.write(',');
+        placeAddress.write(place.address!.city);
+        placeAddress.write(',');
+        placeAddress.write(place.address!.state);
+        placeAddress.write(',');
+        placeAddress.write(place.address!.country);
+        AppUtilities.logger.i(placeAddress.toString());
+        mapsQuery = placeAddress.toString();
+      }
+
+      String mapOptions = Uri.encodeComponent(mapsQuery);
+      final String googleMapsUrl = "https://www.google.com/maps/search/?api=1&query=$mapOptions";
+      launchURL(googleMapsUrl);
+    } catch(e) {
+      AppUtilities.logger.e(e.toString());
     }
   }
 
@@ -469,7 +518,7 @@ class CoreUtilities {
     UsageReason profileReason = UsageReason.any,
     int profileDistanceKm = 0})
   {
-    AppUtilities.logger.d("");
+    AppUtilities.logger.d("fulfillmentMatchedRequirements");
 
     bool requirementsMatched = false;
 

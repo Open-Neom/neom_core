@@ -252,19 +252,17 @@ class PostFirestore implements PostRepository {
 
 
   Future<bool> removeEventPost(String ownerId, String eventId) async {
-    logger.d("RetrievingProfiles");
+    logger.t('Remove Event Post $eventId');
     bool wasDeleted = false;
 
     try {
 
       QuerySnapshot querySnapshot = await postsReference.get();
       if (querySnapshot.docs.isNotEmpty) {
-        logger.d("Snapshot is not empty");
         for (var postSnapshot in querySnapshot.docs) {
           Post post = Post.fromJSON(postSnapshot.data());
           post.id = postSnapshot.id;
           if(post.referenceId == eventId) {
-            logger.i("Removing post for Event $eventId");
             await postSnapshot.reference.delete();
             wasDeleted = await ProfileFirestore().removePost(ownerId, postSnapshot.reference.id);
             await ActivityFeedFirestore().removePostActivity(postSnapshot.reference.id);

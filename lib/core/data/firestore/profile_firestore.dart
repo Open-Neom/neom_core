@@ -301,8 +301,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<List<AppProfile>> retrieveProfilesFromList(List<String> profileIds) async {
-
-    logger.d("RetrievingProfiles");
+    logger.t("RetrievingProfiles");
     List<AppProfile> profiles = <AppProfile>[];
 
     try {
@@ -780,7 +779,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> removeEvent(String profileId, String eventId, EventAction eventAction) async {
-    logger.d("$profileId would remove $eventId");
+    logger.t("$profileId would remove $eventId");
 
     try {
 
@@ -812,7 +811,7 @@ class ProfileFirestore implements ProfileRepository {
         }
       });
 
-      logger.d("$profileId has removed event $eventId");
+      logger.t("$profileId has removed event $eventId");
       return true;
     } catch (e) {
       logger.e(e.toString());
@@ -1146,7 +1145,7 @@ class ProfileFirestore implements ProfileRepository {
   @override
   Future<bool> addToWallet(String profileId, double amount, {AppCurrency appCurrency = AppCurrency.appCoin}) async {
 
-    logger.d("Entering addToWallet method from ProfileFirestore");
+    logger.d("addToWallet from ProfileFirestore for profileID $profileId");
     String userId = "";
     AppUser user = AppUser();
     QuerySnapshot userQuerySnapshot;
@@ -1158,7 +1157,7 @@ class ProfileFirestore implements ProfileRepository {
 
       for (var profile in querySnapshot.docs) {
         if(profile.id == profileId) {
-          logger.w("Reference id: ${profile.reference.parent.parent!.id}");
+          logger.i("Reference id: ${profile.reference.parent.parent!.id}");
           DocumentReference documentReference = profile.reference;
           userId = documentReference.parent.parent!.id;
 
@@ -1234,7 +1233,7 @@ class ProfileFirestore implements ProfileRepository {
 
       for (var profile in querySnapshot.docs) {
         if(profile.id == profileId) {
-          logger.w("Reference id: ${profile.reference.parent.parent!.id}");
+          logger.i("Reference id: ${profile.reference.parent.parent!.id}");
           DocumentReference documentReference = profile.reference;
           userId = documentReference.parent.parent!.id;
 

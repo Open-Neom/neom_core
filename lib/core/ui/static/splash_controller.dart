@@ -70,6 +70,9 @@ class SplashController extends GetxController {
         case AppRouteConstants.refresh:
           subtitle = AppTranslationConstants.updatingApp;
           break;
+        case AppRouteConstants.postUpload:
+          subtitle = AppTranslationConstants.updatingApp;
+          break;
         case "":
           logger.d("There is no fromRoute");
           break;
@@ -141,7 +144,7 @@ class SplashController extends GetxController {
         await Get.offAllNamed(AppRouteConstants.home);
         break;
       case AppRouteConstants.refresh:
-        Get.offAllNamed(AppRouteConstants.home);
+        await Get.offAllNamed(AppRouteConstants.home);
         break;
       case "":
         logger.d("There is no fromRoute");

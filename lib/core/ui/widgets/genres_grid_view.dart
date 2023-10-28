@@ -16,7 +16,7 @@ class GenresGridView extends StatelessWidget {
       {
         super.key,
         this.alignment = Alignment.center,
-        this.fontSize = 15,
+        this.fontSize = 14,
         this.crossAxisCount = 3,
       });
 
@@ -59,13 +59,9 @@ class GenresGridView extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     dot,
-                    Text(
-                        (genre.length < AppConstants.maxGenreNameLength
-                          ? genre :  genre.substring(0, AppConstants.maxGenreNameLength)).capitalize,
-                      style: TextStyle(
-                        color: color,
-                        fontSize: fontSize,
-                      ),
+                    Text((genre.length < AppConstants.maxGenreNameLength
+                        ? genre :  genre.substring(0, AppConstants.maxGenreNameLength)).capitalize,
+                      style: TextStyle(color: color, fontSize: fontSize,),
                       overflow: TextOverflow.ellipsis,
                     )
                   ]
@@ -73,7 +69,7 @@ class GenresGridView extends StatelessWidget {
             },
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: (genres.length / crossAxisCount).ceil(),
-              mainAxisExtent: (AppTheme.fullWidth(context)-20) / crossAxisCount,
+              mainAxisExtent: (AppTheme.fullWidth(context)-40)/crossAxisCount,
             ),
             padding: EdgeInsets.zero,
           ),

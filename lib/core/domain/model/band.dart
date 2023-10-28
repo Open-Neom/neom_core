@@ -44,6 +44,7 @@ class Band {
   List<String>? reviews;
 
   List<String>? appMediaItems;
+  List<String>? appReleaseItems;
   List<String>? playingEvents;
 
   List<String>? requests;
@@ -123,6 +124,7 @@ class Band {
       'events': events,
       'reviews': reviews,
       'appMediaItems': appMediaItems,
+      'appReleaseItems': appReleaseItems,
       'playingEvents': playingEvents,
       'requests': requests,
       'sentRequests': sentRequests,
@@ -156,6 +158,7 @@ class Band {
         events = data["events"]?.cast<String>() ?? [],
         reviews = data["reviews"]?.cast<String>() ?? [],
         appMediaItems = data["appMediaItems"]?.cast<String>() ?? [],
+        appReleaseItems = data["appReleaseItems"]?.cast<String>() ?? [],
         playingEvents = data["playingEvents"]?.cast<String>() ?? [],
         requests = data["requests"]?.cast<String>() ?? [],
         sentRequests = data["sentRequests"]?.cast<String>() ?? [],

@@ -899,5 +899,9 @@ class AppTranslationConstants {
   static const String processVideo = 'processVideo';
   static const String wantToCloseEditor = 'wantToCloseEditor';
   static const String removeThisComment = 'removeThisComment';
+  static const String removedEventMsg = 'removedEventMsg';
+  static const String noBandsWereFound = 'noBandsWereFound';
+  static const String postUploadErrorMsg = 'postUploadErrorMsg';
+
 
 }

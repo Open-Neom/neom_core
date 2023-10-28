@@ -113,7 +113,7 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
 
   @override
   Future<bool> removePostActivity(String postId) async {
-    logger.d("");
+    logger.t("Removing post $postId");
     bool postActivityFeedRemoved = false;
     QuerySnapshot querySnapshot = await feedItemsReference
         .where(AppFirestoreConstants.activityFeedId, isEqualTo: postId)
@@ -138,7 +138,7 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
 
   @override
   Future<bool> removeEventActivity(String eventId) async {
-    logger.d("");
+    logger.t("Remove event activity for $eventId");
     bool eventActivityFeedRemoved = false;
     QuerySnapshot querySnapshot = await feedItemsReference
         .where(AppFirestoreConstants.activityFeedId, isEqualTo: eventId)

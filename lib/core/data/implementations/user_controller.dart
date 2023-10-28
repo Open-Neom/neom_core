@@ -462,7 +462,11 @@ class UserController extends GetxController implements UserService {
         profile.chamberPresets!.add(key);
       });
 
-      CoreUtilities.getTotalItems(profile.itemlists!).forEach((key, value) {
+      CoreUtilities.getTotalMediaItems(profile.itemlists!).forEach((key, value) {
+        profile.favoriteItems!.add(key);
+      });
+
+      CoreUtilities.getTotalReleaseItems(profile.itemlists!).forEach((key, value) {
         profile.favoriteItems!.add(key);
       });
     } catch (e) {

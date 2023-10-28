@@ -25,13 +25,13 @@ class EventFirestore implements EventRepository {
 
   @override
   Future<Event> retrieve(String eventId) async {
-    logger.d("Retrieving Events");
+    logger.t("Retrieving Events");
     Event event = Event();
 
     try {
       DocumentSnapshot documentSnapshot = await eventsReference.doc(eventId).get();
       if (documentSnapshot.exists) {
-        logger.d("Snapshot is not empty");
+        logger.t("Snapshot is not empty");
         event = Event.fromJSON(documentSnapshot.data());
         event.id = documentSnapshot.id;
         logger.t(event.toString());
@@ -96,7 +96,7 @@ class EventFirestore implements EventRepository {
 
   @override
   Future<bool> remove(Event event) async {
-    logger.d("");
+    logger.t("Remove from firestore");
     bool wasDeleted = false;
     try {
       await eventsReference.doc(event.id).delete();

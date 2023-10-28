@@ -166,7 +166,7 @@ class RequestFirestore implements RequestRepository {
 
 
   Future<bool> removeEventRequests(String eventId) async {
-    logger.d("Retrieving Requests");
+    logger.t("Remove event requests for $eventId");
 
     bool requestsRemoved = false;
 

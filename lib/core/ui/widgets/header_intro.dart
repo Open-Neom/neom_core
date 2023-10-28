@@ -35,12 +35,7 @@ class HeaderIntro extends StatelessWidget{
               showLogo ? Container() : AppTheme.heightSpace20,
               Text(title,
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white.withOpacity(1.0),
-                  fontFamily: AppTheme.fontFamily,
-                  fontSize: 20.0,
-                  fontWeight: FontWeight.bold
-                ),
+                style: AppTheme.headerTitleStyle
               ),
             ],
           ),
@@ -50,11 +45,7 @@ class HeaderIntro extends StatelessWidget{
                   ? AppTheme.heightSpace10 : showLogo ? AppTheme.heightSpace20 : Container(),
               Text(subtitle,
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white.withOpacity(1.0),
-                  fontFamily: AppTheme.fontFamily,
-                  fontSize: 20.0,
-                ),
+                style: AppTheme.headerSubtitleStyle
               ),
             ],
           )

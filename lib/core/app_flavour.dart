@@ -37,6 +37,17 @@ class AppFlavour {
     }
   }
 
+  static String getJammingDefaultImgUrl() {
+    switch (appInUse) {
+      case AppInUse.gigmeout:
+        return appProperties['jammingLogo'];
+      case AppInUse.emxi:
+        return appProperties['jammingLogo'];
+      case AppInUse.cyberneom:
+        return '';
+    }
+  }
+
   static String getLinksUrl() {
     switch (appInUse) {
       case AppInUse.gigmeout:
@@ -633,6 +644,10 @@ class AppFlavour {
     }
 
     return articles;
+  }
+
+  static String getPaymentGatewayBaseURL() {
+    return appProperties['paymentGatewayBaseURL'];
   }
 
 }

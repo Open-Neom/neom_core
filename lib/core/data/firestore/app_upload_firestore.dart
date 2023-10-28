@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:logger/logger.dart';
-
+import 'package:neom_commons/core/utils/app_utilities.dart';
 import '../../domain/repository/app_upload_repository.dart';
 import '../../utils/enums/app_media_type.dart';
 import '../../utils/enums/upload_image_type.dart';
@@ -11,7 +11,6 @@ import 'constants/app_firestore_collection_constants.dart';
 
 class AppUploadFirestore implements AppUploadRepository {
 
-  var logger = Logger();
   final postsReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.posts);
   final Reference storageRef = FirebaseStorage.instance.ref();
 
@@ -19,12 +18,13 @@ class AppUploadFirestore implements AppUploadRepository {
   Future<String> uploadImage(String mediaId, File file, UploadImageType uploadImageType) async {
     String imgUrl = "";
     try {
-      UploadTask uploadTask = storageRef.child("${uploadImageType.name.toLowerCase()}""_$mediaId.jpg").putFile(file);
-
+      UploadTask uploadTask = storageRef.child("${uploadImageType.name.toLowerCase()}_imgs")
+          .child("${uploadImageType.name.toLowerCase()}_$mediaId.jpg").putFile(file);
       TaskSnapshot storageSnap = await uploadTask;
-      return await storageSnap.ref.getDownloadURL();
+
+      imgUrl = await storageSnap.ref.getDownloadURL();
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     return imgUrl;
@@ -32,9 +32,17 @@ class AppUploadFirestore implements AppUploadRepository {
 
   @override
   Future<String> uploadVideo(String mediaId, File file) async {
-    UploadTask uploadTask= storageRef.child('video_$mediaId.mp4').putFile(file); //, StorageMetadata(contentType: 'video/mp4')
-    TaskSnapshot storageSnap = await uploadTask;
-    return await storageSnap.ref.getDownloadURL();
+    String downloadURL = '';
+    try {
+      UploadTask uploadTask = storageRef.child('video_media')
+          .child('video_$mediaId.mp4').putFile(file);
+      TaskSnapshot storageSnap = await uploadTask;
+      downloadURL = await storageSnap.ref.getDownloadURL();
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+
+    return downloadURL;
   }
 
   @override
@@ -42,11 +50,12 @@ class AppUploadFirestore implements AppUploadRepository {
 
     String downloadURL = '';
     try {
-      UploadTask uploadTask = storageRef.child('ReleaseItems/$fileName.${type.value}').putFile(file);
+      UploadTask uploadTask = storageRef.child('releaseItems')
+          .child('$fileName.${type.value}').putFile(file);
       TaskSnapshot storageSnap = await uploadTask;
       downloadURL = await storageSnap.ref.getDownloadURL();
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     return downloadURL;
