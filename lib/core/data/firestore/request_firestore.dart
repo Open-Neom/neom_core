@@ -136,7 +136,7 @@ class RequestFirestore implements RequestRepository {
 
   @override
   Future<String> insert(AppRequest request) async {
-    logger.d("");
+    logger.d("insert request to firestore");
     String requestId = "";
     try {
       DocumentReference documentReference = await requestsReference.add(request.toJSON());

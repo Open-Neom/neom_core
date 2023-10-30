@@ -121,7 +121,7 @@ class EventFirestore implements EventRepository {
 
   @override
   Future<Map<String, Event>> getEvents() async {
-    logger.d("");
+    logger.t("getEvents");
     Map<String, Event> events = {};
 
     try {
@@ -130,7 +130,6 @@ class EventFirestore implements EventRepository {
           .limit(AppConstants.eventsLimit)
           .get();
 
-      logger.d("${snapshot.docs.length} Events Found as Snapshot");
       for (var documentSnapshot in snapshot.docs) {
         Event event = Event.fromJSON(documentSnapshot.data());
         event.id = documentSnapshot.id;

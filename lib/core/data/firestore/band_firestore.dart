@@ -29,7 +29,7 @@ class BandFirestore implements BandRepository {
         logger.d("Snapshot is not empty");
         band = Band.fromJSON(documentSnapshot.data());
         band.id = documentSnapshot.id;
-        band.bandMembers = await getBandMembers(band.id);
+        band.members = await getBandMembers(band.id);
         logger.d(band.toString());
       }
     } catch (e) {
@@ -49,7 +49,7 @@ class BandFirestore implements BandRepository {
       DocumentReference documentReference = await bandsReference.add(band.toJSON());
       bandId = documentReference.id;
 
-      for (var bandMember in band.bandMembers!.values) {
+      for (var bandMember in band.members!.values) {
         if(await addMemberToBand(bandMember, bandId) && bandMember.profileId.isNotEmpty) {
           if(await ProfileFirestore().addBand(bandMember.profileId, bandId)){
             logger.i("Band added to Profile ${bandMember.profileId}");
@@ -104,8 +104,8 @@ class BandFirestore implements BandRepository {
 
       await bandsReference.doc(band.id).delete();
 
-      for (var bandMemberId in band.bandMembers!.keys) {
-        BandMember bandMember = band.bandMembers?[bandMemberId] ?? BandMember();
+      for (var bandMemberId in band.members!.keys) {
+        BandMember bandMember = band.members?[bandMemberId] ?? BandMember();
 
         if(bandMemberId == bandMember.profileId) {
           if(await ProfileFirestore().removeBand(bandMember.profileId, band.id)){
@@ -143,7 +143,7 @@ class BandFirestore implements BandRepository {
         Band band = Band.fromJSON(documentSnapshot.data());
         band.id = documentSnapshot.id;
 
-        band.bandMembers = await getBandMembers(band.id);
+        band.members = await getBandMembers(band.id);
         bands[band.id] = band;
       }
 
@@ -172,7 +172,7 @@ class BandFirestore implements BandRepository {
         if(bandIds.contains(documentSnapshot.id)) {
           Band band = Band.fromJSON(documentSnapshot.data());
           band.id = documentSnapshot.id;
-          band.bandMembers = await getBandMembers(band.id);
+          band.members = await getBandMembers(band.id);
           bands[band.id] = band;
         }
       }
@@ -287,12 +287,11 @@ class BandFirestore implements BandRepository {
 
     try {
       QuerySnapshot querySnapshot = await bandsReference.doc(bandId)
-          .collection(AppFirestoreCollectionConstants.members)
-          .get();
+          .collection(AppFirestoreCollectionConstants.members).get();
       if (querySnapshot.docs.isNotEmpty) {
         logger.d("snapshot is not empty");
         for (var bandMemberSnapshot in querySnapshot.docs) {
-          BandMember bandMember = BandMember.fromQueryDocumentSnapshot(bandMemberSnapshot);
+          BandMember bandMember = BandMember.fromJSON(bandMemberSnapshot.data());
           logger.d(bandMember.toString());
 
           bandMembers[bandMember.profileId.isNotEmpty

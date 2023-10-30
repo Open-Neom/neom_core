@@ -1,6 +1,8 @@
 import 'package:enum_to_string/enum_to_string.dart';
 
 import '../../utils/enums/activity_feed_type.dart';
+import 'app_profile.dart';
+import 'event.dart';
 
 class ActivityFeed {
 
@@ -57,5 +59,34 @@ class ActivityFeed {
     'createdTime': createdTime,
     'unread': unread,
   };
+
+  Map<String, dynamic>  toJSONWithId()=>{
+    'id': id,
+    'ownerId': ownerId,
+    'profileId': profileId,
+    'profileName': profileName,
+    'profileImgUrl': profileImgUrl,
+    'message': message,
+    'activityReferenceId': activityReferenceId,
+    'activityFeedType': activityFeedType?.name ?? "",
+    'mediaUrl': mediaUrl,
+    'createdTime': createdTime,
+    'unread': unread,
+  };
+
+  ActivityFeed.fromEvent({required Event event, required AppProfile fromProfile,
+    required ActivityFeedType type, String msg = ''}) :
+        id = '',
+        ownerId = event.owner!.id,
+        profileId = fromProfile.id,
+        profileName = fromProfile.name,
+        profileImgUrl = fromProfile.photoUrl,
+        message = msg,
+        activityReferenceId = event.id,
+        activityFeedType = type,
+        mediaUrl = event.imgUrl,
+        createdTime = DateTime.now().millisecondsSinceEpoch,
+        unread = true;
+
 
 }

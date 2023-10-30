@@ -440,7 +440,7 @@ class CoreUtilities {
 
 
   static Map<String, AppMediaItem> getItemMatches(Map<String, AppMediaItem> totalItems, List<String> profileItems){
-    AppUtilities.logger.d("");
+    AppUtilities.logger.d("getItemMatches");
     Map<String, AppMediaItem> matchedItemms = <String,AppMediaItem>{};
 
     try {
@@ -479,7 +479,7 @@ class CoreUtilities {
     List<Instrument> bandInstrumentMatches = [];
 
     try {
-      for (var bandMember in band.bandMembers!.values) {
+      for (var bandMember in band.members!.values) {
         if(profileInstruments.containsKey(bandMember.instrument!.id)
             && bandMember.profileId.isEmpty) {
           bandInstrumentMatches.add(profileInstruments[bandMember.instrument!.id] ?? Instrument());

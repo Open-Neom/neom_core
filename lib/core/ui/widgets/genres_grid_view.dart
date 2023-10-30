@@ -31,15 +31,18 @@ class GenresGridView extends StatelessWidget {
     );
 
     double gridHeight = AppTheme.fullHeight(context);
+    int gridItems = genres.length;
 
-    if(genres.length <= crossAxisCount) {
-      gridHeight = (AppTheme.fullHeight(context) / 10) / (crossAxisCount/genres.length).ceil();
-    } else if(genres.length<15) {
-      gridHeight = (AppTheme.fullHeight(context) / 10) / (crossAxisCount/genres.length).ceil();
-    } else if(genres.length>=15) {
-      gridHeight = (AppTheme.fullHeight(context) / 6) / (crossAxisCount/genres.length).ceil();
+    if(gridItems <= crossAxisCount) {
+      gridHeight = (AppTheme.fullHeight(context)/13) / (crossAxisCount/gridItems).ceil();
+    } else if(gridItems<10) {
+      gridHeight = (AppTheme.fullHeight(context)/10) / (crossAxisCount/gridItems).ceil();
+    } else if(gridItems<15) {
+      gridHeight = (AppTheme.fullHeight(context)/8) / (crossAxisCount/gridItems).ceil();
+    } else if(gridItems>=15) {
+      gridHeight = (AppTheme.fullHeight(context)/6) / (crossAxisCount/gridItems).ceil();
     } else {
-      gridHeight = (AppTheme.fullHeight(context) / 6) / (crossAxisCount/genres.length).ceil();
+      gridHeight = (AppTheme.fullHeight(context)/6) / (crossAxisCount/gridItems).ceil();
     }
     return genres.isNotEmpty ? Container(
       constraints: BoxConstraints(
@@ -50,7 +53,7 @@ class GenresGridView extends StatelessWidget {
           alignment: alignment,
           height: gridHeight,
           child: GridView.builder(
-            itemCount: genres.length,
+            itemCount: gridItems,
             shrinkWrap: true,
             scrollDirection: Axis.horizontal,
             itemBuilder: (context, index) {
@@ -68,7 +71,7 @@ class GenresGridView extends StatelessWidget {
               );
             },
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: (genres.length / crossAxisCount).ceil(),
+              crossAxisCount: (gridItems/crossAxisCount).ceil(),
               mainAxisExtent: (AppTheme.fullWidth(context)-40)/crossAxisCount,
             ),
             padding: EdgeInsets.zero,

@@ -2,9 +2,9 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:logger/logger.dart';
-import 'package:neom_commons/core/utils/app_utilities.dart';
+
 import '../../domain/repository/app_upload_repository.dart';
+import '../../utils/app_utilities.dart';
 import '../../utils/enums/app_media_type.dart';
 import '../../utils/enums/upload_image_type.dart';
 import 'constants/app_firestore_collection_constants.dart';

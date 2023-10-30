@@ -35,7 +35,7 @@ class MapsController extends GetxController implements MapsService {
 
   @override
   Future<void> goToPosition(Position placePosition) async {
-    logger.d("");
+    logger.d("goToPosition");
 
     try {
       final GoogleMapController controller = await _controller.future;

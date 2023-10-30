@@ -56,7 +56,7 @@ class Band {
   ///These are retrieved from a Firebase Collection
   Map<String, Itemlist>? itemlists;
   Map<String, Genre>? genres;
-  Map<String, BandMember>? bandMembers;
+  Map<String, BandMember>? members;
 
   Band({
     this.id = "",
@@ -92,7 +92,7 @@ class Band {
 
   @override
   String toString() {
-    return 'Band{id: $id, name: $name, description: $description, photoUrl: $photoUrl, coverImgUrl: $coverImgUrl, reason: $reason, pricePerHour: $pricePerHour, reviewStars: $reviewStars, lastReview: $lastReview, isActive: $isActive, createdTime: $createdTime, lastSession: $lastSession, position: $position, bannedGenres: $bannedGenres, itemmates: $itemmates, eventmates: $eventmates, followers: $followers, following: $following, unfollowing: $unfollowing, posts: $posts, hiddenPosts: $hiddenPosts, hiddenComments: $hiddenComments, reports: $reports, events: $events, reviews: $reviews, playingEvents: $playingEvents, requests: $requests, sentRequests: $sentRequests, invitationRequests: $invitationRequests, isFulfilled: $isFulfilled, itemlists: $itemlists, genres: $genres, bandMembers: $bandMembers}';
+    return 'Band{id: $id, name: $name, description: $description, photoUrl: $photoUrl, coverImgUrl: $coverImgUrl, reason: $reason, pricePerHour: $pricePerHour, reviewStars: $reviewStars, lastReview: $lastReview, isActive: $isActive, createdTime: $createdTime, lastSession: $lastSession, position: $position, bannedGenres: $bannedGenres, itemmates: $itemmates, eventmates: $eventmates, followers: $followers, following: $following, unfollowing: $unfollowing, posts: $posts, hiddenPosts: $hiddenPosts, hiddenComments: $hiddenComments, reports: $reports, events: $events, reviews: $reviews, playingEvents: $playingEvents, requests: $requests, sentRequests: $sentRequests, invitationRequests: $invitationRequests, isFulfilled: $isFulfilled, itemlists: $itemlists, genres: $genres, bandMembers: $members}';
   }
 
   Map<String, dynamic> toJSON() {
