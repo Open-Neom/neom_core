@@ -3,6 +3,8 @@ import 'package:enum_to_string/enum_to_string.dart';
 import '../../utils/enums/activity_feed_type.dart';
 import 'app_profile.dart';
 import 'event.dart';
+import 'post.dart';
+import 'post_comment.dart';
 
 class ActivityFeed {
 
@@ -78,15 +80,42 @@ class ActivityFeed {
     required ActivityFeedType type, String msg = ''}) :
         id = '',
         ownerId = event.owner!.id,
+        activityReferenceId = event.id,
+        mediaUrl = event.imgUrl,
         profileId = fromProfile.id,
         profileName = fromProfile.name,
         profileImgUrl = fromProfile.photoUrl,
-        message = msg,
-        activityReferenceId = event.id,
         activityFeedType = type,
-        mediaUrl = event.imgUrl,
         createdTime = DateTime.now().millisecondsSinceEpoch,
+        message = msg,
         unread = true;
 
+  ActivityFeed.fromPost({required Post post, required AppProfile fromProfile,
+    required ActivityFeedType type, String msg = ''}) :
+        id = '',
+        ownerId = post.ownerId,
+        activityReferenceId = post.id,
+        mediaUrl = post.mediaUrl,
+        profileId = fromProfile.id,
+        profileName = fromProfile.name,
+        profileImgUrl = fromProfile.photoUrl,
+        activityFeedType = type,
+        createdTime = DateTime.now().millisecondsSinceEpoch,
+        message = msg,
+        unread = true;
+
+  ActivityFeed.fromComment({required PostComment comment, required ActivityFeedType type,
+    AppProfile? fromProfile, String? mediaUrl}) :
+        id = '',
+        ownerId = comment.ownerId,
+        activityReferenceId = comment.postId,
+        mediaUrl = mediaUrl ?? comment.mediaUrl,
+        profileId = fromProfile?.id ?? comment.ownerId,
+        profileName = fromProfile?.name ?? comment.ownerName,
+        profileImgUrl = fromProfile?.photoUrl ?? comment.ownerImgUrl,
+        activityFeedType = type,
+        createdTime = DateTime.now().millisecondsSinceEpoch,
+        message = comment.text,
+        unread = true;
 
 }

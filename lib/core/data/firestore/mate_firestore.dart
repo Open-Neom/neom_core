@@ -119,7 +119,7 @@ class MateFirestore implements MateRepository {
 
   @override
   Future<Map<String, AppProfile>> getMatesFromList(List<String> mateIds) async {
-    logger.d("Entering method getMates from List");
+    logger.t("Entering method getMates from List");
 
     Map<String, AppProfile> itemmates = {};
     if(mateIds.isEmpty) return itemmates;
@@ -127,17 +127,16 @@ class MateFirestore implements MateRepository {
     try {
       QuerySnapshot querySnapshot = await profileReference.get();
       if (querySnapshot.docs.isNotEmpty) {
-        logger.d("QuerySnapshot is not empty");
         for (var documentSnapshot in querySnapshot.docs) {
           if(mateIds.contains(documentSnapshot.id)){
             AppProfile mate = AppProfile.fromJSON(documentSnapshot.data());
             mate.id = documentSnapshot.id;
-            logger.d("Mate ${mate.id} was retrieved");
+            logger.t("Mate ${mate.id} was retrieved");
             itemmates[mate.id] = mate;
           }
         }
       }
-      logger.d("${itemmates.length} Mates found");
+      logger.t("${itemmates.length} Mates found");
     } catch (e) {
       logger.e(e.toString());
     }

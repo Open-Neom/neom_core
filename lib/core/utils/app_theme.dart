@@ -96,6 +96,7 @@ class AppTheme {
       fontWeight: FontWeight.w400);
 
   static const double postIconSize = 20;
+  static const double postIconSizeBigger = 23;
 
   static final BoxDecoration boxDecoration =
     BoxDecoration(
@@ -128,6 +129,7 @@ class AppTheme {
   static const SizedBox heightSpace5 = SizedBox(height: 5);
 
   static const SizedBox widthSpace20 = SizedBox(width: 20);
+  static const SizedBox widthSpace15 = SizedBox(width: 15);
   static const SizedBox widthSpace10 = SizedBox(width: 10);
   static const SizedBox widthSpace5 = SizedBox(width: 5);
 

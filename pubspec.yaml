@@ -86,7 +86,7 @@ dependencies:
   intl: ^0.18.1
   hashtagable_v3: ^3.0.1
   flutter_linkify: ^6.0.0
-  timeago: ^3.5.0 #To be Updated
+  timeago: ^3.6.0
   share_plus: ^7.2.1
   readmore: ^2.2.0
 

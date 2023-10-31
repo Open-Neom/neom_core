@@ -674,6 +674,7 @@ class ProfileFirestore implements ProfileRepository {
           if(document.id == profileId) {
             await document.reference.update({
               AppFirestoreConstants.name: profileName,
+              AppFirestoreConstants.lastNameUpdate: DateTime.now().millisecondsSinceEpoch,
             });
           }
         }
@@ -1397,7 +1398,6 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> isAvailableName(String profileName) async {
-
     logger.d("Verify if name $profileName is available to create this profile");
 
     try {
@@ -1406,10 +1406,9 @@ class ProfileFirestore implements ProfileRepository {
       if (querySnapshot.docs.isNotEmpty) {
         for(QueryDocumentSnapshot doc in querySnapshot.docs) {
           if(profileName == AppProfile.fromJSON(doc.data()).name) {
-            logger.i("Profile Name already in use");
+            logger.w("Profile Name already in use");
             return false;
           }
-
         }
       }
 

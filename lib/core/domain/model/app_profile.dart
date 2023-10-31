@@ -73,6 +73,7 @@ class AppProfile {
   Map<String, Place>? places;
 
   bool showInDirectory;
+  int lastNameUpdate = 0;
 
   AppProfile({
     this.id = "",
@@ -89,6 +90,7 @@ class AppProfile {
     this.isActive = false,
     this.type = ProfileType.instrumentist,
     this.showInDirectory = false,
+    this.lastNameUpdate = 0,
   });
 
 
@@ -140,6 +142,7 @@ class AppProfile {
       'sentRequests': sentRequests,
       'invitationRequests': invitationRequests,
       'showInDirectory': showInDirectory,
+      'lastNameUpdate': lastNameUpdate,
     };
   }
 
@@ -183,7 +186,8 @@ class AppProfile {
         requests = data["requests"]?.cast<String>() ?? [],
         sentRequests = data["sentRequests"]?.cast<String>() ?? [],
         invitationRequests = data["invitationRequests"]?.cast<String>() ?? [],
-        showInDirectory = data["showInDirectory"] ?? false;
+        showInDirectory = data["showInDirectory"] ?? false,
+        lastNameUpdate = data["lastNameUpdate"] ?? 0;
 
   AppProfile.fromProfileInstruments(data) :
         id = data["id"] ?? "",

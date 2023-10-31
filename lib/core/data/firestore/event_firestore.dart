@@ -147,20 +147,18 @@ class EventFirestore implements EventRepository {
 
   @override
   Future<Map<String, Event>> getEventsById(List<String> eventIds) async {
-
-    logger.d("Retrieving Events By Id");
+    logger.t("Retrieving ${eventIds.length} events By id from firestore");
     Map<String, Event> events = {};
 
     try {
       QuerySnapshot querySnapshot = await eventsReference.get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        logger.d("Snapshot is not empty");
         for (var documentSnapshot in querySnapshot.docs) {
           if(eventIds.contains(documentSnapshot.id)){
             Event event = Event.fromJSON(documentSnapshot.data());
             event.id = documentSnapshot.id;
-            logger.d(event.toString());
+            logger.t('Event ${event.name} retrieved');
             events[event.id] = event;
           }
         }
@@ -170,7 +168,7 @@ class EventFirestore implements EventRepository {
     }
 
 
-    logger.d("${events.length} events found");
+    logger.t("${events.length} events found");
     return events;
   }
 

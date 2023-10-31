@@ -46,7 +46,7 @@ class MateController extends GetxController implements MateService {
   @override
   void onInit() async {
     super.onInit();
-    logger.d("");
+    logger.t("onInit Mate Controller");
     try {
 
       profile = userController.profile;
@@ -58,14 +58,14 @@ class MateController extends GetxController implements MateService {
       }
 
       if(mateIds.isEmpty) {
-        //TODO Implement once algorithm of itemmates and eventmates is available.
+        ///TODO Implement once algorithm of itemmates and eventmates is available.
         //await loadItemmates();
         await loadProfiles();
       } else {
         await loadMatesFromList(mateIds);
       }
 
-
+      ///TODO Implement once algorithm of itemmates and eventmates is available.
       //totalProfiles.addAll(itemmates);
       totalProfiles.addAll(profiles);
     } catch (e) {
@@ -128,7 +128,7 @@ class MateController extends GetxController implements MateService {
 
   @override
   Future<void> loadMatesFromList(List<String> mateIds) async {
-    logger.d("");
+    logger.t("Load ${mateIds.length} mates from List");
 
     try {
       mates.value = await MateFirestore().getMatesFromList(mateIds);

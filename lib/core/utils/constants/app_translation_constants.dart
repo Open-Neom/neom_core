@@ -183,6 +183,8 @@ class AppTranslationConstants {
   static const String writeCaption = 'writeCaption';
   static const String wherePhotoTaken = 'wherePhotoTaken';
   static const String post = 'post';
+  static const String posts = 'posts';
+  static const String toPost = 'toPost';
   static const String writeYourMessage = 'writeYourMessage';
   static const String underConstruction = "underConstruction";
   static const String underConstructionMsg = "underConstructionMsg";
@@ -902,6 +904,8 @@ class AppTranslationConstants {
   static const String removedEventMsg = 'removedEventMsg';
   static const String noBandsWereFound = 'noBandsWereFound';
   static const String postUploadErrorMsg = 'postUploadErrorMsg';
-
+  static const String reasonToPlay = 'reasonToPlay';
+  static const String preferenceToPlay = 'preferenceToPlay';
+  static const String thereWasNoChanges = 'thereWasNoChanges';
 
 }

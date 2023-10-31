@@ -10,6 +10,8 @@ import 'package:image_cropper/image_cropper.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:timeago/timeago.dart' as timeago;
+
 import '../../neom_commons.dart';
 
 class AppUtilities {
@@ -131,6 +133,18 @@ class AppUtilities {
     return "$twoDigitMinutes:$twoDigitSeconds";
   }
 
+  static String getTimeAgo(int createdTime, {showShort = true}) {
+
+    Locale? locale;
+
+    if(!showShort) locale = Get.locale;
+
+    return timeago.format(
+        DateTime.fromMillisecondsSinceEpoch(createdTime),
+        locale: locale?.languageCode ?? 'en_short'
+    );
+  }
+
   static void goHome() {
     logger.d("");
     Get.offAllNamed(AppRouteConstants.home);
@@ -189,7 +203,7 @@ class AppUtilities {
   }
 
   static Future<File> getFileFromPath(String filePath) async {
-    logger.d("Getting PDF File From Path");
+    logger.d("Getting File From Path");
     File file = File("");
 
     try {
@@ -296,14 +310,31 @@ class AppUtilities {
   static Future<XFile> compressImageFile(XFile imageFile) async {
 
     XFile compressedImageFile = XFile('');
+    CompressFormat compressFormat = CompressFormat.jpeg;
 
     try {
-      final lastIndex = imageFile.path.lastIndexOf(RegExp(r'.jp'));
+      ///DEPRECATED final lastIndex = imageFile.path.lastIndexOf(RegExp(r'.jp'));
+      final lastIndex = imageFile.path.lastIndexOf(RegExp(r'\.jp|\.png'));
+
 
       if(lastIndex >= 0) {
         String subPath = imageFile.path.substring(0, (lastIndex));
-        String outPath = "${subPath}_out${imageFile.path.substring(lastIndex)}";
-        compressedImageFile = await FlutterImageCompress.compressAndGetFile(imageFile.path, outPath) ?? XFile("");
+        String fileFormat = imageFile.path.substring(lastIndex);
+
+        if(fileFormat.contains(CompressFormat.png.name)){
+          compressFormat = CompressFormat.png;
+        }
+
+        String outPath = "${subPath}_out$fileFormat";
+        XFile? result = await FlutterImageCompress.compressAndGetFile(imageFile.path, outPath, format: compressFormat);
+
+        if(result != null) {
+          compressedImageFile = result;
+          AppUtilities.logger.d("Image compressed successfully");
+        } else {
+          compressedImageFile = imageFile;
+          AppUtilities.logger.w("Image was not compressed and return as before");
+        }
       }
     } catch(e) {
       AppUtilities.logger.e(e.toString());
@@ -311,6 +342,13 @@ class AppUtilities {
 
 
     return compressedImageFile;
+  }
+
+  static bool isWithinLastSevenDays(int date) {
+    DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(date);
+    DateTime now = DateTime.now();
+    Duration difference = now.difference(dateTime);
+    return difference.inDays < 7;
   }
 
 }

@@ -53,6 +53,7 @@ class AppFirestoreConstants {
   static const String name = 'name';
   static const String description = 'description';
   static const String aboutMe = 'aboutMe';
+  static const String lastNameUpdate = 'lastNameUpdate';
 
   static const String isMain = 'isMain';
   static const String isFav = 'isFav';

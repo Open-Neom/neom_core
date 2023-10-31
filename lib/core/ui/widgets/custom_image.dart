@@ -41,9 +41,7 @@ CachedNetworkImage customCachedNetworkImage(mediaUrl, {BoxFit fit = BoxFit.fill}
 
 CachedNetworkImageProvider customCachedNetworkImageProvider(mediaUrl) {
   AppUtilities.logger.t("Building cache network widget for image url: $mediaUrl");
-  return CachedNetworkImageProvider(
-    mediaUrl,
-  );
+  return CachedNetworkImageProvider(mediaUrl,);
 }
 
 Widget customCachedNetworkProfileImage(String profileId, String mediaUrl) {

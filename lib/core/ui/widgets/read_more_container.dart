@@ -10,19 +10,21 @@ class ReadMoreContainer extends StatelessWidget {
   final int trimLines;
   final double fontSize;
   final double padding;
+  final double letterSpacing;
 
   const ReadMoreContainer({
     this.text = '',
     this.trimLines = 5,
     this.fontSize = 16,
     this.padding = 10,
+    this.letterSpacing = 0.5,
     super.key
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10),
+      padding: EdgeInsets.symmetric(horizontal: padding),
       child: ReadMoreText(text.capitalizeFirst,
         trimLines: trimLines,
         colorClickableText: Colors.grey.shade500,
@@ -30,7 +32,7 @@ class ReadMoreContainer extends StatelessWidget {
         trimCollapsedText: AppTranslationConstants.readMore.tr,
         textAlign: TextAlign.justify,
         style: TextStyle(
-          letterSpacing: 0.5,
+          letterSpacing: letterSpacing,
           fontWeight: FontWeight.w500,
           fontSize: fontSize,
         ),

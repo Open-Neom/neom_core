@@ -125,7 +125,7 @@ class PostFirestore implements PostRepository {
 
   @override
   Future<List<Post>> getProfilePosts(String profileId) async {
-    logger.d("");
+    logger.t("getProfilePosts from Firestore");
 
     List<Post> posts = [];
 
@@ -133,12 +133,11 @@ class PostFirestore implements PostRepository {
         AppFirestoreConstants.ownerId, isEqualTo: profileId).get();
 
     if (querySnapshot.docs.isNotEmpty) {
-      logger.t("Snapshot is not empty");
       for (int queryIndex = 0; queryIndex <
           querySnapshot.docs.length; queryIndex++) {
         Post post = Post.fromJSON(querySnapshot.docs.elementAt(queryIndex).data());
         post.id = querySnapshot.docs.elementAt(queryIndex).id;
-        logger.d(post.toString());
+        logger.t('Post ${post.id} of type ${post.type.name} at ${post.location}');
         if (post.type != PostType.event && post.type != PostType.releaseItem) {
           posts.add(post);
         }
