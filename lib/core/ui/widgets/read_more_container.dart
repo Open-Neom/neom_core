@@ -11,6 +11,7 @@ class ReadMoreContainer extends StatelessWidget {
   final double fontSize;
   final double padding;
   final double letterSpacing;
+  final Color? color;
 
   const ReadMoreContainer({
     this.text = '',
@@ -18,6 +19,7 @@ class ReadMoreContainer extends StatelessWidget {
     this.fontSize = 16,
     this.padding = 10,
     this.letterSpacing = 0.5,
+    this.color,
     super.key
   });
 
@@ -29,12 +31,13 @@ class ReadMoreContainer extends StatelessWidget {
         trimLines: trimLines,
         colorClickableText: Colors.grey.shade500,
         trimMode: TrimMode.Line,
-        trimCollapsedText: AppTranslationConstants.readMore.tr,
+        trimCollapsedText: '... ${AppTranslationConstants.readMore.tr}',
         textAlign: TextAlign.justify,
         style: TextStyle(
           letterSpacing: letterSpacing,
           fontWeight: FontWeight.w500,
           fontSize: fontSize,
+          color: color
         ),
         trimExpandedText: ' ${AppTranslationConstants.less.tr.capitalize}',
       ),

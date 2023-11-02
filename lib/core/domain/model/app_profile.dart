@@ -100,7 +100,7 @@ class AppProfile {
   }
 
   Map<String, dynamic> toJSON() {
-    AppUtilities.logger.d("Profile toJSON");
+    AppUtilities.logger.t("Profile toJSON");
     return <String, dynamic> {
       'id': id,
       'name': name,

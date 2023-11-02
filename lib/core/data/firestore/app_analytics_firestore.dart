@@ -131,7 +131,7 @@ class AppAnalyticsFirestore implements AppAnalyticsRepository {
 
           if(emailList.isNotEmpty) {
             String localPath = await CoreUtilities.getLocalPath();
-            String emailListPath = "$localPath/${AppFlavour.appInUse.value}_email_list.txt";
+            String emailListPath = "$localPath/${AppFlavour.getAppName()}_email_list.txt";
             File txtFileRef = File(emailListPath);
             await txtFileRef.writeAsString(emailList.toString());
             AppUtilities.logger.i("Email List created to path $emailListPath successfully.");

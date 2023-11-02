@@ -107,7 +107,7 @@ class AppMediaItem {
 
   factory AppMediaItem.fromJSON(map) {
     try {
-      AppUtilities.logger.t("AppMediaItem fromJSON: ${map['name'] ?? ''}");
+      AppUtilities.logger.t("AppMediaItem fromJSON: ${map['name'] ?? ''} with id ${map['id'] ?? ''}");
       int dur = 0;
 
       if(map['duration'] is String && map['duration'].toString().contains(":")) {
@@ -125,7 +125,7 @@ class AppMediaItem {
         duration: dur,
         language: map['language'] ?? '',
         genre: map['genre'] ?? '',
-        is320Kbps: map['is320Kbps'] as bool? ?? false,
+        is320Kbps: map['is320Kbps'] ?? false,
         lyrics: map['lyrics'] ?? '',
         albumId: map['albumId'] ?? '',
         description: map['description'] ?? '',

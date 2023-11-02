@@ -738,7 +738,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> addEvent(String profileId, String eventId, EventAction eventAction) async {
-    logger.d("$profileId would add $eventId");
+    logger.t("$profileId would add $eventId");
 
     try {
 
@@ -996,7 +996,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> addRequest(String profileId, String requestId, RequestType requestType) async {
-    logger.d("$profileId would add $requestId");
+    logger.t("$profileId would add $requestId");
 
     try {
 
@@ -1026,7 +1026,7 @@ class ProfileFirestore implements ProfileRepository {
         }
       });
 
-      logger.d("Profile $profileId has request $requestId");
+      logger.d("Profile $profileId has added request $requestId as type ${requestType.name}");
 
     } catch (e) {
       logger.e.toString();
@@ -1353,8 +1353,7 @@ class ProfileFirestore implements ProfileRepository {
 
 
   Future<String> retrievedFcmToken(String profileId) async {
-
-    logger.d("Retrieving FCM Token for Profile $profileId");
+    logger.t("Retrieving FCM Token for Profile $profileId");
 
     String userId = "";
     String fcmToken = "";
@@ -1374,9 +1373,9 @@ class ProfileFirestore implements ProfileRepository {
             userQuerySnapshot = await usersReference.where(
                 FieldPath.documentId, isEqualTo: userId).get();
             if(userQuerySnapshot.docs.isNotEmpty) {
-              logger.d("${userQuerySnapshot.docs.length} users found");
+              logger.t("${userQuerySnapshot.docs.length} users found");
               fcmToken = AppUser.fromJSON(userQuerySnapshot.docs.first.data()).fcmToken;
-              logger.i("FCM Token $fcmToken");
+              logger.t("FCM Token $fcmToken");
             } else {
               logger.w("No user found for id $userId");
             }
@@ -1389,7 +1388,7 @@ class ProfileFirestore implements ProfileRepository {
     }
 
     if(fcmToken.isEmpty) {
-      logger.i("Push Notification not send as FCM Token was not found for users device");
+      logger.w("Push Notification not send as FCM Token was not found for users device");
     }
 
     return fcmToken;

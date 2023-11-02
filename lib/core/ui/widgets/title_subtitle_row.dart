@@ -47,7 +47,7 @@ class TitleSubtitleRow extends StatelessWidget {
             if(navigateTo.isNotEmpty) {
               navigateTo != AppRouteConstants.underConstruction ?
               Get.toNamed(navigateTo)
-                  : AppUtilities.showAlert(context, title, AppTranslationConstants.underConstruction.tr);
+                  : AppUtilities.showAlert(context, title: title, message: AppTranslationConstants.underConstruction.tr);
             } else if(url.isNotEmpty) {
               CoreUtilities.launchURL(url);
             }

@@ -907,5 +907,7 @@ class AppTranslationConstants {
   static const String reasonToPlay = 'reasonToPlay';
   static const String preferenceToPlay = 'preferenceToPlay';
   static const String thereWasNoChanges = 'thereWasNoChanges';
+  static const String requestDetails = 'requestDetails';
+  static const String invitationRequestConfirmationMsg = 'invitationRequestConfirmationMsg';
 
 }

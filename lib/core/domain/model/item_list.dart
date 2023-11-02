@@ -99,6 +99,7 @@ class Itemlist {
     'appReleaseItems': appReleaseItems?.map((appReleaseItem) => appReleaseItem.toJSON()).toList() ?? [],
     'chamberPresets': chamberPresets?.map((appReleaseItem) => appReleaseItem.toJSON()).toList() ?? [],
     'position': jsonEncode(position),
+    'type': type.name,
   };
 
   static Future<Itemlist> mapPlaylistToItemlist(Playlist playlist) async {

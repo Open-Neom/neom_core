@@ -364,7 +364,7 @@ class EventFirestore implements EventRepository {
 
   @override
   Future<bool> addGoingProfile({required String eventId, required String profileId}) async {
-    logger.d("$profileId would be added as going to Event $eventId");
+    logger.t("$profileId would be added as going to Event $eventId");
 
     try {
 

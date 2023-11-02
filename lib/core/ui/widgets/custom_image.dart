@@ -44,7 +44,7 @@ CachedNetworkImageProvider customCachedNetworkImageProvider(mediaUrl) {
   return CachedNetworkImageProvider(mediaUrl,);
 }
 
-Widget customCachedNetworkProfileImage(String profileId, String mediaUrl) {
+Widget heroCachedNetworkProfileImage(String profileId, String mediaUrl) {
   return GestureDetector(
     child: Hero(
       tag: '${profileId}_img_$mediaUrl',
@@ -57,6 +57,19 @@ Widget customCachedNetworkProfileImage(String profileId, String mediaUrl) {
     onTap: () => Get.find<UserController>().profile.id != profileId ?
       Get.offAndToNamed(AppRouteConstants.mateDetails, arguments: profileId)
     : Get.offAndToNamed(AppRouteConstants.profileDetails, arguments: profileId),
+  );
+}
+
+Widget cachedNetworkProfileImage(String profileId, String mediaUrl) {
+  return GestureDetector(
+    child: CachedNetworkImage(
+        imageUrl: mediaUrl,
+        fit: BoxFit.fitHeight,
+        errorWidget: (context,url,error) => const Icon(Icons.error),
+    ),
+    onTap: () => Get.find<UserController>().profile.id != profileId ?
+    Get.toNamed(AppRouteConstants.mateDetails, arguments: profileId)
+        : Get.toNamed(AppRouteConstants.profileDetails, arguments: profileId),
   );
 }
 

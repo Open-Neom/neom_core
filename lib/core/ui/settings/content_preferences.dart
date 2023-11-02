@@ -84,13 +84,15 @@ class ContentPreferencePage extends StatelessWidget {
                 //Get.toNamed(GigRouteConstants.INTRO_REQUIRED_PERMISSIONS);
                 _.locationPermission == LocationPermission.denied ?
                   await _.verifyLocationPermission()
-                  : AppUtilities.showAlert(context, AppTranslationConstants.locationUsage.tr, AppTranslationConstants.changeThisInTheAppSettings.tr.tr);
+                  : AppUtilities.showAlert(context, title: AppTranslationConstants.locationUsage.tr,
+                    message: AppTranslationConstants.changeThisInTheAppSettings.tr.tr);
               }
             ),
             TitleSubtitleRow(AppTranslationConstants.blockedProfiles.tr,
               onPressed: () => _.userController.profile.blockTo!.isNotEmpty
                   ? Get.toNamed(AppRouteConstants.blockedProfiles, arguments: _.userController.profile.blockTo)
-                  : AppUtilities.showAlert(context, AppTranslationConstants.blockedProfiles.tr, AppTranslationConstants.blockedProfilesMsg.tr),
+                  : AppUtilities.showAlert(context, title: AppTranslationConstants.blockedProfiles.tr,
+                      message: AppTranslationConstants.blockedProfilesMsg.tr),
             ),
             ],
           ),

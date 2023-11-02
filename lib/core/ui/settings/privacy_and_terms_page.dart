@@ -49,7 +49,7 @@ class PrivacyAndTermsPage extends StatelessWidget {
                           ),
                           child: LicensePage(
                             applicationVersion: AppFlavour.appVersion,
-                            applicationName: AppFlavour.appInUse.value,
+                            applicationName: AppFlavour.getAppName(),
                           ),
                         ),
                       ),

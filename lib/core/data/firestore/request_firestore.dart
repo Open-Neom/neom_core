@@ -12,13 +12,12 @@ import 'profile_firestore.dart';
 
 class RequestFirestore implements RequestRepository {
 
-  var logger = AppUtilities.logger;
   final requestsReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.requests);
 
 
   @override
   Future<List<AppRequest>> retrieveRequests(String profileId) async {
-    logger.d("Retrieving Requests");
+    AppUtilities.logger.t("Retrieving Requests for Profile $profileId");
     List<AppRequest> requests = <AppRequest>[];
 
     try {
@@ -28,26 +27,25 @@ class RequestFirestore implements RequestRepository {
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        logger.d("Snapshot is not empty");
         for (var snapshot in querySnapshot.docs) {
           AppRequest request = AppRequest.fromJSON(snapshot.data());
           request.id = snapshot.id;
-          logger.d(request.toString());
+          AppUtilities.logger.d(request.id);
           requests.add(request);
         }
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
-    logger.d("${requests.length} requests found");
+    AppUtilities.logger.d("${requests.length} requests found");
     return requests;
   }
 
 
   @override
   Future<List<AppRequest>> retrieveSentRequests(String profileId) async {
-    logger.d("Retrieving Requests Sent");
+    AppUtilities.logger.t("Retrieving Requests Sent");
 
     List<AppRequest> requests = [];
 
@@ -57,27 +55,26 @@ class RequestFirestore implements RequestRepository {
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        logger.d("Snapshot is not empty");
         for (var snapshot in querySnapshot.docs) {
           AppRequest request = AppRequest.fromJSON(snapshot.data());
           request.id = snapshot.id;
-          logger.d(request.toString());
+          AppUtilities.logger.t(request.toString());
           requests.add(request);
         }
 
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
-    logger.d("${requests .length} requests Sent found");
+    AppUtilities.logger.d("${requests .length} requests Sent found");
     return requests;
   }
 
 
   @override
   Future<List<AppRequest>> retrieveInvitationRequests(String profileId) async {
-    logger.d("Retrieving Requests Sent");
+    AppUtilities.logger.t("Retrieving Invitation requests");
 
     List<AppRequest> requests = [];
 
@@ -87,26 +84,25 @@ class RequestFirestore implements RequestRepository {
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        logger.d("Snapshot is not empty");
         for (var snapshot in querySnapshot.docs) {
           AppRequest request = AppRequest.fromJSON(snapshot.data());
           request.id = snapshot.id;
-          logger.d(request.toString());
+          AppUtilities.logger.d(request.toString());
           requests.add(request);
         }
 
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
-    logger.d("${requests .length} requests Sent found");
+    AppUtilities.logger.d("${requests .length} requests Sent found");
     return requests;
   }
 
 
   Future<List<AppRequest>> retrieveEventRequests(String eventId) async {
-    logger.d("Retrieving Requests for Event $eventId");
+    AppUtilities.logger.t("Retrieving Requests for Event $eventId");
 
     List<AppRequest> requests = [];
 
@@ -116,33 +112,31 @@ class RequestFirestore implements RequestRepository {
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        logger.d("Snapshot is not empty");
         for (var snapshot in querySnapshot.docs) {
           AppRequest request = AppRequest.fromJSON(snapshot.data());
           request.id = snapshot.id;
-          logger.d(request.toString());
+          AppUtilities.logger.d(request.toString());
           requests.add(request);
         }
-
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
-    logger.d("${requests .length} requests Sent found");
+    AppUtilities.logger.d("${requests .length} requests Sent found");
     return requests;
   }
 
 
   @override
   Future<String> insert(AppRequest request) async {
-    logger.d("insert request to firestore");
+    AppUtilities.logger.t("insert request to firestore");
     String requestId = "";
     try {
       DocumentReference documentReference = await requestsReference.add(request.toJSON());
       requestId  = documentReference.id;
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     return requestId;
@@ -151,14 +145,14 @@ class RequestFirestore implements RequestRepository {
 
   @override
   Future<bool> remove(AppRequest request) async {
-    logger.d("");
+    AppUtilities.logger.t("Remove request ${request.id} from firestore");
     bool wasDeleted = false;
     try {
       if(await removeRequestsFromProfiles(request)) {
         await requestsReference.doc(request.id).delete();
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     return wasDeleted;
@@ -166,7 +160,7 @@ class RequestFirestore implements RequestRepository {
 
 
   Future<bool> removeEventRequests(String eventId) async {
-    logger.t("Remove event requests for $eventId");
+    AppUtilities.logger.t("Remove event requests for $eventId");
 
     bool requestsRemoved = false;
 
@@ -176,7 +170,7 @@ class RequestFirestore implements RequestRepository {
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        logger.d("Snapshot is not empty");
+        AppUtilities.logger.d("Snapshot is not empty");
         for (var snapshot in querySnapshot.docs) {
           AppRequest request = AppRequest.fromJSON(snapshot.data());
           request.id = snapshot.id;
@@ -187,16 +181,16 @@ class RequestFirestore implements RequestRepository {
         requestsRemoved = true;
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
-    logger.d("Requests removed for event $eventId");
+    AppUtilities.logger.d("Requests removed for event $eventId");
     return requestsRemoved;
   }
 
 
   Future<bool> removeBandRequests(String bandId) async {
-    logger.d("Removing Band Requests");
+    AppUtilities.logger.t("Removing Band $bandId requests");
 
     bool requestsRemoved = false;
 
@@ -206,7 +200,6 @@ class RequestFirestore implements RequestRepository {
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        logger.d("Snapshot is not empty");
         for (var snapshot in querySnapshot.docs) {
             AppRequest request = AppRequest.fromJSON(snapshot.data());
             request.id = snapshot.id;
@@ -217,25 +210,24 @@ class RequestFirestore implements RequestRepository {
         requestsRemoved = true;
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
-    logger.d("Requests removed for band $bandId");
+    AppUtilities.logger.d("Requests removed for band $bandId");
     return requestsRemoved;
   }
 
   Future<bool> removeRequestsFromProfiles(AppRequest request) async {
-
-    logger.d("Moving ${request.id} to accepted");
+    AppUtilities.logger.t("Moving ${request.id} to accepted");
 
     try {
       await ProfileFirestore().removeRequest(request.from, request.id, RequestType.sent);
       await ProfileFirestore().removeRequest(request.to, request.id, RequestType.received);
       await ProfileFirestore().removeRequest(request.to, request.id, RequestType.invitation);
       await ActivityFeedFirestore().removeRequestActivity(request.id);
-      logger.d("Request ${request.id} has been remove from profile data");
+      AppUtilities.logger.d("Request ${request.id} has been remove from profile data");
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
       return false;
     }
 
@@ -243,7 +235,7 @@ class RequestFirestore implements RequestRepository {
   }
 
   Future<bool> acceptRequest(String requestId) async {
-    logger.d("Moving $requestId to accepted");
+    AppUtilities.logger.t("Moving Request $requestId to accepted");
 
     try {
 
@@ -256,10 +248,9 @@ class RequestFirestore implements RequestRepository {
       }
       );
 
-
-      logger.d("Request $requestId has been change to accepted");
+      AppUtilities.logger.d("Request $requestId has been change to accepted");
     } catch (e) {
-      logger.e.toString();
+      AppUtilities.logger.e.toString();
       return false;
     }
 
@@ -268,7 +259,7 @@ class RequestFirestore implements RequestRepository {
 
 
   Future<bool> declineRequest(String requestId) async {
-    logger.d("Moving $requestId to accepted");
+    AppUtilities.logger.t("Movingr request $requestId to declined");
 
     try {
 
@@ -280,9 +271,9 @@ class RequestFirestore implements RequestRepository {
         });
       });
 
-      logger.d("Request $requestId has been change to declined");
+      AppUtilities.logger.d("Request $requestId has been change to declined");
     } catch (e) {
-      logger.e.toString();
+      AppUtilities.logger.e.toString();
       return false;
     }
 
@@ -291,7 +282,7 @@ class RequestFirestore implements RequestRepository {
 
 
   Future<bool> moveToPending(String requestId) async {
-    logger.d("Moving $requestId to accepted");
+    AppUtilities.logger.t("Moving request $requestId to pending");
 
     try {
 
@@ -305,9 +296,9 @@ class RequestFirestore implements RequestRepository {
       );
 
 
-      logger.d("Request $requestId has been change to accepted");
+      AppUtilities.logger.d("Request $requestId has been change to pending");
     } catch (e) {
-      logger.e.toString();
+      AppUtilities.logger.e.toString();
       return false;
     }
 

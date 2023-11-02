@@ -526,7 +526,7 @@ class UserFirestore implements UserRepository {
 
   @override
   Future<List<String>> getFCMTokens() async {
-    logger.d("Get available FCM Tokens from Users");
+    logger.t("Get available FCM Tokens from all Users on Firestore");
 
     List<String> fcmTokens = [];
     try {
@@ -543,12 +543,13 @@ class UserFirestore implements UserRepository {
       logger.e(e.toString());
     }
 
+    logger.d("${fcmTokens.length} FCM Tokens retrieved for user");
     return fcmTokens;
   }
 
   @override
   Future<bool> addReleaseItem({required String userId, required String releaseItemId}) async {
-    logger.d("ReleaseItem $releaseItemId would be added to User $userId");
+    logger.t("ReleaseItem $releaseItemId would be added to User $userId");
 
     try {
       DocumentSnapshot documentSnapshot = await userReference

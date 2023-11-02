@@ -54,7 +54,7 @@ class AppConstants {
   static const int matesLimit = 15;
   static const int profilesLimit = 1500;
   static const int maxPlaceNameLength = 28;
-  static const int maxEventNameDescLength = 28;
+  static const int maxEventNameDescLength = 25;
   static const int maxEventNameLength = 22;
   static const int maxLocationNameLength = 28;
   static const int significantDistanceKM = 5;

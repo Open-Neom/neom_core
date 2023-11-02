@@ -1,10 +1,6 @@
 import 'package:enum_to_string/enum_to_string.dart';
 
-import '../../utils/enums/activity_feed_type.dart';
-import 'app_profile.dart';
-import 'event.dart';
-import 'post.dart';
-import 'post_comment.dart';
+import '../../../neom_commons.dart';
 
 class ActivityFeed {
 
@@ -118,4 +114,29 @@ class ActivityFeed {
         message = comment.text,
         unread = true;
 
+  ActivityFeed.fromRequest({required AppRequest request, required ActivityFeedType type,
+    required AppProfile fromProfile, this.mediaUrl = '', bool isResponse = false,
+    bool isEvent = true, String? message}) :
+        id = '',
+        ownerId = isResponse ? request.from : request.to,
+        activityReferenceId = isEvent ? request.eventId : request.bandId,
+        profileId = fromProfile.id,
+        profileName = fromProfile.name,
+        profileImgUrl = fromProfile.photoUrl,
+        activityFeedType = type,
+        createdTime = DateTime.now().millisecondsSinceEpoch,
+        message = message ?? request.message,
+        unread = true;
+
+  ActivityFeed.fromAppBot({required String toProfileId, required referenceId,
+    required ActivityFeedType type, this.message = '', this.mediaUrl = ''}) :
+        id = '',
+        ownerId = toProfileId,
+        activityReferenceId = referenceId,
+        profileId = AppConstants.appBot,
+        profileName = "${AppFlavour.getAppName()} ${AppConstants.appBotName}",
+        profileImgUrl = AppFlavour.getAppLogoUrl(),
+        activityFeedType = type,
+        createdTime = DateTime.now().millisecondsSinceEpoch,
+        unread = true;
 }

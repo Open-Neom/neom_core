@@ -58,12 +58,14 @@ abstract class EventService {
   void lookupForMusicians();
   void gotoBandDetails(Band band);
 
-  Future<void> sendEventRequest(String bandId);
+  Future<void> sendBandEventRequest(String bandId);
+  Future<void> sendProfileEventInvitations();
+  void addInvitedProfile(AppProfile mate, Instrument instr);
   void setCurrency(String chosenCurrency);
   void filterEventsBy({EventType eventType = EventType.any});
 
   void setMessage(String text);
-  Future<void> sendEventInvitation(AppProfile mate, Instrument instrument);
+  ///DEPRECATED Future<void> sendEventInvitation(AppProfile mate, Instrument instrument);
   void goWithFlyer();
 
   void addActivity(int index);

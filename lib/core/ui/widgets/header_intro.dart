@@ -20,7 +20,7 @@ class HeaderIntro extends StatelessWidget{
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          (AppFlavour.appInUse == AppInUse.emxi && showPreLogo)
+          (AppFlavour.appInUse == AppInUse.e && showPreLogo)
               ? Image.asset(AppAssets.logoAppWhite,
             height: AppTheme.fullWidth(context)/2.5,
             width: AppTheme.fullWidth(context)/2.5,

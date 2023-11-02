@@ -69,7 +69,7 @@ class AppTheme {
   static final outlinedBorderChip = StadiumBorder(side: const BorderSide(color: Colors.white70).scale(0.2));
   static const primaryTitleText = TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w600);
   static const primarySubtitleText = TextStyle(color: Colors.white);
-  static const requestsTextStyle = TextStyle(fontSize: 12);
+
 
   static double fullWidth(BuildContext context) {
     return MediaQuery.of(context).size.width;
@@ -169,11 +169,17 @@ class AppTheme {
 
   static double imageRadius = 15;
 
-  static TextStyle bandTitleStyle = const TextStyle(fontSize: 25.0, fontWeight: FontWeight.bold,);
-  static TextStyle eventTitleStyle = const TextStyle(fontSize: 25.0, fontWeight: FontWeight.bold,);
-  static TextStyle headerTitleStyle = const TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold, color: Colors.white);
-  static TextStyle headerSubtitleStyle = const TextStyle(fontSize: 20.0, color: Colors.white);
-  static TextStyle eventMsgStyle = const TextStyle(fontSize: 23.0, fontWeight: FontWeight.bold,);
+  static TextStyle defaultTitleStyle = const TextStyle(fontSize: 25, fontWeight: FontWeight.bold,);
+  static TextStyle defaultSubtitle = const TextStyle(fontSize: 18, fontWeight: FontWeight.bold,);
+
+  static TextStyle bandTitleStyle = const TextStyle(fontSize: 25, fontWeight: FontWeight.bold,);
+  static TextStyle eventTitleStyle = const TextStyle(fontSize: 25, fontWeight: FontWeight.bold,);
+  static TextStyle requestClipTitleStyle = const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white);
+  static TextStyle requestsTextStyle = const TextStyle(fontSize: 15);
+  static TextStyle headerTitleStyle = const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white);
+  static TextStyle headerSubtitleStyle = const TextStyle(fontSize: 20, color: Colors.white);
+  static TextStyle eventMsgStyle = const TextStyle(fontSize: 23, fontWeight: FontWeight.bold,);
+
 
 
 }

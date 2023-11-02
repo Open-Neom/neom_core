@@ -16,8 +16,8 @@ class SubmitButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: AppTheme.fullWidth(context) /2,
-      height: AppTheme.fullHeight(context) /15,
+      width: AppTheme.fullWidth(context)/2,
+      height: AppTheme.fullHeight(context)/15,
       child: TextButton(
         style: TextButton.styleFrom(
           backgroundColor: AppColor.bondiBlue75,

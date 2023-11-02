@@ -71,7 +71,7 @@ class BlockedProfilesPage extends StatelessWidget {
                             onPressed: () async {
                               if(!itemmateDetailsController.isButtonDisabled) {
                                 await itemmateDetailsController.unblockProfile(mate);
-                                AppUtilities.showAlert(context, AppTranslationConstants.unblockProfile.tr, AppTranslationConstants.unblockedProfileMsg.tr);
+                                AppUtilities.showAlert(context, title: AppTranslationConstants.unblockProfile.tr, message: AppTranslationConstants.unblockedProfileMsg.tr);
                               }
                             },
                             child: Text(AppTranslationConstants.toUnblock.tr,

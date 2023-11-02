@@ -166,7 +166,7 @@ class CoreUtilities {
   }
 
   static String getInstruments(Map<String,Instrument> profileInstruments) {
-    AppUtilities.logger.d("start");
+    AppUtilities.logger.t("getInstruments on String value");
     String instruments = "";
     String mainInstrument = "";
 
@@ -439,7 +439,7 @@ class CoreUtilities {
   }
 
 
-  static Map<String, AppMediaItem> getItemMatches(Map<String, AppMediaItem> totalItems, List<String> profileItems){
+  static Map<String, AppMediaItem> getItemMatches(Map<String, AppMediaItem> totalItems, List<String> profileItems) {
     AppUtilities.logger.d("getItemMatches");
     Map<String, AppMediaItem> matchedItemms = <String,AppMediaItem>{};
 

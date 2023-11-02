@@ -27,7 +27,8 @@ class AppUtilities {
     )
   );
 
-  static void showAlert(context, title,  message) {
+  static void showAlert(BuildContext context, {String title = '',  String message = ''}) {
+    if(title.isEmpty) title = AppFlavour.getAppName();
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -51,7 +52,7 @@ class AppUtilities {
   }
 
   static void showSnackBar({String title = '', String message = '', Duration duration = const Duration(seconds: 3)}) {
-    if(title.isEmpty) title = AppFlavour.appInUse.value;
+    if(title.isEmpty) title = AppFlavour.getAppName();
     Get.snackbar(title.tr, message.tr,
         snackPosition: SnackPosition.bottom,
         duration: duration

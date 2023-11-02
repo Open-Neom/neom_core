@@ -10,7 +10,7 @@ import 'domain/model/app_media_item.dart';
 
 class AppFlavour {
 
-  static AppInUse appInUse = AppInUse.emxi;
+  static AppInUse appInUse = AppInUse.e;
   static String appVersion = "";
   static dynamic appProperties = {};
 
@@ -26,189 +26,193 @@ class AppFlavour {
     appProperties = jsonDecode(jsonString);
   }
 
+  static String getAppName() {    
+    return appProperties['appName'];      
+  }
+  
   static String getAppLogoUrl() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return appProperties['appLogoUrl'];
-      case AppInUse.emxi:
+      case AppInUse.e:
         return appProperties['appLogoUrl'];
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return appProperties['appLogoUrl'];
     }
   }
 
   static String getJammingDefaultImgUrl() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return appProperties['jammingLogo'];
-      case AppInUse.emxi:
+      case AppInUse.e:
         return appProperties['jammingLogo'];
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return '';
     }
   }
 
   static String getLinksUrl() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return appProperties['linksUrl'];
-      case AppInUse.emxi:
+      case AppInUse.e:
         return appProperties['linksUrl'];
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return appProperties['linksUrl'];
     }
   }
 
   static String getPlayStoreUrl() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return appProperties['playStoreUrl'];
-      case AppInUse.emxi:
+      case AppInUse.e:
         return appProperties['playStoreUrl'];
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return "";
     }
   }
 
   static String getAppStoreUrl() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return appProperties['appStoreUrl'];
-      case AppInUse.emxi:
+      case AppInUse.e:
         return appProperties['appStoreUrl'];
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return "";
     }
   }
 
   static String getLandingPageUrl() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return appProperties['landingPageUrl'];
-      case AppInUse.emxi:
+      case AppInUse.e:
         return appProperties['landingPageUrl'];
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return "";
     }
   }
 
   static String getTermsOfServiceUrl() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return appProperties['termsOfServiceUrl'];
-      case AppInUse.emxi:
+      case AppInUse.e:
         return appProperties['termsOfServiceUrl'];
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return "";
     }
   }
 
   static String getPrivacyPolicyUrl() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return appProperties['privacyPolicyUrl'];
-      case AppInUse.emxi:
+      case AppInUse.e:
         return appProperties['privacyPolicyUrl'];
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return "";
     }
   }
 
   static String getBlogUrl() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return appProperties['blogUrl'];
-      case AppInUse.emxi:
+      case AppInUse.e:
         return appProperties['blogUrl'];
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return "";
     }
   }
 
   static String getWebContact() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return appProperties['webContact'];
-      case AppInUse.emxi:
+      case AppInUse.e:
         return appProperties['webContact'];
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return "";
     }
   }
 
   static String getNoImageUrl() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return appProperties['noImageUrl'];
-      case AppInUse.emxi:
+      case AppInUse.e:
         return appProperties['noImageUrl'];
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return appProperties['noImageUrl'];
     }
   }
 
   static IconData getAppItemIcon() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return Icons.music_note;
-      case AppInUse.emxi:
+      case AppInUse.e:
         return Icons.book;
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return FontAwesomeIcons.waveSquare;
     }
   }
 
   static IconData getInstrumentIcon() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return FontAwesomeIcons.guitar;
-      case AppInUse.emxi:
+      case AppInUse.e:
         return FontAwesomeIcons.pencil;
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return FontAwesomeIcons.waveSquare;
     }
   }
 
   static IconData getSyncIcon() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return FontAwesomeIcons.spotify;
-      case AppInUse.emxi:
+      case AppInUse.e:
         return FontAwesomeIcons.bookOpenReader;
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return Icons.sync;
     }
   }
 
   static String getItemDetailsRoute() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return AppRouteConstants.itemDetails;
-      case AppInUse.emxi:
+      case AppInUse.e:
         return AppRouteConstants.bookDetails;
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return AppRouteConstants.generator;
     }
   }
 
   static String getEventVector() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return AppAssets.bandVector01;
-      case AppInUse.emxi:
+      case AppInUse.e:
         return AppAssets.eventVector01;
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return AppAssets.spiritualWitchy;
     }
   }
 
   static String getAppCoinName() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return "Gigcoin";
-      case AppInUse.emxi:
+      case AppInUse.e:
         return "Emxis";
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return "Neomcoin";
     }
   }
@@ -227,288 +231,288 @@ class AppFlavour {
 
   static List<AppMediaItem> getFirstAppItem() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return CoreUtilities.myFirstSong();
-      case AppInUse.emxi:
+      case AppInUse.e:
         return CoreUtilities.myFirstBook();
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return [];
     }
   }
 
   static String getFcmKey() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return appProperties['fcmKey'];
     //return GigConstants.fcmKey;
-      case AppInUse.emxi:
+      case AppInUse.e:
         return appProperties['fcmKey'];
     //return EmxiConstants.fcmKey;
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return "";
     }
   }
 
   static String getGoogleApiKey() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return appProperties['googleApiKey'];
-      case AppInUse.emxi:
+      case AppInUse.e:
         return appProperties['googleApiKey'];
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return appProperties['googleApiKey'];
     }
   }
 
   static String getSpotifyClientId() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return appProperties['spotifyClientId'];
-      case AppInUse.emxi:
+      case AppInUse.e:
         return appProperties['spotifyClientId'];
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return appProperties['spotifyClientId'];
     }
   }
 
   static String getSpotifyClientSecret() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return appProperties['spotifyClientSecret'];
-      case AppInUse.emxi:
+      case AppInUse.e:
         return appProperties['spotifyClientSecret'];
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return "";
     }
   }
 
   static String getStripePublishableKey() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return appProperties['stripePublishableKey'];
-      case AppInUse.emxi:
+      case AppInUse.e:
         return appProperties['stripePublishableKey'];
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return "";
     }
   }
 
   static String getStripeSecretLiveKey() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return appProperties['stripeSecretLiveKey'];
-      case AppInUse.emxi:
+      case AppInUse.e:
         return appProperties['stripeSecretLiveKey'];
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return "";
     }
   }
 
   static String getECommerceUrl() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return appProperties['eCommerceUrl'];
-      case AppInUse.emxi:
+      case AppInUse.e:
         return appProperties['eCommerceUrl'];
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return "";
     }
   }
 
   static String getPresskitUrl() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return appProperties['presskitUrl'];
-      case AppInUse.emxi:
+      case AppInUse.e:
         return appProperties['presskitUrl'];
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return "";
     }
   }
 
   static String getMediatourUrl() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return appProperties['mediatourUrl'];
-      case AppInUse.emxi:
+      case AppInUse.e:
         return appProperties['mediatourUrl'];
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return "";
     }
   }
 
   static String getOnlineInterviewUrl() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return appProperties['onlineInterviewUrl'];
-      case AppInUse.emxi:
+      case AppInUse.e:
         return appProperties['onlineInterviewUrl'];
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return "";
     }
   }
 
   static String getDigitalPositioningUrl() {
     switch (appInUse) {
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return "";
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return "";
-      case AppInUse.emxi:
+      case AppInUse.e:
         return appProperties['digitalPositioningUrl'];
     }
   }
 
   static String getConsultancyUrl() {
     switch (appInUse) {
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return "";
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return "";
-      case AppInUse.emxi:
+      case AppInUse.e:
         return appProperties['consultancyUrl'];
     }
   }
 
   static String getCopyrightUrl() {
     switch (appInUse) {
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return "";
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return "";
-      case AppInUse.emxi:
+      case AppInUse.e:
         return appProperties['copyrightUrl'];
     }
   }
 
   static String getCoverDesignUrl() {
     switch (appInUse) {
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return "";
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return "";
-      case AppInUse.emxi:
+      case AppInUse.e:
         return appProperties['coverDesignUrl'];
     }
   }
 
   static String getOnlineClinicUrl() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return appProperties['onlineClinicUrl'];
-      case AppInUse.emxi:
+      case AppInUse.e:
         return appProperties['onlineClinicUrl'];
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return "";
     }
   }
 
   static String getStartCampaignUrl() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return "";
-      case AppInUse.emxi:
+      case AppInUse.e:
         return appProperties['startCampaignUrl'];
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return "";
     }
   }
 
   static String getCrowdfundingUrl() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return "";
-      case AppInUse.emxi:
+      case AppInUse.e:
         return appProperties['crowdfundingUrl'];
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return "";
     }
   }
 
   static String getWhatsappBusinessNumber() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return "";
-      case AppInUse.emxi:
+      case AppInUse.e:
         return appProperties['whatsappBusinessNumber'];
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return "";
     }
   }
 
   static String getInitialPrice() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return appProperties['initialPrice'];
-      case AppInUse.emxi:
+      case AppInUse.e:
         return appProperties['initialPrice'];
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return "";
     }
   }
 
   static List<Widget> getHomePages() {
     switch (appInUse) {
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return AppRouteConstants.neomHomePages;
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return AppRouteConstants.gigHomePages;
-      case AppInUse.emxi:
+      case AppInUse.e:
         return AppRouteConstants.emxiHomePages;
     }
   }
 
   static IconData getSecondTabIcon() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return FontAwesomeIcons.building;
-      case AppInUse.emxi:
+      case AppInUse.e:
         return FontAwesomeIcons.bookOpen;
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return Icons.surround_sound_outlined;
     }
   }
 
   static String getSecondTabTitle() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return AppTranslationConstants.directory;
-      case AppInUse.emxi:
+      case AppInUse.e:
         return AppTranslationConstants.itemlists;
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return AppTranslationConstants.presets;
     }
   }
 
   static IconData getThirdTabIcon() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return FontAwesomeIcons.calendar;
-      case AppInUse.emxi:
+      case AppInUse.e:
         return FontAwesomeIcons.filePen;
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return FontAwesomeIcons.calendar;
     }
   }
 
   static String getThirdTabTitle() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return AppTranslationConstants.events;
-      case AppInUse.emxi:
+      case AppInUse.e:
         return AppTranslationConstants.inspiration;
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return AppTranslationConstants.events;
     }
   }
 
   static IconData getForthTabIcon() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return Icons.play_circle_fill;
-      case AppInUse.emxi:
+      case AppInUse.e:
         return FontAwesomeIcons.shop;
-      case AppInUse.cyberneom:
+      case AppInUse.c:
       ///CHANGE TO MUSIC IN NEXT VERSION
         return FontAwesomeIcons.comments;
     }
@@ -516,11 +520,11 @@ class AppFlavour {
 
   static String getFortTabTitle() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return AppTranslationConstants.music;
-      case AppInUse.emxi:
+      case AppInUse.e:
         return AppTranslationConstants.library;
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         ///CHANGE TO MUSIC IN NEXT VERSION
         return AppTranslationConstants.inbox;
     }
@@ -528,68 +532,68 @@ class AppFlavour {
 
   static IconData getHomeActionBtnIcon() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return CupertinoIcons.add;
-      case AppInUse.emxi:
+      case AppInUse.e:
         return CupertinoIcons.add;
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return FontAwesomeIcons.om;
     }
   }
 
   static String getAppLogoPath() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return AppTranslationConstants.languageFromLocale(Get.locale!)
             == AppTranslationConstants.spanish ? AppAssets.logoSloganSpanish
             : AppAssets.logoSloganEnglish;
-      case AppInUse.emxi:
+      case AppInUse.e:
       return AppAssets.logoCompanyWhite;
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return AppAssets.logoAppWhite;
     }
   }
 
   static String getIconPath() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return AppAssets.iconWhite;
-      case AppInUse.emxi:
+      case AppInUse.e:
         return AppAssets.iconWhite;
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return AppAssets.iconWhite;
     }
   }
 
   static String getBuyMeACoffeeURL() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return appProperties['buyMeACoffeeUrl'];
-      case AppInUse.emxi:
+      case AppInUse.e:
         return appProperties['buyMeACoffeeUrl'];
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return appProperties['buyMeACoffeeUrl'];
     }
   }
 
   static String getHubName() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return appProperties['audioHubName'];
-      case AppInUse.emxi:
+      case AppInUse.e:
         return appProperties['audioHubName'];
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return appProperties['audioHubName'];
     }
   }
 
   static String getSplashSubtitle() {
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         return appProperties['splashSubText'];
-      case AppInUse.emxi:
+      case AppInUse.e:
         return appProperties['splashSubText'];
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         return appProperties['splashSubText'];
     }
   }
@@ -597,7 +601,7 @@ class AppFlavour {
   static List<BlogArticle> getBlogArticles() {
     List<BlogArticle> articles = [];
     switch (appInUse) {
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         articles = [
           BlogArticle(
               writerName: appProperties['blogWriterName_0'],
@@ -618,7 +622,7 @@ class AppFlavour {
             articleUrl: appProperties['blogArticleUrl_2'],
           ),
         ];
-      case AppInUse.emxi:
+      case AppInUse.e:
         articles = [
           BlogArticle(
             writerName: appProperties['blogWriterName_0'],
@@ -639,7 +643,7 @@ class AppFlavour {
             articleUrl: appProperties['blogArticleUrl_2'],
           ),
         ];
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         break;
     }
 
