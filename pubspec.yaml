@@ -167,5 +167,3 @@ dependency_overrides:
   uuid: 4.1.0
   logger: 2.0.2+1
   google_api_headers: 2.0.3
-#  ffmpeg_kit_flutter_min: ^5.1.0
-  #  video_player: 2.6.1
