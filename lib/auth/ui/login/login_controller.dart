@@ -83,7 +83,7 @@ class LoginController extends GetxController implements LoginService {
   @override
   void onInit() async {
     super.onInit();
-    logger.d("");
+    logger.t("onInit Login Controller");
     appInfo = AppInfo();
     fbaUser = auth.currentUser;
     ever(_fbaUser, handleAuthChanged);
@@ -93,14 +93,14 @@ class LoginController extends GetxController implements LoginService {
     if(Platform.isIOS) {
       isIOS13 = AppUtilities.isDeviceSupportedVersion(isIOS: Platform.isIOS);
     } else if (Platform.isAndroid) {
-      logger.i(Platform.version);
+      logger.t(Platform.version);
     }
   }
 
   @override
   void onReady() async {
     super.onReady();
-    logger.d("");
+    logger.t("onReady Login Controller");
     await getAppInfo();
     isLoading = false;
     update([AppPageIdConstants.login]);

@@ -72,4 +72,7 @@ abstract class EventService {
   void removeActivity(int index);
   void setDefaultNameDesc();
 
+  Future<void> sendProfileInvitation(AppProfile mate, Instrument inst);
+  bool isAlreadyInvited(String profileId);
+
 }

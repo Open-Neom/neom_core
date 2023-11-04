@@ -90,7 +90,7 @@ class ItemlistFirestore implements ItemlistRepository {
 
   @override
   Future<Map<String, Itemlist>> fetchAll({bool onlyPublic = false, bool excludeMyFavorites = true, int minItems = 0, int maxLength = 100, String profileId = ''}) async {
-    logger.d("Retrieving Itemlists");
+    logger.t("Retrieving Itemlists from firestore");
     Map<String, Itemlist> itemlists = {};
 
     try {
@@ -110,7 +110,7 @@ class ItemlistFirestore implements ItemlistRepository {
       logger.e(e.toString());
     }
 
-    logger.i("${itemlists .length} itemlists found in total.");
+    logger.d("${itemlists .length} itemlists found in total.");
     return itemlists;
   }
 

@@ -326,15 +326,13 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> followProfile({required String profileId, required String followedProfileId}) async {
-    logger.d("$profileId would be following $followedProfileId");
+    logger.t("$profileId would be following $followedProfileId");
 
     try {
       await profileReference.get().then((querySnapshot) async {
           for (var document in querySnapshot.docs) {
             if(document.id == profileId) {
-              await document.reference.update({
-                AppFirestoreConstants.following: FieldValue.arrayUnion([followedProfileId])
-              });
+              await document.reference.update({AppFirestoreConstants.following: FieldValue.arrayUnion([followedProfileId])});
               logger.d("$profileId is now following $followedProfileId");
             }
 
@@ -356,7 +354,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> unfollowProfile({required String profileId, required String unfollowProfileId}) async {
-    logger.d("$profileId would be unfollowing $unfollowProfileId");
+    logger.t("$profileId would be unfollowing $unfollowProfileId");
 
     try {
       await profileReference.get().then((querySnapshot) async {
@@ -895,8 +893,8 @@ class ProfileFirestore implements ProfileRepository {
   }
 
   @override
-  Future<bool> addBand(String profileId, String bandId) async {
-    logger.d("");
+  Future<bool> addBand({required String profileId, required String bandId}) async {
+    logger.t("Add band $bandId for profile $profileId from firestore");
     try {
 
       await profileReference.get()
@@ -920,8 +918,8 @@ class ProfileFirestore implements ProfileRepository {
 
 
   @override
-  Future<bool> removeBand(String profileId, String bandId) async {
-    logger.d("");
+  Future<bool> removeBand({required String profileId, required String bandId}) async {
+    logger.t("Remove band $bandId for profile $profileId from firestore");
 
     try {
 

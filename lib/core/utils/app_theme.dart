@@ -112,6 +112,14 @@ class AppTheme {
         color: AppColor.main50,
         border: Border.all(width: 0.5, style: BorderStyle.solid, color: Colors.white));
 
+  static final BoxDecoration messageBoxDecorationSelf = BoxDecoration(
+      borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(23),
+          topRight: Radius.circular(23),
+          bottomLeft: Radius.circular(23)),
+      color: Colors.white.withOpacity(0.10)
+  );
+
   static final BoxDecoration messageBoxDecoration = BoxDecoration(
       borderRadius: const BorderRadius.only(
       topLeft: Radius.circular(23),

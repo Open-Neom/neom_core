@@ -14,7 +14,7 @@ class AppInfoFirestore implements AppInfoRepository {
 
   @override
   Future<AppInfo> retrieve() async {
-    logger.i("Retrieving App Info");
+    logger.t("Retrieving App Info from Firestore");
     AppInfo appInfo = AppInfo();
 
     try {
@@ -22,7 +22,7 @@ class AppInfoFirestore implements AppInfoRepository {
           .doc(AppFirestoreCollectionConstants.app).get();
       if (documentSnapshot.exists) {
         appInfo = AppInfo.fromJSON(documentSnapshot.data());
-        logger.i("App found with AppVersion ${appInfo.version}");
+        logger.t("App Info Found: ${appInfo.toString()}");
       }
     } catch (e) {
       logger.e(e.toString());

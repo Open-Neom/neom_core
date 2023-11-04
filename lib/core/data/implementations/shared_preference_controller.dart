@@ -24,8 +24,8 @@ class SharedPreferenceController extends GetxController implements SharedPrefere
 
   @override
   void onInit() async {
-    logger.d("");
     super.onInit();
+    logger.t("onInit Shared Preferences");
     await readLocal();
   }
 

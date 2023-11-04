@@ -30,7 +30,7 @@ class RequestFirestore implements RequestRepository {
         for (var snapshot in querySnapshot.docs) {
           AppRequest request = AppRequest.fromJSON(snapshot.data());
           request.id = snapshot.id;
-          AppUtilities.logger.d(request.id);
+          AppUtilities.logger.t('Request ${request.id} retrieved');
           requests.add(request);
         }
       }

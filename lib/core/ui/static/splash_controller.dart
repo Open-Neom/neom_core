@@ -74,7 +74,7 @@ class SplashController extends GetxController {
           subtitle = AppTranslationConstants.updatingApp;
           break;
         case "":
-          logger.d("There is no fromRoute");
+          logger.t("There is no fromRoute");
           break;
       }
 
@@ -147,7 +147,7 @@ class SplashController extends GetxController {
         await Get.offAllNamed(AppRouteConstants.home);
         break;
       case "":
-        logger.d("There is no fromRoute");
+        logger.t("There is no fromRoute");
         break;
     }
 

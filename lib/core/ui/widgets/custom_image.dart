@@ -27,45 +27,13 @@ Widget customCachedNetworkHeroImage(mediaUrl) {
   );
 }
 
-CachedNetworkImage customCachedNetworkImage(mediaUrl, {BoxFit fit = BoxFit.fill}) {
-  AppUtilities.logger.i("Building cache network widget for image url: $mediaUrl");
-  return CachedNetworkImage(
-    imageUrl: mediaUrl,
-    fit: fit,
-    placeholder: (context, url) => const CircularProgressIndicator(),
-    errorWidget: (context,url,error)=>const Icon(
-        Icons.image_not_supported
-    ),
-  );
-}
-
-CachedNetworkImageProvider customCachedNetworkImageProvider(mediaUrl) {
-  AppUtilities.logger.t("Building cache network widget for image url: $mediaUrl");
-  return CachedNetworkImageProvider(mediaUrl,);
-}
-
-Widget heroCachedNetworkProfileImage(String profileId, String mediaUrl) {
-  return GestureDetector(
-    child: Hero(
-      tag: '${profileId}_img_$mediaUrl',
-      child: CachedNetworkImage(
-        imageUrl: mediaUrl,
-        fit: BoxFit.fitHeight,
-        errorWidget: (context,url,error) => const Icon(Icons.error),
-      ),
-    ),
-    onTap: () => Get.find<UserController>().profile.id != profileId ?
-      Get.offAndToNamed(AppRouteConstants.mateDetails, arguments: profileId)
-    : Get.offAndToNamed(AppRouteConstants.profileDetails, arguments: profileId),
-  );
-}
-
 Widget cachedNetworkProfileImage(String profileId, String mediaUrl) {
   return GestureDetector(
     child: CachedNetworkImage(
         imageUrl: mediaUrl,
         fit: BoxFit.fitHeight,
-        errorWidget: (context,url,error) => const Icon(Icons.error),
+        placeholder: (context, url) => const CircularProgressIndicator(),
+        errorWidget: (context,url,error) => const Icon(Icons.image_not_supported),
     ),
     onTap: () => Get.find<UserController>().profile.id != profileId ?
     Get.toNamed(AppRouteConstants.mateDetails, arguments: profileId)

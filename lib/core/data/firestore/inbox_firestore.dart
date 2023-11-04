@@ -88,7 +88,7 @@ class InboxFirestore implements InboxRepository {
 
   @override
   Future<List<InboxMessage>> retrieveMessages(String inboxId) async {
-    logger.d("Retrieving messages for inbox room $inboxId from firestore");
+    logger.t("Retrieving messages for inbox room $inboxId from firestore");
     List<InboxMessage> messages = [];
 
     try {
@@ -99,15 +99,13 @@ class InboxFirestore implements InboxRepository {
         for (var messageSnapshot in querySnapshot.docs) {
           InboxMessage message = InboxMessage.fromJSON(messageSnapshot.data());
           message.id = messageSnapshot.id;
-
-          logger.d('Message text ${message.text}');
+          logger.t('Message text ${message.text}');
           messages.add(message);
         }
         logger.d("${messages.length} messages retrieved");
       } else {
-
+        logger.d("No messages found Found");
       }
-      logger.d("No messages found Found");
 
     } catch (e) {
       logger.e(e.toString());

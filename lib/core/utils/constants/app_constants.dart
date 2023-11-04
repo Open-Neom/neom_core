@@ -114,4 +114,5 @@ class AppConstants {
   static const int adminMaxVideoDurationInSeconds = 90;
   static const List<double> playbackRates = [0.75, 1.0, 1.5, 2.0, 2.5, 3.0,];
 
+  static const String yyyyMMddHHmm = "yyyy-MM-dd HH:mm";
 }

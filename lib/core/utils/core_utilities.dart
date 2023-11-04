@@ -440,7 +440,7 @@ class CoreUtilities {
 
 
   static Map<String, AppMediaItem> getItemMatches(Map<String, AppMediaItem> totalItems, List<String> profileItems) {
-    AppUtilities.logger.d("getItemMatches");
+    AppUtilities.logger.t("Get Item Matches for ${totalItems.length} total items");
     Map<String, AppMediaItem> matchedItemms = <String,AppMediaItem>{};
 
     try {

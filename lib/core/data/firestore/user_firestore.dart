@@ -76,7 +76,7 @@ class UserFirestore implements UserRepository {
 
   @override
   Future<AppUser> getById(String userId) async {
-    logger.d("Start Id $userId");
+    logger.t("Get User by ID: $userId");
     AppUser user = AppUser();
     try {
         DocumentSnapshot documentSnapshot = await userReference.doc(userId).get();
@@ -362,7 +362,7 @@ class UserFirestore implements UserRepository {
     try {
       DocumentSnapshot documentSnapshot = await userReference.doc(userId).get();
       await documentSnapshot.reference.update({AppFirestoreConstants.lastTimeOn: DateTime.now().millisecondsSinceEpoch});
-      logger.i("LastTimeOn successfully updated for User $userId");
+      logger.t("LastTimeOn successfully updated for User $userId");
     } catch (e) {
       logger.e(e.toString());
     }
