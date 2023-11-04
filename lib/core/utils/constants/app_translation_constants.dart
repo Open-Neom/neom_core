@@ -909,5 +909,8 @@ class AppTranslationConstants {
   static const String thereWasNoChanges = 'thereWasNoChanges';
   static const String requestDetails = 'requestDetails';
   static const String invitationRequestConfirmationMsg = 'invitationRequestConfirmationMsg';
+  static const String wouldYouLikeAnInterview = 'wouldYouLikeAnInterview';
+  static const String iWouldLikeAnInterview = 'iWouldLikeAnInterview';
+
 
 }

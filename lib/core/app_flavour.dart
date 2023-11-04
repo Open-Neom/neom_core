@@ -432,7 +432,7 @@ class AppFlavour {
   static String getWhatsappBusinessNumber() {
     switch (appInUse) {
       case AppInUse.g:
-        return "";
+        return appProperties['whatsappBusinessNumber'];
       case AppInUse.e:
         return appProperties['whatsappBusinessNumber'];
       case AppInUse.c:

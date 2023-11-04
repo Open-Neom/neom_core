@@ -92,7 +92,7 @@ class SettingsPrivacyPage extends StatelessWidget {
                                   tooltip: AppTranslationConstants.whatsContact.tr,
                                   onPressed: () {
                                     Navigator.pop(context);
-                                    CoreUtilities.launchWhatsappURL("5575162623", "¡Hola!");
+                                    CoreUtilities.launchWhatsappURL(AppFlavour.getWhatsappBusinessNumber(), AppTranslationConstants.hello.tr);
                                   },
                                 ),
                                 Text(AppTranslationConstants.whatsapp.tr,),
