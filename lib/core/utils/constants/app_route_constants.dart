@@ -2,14 +2,19 @@ import 'package:neom_booking/booking/ui/booking_home_page.dart';
 import 'package:neom_events/events/ui/events_page.dart';
 import 'package:neom_inbox/inbox/ui/inbox_page.dart';
 import 'package:neom_itemlists/itemlists/ui/itemlist_page.dart';
+import 'package:neom_music_player/ui/home/music_player_home_page.dart';
 import 'package:neom_posts/blog/ui/blog_page.dart';
 import 'package:neom_timeline/neom_timeline.dart';
 
 class AppRouteConstants {
 
-  static final emxiHomePages = [const TimelinePage(), const ItemlistPage(), const BlogPage(), const InboxPage()];
-  static final gigHomePages = [const TimelinePage(), const BookingHomePage(), const EventsPage(), const EventsPage()];
-  static final neomHomePages = [const TimelinePage(), const ItemlistPage(), const EventsPage(), const InboxPage()];
+  static final eHomePages = [const TimelinePage(), const ItemlistPage(), const BlogPage(), const InboxPage()];
+  static final gHomePages = [const TimelinePage(), const BookingHomePage(), const EventsPage(), const EventsPage()];
+  static final nHomePages = [const TimelinePage(), const ItemlistPage(), const EventsPage(), const InboxPage()];
+
+  static final eMusicPlayerPages = [const MusicPlayerHomePage(), const ItemlistPage()];
+  static final gMusicPlayerPages = [const MusicPlayerHomePage(), const ItemlistPage()];
+  static final nMusicPlayerPages = [const MusicPlayerHomePage(), const ItemlistPage()];
 
   static const String root = "/";
   static const String login = "/login";

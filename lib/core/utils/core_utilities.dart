@@ -447,13 +447,13 @@ class CoreUtilities {
       totalItems.forEach((itemId, item) {
         if(profileItems.contains(itemId)) {
           matchedItemms[itemId] = item;
-          AppUtilities.logger.d("Adding $itemId - ItemmMatches Length ${matchedItemms.length}");
+          AppUtilities.logger.t("Adding Item Id: $itemId - Name: ${item.name}");
         }
       });
     } catch (e) {
       AppUtilities.logger.e(e.toString());
     }
-
+    AppUtilities.logger.d("Total ItemmMatches: ${matchedItemms.length}");
     return matchedItemms;
   }
 
@@ -518,7 +518,7 @@ class CoreUtilities {
     UsageReason profileReason = UsageReason.any,
     int profileDistanceKm = 0})
   {
-    AppUtilities.logger.d("fulfillmentMatchedRequirements");
+    AppUtilities.logger.t("Fulfillment Matched Requirements");
 
     bool requirementsMatched = false;
 

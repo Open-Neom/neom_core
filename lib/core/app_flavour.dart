@@ -454,11 +454,11 @@ class AppFlavour {
   static List<Widget> getHomePages() {
     switch (appInUse) {
       case AppInUse.c:
-        return AppRouteConstants.neomHomePages;
+        return AppRouteConstants.nHomePages;
       case AppInUse.g:
-        return AppRouteConstants.gigHomePages;
+        return AppRouteConstants.gHomePages;
       case AppInUse.e:
-        return AppRouteConstants.emxiHomePages;
+        return AppRouteConstants.eHomePages;
     }
   }
 
@@ -538,6 +538,17 @@ class AppFlavour {
         return CupertinoIcons.add;
       case AppInUse.c:
         return FontAwesomeIcons.om;
+    }
+  }
+
+  static List<Widget> getMusicPlayerPages() {
+    switch (appInUse) {
+      case AppInUse.c:
+        return AppRouteConstants.nMusicPlayerPages;
+      case AppInUse.g:
+        return AppRouteConstants.gMusicPlayerPages;
+      case AppInUse.e:
+        return AppRouteConstants.eMusicPlayerPages;
     }
   }
 

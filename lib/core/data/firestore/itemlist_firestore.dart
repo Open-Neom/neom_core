@@ -89,7 +89,8 @@ class ItemlistFirestore implements ItemlistRepository {
   }
 
   @override
-  Future<Map<String, Itemlist>> fetchAll({bool onlyPublic = false, bool excludeMyFavorites = true, int minItems = 0, int maxLength = 100, String profileId = ''}) async {
+  Future<Map<String, Itemlist>> fetchAll({bool onlyPublic = false, bool excludeMyFavorites = true, int minItems = 0,
+    int maxLength = 100, String profileId = '', String excludeFromProfileId = ''}) async {
     logger.t("Retrieving Itemlists from firestore");
     Map<String, Itemlist> itemlists = {};
 
@@ -101,6 +102,7 @@ class ItemlistFirestore implements ItemlistRepository {
           if(itemlist.getTotalItems() >= minItems && (!onlyPublic || itemlist.public)
               && (!excludeMyFavorites || itemlist.id != AppConstants.myFavorites)
               && (profileId.isEmpty || itemlist.ownerId == profileId)
+              && (excludeFromProfileId.isEmpty || itemlist.ownerId != excludeFromProfileId)
           ) {
             itemlists[itemlist.id] = itemlist;
           }

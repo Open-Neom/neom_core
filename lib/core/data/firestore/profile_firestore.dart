@@ -821,7 +821,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> addFavoriteItem(String profileId, String itemId) async {
-    logger.d("Adding item $itemId to Profile $profileId");
+    logger.t("Adding item $itemId to Profile $profileId favorites");
     try {
 
       await profileReference.get()
