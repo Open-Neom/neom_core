@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../app_flavour.dart';
@@ -63,7 +63,7 @@ class SettingsPrivacyPage extends StatelessWidget {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 IconButton(
-                                  icon: Icon(MdiIcons.gmail,),
+                                  icon: const Icon(FontAwesomeIcons.envelope,),
                                   iconSize: 40,
                                   tooltip: AppTranslationConstants.gmail.tr,
                                   onPressed: () {
@@ -87,7 +87,7 @@ class SettingsPrivacyPage extends StatelessWidget {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 IconButton(
-                                  icon: Icon(MdiIcons.whatsapp,),
+                                  icon: const Icon(FontAwesomeIcons.whatsapp,),
                                   iconSize: 40,
                                   tooltip: AppTranslationConstants.whatsContact.tr,
                                   onPressed: () {
@@ -102,7 +102,7 @@ class SettingsPrivacyPage extends StatelessWidget {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 IconButton(
-                                  icon: Icon(MdiIcons.instagram,),
+                                  icon: const Icon(FontAwesomeIcons.instagram,),
                                   iconSize: 40,
                                   tooltip: AppTranslationConstants.insta.tr,
                                   onPressed: () {
@@ -142,7 +142,7 @@ class SettingsPrivacyPage extends StatelessWidget {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 IconButton(
-                                  icon: Icon(MdiIcons.whatsapp,),
+                                  icon: const Icon(FontAwesomeIcons.whatsapp,),
                                   iconSize: 40,
                                   tooltip: AppTranslationConstants.whatsRock.tr,
                                   onPressed: () {
@@ -161,7 +161,7 @@ class SettingsPrivacyPage extends StatelessWidget {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 IconButton(
-                                  icon: Icon(MdiIcons.whatsapp,),
+                                  icon: const Icon(FontAwesomeIcons.whatsapp,),
                                   iconSize: 40,
                                   tooltip: AppTranslationConstants.whatsCommunity.tr,
                                   onPressed: () {

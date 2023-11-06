@@ -97,6 +97,6 @@ class AppPageIdConstants {
   static const String chamberPresetDetails = "chamberPresetDetails";
 
   static const String musicPlayerHome = "musicPlayerHome" ;
-
+  static const String miniPlayer = 'miniPlayer' ;
 
 }

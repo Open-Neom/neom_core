@@ -845,7 +845,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> removeFavoriteItem(String profileId, String itemId) async {
-    logger.d("");
+    logger.t("Removing item $itemId from Profile $profileId favorites");
 
     try {
 
