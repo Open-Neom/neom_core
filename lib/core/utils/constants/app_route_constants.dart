@@ -179,8 +179,16 @@ class AppRouteConstants {
   static const String generator  = '/generator';
   static const String chamberPresets  = '/chamber/presets';
 
+  static const String musicPlayer  = '/musicPlayer';
   static const String musicPlayerHome  = '/musicPlayer/home';
-  
-  
+  static const String musicPlayerMedia  = '/musicPlayer/media';
+  static const String musicPlayerMini  = '/musicPlayer/mini';
+  static const String musicPlayerRecent  = '/musicPlayer/recent';
+  static const String musicPlayerPref = '/musicPlayer//pref';
+  static const String musicPlayerSetting = '/musicPlayer//setting';
+  static const String musicPlayerPlaylists = '/musicPlayer//playlists';
+  static const String musicPlayerNowPlaying = '/musicPlayer//nowPlaying';
+  static const String musicPlayerDownloads = '/musicPlayer//downloads';
+  static const String musicPlayerStats  = '/musicPlayer/stats';
 
 }

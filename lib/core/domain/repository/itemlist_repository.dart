@@ -8,21 +8,21 @@ import '../model/neom/chamber_preset.dart';
 abstract class ItemlistRepository {
 
   Future<bool> addAppMediaItem(AppMediaItem appMediaItem, String itemlistId);
-  Future<bool> removeItem(AppMediaItem appMediaItem, String itemlistId);
+  Future<bool> deleteItem(AppMediaItem appMediaItem, String itemlistId);
   Future<bool> updateItem(String itemlistId, AppMediaItem appMediaItem);
 
   Future<String> insert(Itemlist itemlist);
-  Future<bool> remove(itemlistId);
+  Future<bool> delete(itemlistId);
 
   Future<bool> update(Itemlist itemlist);
 
   Future<Map<String, Itemlist>> fetchAll({bool onlyPublic = false, bool excludeMyFavorites = true, int minItems = 0, int maxLength = 100, String profileId = ''});
 
   Future<bool> addReleaseItem(String itemlistId, AppReleaseItem releaseItem);
-  Future<bool> removeReleaseItem(String itemlistId, AppReleaseItem releaseItem);
+  Future<bool> deleteReleaseItem(String itemlistId, AppReleaseItem releaseItem);
 
   Future<bool> addPreset(String chamberId, ChamberPreset preset);
-  Future<bool> removePreset(ChamberPreset preset, String chamberId);
+  Future<bool> deletePreset(ChamberPreset preset, String chamberId);
   Future<bool> updatePreset(String chamberId, ChamberPreset preset);
 
 }

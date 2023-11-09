@@ -187,6 +187,8 @@ class AppTheme {
   static TextStyle headerTitleStyle = const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white);
   static TextStyle headerSubtitleStyle = const TextStyle(fontSize: 20, color: Colors.white);
   static TextStyle eventMsgStyle = const TextStyle(fontSize: 23, fontWeight: FontWeight.bold,);
+  static TextStyle settingsTitleStyle = const TextStyle(fontSize: 16, color: Colors.white70,);
+  static TextStyle settingsSubtitleStyle = const TextStyle(color: Colors.white70, fontWeight: FontWeight.w400);
 
 
 

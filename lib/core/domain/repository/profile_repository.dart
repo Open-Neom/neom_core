@@ -39,6 +39,8 @@ abstract class ProfileRepository {
 
   Future<bool> addFavoriteItem(String profileId, String itemId);
   Future<bool> removeFavoriteItem(String profileId, String itemId);
+  Future<bool> removeFavoriteItems(String profileId, List<String> itemIds);
+
   // Future<bool> addAllAppMediaItemIds(String profileId, List<String> itemIds);
 
   Future<Map<String, AppProfile>> getFollowers(String profileId);

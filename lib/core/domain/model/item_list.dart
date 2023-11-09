@@ -71,7 +71,7 @@ class Itemlist {
     appMediaItems =  data["appMediaItems"]?.map<AppMediaItem>((item) {
       return AppMediaItem.fromJSON(item);
     }).toList(),
-    appReleaseItems =  data["appReleaseItems"]?.map<AppReleaseItem>((item) {
+    appReleaseItems = data["appReleaseItems"]?.map<AppReleaseItem>((item) {
       return AppReleaseItem.fromJSON(item);
     }).toList() ?? [],
     chamberPresets =  data["chamberPresets"]?.map<ChamberPreset>((preset) {

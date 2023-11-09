@@ -911,6 +911,16 @@ class AppTranslationConstants {
   static const String invitationRequestConfirmationMsg = 'invitationRequestConfirmationMsg';
   static const String wouldYouLikeAnInterview = 'wouldYouLikeAnInterview';
   static const String iWouldLikeAnInterview = 'iWouldLikeAnInterview';
+  static const String isAlreadyInPlaylist = 'isAlreadyInPlaylist';
+  static const String unknown = 'unknown';
+  static const String favoriteItems = 'favoriteItems';
+  static const String itemlistRemoved = 'itemlistRemoved';
+  static const String itemlistRemovedErrorMsg = 'itemlistRemovedErrorMsg';
+  static const String itemlistCreated = 'itemlistCreated';
+  static const String itemlistCreatedErrorMsg = 'itemlistCreatedErrorMsg';
+  static const String itemlistUpdated = 'itemlistUpdated';
+  static const String itemlistUpdatedErrorMsg = 'itemlistUpdatedErrorMsg';
+  static const String itemlistUpdateSameInfo = 'itemlistUpdateSameInfo';
 
 
 }

@@ -7,7 +7,6 @@ import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
-import 'package:neom_music_player/ui/widgets/snackbar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -809,9 +808,8 @@ class CoreUtilities {
     Clipboard.setData(
       ClipboardData(text: text),
     );
-    ShowSnackBar().showSnackBar(
-      context,
-      displayText ?? AppTranslationConstants.copied.tr,
+    AppUtilities.showSnackBar(
+      message: displayText ?? AppTranslationConstants.copied.tr,
     );
   }
 
