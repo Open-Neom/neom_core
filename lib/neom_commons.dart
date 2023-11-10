@@ -188,7 +188,7 @@ export 'core/utils/enums/event_type.dart';
 export 'core/utils/enums/facilitator_type.dart';
 export 'core/utils/enums/inbox_room_type.dart';
 export 'core/utils/enums/instrument_level.dart';
-export 'core/utils/enums/itemlist_owner.dart';
+export 'core/utils/enums/owner_type.dart';
 export 'core/utils/enums/place_type.dart';
 export 'core/utils/enums/post_type.dart';
 export 'core/utils/enums/profile_type.dart';

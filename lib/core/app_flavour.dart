@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 
@@ -19,10 +20,8 @@ class AppFlavour {
     appVersion = version;
   }
 
-  static Future<void> readProperties(BuildContext context) async {
-    final jsonString = await DefaultAssetBundle.of(context)
-        .loadString(AppAssets.propertiesJsonPath);
-
+  static Future<void> readProperties() async {
+    String jsonString = await rootBundle.loadString(AppAssets.propertiesJsonPath);
     appProperties = jsonDecode(jsonString);
   }
 
@@ -663,6 +662,18 @@ class AppFlavour {
 
   static String getPaymentGatewayBaseURL() {
     return appProperties['paymentGatewayBaseURL'];
+  }
+
+  static String getNotificationChannelId() {
+    return appProperties['notificationChannelId'];
+  }
+
+  static String getNotificationChannelName() {
+    return appProperties['notificationChannelName'];
+  }
+
+  static String getNotificationIcon() {
+    return appProperties['notificationIcon'];
   }
 
 }

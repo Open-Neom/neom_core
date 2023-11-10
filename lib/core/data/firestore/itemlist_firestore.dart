@@ -88,6 +88,27 @@ class ItemlistFirestore implements ItemlistRepository {
   }
 
   @override
+  Future<Itemlist> retrieve(String itemlistId) async {
+    AppUtilities.logger.t("Retrieving Itemlist by ID: $itemlistId");
+    Itemlist itemlist = Itemlist();
+
+    try {
+      DocumentSnapshot documentSnapshot = await itemlistReference.doc(itemlistId).get();
+      if (documentSnapshot.exists) {
+        AppUtilities.logger.t("Snapshot is not empty");
+        itemlist = Itemlist.fromJSON(documentSnapshot.data());
+        itemlist.id = documentSnapshot.id;
+        AppUtilities.logger.t(itemlist.toString());
+      }
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+
+
+    return itemlist;
+  }
+
+  @override
   Future<Map<String, Itemlist>> fetchAll({bool onlyPublic = false, bool excludeMyFavorites = true, int minItems = 0,
     int maxLength = 100, String profileId = '', String excludeFromProfileId = ''}) async {
     AppUtilities.logger.t("Retrieving Itemlists from firestore");

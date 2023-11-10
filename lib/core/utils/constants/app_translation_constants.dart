@@ -921,6 +921,7 @@ class AppTranslationConstants {
   static const String itemlistUpdated = 'itemlistUpdated';
   static const String itemlistUpdatedErrorMsg = 'itemlistUpdatedErrorMsg';
   static const String itemlistUpdateSameInfo = 'itemlistUpdateSameInfo';
-
+  static const String releaseUploadBandSelection = 'releaseUploadBandSelection';
+  static const String publishAsSoloist = 'publishAsSoloist';
 
 }

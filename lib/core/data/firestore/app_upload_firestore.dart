@@ -8,6 +8,7 @@ import '../../utils/app_utilities.dart';
 import '../../utils/enums/app_media_type.dart';
 import '../../utils/enums/upload_image_type.dart';
 import 'constants/app_firestore_collection_constants.dart';
+import 'constants/app_firestore_constants.dart';
 
 class AppUploadFirestore implements AppUploadRepository {
 
@@ -34,7 +35,7 @@ class AppUploadFirestore implements AppUploadRepository {
   Future<String> uploadVideo(String mediaId, File file) async {
     String downloadURL = '';
     try {
-      UploadTask uploadTask = storageRef.child('video_media')
+      UploadTask uploadTask = storageRef.child(AppFirestoreConstants.videoMediaFolder)
           .child('video_$mediaId.mp4').putFile(file);
       TaskSnapshot storageSnap = await uploadTask;
       downloadURL = await storageSnap.ref.getDownloadURL();
@@ -50,8 +51,7 @@ class AppUploadFirestore implements AppUploadRepository {
 
     String downloadURL = '';
     try {
-      UploadTask uploadTask = storageRef.child('releaseItems')
-          .child('$fileName.${type.value}').putFile(file);
+      UploadTask uploadTask = storageRef.child(AppFirestoreConstants.releaseItemsFolder).child('$fileName.${type.value}').putFile(file);
       TaskSnapshot storageSnap = await uploadTask;
       downloadURL = await storageSnap.ref.getDownloadURL();
     } catch (e) {

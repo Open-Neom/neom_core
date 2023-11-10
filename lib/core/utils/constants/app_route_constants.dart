@@ -164,6 +164,7 @@ class AppRouteConstants {
 
   static const String releaseUpload  = '/releaseUpload';
   static const String releaseUploadType  = '/releaseUpload/type';
+  static const String releaseUploadBandOrSolo  = '/releaseUpload/bandOrSolo';
   static const String releaseUploadInstr  = '/releaseUpload/instr';
   static const String releaseUploadCover  = '/releaseUpload/cover';
   static const String releaseUploadGenres  = '/releaseUpload/genres';

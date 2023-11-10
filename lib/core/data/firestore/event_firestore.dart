@@ -25,7 +25,7 @@ class EventFirestore implements EventRepository {
 
   @override
   Future<Event> retrieve(String eventId) async {
-    logger.t("Retrieving Events");
+    logger.t("Retrieving Event by ID: $eventId");
     Event event = Event();
 
     try {

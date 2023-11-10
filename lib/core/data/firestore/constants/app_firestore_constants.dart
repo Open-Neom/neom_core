@@ -110,4 +110,7 @@ class AppFirestoreConstants {
   static const String totalUsers = "totalUsers";
   static const String totalLocations = "totalLocations";
 
+  static const String videoMediaFolder = "videoMedia";
+  static const String releaseItemsFolder = "releaseItems";
+
 }

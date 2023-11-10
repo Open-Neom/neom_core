@@ -18,7 +18,7 @@ import '../../utils/constants/app_route_constants.dart';
 import '../../utils/constants/app_translation_constants.dart';
 import '../../utils/constants/message_translation_constants.dart';
 import '../../utils/core_utilities.dart';
-import '../../utils/enums/itemlist_owner.dart';
+import '../../utils/enums/owner_type.dart';
 import '../../utils/enums/user_role.dart';
 import '../firestore/coupon_firestore.dart';
 import '../firestore/itemlist_firestore.dart';
@@ -49,7 +49,7 @@ class UserController extends GetxController implements UserService {
   Band get band => _band.value ?? Band();
   set band(Band? band) => _band.value = band;
 
-  ItemlistOwner itemlistOwner  = ItemlistOwner.profile;
+  OwnerType itemlistOwner  = OwnerType.profile;
 
   bool appliedCoupon= false;
   AppCoupon coupon = AppCoupon();
