@@ -17,7 +17,7 @@ abstract class ItemlistRepository {
 
   Future<bool> update(Itemlist itemlist);
 
-  Future<Map<String, Itemlist>> fetchAll({bool onlyPublic = false, bool excludeMyFavorites = true, int minItems = 0, int maxLength = 100, String profileId = ''});
+  Future<Map<String, Itemlist>> fetchAll({bool onlyPublic = false, bool excludeMyFavorites = true, int minItems = 0, int maxLength = 100, String ownerId = ''});
 
   Future<bool> addReleaseItem(String itemlistId, AppReleaseItem releaseItem);
   Future<bool> deleteReleaseItem(String itemlistId, AppReleaseItem releaseItem);

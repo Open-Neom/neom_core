@@ -844,6 +844,36 @@ class ProfileFirestore implements ProfileRepository {
   }
 
   @override
+  Future<bool> addFavoriteItems(String profileId, List<String> itemIds) async {
+    logger.t("Adding ${itemIds.length} items to Profile $profileId favorites");
+
+    try {
+
+      await profileReference.get()
+          .then((querySnapshot) async {
+        for (var document in querySnapshot.docs)  {
+          if(document.id == profileId) {
+            List<dynamic> currentFavorites = document.data()[AppFirestoreConstants.favoriteItems];
+            List<String> updatedFavorites = List<String>.from(currentFavorites);
+            for (String itemId in itemIds) {
+              updatedFavorites.add(itemId);
+            }
+            await document.reference.update({
+              AppFirestoreConstants.favoriteItems: updatedFavorites,
+            });
+          }
+        }
+      });
+
+    } catch (e) {
+      logger.e(e.toString());
+      return false;
+    }
+
+    return true;
+  }
+
+  @override
   Future<bool> removeFavoriteItem(String profileId, String itemId) async {
     logger.t("Removing item $itemId from Profile $profileId favorites");
 
@@ -1477,7 +1507,7 @@ class ProfileFirestore implements ProfileRepository {
       }
 
       profile.genres = await GenreFirestore().retrieveGenres(profile.id);
-      profile.itemlists = await ItemlistFirestore().fetchAll(profileId: profile.id);
+      profile.itemlists = await ItemlistFirestore().fetchAll(ownerId: profile.id);
       if(profile.genres!.isEmpty) logger.t("Genres not found");
       if(profile.itemlists!.isEmpty) logger.t("Itemlists not found");
 

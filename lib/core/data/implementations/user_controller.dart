@@ -251,7 +251,7 @@ class UserController extends GetxController implements UserService {
           user!.currentProfileId = profileId;
           UserFirestore().updateCurrentProfile(user!.id, profileId);
           profile = user!.profiles.first;
-          profile.itemlists = await ItemlistFirestore().fetchAll(profileId: profile.id);
+          profile.itemlists = await ItemlistFirestore().fetchAll(ownerId: profile.id);
           if(appliedCoupon) await CouponFirestore().incrementUsageCount(coupon.id);
           Get.offAllNamed(AppRouteConstants.home);
         } else {
@@ -454,7 +454,7 @@ class UserController extends GetxController implements UserService {
   Future<void> reloadProfileItemlists() async {
 
     try {
-      profile.itemlists = await ItemlistFirestore().fetchAll(profileId: profile.id);
+      profile.itemlists = await ItemlistFirestore().fetchAll(ownerId: profile.id);
       profile.favoriteItems?.clear();
       profile.chamberPresets?.clear();
 

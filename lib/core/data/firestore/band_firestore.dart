@@ -8,8 +8,10 @@ import '../../domain/model/band_member.dart';
 import '../../domain/model/genre.dart';
 import '../../domain/repository/band_repository.dart';
 import '../../utils/app_utilities.dart';
+import '../../utils/enums/owner_type.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
+import 'itemlist_firestore.dart';
 import 'profile_firestore.dart';
 import 'request_firestore.dart';
 
@@ -171,6 +173,7 @@ class BandFirestore implements BandRepository {
           Band band = Band.fromJSON(documentSnapshot.data());
           band.id = documentSnapshot.id;
           band.members = await getBandMembers(band.id);
+          band.itemlists = await ItemlistFirestore().fetchAll(ownerId: band.id, ownerType: OwnerType.band);
           bands[band.id] = band;
         }
       }
@@ -458,53 +461,54 @@ class BandFirestore implements BandRepository {
   }
 
 
-  @override
-  Future<bool> addAppMediaItem(String bandId, String itemId) async {
-    logger.d("");
-    try {
-
-      await bandsReference.get()
-          .then((querySnapshot) async {
-        for (var document in querySnapshot.docs) {
-          if(document.id == bandId) {
-            await document.reference.update({
-              AppFirestoreConstants.appMediaItems: FieldValue.arrayUnion([itemId])
-            });
-          }
-        }
-      });
-
-    } catch (e) {
-      logger.e(e.toString());
-      return false;
-    }
-
-    return true;
-  }
-
-
-  @override
-  Future<bool> removeItem(String bandId, String itemId) async {
-    logger.d("");
-    try {
-
-      await bandsReference.get()
-          .then((querySnapshot) async {
-        for (var document in querySnapshot.docs) {
-          if(document.id == bandId) {
-            await document.reference.update({
-              AppFirestoreConstants.appMediaItems: FieldValue.arrayRemove([itemId])
-            });
-          }
-        }
-      });
-
-    } catch (e) {
-      logger.e(e.toString());
-      return false;
-    }
-
-    return true;
-  }
+  ///DEPRECATED
+  // @override
+  // Future<bool> addAppMediaItem(String bandId, String itemId) async {
+  //   logger.d("");
+  //   try {
+  //
+  //     await bandsReference.get()
+  //         .then((querySnapshot) async {
+  //       for (var document in querySnapshot.docs) {
+  //         if(document.id == bandId) {
+  //           await document.reference.update({
+  //             AppFirestoreConstants.appMediaItems: FieldValue.arrayUnion([itemId])
+  //           });
+  //         }
+  //       }
+  //     });
+  //
+  //   } catch (e) {
+  //     logger.e(e.toString());
+  //     return false;
+  //   }
+  //
+  //   return true;
+  // }
+  //
+  //
+  // @override
+  // Future<bool> removeItem(String bandId, String itemId) async {
+  //   logger.d("");
+  //   try {
+  //
+  //     await bandsReference.get()
+  //         .then((querySnapshot) async {
+  //       for (var document in querySnapshot.docs) {
+  //         if(document.id == bandId) {
+  //           await document.reference.update({
+  //             AppFirestoreConstants.appMediaItems: FieldValue.arrayRemove([itemId])
+  //           });
+  //         }
+  //       }
+  //     });
+  //
+  //   } catch (e) {
+  //     logger.e(e.toString());
+  //     return false;
+  //   }
+  //
+  //   return true;
+  // }
 
 }

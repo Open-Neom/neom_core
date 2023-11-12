@@ -155,6 +155,16 @@ class CoreUtilities {
     return totalPresets;
   }
 
+  static int getTotalItemsQty(Map<String, Itemlist> itemlists){
+    int totalItems = 0;
+
+    itemlists.forEach((key, itemlist) {
+      totalItems = totalItems + itemlist.getTotalItems();
+    });
+
+    return totalItems;
+  }
+
   static Widget ratingImage(String asset) {
     return Image.asset(
       asset,

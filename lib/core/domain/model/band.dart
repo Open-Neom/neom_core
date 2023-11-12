@@ -43,8 +43,8 @@ class Band {
   List<String>? events;
   List<String>? reviews;
 
-  List<String>? appMediaItems;
-  List<String>? appReleaseItems;
+  ///DEPRECATED List<String>? appMediaItems;
+  ///DEPRECATED List<String>? appReleaseItems;
   List<String>? playingEvents;
 
   List<String>? requests;
@@ -123,8 +123,8 @@ class Band {
       'reports': reports,
       'events': events,
       'reviews': reviews,
-      'appMediaItems': appMediaItems,
-      'appReleaseItems': appReleaseItems,
+      ///DEPRECATED 'appMediaItems': appMediaItems,
+      ///DEPRECATED 'appReleaseItems': appReleaseItems,
       'playingEvents': playingEvents,
       'requests': requests,
       'sentRequests': sentRequests,
@@ -157,8 +157,8 @@ class Band {
         reports = data["reports"]?.cast<String>() ?? [],
         events = data["events"]?.cast<String>() ?? [],
         reviews = data["reviews"]?.cast<String>() ?? [],
-        appMediaItems = data["appMediaItems"]?.cast<String>() ?? [],
-        appReleaseItems = data["appReleaseItems"]?.cast<String>() ?? [],
+        ///DEPRECATED appMediaItems = data["appMediaItems"]?.cast<String>() ?? [],
+        ///DEPRECATED appReleaseItems = data["appReleaseItems"]?.cast<String>() ?? [],
         playingEvents = data["playingEvents"]?.cast<String>() ?? [],
         requests = data["requests"]?.cast<String>() ?? [],
         sentRequests = data["sentRequests"]?.cast<String>() ?? [],

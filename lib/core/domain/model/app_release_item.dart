@@ -1,4 +1,5 @@
 import 'package:enum_to_string/enum_to_string.dart';
+import '../../utils/enums/owner_type.dart';
 import '../../utils/enums/release_type.dart';
 import 'place.dart';
 import 'price.dart';
@@ -12,13 +13,14 @@ class AppReleaseItem {
   String ownerId;
   String ownerName;
   String ownerImgUrl;
-  String? bandId; ///In case a band is selected for the release
+  OwnerType ownerType;
   
   String lyrics;
   String language;
   String metaName; ///itemlistName
   String metaId; ///itemlistId
-  
+  String metaOwnerId; ///UserId used to upload item
+
   String imgUrl; ///Cover image
   int duration; ///Seconds
   String previewUrl; ///Url with file
@@ -48,22 +50,25 @@ class AppReleaseItem {
   Map<String, String>? featInternalArtists; ///key: artistId - value: name
   int likes;
 
+
   @override
   String toString() {
-    return 'AppReleaseItem{id: $id, name: $name, description: $description, ownerId: $ownerId, ownerName: $ownerName, ownerImgUrl: $ownerImgUrl, bandId: $bandId, lyrics: $lyrics, language: $language, metaName: $metaName, metaId: $metaId, imgUrl: $imgUrl, duration: $duration, previewUrl: $previewUrl, appMediaItemIds: $appMediaItemIds, genres: $genres, instruments: $instruments, publisher: $publisher, publishedYear: $publishedYear, place: $place, type: $type, digitalPrice: $digitalPrice, physicalPrice: $physicalPrice, watchingProfiles: $watchingProfiles, boughtUsers: $boughtUsers, createdTime: $createdTime, isAvailable: $isAvailable, isPhysical: $isPhysical, isTest: $isTest, state: $state, externalArtists: $externalArtists, featInternalArtists: $featInternalArtists, likes: $likes}';
+    return 'AppReleaseItem{id: $id, name: $name, description: $description, ownerId: $ownerId, ownerName: $ownerName, ownerImgUrl: $ownerImgUrl, ownerType: $ownerType, lyrics: $lyrics, language: $language, metaName: $metaName, metaId: $metaId, metaOwnerId: $metaOwnerId, imgUrl: $imgUrl, duration: $duration, previewUrl: $previewUrl, appMediaItemIds: $appMediaItemIds, genres: $genres, instruments: $instruments, publisher: $publisher, publishedYear: $publishedYear, place: $place, type: $type, digitalPrice: $digitalPrice, physicalPrice: $physicalPrice, watchingProfiles: $watchingProfiles, boughtUsers: $boughtUsers, createdTime: $createdTime, isAvailable: $isAvailable, isPhysical: $isPhysical, isTest: $isTest, state: $state, externalArtists: $externalArtists, featInternalArtists: $featInternalArtists, likes: $likes}';
   }
+
 
   AppReleaseItem({
       this.id = '',
       this.name = '',
-      this.metaName = '',
-      this.metaId = '',
       this.lyrics = '',
       this.language = '',
       this.ownerName = '',
       this.ownerId = '',
       this.ownerImgUrl = '',
-      this.bandId = '',
+      this.ownerType = OwnerType.profile,
+      this.metaName = '',
+      this.metaId = '',
+      this.metaOwnerId = '',
       this.publisher = '',
       this.imgUrl = '',
       this.duration = 0,
@@ -98,12 +103,13 @@ class AppReleaseItem {
     previewUrl = data["previewUrl"] ?? '',
     language = data["language"] ?? '',
     lyrics = data["lyrics"] ?? '',
-    metaName = data["metaName"] ?? '',
-    metaId = data["metaId"] ?? '',
     ownerName = data["ownerName"] ?? '',
     ownerId = data["ownerId"] ?? '',
     ownerImgUrl = data["ownerImgUrl"] ?? '',
-    bandId = data["bandId"] ?? '',
+    ownerType = EnumToString.fromString(OwnerType.values, data["ownerType"] ?? OwnerType.profile.name) ?? OwnerType.profile,
+    metaName = data["metaName"] ?? '',
+    metaId = data["metaId"] ?? '',
+    metaOwnerId = data["metaOwnerId"] ?? '',
     appMediaItemIds = List.from(data["appMediaItemIds"]?.cast<String>() ?? []),
     genres = List.from(data["genres"]?.cast<String>() ?? []),
     instruments = List.from(data["instruments"]?.cast<String>() ?? []),
@@ -133,12 +139,13 @@ class AppReleaseItem {
     'previewUrl': previewUrl,
     'lyrics': lyrics,
     'language': language,
-    'metaName': metaName,
-    'metaId': metaId,
     'ownerName': ownerName,
     'ownerId': ownerId,
     'ownerImgUrl': ownerImgUrl,
-    'bandId': bandId,
+    'ownerType': ownerType.name,
+    'metaName': metaName,
+    'metaId': metaId,
+    'metaOwnerId': metaOwnerId,
     'appMediaItemIds': appMediaItemIds,
     'genres': genres,
     'instruments': instruments,

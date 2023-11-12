@@ -923,5 +923,6 @@ class AppTranslationConstants {
   static const String itemlistUpdateSameInfo = 'itemlistUpdateSameInfo';
   static const String releaseUploadBandSelection = 'releaseUploadBandSelection';
   static const String publishAsSoloist = 'publishAsSoloist';
+  static const String myProject = 'myProject';
 
 }
