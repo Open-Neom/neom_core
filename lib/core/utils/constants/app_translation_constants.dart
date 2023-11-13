@@ -924,5 +924,9 @@ class AppTranslationConstants {
   static const String releaseUploadBandSelection = 'releaseUploadBandSelection';
   static const String publishAsSoloist = 'publishAsSoloist';
   static const String myProject = 'myProject';
+  static const String wasAddedToItemList = 'wasAddedToItemList';
+  static const String requestSuccessfullySent = 'requestSuccessfullySent';
+  static const String playlistSynchFinished = 'playlistSynchFinished';
+  static const String digitalPositioningSuccess = 'digitalPositioningSuccess';
 
 }

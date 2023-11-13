@@ -186,7 +186,7 @@ class AppFlavour {
   static String getItemDetailsRoute() {
     switch (appInUse) {
       case AppInUse.g:
-        return AppRouteConstants.itemDetails;
+        return AppRouteConstants.musicPlayerMedia;
       case AppInUse.e:
         return AppRouteConstants.bookDetails;
       case AppInUse.c:

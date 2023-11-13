@@ -123,7 +123,7 @@ class CoreUtilities {
     Map<String, AppMediaItem> totalItems = {};
 
     itemlists.forEach((key, itemlist) {
-      for (var appMediaItem in itemlist.appMediaItems!) {
+      for (var appMediaItem in itemlist.appMediaItems ?? []) {
         totalItems[appMediaItem.id] = appMediaItem;
       }
     });
@@ -135,7 +135,7 @@ class CoreUtilities {
     Map<String, AppReleaseItem> totalItems = {};
 
     itemlists.forEach((key, itemlist) {
-      for (var appReleaseItem in itemlist.appReleaseItems!) {
+      for (var appReleaseItem in itemlist.appReleaseItems ?? []) {
         totalItems[appReleaseItem.id] = appReleaseItem;
       }
     });
@@ -147,7 +147,7 @@ class CoreUtilities {
     Map<String, ChamberPreset> totalPresets = {};
 
     itemlists.forEach((key, itemlist) {
-      for (var preset in itemlist.chamberPresets!) {
+      for (var preset in itemlist.chamberPresets ?? []) {
         totalPresets[preset.id] = preset;
       }
     });

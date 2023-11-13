@@ -35,7 +35,7 @@ class AppConstants {
   static const String prevVersion3 = "prevVersion3";
   static const String prevVersion4 = "prevVersion4";
 
-  static const int maxAppItemNameLength = 20;
+  static const int maxAppItemNameLength = 16;
   static const int maxGenreNameLength = 15;
   static const int maxArtistNameLength = 15;
   static const int maxBandNameLength = 15;

@@ -24,6 +24,9 @@ dependencies:
   neom_posts:
     git:
       url: https://github.com/Cyberneom/neom_posts.git
+  neom_profile:
+    git:
+      url: https://github.com/Cyberneom/neom_profile.git
   neom_music_player:
     git:
       url: https://github.com/Cyberneom/neom_music_player.git
@@ -48,13 +51,13 @@ dependencies:
   font_awesome_flutter: ^10.6.0
   transparent_image: ^2.0.1
 
-  firebase_core: ^2.19.0
-  cloud_firestore: ^4.11.0
-  firebase_storage: ^11.3.1
-  firebase_auth: ^4.11.1
-  firebase_messaging: ^14.7.1
-  firebase_crashlytics: ^3.4.1
-  google_sign_in: ^6.1.5
+  firebase_core: ^2.22.0
+  cloud_firestore: ^4.13.0
+  firebase_storage: ^11.5.0
+  firebase_auth: ^4.13.0
+  firebase_messaging: ^14.7.4
+  firebase_crashlytics: ^3.4.4
+  google_sign_in: ^6.1.6
   sign_in_with_apple: ^5.0.0
   crypto: ^3.0.3
 
@@ -154,6 +157,8 @@ dependency_overrides:
     path: ../neom_timeline
   neom_posts:
     path: ../neom_posts
+  neom_profile:
+    path: ../neom_profile
   neom_inbox:
     path: ../neom_inbox
   neom_events:

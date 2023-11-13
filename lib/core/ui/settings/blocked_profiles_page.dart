@@ -69,7 +69,7 @@ class BlockedProfilesPage extends StatelessWidget {
                           DialogButton(
                             color: AppColor.bondiBlue75,
                             onPressed: () async {
-                              if(!itemmateDetailsController.isButtonDisabled) {
+                              if(!itemmateDetailsController.isButtonDisabled.value) {
                                 await itemmateDetailsController.unblockProfile(mate);
                                 AppUtilities.showAlert(context, title: AppTranslationConstants.unblockProfile.tr, message: AppTranslationConstants.unblockedProfileMsg.tr);
                               }
@@ -81,8 +81,8 @@ class BlockedProfilesPage extends StatelessWidget {
                         ]
                     ).show();
                   } else {
-                    itemmateDetailsController.isLoading = false;
-                    itemmateDetailsController.mate = mate;
+                    itemmateDetailsController.isLoading.value = false;
+                    itemmateDetailsController.mate.value = mate;
                     _.getMateDetails(mate);
                   }
 

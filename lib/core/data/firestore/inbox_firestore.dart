@@ -102,9 +102,9 @@ class InboxFirestore implements InboxRepository {
           logger.t('Message text ${message.text}');
           messages.add(message);
         }
-        logger.d("${messages.length} messages retrieved");
+        logger.t("${messages.length} messages retrieved");
       } else {
-        logger.d("No messages found Found");
+        logger.t("No messages found Found");
       }
 
     } catch (e) {

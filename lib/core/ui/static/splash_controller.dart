@@ -141,6 +141,7 @@ class SplashController extends GetxController {
         await Get.offAllNamed(AppRouteConstants.home, arguments: [toRoute]);
         break;
       case AppRouteConstants.finishingSpotifySync:
+        AppUtilities.showSnackBar(message: AppTranslationConstants.playlistSynchFinished.tr);
         await Get.offAllNamed(AppRouteConstants.home);
         break;
       case AppRouteConstants.refresh:

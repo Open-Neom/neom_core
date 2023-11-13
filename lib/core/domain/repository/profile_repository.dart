@@ -38,6 +38,7 @@ abstract class ProfileRepository {
   Future<QuerySnapshot> handleSearch(String query);
 
   Future<bool> addFavoriteItem(String profileId, String itemId);
+  Future<bool> addFavoriteItems(String profileId, List<String> itemIds);
   Future<bool> removeFavoriteItem(String profileId, String itemId);
   Future<bool> removeFavoriteItems(String profileId, List<String> itemIds);
 

@@ -31,6 +31,7 @@ class BandFirestore implements BandRepository {
         band = Band.fromJSON(documentSnapshot.data());
         band.id = documentSnapshot.id;
         band.members = await getBandMembers(band.id);
+        band.itemlists = await ItemlistFirestore().fetchAll(ownerId: band.id, ownerType: OwnerType.band);
         logger.t(band.name);
       }
     } catch (e) {
@@ -144,6 +145,7 @@ class BandFirestore implements BandRepository {
         band.id = documentSnapshot.id;
 
         band.members = await getBandMembers(band.id);
+        band.itemlists = await ItemlistFirestore().fetchAll(ownerId: band.id, ownerType: OwnerType.band);
         bands[band.id] = band;
       }
 
