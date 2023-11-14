@@ -108,13 +108,15 @@ class AppMediaItem {
   factory AppMediaItem.fromJSON(map) {
     try {
       AppUtilities.logger.t("AppMediaItem fromJSON: ${map['name'] ?? ''} with id ${map['id'] ?? ''}");
-      int dur = 0;
+      int dur = 30;
 
       if(map['duration'] is String && map['duration'].toString().contains(":")) {
         final List<String> parts = map['duration'].toString().split(':');
         for (int i = 0; i < parts.length; i++) {
           dur += int.parse(parts[i]) * (60 ^ (parts.length - i - 1));
         }
+      } else if(map['duration'] is int) {
+        dur = map['duration'];
       }
 
       final appMediaItem = AppMediaItem(

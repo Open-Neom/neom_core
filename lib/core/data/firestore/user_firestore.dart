@@ -402,7 +402,7 @@ class UserFirestore implements UserRepository {
   }
 
   Future<AppProfile> updateCurrentProfile(String userId, String currentProfileId) async {
-    logger.d("updating current profile $userId");
+    logger.d("Updating current profile $userId");
     AppProfile profile = AppProfile();
     try {
       DocumentSnapshot documentSnapshot = await userReference.doc(userId).get();

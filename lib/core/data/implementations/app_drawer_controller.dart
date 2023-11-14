@@ -1,4 +1,3 @@
-// ignore_for_file: use_build_context_synchronously
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -35,71 +34,75 @@ class AppDrawerController extends GetxController {
     update([AppPageIdConstants.appDrawer]);
   }
 
-  Future<void> selectProfileModal(BuildContext context) async {
+  Future<void> selectProfileModal(BuildContext treeContext) async {
 
     try {
       await userController.getProfiles();
       await showModalBottomSheet(
           elevation: 0,
-          isScrollControlled: true,
-          barrierColor: Colors.transparent,
-          backgroundColor: AppTheme.canvasColor25(context),
-          context: context,
+          backgroundColor: AppTheme.canvasColor25(treeContext),
+          context: treeContext,
           builder: (BuildContext context) {
-            return Column(
+            return SingleChildScrollView(
+                child: Column(
               mainAxisAlignment: MainAxisAlignment.end,
               children: <Widget>[
-                SingleChildScrollView(
-                  child: Container(
-                    padding: const EdgeInsets.only(top: 10),
-                    margin: const EdgeInsets.symmetric(horizontal: 15),
-                    decoration: AppTheme.appBoxDecoration75,
-                    child: ListView.separated(
-                        padding: EdgeInsets.zero,
-                        shrinkWrap: true,
-                        separatorBuilder:  (context, index) => const Divider(),
-                        itemCount: user.profiles.length,
-                        itemBuilder: (context, index) {
-                          AppProfile profile = user.profiles.elementAt(index);
-                          return ListTile(
-                            leading: IconButton(
-                              icon: CircleAvatar(
-                                  maxRadius: 60,
-                                  backgroundImage: CachedNetworkImageProvider(
-                                      profile.photoUrl.isNotEmpty
-                                          ? profile.photoUrl
-                                          : AppFlavour.getNoImageUrl()
-                                  )
-                              ),
-                              onPressed: ()=> Get.back(),
+                Container(
+                  padding: const EdgeInsets.only(top: 10),
+                  margin: const EdgeInsets.symmetric(horizontal: 15),
+                  decoration: BoxDecoration(
+                      color: AppColor.main95,
+                      borderRadius: const BorderRadius.only(topLeft: Radius.circular(10.0), topRight: Radius.circular(10.0))
+                  ),
+                  child: ListView.separated(
+                      padding: EdgeInsets.zero,
+                      shrinkWrap: true,
+                      separatorBuilder:  (context, index) => const Divider(),
+                      itemCount: user.profiles.length,
+                      itemBuilder: (ctx, index) {
+                        AppProfile profile = user.profiles.elementAt(index);
+                        return ListTile(
+                          leading: IconButton(
+                            icon: CircleAvatar(
+                                maxRadius: 60,
+                                backgroundImage: CachedNetworkImageProvider(
+                                    profile.photoUrl.isNotEmpty
+                                        ? profile.photoUrl
+                                        : AppFlavour.getNoImageUrl()
+                                )
                             ),
-                            trailing: Icon(
-                                appProfile.id == profile.id
-                                    ? FontAwesomeIcons.circleDot
-                                    : Icons.circle_outlined,
-                                size: 30
-
-                            ),
-                            title: Text(profile.name,
-                              style: const TextStyle(fontSize: 18),
-                            ),
-                            subtitle: Text("${profile.type.name.tr.capitalize} - ${profile.mainFeature.tr.capitalize}"),
-                            onTap: () async {
-                              isButtonDisabled = true;
+                            onPressed: () async {
+                              Navigator.pop(context);
                               if(appProfile.id != profile.id) {
+                                Navigator.pop(treeContext);
                                 await userController.changeProfile(profile);
-                              } else {
-                                Get.back();
                               }
                             },
-                          );
-                        }
-                    ),
+                          ),
+                          trailing: Icon(
+                              appProfile.id == profile.id
+                                  ? FontAwesomeIcons.circleDot
+                                  : Icons.circle_outlined,
+                              size: 30
+                          ),
+                          title: Text(profile.name,
+                            style: const TextStyle(fontSize: 18),
+                          ),
+                          subtitle: Text("${profile.type.name.tr.capitalize} - ${profile.mainFeature.tr.capitalize}"),
+                          onTap: () async {
+                            Navigator.pop(context);
+                            if(appProfile.id != profile.id) {
+                              Navigator.pop(treeContext);
+                              await userController.changeProfile(profile);
+                            }
+                          },
+                        );
+                      }
                   ),
                 ),
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 15),
-                  decoration: AppTheme.appBoxDecoration,
+                  color: AppColor.main95,                  
                   child: ListTile(
                     leading: Container(
                       decoration: BoxDecoration(
@@ -114,12 +117,13 @@ class AppDrawerController extends GetxController {
                     ),
                     subtitle: const Text("Agrega un perfil adicional para manejar distintas cuentas."),
                     onTap: () {
+                      Navigator.pop(treeContext);
                       Get.toNamed(AppRouteConstants.introProfile);
                     },
                   ),
                 ),
               ],
-            );
+            ));
           });
 
       isButtonDisabled = false;

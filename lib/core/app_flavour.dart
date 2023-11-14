@@ -576,36 +576,19 @@ class AppFlavour {
   }
 
   static String getBuyMeACoffeeURL() {
-    switch (appInUse) {
-      case AppInUse.g:
-        return appProperties['buyMeACoffeeUrl'];
-      case AppInUse.e:
-        return appProperties['buyMeACoffeeUrl'];
-      case AppInUse.c:
-        return appProperties['buyMeACoffeeUrl'];
-    }
+    return appProperties['buyMeACoffeeUrl'];    
   }
 
   static String getHubName() {
-    switch (appInUse) {
-      case AppInUse.g:
-        return appProperties['audioHubName'];
-      case AppInUse.e:
-        return appProperties['audioHubName'];
-      case AppInUse.c:
-        return appProperties['audioHubName'];
-    }
+    return appProperties['audioHubName'];    
+  }
+
+  static String getStorageServerName() {
+    return appProperties['storageServerName'];    
   }
 
   static String getSplashSubtitle() {
-    switch (appInUse) {
-      case AppInUse.g:
-        return appProperties['splashSubText'];
-      case AppInUse.e:
-        return appProperties['splashSubText'];
-      case AppInUse.c:
-        return appProperties['splashSubText'];
-    }
+    return appProperties['splashSubText'];    
   }
 
   static List<BlogArticle> getBlogArticles() {

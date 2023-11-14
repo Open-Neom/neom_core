@@ -439,7 +439,7 @@ class CoreUtilities {
         genreList.add(Genre.fromJsonDefault(genreJSON));
       }
 
-      AppUtilities.logger.d("${genreList.length} loaded instruments from json");
+      AppUtilities.logger.d("${genreList.length} loaded genres from json");
     } catch (e) {
       AppUtilities.logger.e(e.toString());
     }
