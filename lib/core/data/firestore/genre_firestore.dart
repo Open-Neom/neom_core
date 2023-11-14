@@ -67,7 +67,7 @@ class GenreFirestore implements GenreRepository {
 
   @override
   Future<bool> addGenre({required String profileId, required String genreId}) async {
-    logger.d("Adding $genreId for by $profileId");
+    logger.t("Adding $genreId for by $profileId");
 
     Genre genreBasic = Genre.addBasic(genreId);
     try {

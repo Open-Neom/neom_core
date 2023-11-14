@@ -16,8 +16,9 @@ abstract class OnBoardingService {
   void setPlaceType(PlaceType placeType);
   void setFacilityType(FacilityType facilityTpe);
   void addGenresToProfile();
-  Future<void>  addGenreIntro(int index);
-  Future<void> removeGenreIntro(int index);
+  ///DEPRECATED
+  // Future<void>  addGenreIntro(int index);
+  // Future<void> removeGenreIntro(int index);
   void setTermsAgreement(bool agree);
   Future<void> createAdditionalProfile();
 
