@@ -27,14 +27,14 @@ class PostFirestore implements PostRepository {
       QuerySnapshot querySnapshot = await postsReference.get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        logger.v("Snapshot is not empty");
+        logger.t("Snapshot is not empty");
         for (var postSnapshot in querySnapshot.docs) {
           Post post = Post.fromJSON(postSnapshot.data());
           post.id = postSnapshot.id;
-          logger.v(post.toString());
+          logger.t(post.toString());
           posts.add(post);
         }
-        logger.v("${posts.length} posts found");
+        logger.t("${posts.length} posts found");
       }
     } catch (e) {
       logger.e(e.toString());
@@ -67,7 +67,7 @@ class PostFirestore implements PostRepository {
 
   @override
   Future<String> insert(Post post) async {
-    logger.d("");
+    logger.t("insert");
     String postId = "";
     try {
       DocumentReference documentReference = await postsReference
@@ -98,7 +98,7 @@ class PostFirestore implements PostRepository {
 
   @override
   Future<bool> remove(String profileId, String postId) async {
-    logger.d("");
+    logger.t("remove Post");
     bool wasDeleted = false;
     try {
       await postsReference.doc(postId).delete();
@@ -125,7 +125,7 @@ class PostFirestore implements PostRepository {
 
   @override
   Future<List<Post>> getProfilePosts(String profileId) async {
-    logger.d("");
+    logger.t("getProfilePosts from Firestore");
 
     List<Post> posts = [];
 
@@ -133,12 +133,11 @@ class PostFirestore implements PostRepository {
         AppFirestoreConstants.ownerId, isEqualTo: profileId).get();
 
     if (querySnapshot.docs.isNotEmpty) {
-      logger.d("Snapshot is not empty");
       for (int queryIndex = 0; queryIndex <
           querySnapshot.docs.length; queryIndex++) {
         Post post = Post.fromJSON(querySnapshot.docs.elementAt(queryIndex).data());
         post.id = querySnapshot.docs.elementAt(queryIndex).id;
-        logger.d(post.toString());
+        logger.t('Post ${post.id} of type ${post.type.name} at ${post.location}');
         if (post.type != PostType.event && post.type != PostType.releaseItem) {
           posts.add(post);
         }
@@ -150,7 +149,7 @@ class PostFirestore implements PostRepository {
 
   @override
   Future<Map<String, Post>> getTimeline() async {
-    logger.v("");
+    logger.t("");
     Map<String, Post> posts = {};
 
     try {
@@ -252,19 +251,17 @@ class PostFirestore implements PostRepository {
 
 
   Future<bool> removeEventPost(String ownerId, String eventId) async {
-    logger.d("RetrievingProfiles");
+    logger.t('Remove Event Post $eventId');
     bool wasDeleted = false;
 
     try {
 
       QuerySnapshot querySnapshot = await postsReference.get();
       if (querySnapshot.docs.isNotEmpty) {
-        logger.d("Snapshot is not empty");
         for (var postSnapshot in querySnapshot.docs) {
           Post post = Post.fromJSON(postSnapshot.data());
           post.id = postSnapshot.id;
           if(post.referenceId == eventId) {
-            logger.i("Removing post for Event $eventId");
             await postSnapshot.reference.delete();
             wasDeleted = await ProfileFirestore().removePost(ownerId, postSnapshot.reference.id);
             await ActivityFeedFirestore().removePostActivity(postSnapshot.reference.id);

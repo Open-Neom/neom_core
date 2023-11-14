@@ -9,9 +9,9 @@ class CachedNetworkRoutingImage extends StatelessWidget {
   final String referenceId;
   final BoxFit fit;
 
-  const CachedNetworkRoutingImage(context, {Key? key,
+  const CachedNetworkRoutingImage(context, {super.key,
     required this.toNamed, required this.mediaUrl,
-    this.referenceId = "", this.fit = BoxFit.fitHeight}) : super(key: key);
+    this.referenceId = "", this.fit = BoxFit.fitHeight});
 
   @override
   Widget build(BuildContext context) {

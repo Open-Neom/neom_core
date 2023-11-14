@@ -9,13 +9,12 @@ class InputDropdown extends StatelessWidget {
   final Widget? child;
 
   const InputDropdown(
-      {Key? key,
+      {super.key,
         this.child,
         required this.labelText,
         required this.valueText,
         required this.valueStyle,
-        required this.onPressed})
-      : super(key: key);
+        required this.onPressed});
 
 
 

@@ -1,5 +1,4 @@
 import 'dart:async';
-import '../model/app_item.dart';
 import '../model/app_media_item.dart';
 import '../model/app_release_item.dart';
 import '../model/item_list.dart';
@@ -8,29 +7,23 @@ import '../model/neom/chamber_preset.dart';
 
 abstract class ItemlistRepository {
 
-  Future<bool> addAppMediaItem(String profileId, AppMediaItem appMediaItem, String itemlistId);
-  Future<bool> removeItem(String profileId, AppMediaItem appMediaItem, String itemlistId);
-  Future<bool> updateItem(String profileId, String itemlistId, AppMediaItem item);
+  Future<bool> addAppMediaItem(AppMediaItem appMediaItem, String itemlistId);
+  Future<bool> deleteItem(AppMediaItem appMediaItem, String itemlistId);
+  Future<bool> updateItem(String itemlistId, AppMediaItem appMediaItem);
 
+  Future<Itemlist> retrieve(String itemlistId);
   Future<String> insert(Itemlist itemlist);
-  Future<bool> remove(String profileId, String itemlistId);
+  Future<bool> delete(itemlistId);
 
-  Future<bool> update(String profileId, Itemlist itemlist);
-  // Future<bool> setAsFavorite(String profileId, Itemlist itemlist);
-  // Future<bool> unsetOfFavorite(String profileId, Itemlist itemlist);
+  Future<bool> update(Itemlist itemlist);
 
-  Future<List<Itemlist>> fetchAll({bool onlyPublic = false, bool excludeMyFavorites = true, int minItems = 0});
-  Future<Map<String, Itemlist>> retrieveItemlists(String profileId);
+  Future<Map<String, Itemlist>> fetchAll({bool onlyPublic = false, bool excludeMyFavorites = true, int minItems = 0, int maxLength = 100, String ownerId = ''});
 
-  Future<bool> addReleaseItem({required String profileId, required String itemlistId,
-    required AppReleaseItem releaseItem});
+  Future<bool> addReleaseItem(String itemlistId, AppReleaseItem releaseItem);
+  Future<bool> deleteReleaseItem(String itemlistId, AppReleaseItem releaseItem);
 
-  Future<bool> removeReleaseItem({required String profileId, required String itemlistId,
-    required AppReleaseItem releaseItem});
-
-  Future<bool> addPreset({required String profileId,required String chamberId,required ChamberPreset preset});
-  Future<bool> removePreset(String profileId, ChamberPreset preset, String chamberId);
-  Future<bool> updatePreset(String profileId, String chamberId, ChamberPreset preset);
-
+  Future<bool> addPreset(String chamberId, ChamberPreset preset);
+  Future<bool> deletePreset(ChamberPreset preset, String chamberId);
+  Future<bool> updatePreset(String chamberId, ChamberPreset preset);
 
 }

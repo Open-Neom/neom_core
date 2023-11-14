@@ -46,12 +46,14 @@ class AppFirestoreConstants {
   static const String invalidEmail = 'invalid-email';
   static const String userNotFound = 'user-not-found';
   static const String emailInUse = 'email-already-in-use';
+  static const String operationNotAllowed = 'operation-not-allowed';
   static const String unknown = 'unknown';
 
   static const String imgUrl = 'imgUrl';
   static const String name = 'name';
   static const String description = 'description';
   static const String aboutMe = 'aboutMe';
+  static const String lastNameUpdate = 'lastNameUpdate';
 
   static const String isMain = 'isMain';
   static const String isFav = 'isFav';
@@ -107,5 +109,8 @@ class AppFirestoreConstants {
 
   static const String totalUsers = "totalUsers";
   static const String totalLocations = "totalLocations";
+
+  static const String videoMediaFolder = "videoMedia";
+  static const String releaseItemsFolder = "releaseItems";
 
 }

@@ -107,7 +107,7 @@ class AppMediaItem {
 
   factory AppMediaItem.fromJSON(map) {
     try {
-      AppUtilities.logger.v("AppMediaItem fromJSON: ${map['name'] ?? ''}");
+      AppUtilities.logger.t("AppMediaItem fromJSON: ${map['name'] ?? ''} with id ${map['id'] ?? ''}");
       int dur = 0;
 
       if(map['duration'] is String && map['duration'].toString().contains(":")) {
@@ -125,7 +125,7 @@ class AppMediaItem {
         duration: dur,
         language: map['language'] ?? '',
         genre: map['genre'] ?? '',
-        is320Kbps: map['is320Kbps'] as bool? ?? false,
+        is320Kbps: map['is320Kbps'] ?? false,
         lyrics: map['lyrics'] ?? '',
         albumId: map['albumId'] ?? '',
         description: map['description'] ?? '',
@@ -300,9 +300,9 @@ class AppMediaItem {
     }
 
     if(itemlist.appReleaseItems != null) {
-      itemlist.appReleaseItems!.forEach((element) {
+      for (var element in itemlist.appReleaseItems!) {
         appMediaItems.add(AppMediaItem.fromAppReleaseItem(element));
-      });
+      }
     }
 
     // if(itemlist.chamberPresets != null) {
@@ -311,7 +311,7 @@ class AppMediaItem {
     //   });
     // }
 
-    AppUtilities.logger.v("Retrieving ${appMediaItems.length} total AppMediaItems.");
+    AppUtilities.logger.t("Retrieving ${appMediaItems.length} total AppMediaItems.");
     return appMediaItems;
   }
 
@@ -355,9 +355,12 @@ class AppMediaItem {
   }
 
   static List<AppMediaItem> mapTracksToSongs(Paging<Track> tracks) {
+
     List<AppMediaItem> songs = [];
-    String artistName = "";
-    String albumImgUrl = "";
+
+    ///DEPRECATED
+    // String artistName = "";
+    // String albumImgUrl = "";
 
     try {
       for (var playlistTrack in tracks.itemsNative!) {

@@ -3,7 +3,6 @@ import 'package:enum_to_string/enum_to_string.dart';
 import '../../utils/enums/event_status.dart';
 import '../../utils/enums/event_type.dart';
 import '../../utils/enums/usage_reason.dart';
-import 'app_item.dart';
 import 'app_media_item.dart';
 import 'app_profile.dart';
 import 'band_fulfillment.dart';

@@ -84,7 +84,7 @@ class ChamberPreset {
         neomFrequency = frequency;
 
   ChamberPreset clone() {
-    return ChamberPreset.fromJSON(this.toJSON());
+    return ChamberPreset.fromJSON(toJSON());
   }
 
 }

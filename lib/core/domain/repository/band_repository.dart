@@ -20,8 +20,8 @@ abstract class BandRepository {
 
 
   Future<bool> removePlayingEvent(String bandId, String eventId);
-  Future<bool> addAppMediaItem(String bandId, String itemId);
-  Future<bool> removeItem(String bandId, String itemId);
+  ///DEPRECATED Future<bool> addAppMediaItem(String bandId, String itemId);
+  ///DEPRECATED Future<bool> removeItem(String bandId, String itemId);
   Future<bool> removeBandMember(String bandId, BandMember bandMember);
 
 }

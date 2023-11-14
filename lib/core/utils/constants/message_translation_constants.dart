@@ -217,4 +217,9 @@ class MessageTranslationConstants {
   static const String frequencyAdded = 'frequencyAdded';
   static const String frequencyNotAdded = 'frequencyNotAdded';
 
+  static const String descriptionTooLong = 'descriptionTooLong';
+  static const String nameRecentlyUpdate = 'nameRecentlyUpdate';
+  static const String profileNameUpdated = 'profileNameUpdated';
+  static const String profileAboutMeUpdated = 'profileAboutMeUpdated';
+
 }

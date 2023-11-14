@@ -11,41 +11,23 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../app_flavour.dart';
-import '../data/implementations/shared_preference_controller.dart';
-import '../domain/model/activity_feed.dart';
-import '../domain/model/app_item.dart';
+import '../../neom_commons.dart';
 import '../domain/model/app_media_item.dart';
-import '../domain/model/app_profile.dart';
-import '../domain/model/band.dart';
-import '../domain/model/band_member.dart';
-import '../domain/model/event.dart';
-import '../domain/model/event_type_model.dart';
-import '../domain/model/facility.dart';
-import '../domain/model/genre.dart';
-import '../domain/model/instrument.dart';
-import '../domain/model/item_list.dart';
+import '../domain/model/app_release_item.dart';
 import '../domain/model/neom/chamber_preset.dart';
-import '../domain/model/place.dart';
-import '../domain/model/post.dart';
-import 'app_utilities.dart';
-import 'constants/app_assets.dart';
-import 'constants/app_constants.dart';
-import 'constants/message_translation_constants.dart';
-import 'constants/url_constants.dart';
-import 'enums/app_currency.dart';
-import 'enums/app_item_state.dart';
-import 'enums/event_type.dart';
 import 'enums/media_item_type.dart';
-import 'enums/post_type.dart';
-import 'enums/profile_type.dart';
-import 'enums/usage_reason.dart';
 
 class CoreUtilities {
 
   // ignore: non_constant_identifier_names
   static Position JSONtoPosition(positionSnapshot){
-    Position position = Position(longitude: 0, latitude: 0, timestamp: DateTime.now(), accuracy: 0, altitude: 0, heading: 0, speed: 0, speedAccuracy: 0);
+    Position position = Position(
+        longitude: 0, latitude: 0,
+        timestamp: DateTime.now(),
+        accuracy: 0, altitude: 0,
+        heading: 0, speed: 0, speedAccuracy: 0,
+        altitudeAccuracy: 1, headingAccuracy: 1
+    );
     try {
       if(positionSnapshot != null && positionSnapshot != "null") {
         dynamic positionJSON = jsonDecode(positionSnapshot);
@@ -67,7 +49,10 @@ class CoreUtilities {
             heading: heading,
             speed: speed,
             speedAccuracy: speedAccuracy,
-            isMocked: isMocked);
+            isMocked: isMocked,
+            altitudeAccuracy: 1,
+            headingAccuracy: 1
+        );
       }
     } catch (e) {
       AppUtilities.logger.e(e.toString());
@@ -134,12 +119,24 @@ class CoreUtilities {
     return state;
   }
 
-  static Map<String, AppMediaItem> getTotalItems(Map<String, Itemlist> itemlists){
+  static Map<String, AppMediaItem> getTotalMediaItems(Map<String, Itemlist> itemlists){
     Map<String, AppMediaItem> totalItems = {};
 
     itemlists.forEach((key, itemlist) {
-      for (var appMediaItem in itemlist.appMediaItems!) {
+      for (var appMediaItem in itemlist.appMediaItems ?? []) {
         totalItems[appMediaItem.id] = appMediaItem;
+      }
+    });
+
+    return totalItems;
+  }
+
+  static Map<String, AppReleaseItem> getTotalReleaseItems(Map<String, Itemlist> itemlists){
+    Map<String, AppReleaseItem> totalItems = {};
+
+    itemlists.forEach((key, itemlist) {
+      for (var appReleaseItem in itemlist.appReleaseItems ?? []) {
+        totalItems[appReleaseItem.id] = appReleaseItem;
       }
     });
 
@@ -150,12 +147,22 @@ class CoreUtilities {
     Map<String, ChamberPreset> totalPresets = {};
 
     itemlists.forEach((key, itemlist) {
-      for (var preset in itemlist.chamberPresets!) {
+      for (var preset in itemlist.chamberPresets ?? []) {
         totalPresets[preset.id] = preset;
       }
     });
 
     return totalPresets;
+  }
+
+  static int getTotalItemsQty(Map<String, Itemlist> itemlists){
+    int totalItems = 0;
+
+    itemlists.forEach((key, itemlist) {
+      totalItems = totalItems + itemlist.getTotalItems();
+    });
+
+    return totalItems;
   }
 
   static Widget ratingImage(String asset) {
@@ -168,7 +175,7 @@ class CoreUtilities {
   }
 
   static String getInstruments(Map<String,Instrument> profileInstruments) {
-    AppUtilities.logger.d("start");
+    AppUtilities.logger.t("getInstruments on String value");
     String instruments = "";
     String mainInstrument = "";
 
@@ -258,23 +265,59 @@ class CoreUtilities {
   // }
 
   static void launchURL(String url, {bool openInApp = true}) async {
-    if (await canLaunchUrl(Uri.parse(url))) {
-      await launchUrl(Uri.parse(url),
-        mode: openInApp ? LaunchMode.inAppWebView : LaunchMode.externalApplication
-      );
-    } else {
-      AppUtilities.logger.i('Could not launch $url');
+    try {
+      if (await canLaunchUrl(Uri.parse(url))) {
+        await launchUrl(Uri.parse(url),
+            mode: openInApp ? LaunchMode.inAppWebView : LaunchMode.externalApplication
+        );
+      } else {
+        AppUtilities.logger.i('Could not launch $url');
+      }
+    } catch(e) {
+      AppUtilities.logger.e(e.toString());
     }
   }
 
   static void launchWhatsappURL(String phone, String message) async {
-    String url = UrlConstants.whatsAppURL.replaceAll("<phoneNumber>", phone);
-    url = url.replaceAll("<message>", message);
+    try {
+      String url = UrlConstants.whatsAppURL.replaceAll("<phoneNumber>", phone);
+      url = url.replaceAll("<message>", message);
 
-    if (await canLaunchUrl(Uri.parse("https://$url"))) { //TODO Verify how to use constant
-      await launchUrl(Uri.parse(url));
-    } else {
-      AppUtilities.logger.i('Could not launch $url');
+      if (await canLaunchUrl(Uri.parse("https://$url"))) { //TODO Verify how to use constant
+        await launchUrl(Uri.parse(url));
+      } else {
+        AppUtilities.logger.i('Could not launch $url');
+      }
+    } catch(e) {
+      AppUtilities.logger.e(e.toString());
+    }
+  }
+
+  static void launchGoogleMaps({String? address, Place? place}) async {
+    try {
+      String mapsQuery = '';
+      if(address != null) {
+        mapsQuery = address;
+      } else if(place != null) {
+        StringBuffer placeAddress = StringBuffer();
+        placeAddress.write(place.name);
+        placeAddress.write(',');
+        placeAddress.write(place.address!.street);
+        placeAddress.write(',');
+        placeAddress.write(place.address!.city);
+        placeAddress.write(',');
+        placeAddress.write(place.address!.state);
+        placeAddress.write(',');
+        placeAddress.write(place.address!.country);
+        AppUtilities.logger.i(placeAddress.toString());
+        mapsQuery = placeAddress.toString();
+      }
+
+      String mapOptions = Uri.encodeComponent(mapsQuery);
+      final String googleMapsUrl = "https://www.google.com/maps/search/?api=1&query=$mapOptions";
+      launchURL(googleMapsUrl);
+    } catch(e) {
+      AppUtilities.logger.e(e.toString());
     }
   }
 
@@ -385,7 +428,7 @@ class CoreUtilities {
   }
 
   static Future<List<Genre>> loadGenres() async {
-    AppUtilities.logger.d("");
+    AppUtilities.logger.t("loadGenres");
     List<Genre> genreList = [];
 
     try {
@@ -405,21 +448,21 @@ class CoreUtilities {
   }
 
 
-  static Map<String, AppMediaItem> getItemMatches(Map<String, AppMediaItem> totalItems, List<String> profileItems){
-    AppUtilities.logger.d("");
+  static Map<String, AppMediaItem> getItemMatches(Map<String, AppMediaItem> totalItems, List<String> profileItems) {
+    AppUtilities.logger.t("Get Item Matches for ${totalItems.length} total items");
     Map<String, AppMediaItem> matchedItemms = <String,AppMediaItem>{};
 
     try {
       totalItems.forEach((itemId, item) {
         if(profileItems.contains(itemId)) {
           matchedItemms[itemId] = item;
-          AppUtilities.logger.d("Adding $itemId - ItemmMatches Length ${matchedItemms.length}");
+          AppUtilities.logger.t("Adding Item Id: $itemId - Name: ${item.name}");
         }
       });
     } catch (e) {
       AppUtilities.logger.e(e.toString());
     }
-
+    AppUtilities.logger.d("Total ItemmMatches: ${matchedItemms.length}");
     return matchedItemms;
   }
 
@@ -445,7 +488,7 @@ class CoreUtilities {
     List<Instrument> bandInstrumentMatches = [];
 
     try {
-      for (var bandMember in band.bandMembers!.values) {
+      for (var bandMember in band.members!.values) {
         if(profileInstruments.containsKey(bandMember.instrument!.id)
             && bandMember.profileId.isEmpty) {
           bandInstrumentMatches.add(profileInstruments[bandMember.instrument!.id] ?? Instrument());
@@ -484,7 +527,7 @@ class CoreUtilities {
     UsageReason profileReason = UsageReason.any,
     int profileDistanceKm = 0})
   {
-    AppUtilities.logger.d("");
+    AppUtilities.logger.t("Fulfillment Matched Requirements");
 
     bool requirementsMatched = false;
 
@@ -534,7 +577,7 @@ class CoreUtilities {
   }
 
   Future<bool> isAvailableMediaUrl(String mediaUrl) async {
-    AppUtilities.logger.i("Verifying if mediaUrl is available: $mediaUrl");
+    AppUtilities.logger.t("Verifying if mediaUrl is available: $mediaUrl");
 
     bool isAvailable = true;
     try {
@@ -661,7 +704,7 @@ class CoreUtilities {
     if(mediaItem.imgUrl.isNotEmpty || (mediaItem.allImgs?.isNotEmpty ?? false) ) {
       String imgUrl = mediaItem.imgUrl.isNotEmpty ? mediaItem.imgUrl : mediaItem.allImgs?.first ?? "";
       if(imgUrl.isNotEmpty) {
-        thumbnailLocalPath = await downloadImage(imgUrl, imgName: mediaItem.artist+"_"+mediaItem.name);
+        thumbnailLocalPath = await downloadImage(imgUrl, imgName: "${mediaItem.artist}_${mediaItem.name}");
       }
     }
 
@@ -730,32 +773,54 @@ class CoreUtilities {
   }
 
   ///Deprecated
-  String getYouTubeUrl(String content) {
-    RegExp regExp = RegExp(
-        r'((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?'
-    );
-    String matches = regExp.stringMatch(content) ?? "";
-
-    final String youTubeUrl = matches;
-
-    return youTubeUrl;
-  }
+  // String getYouTubeUrl(String content) {
+  //   RegExp regExp = RegExp(
+  //       r'((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?'
+  //   );
+  //   String matches = regExp.stringMatch(content) ?? "";
+  //
+  //   final String youTubeUrl = matches;
+  //
+  //   return youTubeUrl;
+  // }
 
   ///Deprecated
-  List<ActivityFeed> getActivityFeedSinceLastCheck(List<ActivityFeed> activitiesFeed) {
+  // List<ActivityFeed> getActivityFeedSinceLastCheck(List<ActivityFeed> activitiesFeed) {
+  //
+  //   List<ActivityFeed> activityFeedSinceLastCheck = [];
+  //   int lastNotificationCheckDate = Get.find<SharedPreferenceController>().lastNotificationCheckDate;
+  //   DateTime lastNotificationCheckDateTime = DateTime.fromMillisecondsSinceEpoch(lastNotificationCheckDate);
+  //
+  //   for (var activityFeed in activitiesFeed) {
+  //     DateTime activityDate = DateTime.fromMillisecondsSinceEpoch(activityFeed.createdTime);
+  //     if(activityDate.compareTo(lastNotificationCheckDateTime) > 0) {
+  //       activityFeedSinceLastCheck.add(activityFeed);
+  //     }
+  //   }
+  //
+  //   return activityFeedSinceLastCheck;
+  // }
 
-    List<ActivityFeed> activityFeedSinceLastCheck = [];
-    int lastNotificationCheckDate = Get.find<SharedPreferenceController>().lastNotificationCheckDate;
-    DateTime lastNotificationCheckDateTime = DateTime.fromMillisecondsSinceEpoch(lastNotificationCheckDate);
-
-    for (var activityFeed in activitiesFeed) {
-      DateTime activityDate = DateTime.fromMillisecondsSinceEpoch(activityFeed.createdTime);
-      if(activityDate.compareTo(lastNotificationCheckDateTime) > 0) {
-        activityFeedSinceLastCheck.add(activityFeed);
-      }
+  static String removeQueryParameters(String url) {
+    final int questionMarkIndex = url.indexOf('?');
+    if (questionMarkIndex == -1) {
+      return url;
     }
 
-    return activityFeedSinceLastCheck;
+    return url.substring(0, questionMarkIndex);
+  }
+
+  static void copyToClipboard({
+    required BuildContext context,
+    required String text,
+    String? displayText,
+  }) {
+    Clipboard.setData(
+      ClipboardData(text: text),
+    );
+    AppUtilities.showSnackBar(
+      message: displayText ?? AppTranslationConstants.copied.tr,
+    );
   }
 
 }

@@ -43,7 +43,8 @@ class Band {
   List<String>? events;
   List<String>? reviews;
 
-  List<String>? appMediaItems;
+  ///DEPRECATED List<String>? appMediaItems;
+  ///DEPRECATED List<String>? appReleaseItems;
   List<String>? playingEvents;
 
   List<String>? requests;
@@ -55,7 +56,7 @@ class Band {
   ///These are retrieved from a Firebase Collection
   Map<String, Itemlist>? itemlists;
   Map<String, Genre>? genres;
-  Map<String, BandMember>? bandMembers;
+  Map<String, BandMember>? members;
 
   Band({
     this.id = "",
@@ -91,7 +92,7 @@ class Band {
 
   @override
   String toString() {
-    return 'Band{id: $id, name: $name, description: $description, photoUrl: $photoUrl, coverImgUrl: $coverImgUrl, reason: $reason, pricePerHour: $pricePerHour, reviewStars: $reviewStars, lastReview: $lastReview, isActive: $isActive, createdTime: $createdTime, lastSession: $lastSession, position: $position, bannedGenres: $bannedGenres, itemmates: $itemmates, eventmates: $eventmates, followers: $followers, following: $following, unfollowing: $unfollowing, posts: $posts, hiddenPosts: $hiddenPosts, hiddenComments: $hiddenComments, reports: $reports, events: $events, reviews: $reviews, playingEvents: $playingEvents, requests: $requests, sentRequests: $sentRequests, invitationRequests: $invitationRequests, isFulfilled: $isFulfilled, itemlists: $itemlists, genres: $genres, bandMembers: $bandMembers}';
+    return 'Band{id: $id, name: $name, description: $description, photoUrl: $photoUrl, coverImgUrl: $coverImgUrl, reason: $reason, pricePerHour: $pricePerHour, reviewStars: $reviewStars, lastReview: $lastReview, isActive: $isActive, createdTime: $createdTime, lastSession: $lastSession, position: $position, bannedGenres: $bannedGenres, itemmates: $itemmates, eventmates: $eventmates, followers: $followers, following: $following, unfollowing: $unfollowing, posts: $posts, hiddenPosts: $hiddenPosts, hiddenComments: $hiddenComments, reports: $reports, events: $events, reviews: $reviews, playingEvents: $playingEvents, requests: $requests, sentRequests: $sentRequests, invitationRequests: $invitationRequests, isFulfilled: $isFulfilled, itemlists: $itemlists, genres: $genres, bandMembers: $members}';
   }
 
   Map<String, dynamic> toJSON() {
@@ -122,7 +123,8 @@ class Band {
       'reports': reports,
       'events': events,
       'reviews': reviews,
-      'appMediaItems': appMediaItems,
+      ///DEPRECATED 'appMediaItems': appMediaItems,
+      ///DEPRECATED 'appReleaseItems': appReleaseItems,
       'playingEvents': playingEvents,
       'requests': requests,
       'sentRequests': sentRequests,
@@ -155,7 +157,8 @@ class Band {
         reports = data["reports"]?.cast<String>() ?? [],
         events = data["events"]?.cast<String>() ?? [],
         reviews = data["reviews"]?.cast<String>() ?? [],
-        appMediaItems = data["appMediaItems"]?.cast<String>() ?? [],
+        ///DEPRECATED appMediaItems = data["appMediaItems"]?.cast<String>() ?? [],
+        ///DEPRECATED appReleaseItems = data["appReleaseItems"]?.cast<String>() ?? [],
         playingEvents = data["playingEvents"]?.cast<String>() ?? [],
         requests = data["requests"]?.cast<String>() ?? [],
         sentRequests = data["sentRequests"]?.cast<String>() ?? [],

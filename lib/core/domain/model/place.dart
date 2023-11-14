@@ -104,7 +104,7 @@ class Place {
     galleryImgUrls = data["galleryImgUrls"]?.cast<String>() ?? [],
     bookings = data["bookings"]?.cast<String>() ?? [],
     reviews = data["reviews"]?.cast<String>() ?? [],
-    reviewStars = data["reviewStars"] ?? 10,
+    reviewStars = double.parse(data["reviewStars"]?.toString() ?? "10"),
     price = Price.fromJSON(data["price"] ?? {}),
     placeCommodity = PlaceCommodity.fromJSON(data["placeCommodity"] ?? {}),
     isActive = data["isActive"] ?? false,

@@ -37,7 +37,15 @@ class AppAnalyticsFirestore implements AppAnalyticsRepository {
             AppAnalytics analytic = AppAnalytics(location: "", qty: 0);
             Map<String,dynamic> mapItem = {};
             mapItem["location"] = key;
-            mapItem["qty"] = int.parse(value);
+
+            if(value is int) {
+              mapItem["qty"] = value;
+            } else if(value is String) {
+              mapItem["qty"] = int.parse(value);
+            } else {
+              mapItem["qty"] = 0;
+            }
+
 
             analytic = AppAnalytics.fromJson(mapItem);
             analytics.add(analytic);
@@ -123,7 +131,7 @@ class AppAnalyticsFirestore implements AppAnalyticsRepository {
 
           if(emailList.isNotEmpty) {
             String localPath = await CoreUtilities.getLocalPath();
-            String emailListPath = "$localPath/${AppFlavour.appInUse.value}_email_list.txt";
+            String emailListPath = "$localPath/${AppFlavour.getAppName()}_email_list.txt";
             File txtFileRef = File(emailListPath);
             await txtFileRef.writeAsString(emailList.toString());
             AppUtilities.logger.i("Email List created to path $emailListPath successfully.");
@@ -132,10 +140,12 @@ class AppAnalyticsFirestore implements AppAnalyticsRepository {
         }
       } catch (e) {
         logger.e(e.toString());
-        AppUtilities.showSnackBar(AppTranslationConstants.notifications, "Hubo un error al actualizar las analíticas");
+        AppUtilities.showSnackBar(title: AppTranslationConstants.notifications,
+            message: "Hubo un error al actualizar las analíticas");
       }
       
-      AppUtilities.showSnackBar(AppTranslationConstants.notifications, "Las analíticas han sido actualizadas");
+      AppUtilities.showSnackBar(title: AppTranslationConstants.notifications,
+          message: "Las analíticas han sido actualizadas");
   }
 
 }

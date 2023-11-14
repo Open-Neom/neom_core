@@ -19,22 +19,23 @@ class MapsController extends GetxController implements MapsService {
   Completer<GoogleMapController> get controller => _controller;
 
   AppProfile profile = AppProfile();
-  Location _location = Location(lat: 37.42796133580664, lng: -122.085749655962);
+  Location location = Location(lat: 37.42796133580664, lng: -122.085749655962);
+  final Rx<Prediction> prediction = Prediction().obs;
 
   @override
   void onInit() async {
     super.onInit();
-    logger.d("Maps Controller Init");
+    logger.t("Maps Controller Init");
 
     profile = userController.profile;
-    _location = Location(lat: profile.position!.latitude, lng: profile.position!.longitude);
+    location = Location(lat: profile.position!.latitude, lng: profile.position!.longitude);
     
     await goToHomePosition();
   }
 
   @override
   Future<void> goToPosition(Position placePosition) async {
-    logger.d("");
+    logger.d("Go to position on Maps Controller");
 
     try {
       final GoogleMapController controller = await _controller.future;
@@ -51,22 +52,23 @@ class MapsController extends GetxController implements MapsService {
 
   @override
   Future<void> goToHomePosition() async {
-    logger.d("");
+    logger.t("goToHomePosition");
 
     try {
       GoogleMapController controller = await _controller.future;
       Position position = profile.position!;
 
-      controller.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
-        //bearing: 192.8334901395799,
-          target: LatLng(position.latitude, position.longitude),
-          // tilt: 59.440717697143555,
-          zoom: AppConstants.cameraPositionZoom
-      )));
+      controller.animateCamera(
+          CameraUpdate.newCameraPosition(
+              CameraPosition(
+                  target: LatLng(position.latitude, position.longitude),
+                  zoom: AppConstants.cameraPositionZoom,
+              )
+          )
+      );
     } catch (e) {
       logger.d(e.toString());
     }
-
   }
 
   @override
@@ -78,12 +80,6 @@ class MapsController extends GetxController implements MapsService {
     }
   }
 
-
-
-  final Rx<Prediction> _prediction = Prediction().obs;
-  Prediction get prediction => _prediction.value;
-
-
   @override
   Future<Prediction> placeAutoComplete(BuildContext context, String startText) async {
     logger.d("Entering placeAutocomplate method");
@@ -92,12 +88,11 @@ class MapsController extends GetxController implements MapsService {
 
     try {
       Prediction? retrievedPrediction =  await PlacesAutocomplete.show(
-        //logo: Text(""),
         startText: startText,
         offset: 0,
         radius: 1000,
         types: [],
-        location: _location,
+        location: location,
         strictbounds: false,
         mode: Mode.fullscreen,
         context: context,
@@ -106,7 +101,9 @@ class MapsController extends GetxController implements MapsService {
         language: "mx",
         decoration: InputDecoration(
           hintText: AppTranslationConstants.search.tr,
+          fillColor: AppColor.yellow
         ),
+
         components: [Component(Component.country, "mx")],
       );
 
@@ -175,7 +172,9 @@ class MapsController extends GetxController implements MapsService {
       place.position = Position(
           latitude: detail.result.geometry!.location.lat,
           longitude: detail.result.geometry!.location.lng,
-          timestamp: DateTime.now(), accuracy: 0, altitude: 0, heading: 0, speed: 0, speedAccuracy: 0);
+          timestamp: DateTime.now(), accuracy: 0, altitude: 0, heading: 0, speed: 0, speedAccuracy: 0,
+          altitudeAccuracy: 1, headingAccuracy: 1
+      );
       AppUtilities.logger.i(place.toString());
     } catch (e) {
       AppUtilities.logger.e(e.toString());

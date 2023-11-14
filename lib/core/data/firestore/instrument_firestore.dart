@@ -16,7 +16,7 @@ class InstrumentFirestore implements InstrumentRepository {
 
   @override
   Future<Map<String,Instrument>> retrieveInstruments(profileId) async {
-    logger.d("Retrieving Instrument by Profile $profileId");
+    logger.t("Retrieving Instrument by Profile $profileId");
 
     Map<String, Instrument> instruments = {};
 

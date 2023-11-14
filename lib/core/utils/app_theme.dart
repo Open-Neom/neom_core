@@ -69,7 +69,7 @@ class AppTheme {
   static final outlinedBorderChip = StadiumBorder(side: const BorderSide(color: Colors.white70).scale(0.2));
   static const primaryTitleText = TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w600);
   static const primarySubtitleText = TextStyle(color: Colors.white);
-  static const requestsTextStyle = TextStyle(fontSize: 12);
+
 
   static double fullWidth(BuildContext context) {
     return MediaQuery.of(context).size.width;
@@ -85,7 +85,7 @@ class AppTheme {
   static const double requestIconSize = 15.0;
 
   static const String fontFamily = "Open-Sans";
-  static const double aspectRatio = 16/9;
+  static const double landscapeAspectRatio = 16/9;
 
   static const TextStyle textStyle = TextStyle(
       fontFamily: AppTheme.fontFamily,
@@ -96,6 +96,7 @@ class AppTheme {
       fontWeight: FontWeight.w400);
 
   static const double postIconSize = 20;
+  static const double postIconSizeBigger = 23;
 
   static final BoxDecoration boxDecoration =
     BoxDecoration(
@@ -111,6 +112,14 @@ class AppTheme {
         color: AppColor.main50,
         border: Border.all(width: 0.5, style: BorderStyle.solid, color: Colors.white));
 
+  static final BoxDecoration messageBoxDecorationSelf = BoxDecoration(
+      borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(23),
+          topRight: Radius.circular(23),
+          bottomLeft: Radius.circular(23)),
+      color: Colors.white.withOpacity(0.10)
+  );
+
   static final BoxDecoration messageBoxDecoration = BoxDecoration(
       borderRadius: const BorderRadius.only(
       topLeft: Radius.circular(23),
@@ -120,6 +129,7 @@ class AppTheme {
   );
 
   static const SizedBox heightSpace100 = SizedBox(height: 100);
+  static const SizedBox heightSpace75 = SizedBox(height: 75);
   static const SizedBox heightSpace50 = SizedBox(height: 50);
   static const SizedBox heightSpace40 = SizedBox(height: 40);
   static const SizedBox heightSpace30 = SizedBox(height: 30);
@@ -128,6 +138,7 @@ class AppTheme {
   static const SizedBox heightSpace5 = SizedBox(height: 5);
 
   static const SizedBox widthSpace20 = SizedBox(width: 20);
+  static const SizedBox widthSpace15 = SizedBox(width: 15);
   static const SizedBox widthSpace10 = SizedBox(width: 10);
   static const SizedBox widthSpace5 = SizedBox(width: 5);
 
@@ -166,5 +177,20 @@ class AppTheme {
   }
 
   static double imageRadius = 15;
+
+  static TextStyle defaultTitleStyle = const TextStyle(fontSize: 25, fontWeight: FontWeight.bold,);
+  static TextStyle defaultSubtitle = const TextStyle(fontSize: 18, fontWeight: FontWeight.bold,);
+
+  static TextStyle bandTitleStyle = const TextStyle(fontSize: 25, fontWeight: FontWeight.bold,);
+  static TextStyle eventTitleStyle = const TextStyle(fontSize: 25, fontWeight: FontWeight.bold,);
+  static TextStyle requestClipTitleStyle = const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white);
+  static TextStyle requestsTextStyle = const TextStyle(fontSize: 15);
+  static TextStyle headerTitleStyle = const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white);
+  static TextStyle headerSubtitleStyle = const TextStyle(fontSize: 20, color: Colors.white);
+  static TextStyle eventMsgStyle = const TextStyle(fontSize: 23, fontWeight: FontWeight.bold,);
+  static TextStyle settingsTitleStyle = const TextStyle(fontSize: 16, color: Colors.white70,);
+  static TextStyle settingsSubtitleStyle = const TextStyle(color: Colors.white70, fontWeight: FontWeight.w400);
+
+
 
 }

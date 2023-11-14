@@ -15,7 +15,7 @@ import '../../utils/constants/app_translation_constants.dart';
 class EventTile extends StatelessWidget {
 
   final Event event;
-  const EventTile(this.event, {Key? key}) : super(key: key);
+  const EventTile(this.event, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -40,13 +40,13 @@ class EventTile extends StatelessWidget {
                       style: const TextStyle(fontWeight: FontWeight.bold)
                   ) : Container(),
                   Text(
-                      event.name.length <= AppConstants.maxEventNameLength ? event.name
+                      event.name.length <= AppConstants.maxEventNameLength ? event.name.capitalizeFirst
                           : "${event.name.substring(0,AppConstants.maxEventNameLength)}...",
                       style: const TextStyle(fontWeight: FontWeight.bold)
                   ),
                   AppTheme.heightSpace5,
-                  Text(event.description.length <= AppConstants.maxEventNameDescLength ? event.description.capitalizeFirst!
-                      : "${event.description.substring(0,30).capitalizeFirst}..."
+                  Text(event.description.length <= AppConstants.maxEventNameDescLength ? event.description.capitalizeFirst
+                      : "${event.description.substring(0,AppConstants.maxEventNameDescLength).capitalizeFirst}..."
                   ),
                   AppTheme.heightSpace5,
                   Row(

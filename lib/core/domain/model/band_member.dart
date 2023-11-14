@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:enum_to_string/enum_to_string.dart';
 
 import '../../utils/enums/band_member_role.dart';
@@ -64,15 +63,14 @@ class BandMember {
     'isMuted': isMuted,
   };
 
-  BandMember.fromQueryDocumentSnapshot(QueryDocumentSnapshot queryDocumentSnapshot) :
-        id = queryDocumentSnapshot.id,
-        name = queryDocumentSnapshot.get("name"),
-        imgUrl = queryDocumentSnapshot.get("imgUrl"),
-        profileId = queryDocumentSnapshot.get("profileId"),
-        instrument = Instrument.fromJSON(queryDocumentSnapshot.get("instrument")),
-        vocalType = EnumToString.fromString(VocalType.values, queryDocumentSnapshot.get("vocalType"))!,
-        role = EnumToString.fromString(BandMemberRole.values, queryDocumentSnapshot.get("role"))!,
-        isMuted = queryDocumentSnapshot.get("isMuted");
-
+  BandMember.fromJSON(data) :
+        id = data["id"] ?? "",
+        name = data["name"] ?? "",
+        imgUrl = data["imgUrl"] ?? "",
+        profileId = data["profileId"] ?? "",
+        instrument = Instrument.fromJSON(data["instrument"] ?? {}),
+        vocalType = EnumToString.fromString(VocalType.values, data["vocalType"] ?? VocalType.none.name) ?? VocalType.none,
+        role = EnumToString.fromString(BandMemberRole.values, data["role"] ?? BandMemberRole.member.name) ?? BandMemberRole.member,
+        isMuted = data["isMuted"] ?? true;
 
 }

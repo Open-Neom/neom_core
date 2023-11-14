@@ -12,9 +12,9 @@ class PostComment {
   AppMediaType type;
   List<CommentReply> replies;
   bool isHidden;
-  String profileId;
-  String profileImgUrl;
-  String profileName;
+  String ownerId;
+  String ownerImgUrl;
+  String ownerName;
   String mediaUrl;
   int createdTime;
   int modifiedTime;
@@ -29,17 +29,18 @@ class PostComment {
       this.type = AppMediaType.text,
       this.replies = const [],
       this.isHidden = false,
-      required this.profileId,
-      required this.profileImgUrl,
-      required this.profileName,
+      required this.ownerId,
+      required this.ownerImgUrl,
+      required this.ownerName,
       this.mediaUrl = "",
       required this.createdTime,
       this.modifiedTime = 0,
   });
 
+
   @override
   String toString() {
-    return 'PostComment{id: $id, postOwnerId: $postOwnerId, text: $text, likedProfiles: $likedProfiles, type: $type, replies: $replies, isHidden: $isHidden, profileId: $profileId, profileImgUrl: $profileImgUrl, profileName: $profileName, mediaUrl: $mediaUrl, createdTime: $createdTime, modifiedTime: $modifiedTime, postId: $postId}';
+    return 'PostComment{id: $id, postOwnerId: $postOwnerId, text: $text, likedProfiles: $likedProfiles, type: $type, replies: $replies, isHidden: $isHidden, ownerId: $ownerId, ownerImgUrl: $ownerImgUrl, ownerName: $ownerName, mediaUrl: $mediaUrl, createdTime: $createdTime, modifiedTime: $modifiedTime, postId: $postId}';
   }
 
   Map<String, dynamic> toJSON() {
@@ -48,9 +49,9 @@ class PostComment {
       'likedProfiles': likedProfiles,
       'type': type.name,
       'isHidden': isHidden,
-      'profileId': profileId,
-      'profileImgUrl': profileImgUrl,
-      'profileName': profileName,
+      'ownerId': ownerId,
+      'ownerImgUrl': ownerImgUrl,
+      'ownerName': ownerName,
       'postOwnerId': postOwnerId,
       'mediaUrl': mediaUrl,
       'createdTime': createdTime,
@@ -65,9 +66,9 @@ class PostComment {
         likedProfiles = List.from(data["likedProfiles"] ?? []),
         type = EnumToString.fromString(AppMediaType.values, data["type"]) ?? AppMediaType.text,
         isHidden = data["isHidden"] ?? false,
-        profileId = data["profileId"] ?? "",
-        profileImgUrl = data["profileImgUrl"],
-        profileName = data["profileName"],
+        ownerId = data["ownerId"] ?? '',
+        ownerImgUrl = data["ownerImgUrl"] ?? '',
+        ownerName = data["ownerName"] ?? '',
         postOwnerId = data["postOwnerId"],
         mediaUrl = data["mediaUrl"],
         createdTime = data["createdTime"],

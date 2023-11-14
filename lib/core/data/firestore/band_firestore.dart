@@ -8,8 +8,10 @@ import '../../domain/model/band_member.dart';
 import '../../domain/model/genre.dart';
 import '../../domain/repository/band_repository.dart';
 import '../../utils/app_utilities.dart';
+import '../../utils/enums/owner_type.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
+import 'itemlist_firestore.dart';
 import 'profile_firestore.dart';
 import 'request_firestore.dart';
 
@@ -20,17 +22,17 @@ class BandFirestore implements BandRepository {
 
   @override
   Future<Band> retrieve(String bandId) async {
-    logger.d("Retrieving Bands");
+    logger.t("Retrieving Bands from firestore");
     Band band = Band();
 
     try {
       DocumentSnapshot documentSnapshot = await bandsReference.doc(bandId).get();
       if (documentSnapshot.exists) {
-        logger.d("Snapshot is not empty");
         band = Band.fromJSON(documentSnapshot.data());
         band.id = documentSnapshot.id;
-        band.bandMembers = await getBandMembers(band.id);
-        logger.d(band.toString());
+        band.members = await getBandMembers(band.id);
+        band.itemlists = await ItemlistFirestore().fetchAll(ownerId: band.id, ownerType: OwnerType.band);
+        logger.t(band.name);
       }
     } catch (e) {
       logger.e(e.toString());
@@ -49,9 +51,9 @@ class BandFirestore implements BandRepository {
       DocumentReference documentReference = await bandsReference.add(band.toJSON());
       bandId = documentReference.id;
 
-      for (var bandMember in band.bandMembers!.values) {
+      for (var bandMember in band.members!.values) {
         if(await addMemberToBand(bandMember, bandId) && bandMember.profileId.isNotEmpty) {
-          if(await ProfileFirestore().addBand(bandMember.profileId, bandId)){
+          if(await ProfileFirestore().addBand(profileId: bandMember.profileId, bandId: bandId)){
             logger.i("Band added to Profile ${bandMember.profileId}");
           }
         }
@@ -73,7 +75,6 @@ class BandFirestore implements BandRepository {
 
 
   Future<bool> addMemberToBand(BandMember bandMember, String bandId) async {
-
     logger.d("Adding member to band $bandId");
     bool addedMember = false;
 
@@ -104,11 +105,11 @@ class BandFirestore implements BandRepository {
 
       await bandsReference.doc(band.id).delete();
 
-      for (var bandMemberId in band.bandMembers!.keys) {
-        BandMember bandMember = band.bandMembers?[bandMemberId] ?? BandMember();
+      for (var bandMemberId in band.members!.keys) {
+        BandMember bandMember = band.members?[bandMemberId] ?? BandMember();
 
         if(bandMemberId == bandMember.profileId) {
-          if(await ProfileFirestore().removeBand(bandMember.profileId, band.id)){
+          if(await ProfileFirestore().removeBand(profileId: bandMember.profileId, bandId: band.id)){
             wasDeleted = true;
             logger.i("Band remove from Profile $bandMemberId");
           } else {
@@ -143,7 +144,8 @@ class BandFirestore implements BandRepository {
         Band band = Band.fromJSON(documentSnapshot.data());
         band.id = documentSnapshot.id;
 
-        band.bandMembers = await getBandMembers(band.id);
+        band.members = await getBandMembers(band.id);
+        band.itemlists = await ItemlistFirestore().fetchAll(ownerId: band.id, ownerType: OwnerType.band);
         bands[band.id] = band;
       }
 
@@ -159,7 +161,7 @@ class BandFirestore implements BandRepository {
 
   @override
   Future<Map<String, Band>> getBandsFromList(List<String> bandIds) async {
-    logger.d("");
+    logger.d("Retrieving ${bandIds.length} bands from list");
     Map<String, Band> bands = {};
 
     try {
@@ -172,7 +174,8 @@ class BandFirestore implements BandRepository {
         if(bandIds.contains(documentSnapshot.id)) {
           Band band = Band.fromJSON(documentSnapshot.data());
           band.id = documentSnapshot.id;
-          band.bandMembers = await getBandMembers(band.id);
+          band.members = await getBandMembers(band.id);
+          band.itemlists = await ItemlistFirestore().fetchAll(ownerId: band.id, ownerType: OwnerType.band);
           bands[band.id] = band;
         }
       }
@@ -189,11 +192,22 @@ class BandFirestore implements BandRepository {
 
   @override
   Future<bool> fulfillBandMember(String bandId, BandMember bandMember) async {
-
     logger.d("Fulfilling bandMember ${bandMember.name} for band $bandId");
 
     try {
-
+      await bandsReference.doc(bandId).get()
+          .then((querySnapshot) async {
+        await querySnapshot.reference
+            .collection(AppFirestoreCollectionConstants.members)
+            .doc(bandMember.id)
+            .update({
+              AppFirestoreConstants.imgUrl: bandMember.imgUrl,
+              AppFirestoreConstants.name: bandMember.name,
+              AppFirestoreConstants.profileId: bandMember.profileId,
+            });
+          });
+      await ProfileFirestore().addBand(profileId: bandMember.profileId, bandId: bandId);
+      logger.i("BandMember ${bandMember.name} has been fulfilled");
     } catch (e) {
       logger.e(e.toString());
       return false;
@@ -209,7 +223,6 @@ class BandFirestore implements BandRepository {
     logger.d("Unfulfilling bandMember ${bandMember.name} for band $bandId");
 
     try {
-
       await bandsReference.doc(bandId).get()
           .then((querySnapshot) async {
         await querySnapshot.reference
@@ -222,8 +235,7 @@ class BandFirestore implements BandRepository {
             });
         }
       );
-
-      await ProfileFirestore().removeBand(bandMember.profileId, bandId);
+      await ProfileFirestore().removeBand(profileId: bandMember.profileId, bandId: bandId);
       logger.i("BandMember ${bandMember.name} has been unfulfilled");
     } catch (e) {
       logger.e(e.toString());
@@ -247,7 +259,7 @@ class BandFirestore implements BandRepository {
             .doc(bandMember.id).delete();
       });
 
-      await ProfileFirestore().removeBand(bandMember.profileId, bandId);
+      await ProfileFirestore().removeBand(profileId: bandMember.profileId, bandId: bandId);
       logger.i("BandMember ${bandMember.name} has been removed");
     } catch (e) {
       logger.e(e.toString());
@@ -283,39 +295,42 @@ class BandFirestore implements BandRepository {
 
 
   Future<Map<String,BandMember>> getBandMembers(String bandId) async {
+    logger.t("getBandMembers on firestore");
+
     Map<String,BandMember> bandMembers = {};
 
     try {
       QuerySnapshot querySnapshot = await bandsReference.doc(bandId)
-          .collection(AppFirestoreCollectionConstants.members)
-          .get();
+          .collection(AppFirestoreCollectionConstants.members).get();
       if (querySnapshot.docs.isNotEmpty) {
-        logger.d("snapshot is not empty");
         for (var bandMemberSnapshot in querySnapshot.docs) {
-          BandMember bandMember = BandMember.fromQueryDocumentSnapshot(bandMemberSnapshot);
-          logger.d(bandMember.toString());
+          BandMember bandMember = BandMember.fromJSON(bandMemberSnapshot.data());
+          bandMember.id = bandMemberSnapshot.id;
+          logger.t('Band member ${bandMember.instrument?.name} - ${bandMember.name.isNotEmpty
+              ? bandMember.name : 'unfulfilled'} - retrieved for band $bandId');
 
-          bandMembers[bandMember.profileId.isNotEmpty
-              ? bandMember.profileId
-              : bandMember.instrument!.id] = bandMember;
+          ///TO VERIFY IF DEPRECATED
+          // bandMembers[bandMember.profileId.isNotEmpty
+          //     ? bandMember.profileId
+          //     : bandMember.instrument!.id] = bandMember;
+
+          bandMembers[bandMember.id] = bandMember;
         }
-        logger.d("${bandMembers.length} members retrieved");
+        logger.d("${bandMembers.length} members retrieved for band $bandId");
       } else {
-
+        logger.d("No band members found for band $bandId");
       }
-      logger.d("No band members found Found");
-
     } catch (e) {
       logger.e(e.toString());
     }
-
-    logger.d("");
 
     return bandMembers;
   }
 
 
   Future<Map<String,Genre>> getBandGenres(String bandId) async {
+    logger.t("Get genres for band $bandId");
+
     Map<String,Genre> bandGenres = {};
 
     try {
@@ -323,24 +338,19 @@ class BandFirestore implements BandRepository {
           .collection(AppFirestoreCollectionConstants.genres)
           .get();
       if (querySnapshot.docs.isNotEmpty) {
-        logger.d("snapshot is not empty");
         for (var bandMemberSnapshot in querySnapshot.docs) {
           Genre genre = Genre.fromQueryDocumentSnapshot(bandMemberSnapshot);
-          logger.d(genre.toString());
+          logger.t(genre.name);
 
           bandGenres[genre.name] = genre;
         }
         logger.d("${bandGenres.length} genres retrieved");
       } else {
-
+        logger.d("No band genres found");
       }
-      logger.d("No band genres found");
-
     } catch (e) {
       logger.e(e.toString());
     }
-
-    logger.d("");
 
     return bandGenres;
   }
@@ -371,7 +381,7 @@ class BandFirestore implements BandRepository {
 
   @override
   Future<bool> addPlayingEvent(String bandId, String eventId) async {
-    logger.d("$bandId would add event $eventId");
+    logger.t("$bandId would add event $eventId");
 
     try {
 
@@ -453,53 +463,54 @@ class BandFirestore implements BandRepository {
   }
 
 
-  @override
-  Future<bool> addAppMediaItem(String bandId, String itemId) async {
-    logger.d("");
-    try {
-
-      await bandsReference.get()
-          .then((querySnapshot) async {
-        for (var document in querySnapshot.docs) {
-          if(document.id == bandId) {
-            await document.reference.update({
-              AppFirestoreConstants.appMediaItems: FieldValue.arrayUnion([itemId])
-            });
-          }
-        }
-      });
-
-    } catch (e) {
-      logger.e(e.toString());
-      return false;
-    }
-
-    return true;
-  }
-
-
-  @override
-  Future<bool> removeItem(String bandId, String itemId) async {
-    logger.d("");
-    try {
-
-      await bandsReference.get()
-          .then((querySnapshot) async {
-        for (var document in querySnapshot.docs) {
-          if(document.id == bandId) {
-            await document.reference.update({
-              AppFirestoreConstants.appMediaItems: FieldValue.arrayRemove([itemId])
-            });
-          }
-        }
-      });
-
-    } catch (e) {
-      logger.e(e.toString());
-      return false;
-    }
-
-    return true;
-  }
+  ///DEPRECATED
+  // @override
+  // Future<bool> addAppMediaItem(String bandId, String itemId) async {
+  //   logger.d("");
+  //   try {
+  //
+  //     await bandsReference.get()
+  //         .then((querySnapshot) async {
+  //       for (var document in querySnapshot.docs) {
+  //         if(document.id == bandId) {
+  //           await document.reference.update({
+  //             AppFirestoreConstants.appMediaItems: FieldValue.arrayUnion([itemId])
+  //           });
+  //         }
+  //       }
+  //     });
+  //
+  //   } catch (e) {
+  //     logger.e(e.toString());
+  //     return false;
+  //   }
+  //
+  //   return true;
+  // }
+  //
+  //
+  // @override
+  // Future<bool> removeItem(String bandId, String itemId) async {
+  //   logger.d("");
+  //   try {
+  //
+  //     await bandsReference.get()
+  //         .then((querySnapshot) async {
+  //       for (var document in querySnapshot.docs) {
+  //         if(document.id == bandId) {
+  //           await document.reference.update({
+  //             AppFirestoreConstants.appMediaItems: FieldValue.arrayRemove([itemId])
+  //           });
+  //         }
+  //       }
+  //     });
+  //
+  //   } catch (e) {
+  //     logger.e(e.toString());
+  //     return false;
+  //   }
+  //
+  //   return true;
+  // }
 
 }

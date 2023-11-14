@@ -115,6 +115,9 @@ class SignUpController extends GetxController implements SignUpService {
         case AppFirestoreConstants.emailInUse:
           fbAuthExceptionMsg = MessageTranslationConstants.emailUsed;
           break;
+        case AppFirestoreConstants.operationNotAllowed:
+          fbAuthExceptionMsg = AppFirestoreConstants.operationNotAllowed;
+          break;
         case "":
           break;
       }

@@ -10,15 +10,15 @@ class SummaryButton extends StatelessWidget {
   final double fontSize;
 
   const SummaryButton(this.text,{
-    Key? key, this.onPressed,
+    super.key, this.onPressed,
     this.isEnabled = true, this.color, this.fontSize = 20,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-          color: color ?? AppColor.main50,
+          color: color ?? AppColor.main75,
           borderRadius: BorderRadius.circular(20.0),
           boxShadow: const [
             BoxShadow(
@@ -31,7 +31,7 @@ class SummaryButton extends StatelessWidget {
       child: TextButton(
           onPressed: onPressed,
           child: SizedBox(
-            width: AppTheme.fullWidth(context) / 2,
+            width: AppTheme.fullWidth(context)/2,
             child: Text(text,
               textAlign: TextAlign.center,
               style: TextStyle(

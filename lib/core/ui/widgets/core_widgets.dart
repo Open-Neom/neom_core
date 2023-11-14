@@ -35,7 +35,7 @@ Widget buildActionChip({
   return ActionChip(
     backgroundColor: isSelected ? AppColor.bondiBlue : AppColor.bottomNavigationBar,
     shape: AppTheme.outlinedBorderChip,
-    label: Text((appEnum as Enum).name.tr.capitalizeFirst ?? "",
+    label: Text((appEnum as Enum).name.tr.capitalizeFirst,
       style: TextStyle(
         fontSize: AppTheme.chipsFontSize,
         color: isActive ? null : AppColor.white50,
@@ -44,8 +44,49 @@ Widget buildActionChip({
     onPressed:() {
       isActive ? controllerFunction(appEnum) :
       AppUtilities.showSnackBar(
-        MessageTranslationConstants.underConstruction.tr,
-        MessageTranslationConstants.featureAvailableSoon.tr,
+        title: MessageTranslationConstants.underConstruction.tr,
+        message: MessageTranslationConstants.featureAvailableSoon.tr,
+      );
+    },
+  );
+}
+
+Widget buildTextActionChip({
+  required String text, required Function controllerFunction,
+  bool isActive = true, bool isSelected = false}) {
+  return ActionChip(
+    backgroundColor: isSelected ? AppColor.bondiBlue : AppColor.bottomNavigationBar,
+    shape: AppTheme.outlinedBorderChip,
+    padding: const EdgeInsets.symmetric(horizontal: 10),
+    label: Text(text.tr.capitalizeFirst,
+      style: TextStyle(
+        fontSize: AppTheme.chipsFontSize,
+        color: isActive ? null : AppColor.white50,
+      ),
+    ),
+    onPressed:() {
+      isActive ? controllerFunction() :
+      AppUtilities.showSnackBar(
+        title: MessageTranslationConstants.underConstruction.tr,
+        message: MessageTranslationConstants.featureAvailableSoon.tr,
+      );
+    },
+  );
+}
+
+Widget buildIconActionChip({
+  required Icon icon, required Function controllerFunction,
+  bool isActive = true, bool isSelected = false}) {
+  return ActionChip(
+    backgroundColor: isSelected ? AppColor.bondiBlue : AppColor.bottomNavigationBar,
+    shape: AppTheme.outlinedBorderChip,
+    padding: const EdgeInsets.symmetric(horizontal: 10),
+    label: icon,
+    onPressed:() {
+      isActive ? controllerFunction() :
+      AppUtilities.showSnackBar(
+        title: MessageTranslationConstants.underConstruction.tr,
+        message: MessageTranslationConstants.featureAvailableSoon.tr,
       );
     },
   );

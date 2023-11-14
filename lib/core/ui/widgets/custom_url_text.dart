@@ -8,7 +8,7 @@ class UrlText extends StatelessWidget {
   final TextStyle? urlStyle;
   final Function(String)? onHashTagPressed;
 
-  const UrlText({this.text = "", this.style, this.urlStyle, this.onHashTagPressed, Key? key}) : super(key: key);
+  const UrlText({this.text = "", this.style, this.urlStyle, this.onHashTagPressed, super.key});
 
   List<InlineSpan> getTextSpans() {
     List<InlineSpan> widgets = <InlineSpan>[];
@@ -64,10 +64,8 @@ class UrlText extends StatelessWidget {
 
 class _LinkTextSpan extends TextSpan {
   final Function(String)? onHashTagPressed;
-  _LinkTextSpan({TextStyle? style, String text = "", this.onHashTagPressed})
+  _LinkTextSpan({super.style, String super.text = "", this.onHashTagPressed})
       : super(
-            style: style,
-            text: text,
             recognizer: TapGestureRecognizer()
               ..onTap = () {
                 if(onHashTagPressed != null && (text.substring(0,1).contains("#") || text.substring(0,1).contains("#"))){

@@ -1,13 +1,14 @@
 enum PostType {
   image,
   video,
-  youtube,
   event,
   caption,
+  youtube,
+  spotify,
+  releaseItem,
+  blogEntry,
+  ad,
   question,
   poll,
-  ad,
-  blogEntry,
   pending,
-  releaseItem
 }

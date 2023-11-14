@@ -112,7 +112,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<AppProfile> retrieve(String profileId) async {
-    logger.v("Retrieving Profile $profileId");
+    logger.t("Retrieving Profile $profileId");
     AppProfile profile = AppProfile();
 
     try {
@@ -125,7 +125,7 @@ class ProfileFirestore implements ProfileRepository {
           }
         }
 
-        logger.v(profile.id.isNotEmpty
+        logger.t(profile.id.isNotEmpty
             ? "Profile ${profile.toString()}"
             : "Profile not found"
         );
@@ -223,12 +223,12 @@ class ProfileFirestore implements ProfileRepository {
           .collection(AppFirestoreCollectionConstants.profiles).get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        logger.v("Snapshot is not empty");
+        logger.t("Snapshot is not empty");
         for (var profileSnapshot in querySnapshot.docs) {
           AppProfile profile = AppProfile.fromJSON(profileSnapshot.data());
           if(profileType == null || profile.type == profileType) {
             profile.id = profileSnapshot.id;
-            logger.v(profile.toString());
+            logger.t(profile.toString());
             profiles.add(profile);
           }
         }
@@ -237,7 +237,7 @@ class ProfileFirestore implements ProfileRepository {
       logger.e(e.toString());
     }
 
-    logger.v("${profiles .length} profiles found");
+    logger.t("${profiles .length} profiles found");
     return profiles;
   }
 
@@ -301,8 +301,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<List<AppProfile>> retrieveProfilesFromList(List<String> profileIds) async {
-
-    logger.d("RetrievingProfiles");
+    logger.t("RetrievingProfiles");
     List<AppProfile> profiles = <AppProfile>[];
 
     try {
@@ -327,15 +326,13 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> followProfile({required String profileId, required String followedProfileId}) async {
-    logger.d("$profileId would be following $followedProfileId");
+    logger.t("$profileId would be following $followedProfileId");
 
     try {
       await profileReference.get().then((querySnapshot) async {
           for (var document in querySnapshot.docs) {
             if(document.id == profileId) {
-              await document.reference.update({
-                AppFirestoreConstants.following: FieldValue.arrayUnion([followedProfileId])
-              });
+              await document.reference.update({AppFirestoreConstants.following: FieldValue.arrayUnion([followedProfileId])});
               logger.d("$profileId is now following $followedProfileId");
             }
 
@@ -357,7 +354,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> unfollowProfile({required String profileId, required String unfollowProfileId}) async {
-    logger.d("$profileId would be unfollowing $unfollowProfileId");
+    logger.t("$profileId would be unfollowing $unfollowProfileId");
 
     try {
       await profileReference.get().then((querySnapshot) async {
@@ -515,7 +512,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> removePost(String profileId, String postId) async {
-    logger.d("$profileId would remove $postId");
+    logger.t("$profileId would remove $postId");
 
     try {
 
@@ -675,6 +672,7 @@ class ProfileFirestore implements ProfileRepository {
           if(document.id == profileId) {
             await document.reference.update({
               AppFirestoreConstants.name: profileName,
+              AppFirestoreConstants.lastNameUpdate: DateTime.now().millisecondsSinceEpoch,
             });
           }
         }
@@ -738,7 +736,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> addEvent(String profileId, String eventId, EventAction eventAction) async {
-    logger.d("$profileId would add $eventId");
+    logger.t("$profileId would add $eventId");
 
     try {
 
@@ -780,7 +778,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> removeEvent(String profileId, String eventId, EventAction eventAction) async {
-    logger.d("$profileId would remove $eventId");
+    logger.t("$profileId would remove $eventId");
 
     try {
 
@@ -812,7 +810,7 @@ class ProfileFirestore implements ProfileRepository {
         }
       });
 
-      logger.d("$profileId has removed event $eventId");
+      logger.t("$profileId has removed event $eventId");
       return true;
     } catch (e) {
       logger.e(e.toString());
@@ -823,7 +821,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> addFavoriteItem(String profileId, String itemId) async {
-    logger.d("Adding item $itemId to Profile $profileId");
+    logger.t("Adding item $itemId to Profile $profileId favorites");
     try {
 
       await profileReference.get()
@@ -846,8 +844,38 @@ class ProfileFirestore implements ProfileRepository {
   }
 
   @override
+  Future<bool> addFavoriteItems(String profileId, List<String> itemIds) async {
+    logger.t("Adding ${itemIds.length} items to Profile $profileId favorites");
+
+    try {
+
+      await profileReference.get()
+          .then((querySnapshot) async {
+        for (var document in querySnapshot.docs)  {
+          if(document.id == profileId) {
+            List<dynamic> currentFavorites = document.data()[AppFirestoreConstants.favoriteItems];
+            List<String> updatedFavorites = List<String>.from(currentFavorites);
+            for (String itemId in itemIds) {
+              updatedFavorites.add(itemId);
+            }
+            await document.reference.update({
+              AppFirestoreConstants.favoriteItems: updatedFavorites,
+            });
+          }
+        }
+      });
+
+    } catch (e) {
+      logger.e(e.toString());
+      return false;
+    }
+
+    return true;
+  }
+
+  @override
   Future<bool> removeFavoriteItem(String profileId, String itemId) async {
-    logger.d("");
+    logger.t("Removing item $itemId from Profile $profileId favorites");
 
     try {
 
@@ -857,6 +885,40 @@ class ProfileFirestore implements ProfileRepository {
           if(document.id == profileId) {
             await document.reference.update({
               AppFirestoreConstants.favoriteItems: FieldValue.arrayRemove([itemId])
+            });
+          }
+        }
+      });
+
+    } catch (e) {
+      logger.e(e.toString());
+      return false;
+    }
+
+    return true;
+  }
+
+  @override
+  Future<bool> removeFavoriteItems(String profileId, List<String> itemIds) async {
+    logger.t("Removing ${itemIds.length} items from Profile $profileId favorites");
+
+    try {
+
+      await profileReference.get()
+          .then((querySnapshot) async {
+        for (var document in querySnapshot.docs)  {
+          if(document.id == profileId) {
+            // await document.reference.update({
+            //   AppFirestoreConstants.favoriteItems: FieldValue.arrayRemove([itemId])
+            // });
+
+            List<dynamic> currentFavorites = document.data()[AppFirestoreConstants.favoriteItems];
+            List<String> updatedFavorites = List<String>.from(currentFavorites);
+            for (String itemId in itemIds) {
+              updatedFavorites.remove(itemId);
+            }
+            await document.reference.update({
+              AppFirestoreConstants.favoriteItems: updatedFavorites,
             });
           }
         }
@@ -895,8 +957,8 @@ class ProfileFirestore implements ProfileRepository {
   }
 
   @override
-  Future<bool> addBand(String profileId, String bandId) async {
-    logger.d("");
+  Future<bool> addBand({required String profileId, required String bandId}) async {
+    logger.t("Add band $bandId for profile $profileId from firestore");
     try {
 
       await profileReference.get()
@@ -920,8 +982,8 @@ class ProfileFirestore implements ProfileRepository {
 
 
   @override
-  Future<bool> removeBand(String profileId, String bandId) async {
-    logger.d("");
+  Future<bool> removeBand({required String profileId, required String bandId}) async {
+    logger.t("Remove band $bandId for profile $profileId from firestore");
 
     try {
 
@@ -996,7 +1058,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> addRequest(String profileId, String requestId, RequestType requestType) async {
-    logger.d("$profileId would add $requestId");
+    logger.t("$profileId would add $requestId");
 
     try {
 
@@ -1026,7 +1088,7 @@ class ProfileFirestore implements ProfileRepository {
         }
       });
 
-      logger.d("Profile $profileId has request $requestId");
+      logger.d("Profile $profileId has added request $requestId as type ${requestType.name}");
 
     } catch (e) {
       logger.e.toString();
@@ -1146,7 +1208,7 @@ class ProfileFirestore implements ProfileRepository {
   @override
   Future<bool> addToWallet(String profileId, double amount, {AppCurrency appCurrency = AppCurrency.appCoin}) async {
 
-    logger.d("Entering addToWallet method from ProfileFirestore");
+    logger.d("addToWallet from ProfileFirestore for profileID $profileId");
     String userId = "";
     AppUser user = AppUser();
     QuerySnapshot userQuerySnapshot;
@@ -1158,7 +1220,7 @@ class ProfileFirestore implements ProfileRepository {
 
       for (var profile in querySnapshot.docs) {
         if(profile.id == profileId) {
-          logger.w("Reference id: ${profile.reference.parent.parent!.id}");
+          logger.i("Reference id: ${profile.reference.parent.parent!.id}");
           DocumentReference documentReference = profile.reference;
           userId = documentReference.parent.parent!.id;
 
@@ -1234,7 +1296,7 @@ class ProfileFirestore implements ProfileRepository {
 
       for (var profile in querySnapshot.docs) {
         if(profile.id == profileId) {
-          logger.w("Reference id: ${profile.reference.parent.parent!.id}");
+          logger.i("Reference id: ${profile.reference.parent.parent!.id}");
           DocumentReference documentReference = profile.reference;
           userId = documentReference.parent.parent!.id;
 
@@ -1353,8 +1415,7 @@ class ProfileFirestore implements ProfileRepository {
 
 
   Future<String> retrievedFcmToken(String profileId) async {
-
-    logger.d("Retrieving FCM Token for Profile $profileId");
+    logger.t("Retrieving FCM Token for Profile $profileId");
 
     String userId = "";
     String fcmToken = "";
@@ -1366,7 +1427,7 @@ class ProfileFirestore implements ProfileRepository {
 
       for (var profile in querySnapshot.docs) {
         if(profile.id == profileId) {
-          logger.v("Reference id: ${profile.reference.parent.parent?.id ?? ""}");
+          logger.t("Reference id: ${profile.reference.parent.parent?.id ?? ""}");
           DocumentReference documentReference = profile.reference;
           userId = documentReference.parent.parent?.id ?? "";
 
@@ -1374,9 +1435,9 @@ class ProfileFirestore implements ProfileRepository {
             userQuerySnapshot = await usersReference.where(
                 FieldPath.documentId, isEqualTo: userId).get();
             if(userQuerySnapshot.docs.isNotEmpty) {
-              logger.d("${userQuerySnapshot.docs.length} users found");
+              logger.t("${userQuerySnapshot.docs.length} users found");
               fcmToken = AppUser.fromJSON(userQuerySnapshot.docs.first.data()).fcmToken;
-              logger.i("FCM Token $fcmToken");
+              logger.t("FCM Token $fcmToken");
             } else {
               logger.w("No user found for id $userId");
             }
@@ -1389,7 +1450,7 @@ class ProfileFirestore implements ProfileRepository {
     }
 
     if(fcmToken.isEmpty) {
-      logger.i("Push Notification not send as FCM Token was not found for users device");
+      logger.w("Push Notification not send as FCM Token was not found for users device");
     }
 
     return fcmToken;
@@ -1398,7 +1459,6 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> isAvailableName(String profileName) async {
-
     logger.d("Verify if name $profileName is available to create this profile");
 
     try {
@@ -1407,10 +1467,9 @@ class ProfileFirestore implements ProfileRepository {
       if (querySnapshot.docs.isNotEmpty) {
         for(QueryDocumentSnapshot doc in querySnapshot.docs) {
           if(profileName == AppProfile.fromJSON(doc.data()).name) {
-            logger.i("Profile Name already in use");
+            logger.w("Profile Name already in use");
             return false;
           }
-
         }
       }
 
@@ -1436,7 +1495,7 @@ class ProfileFirestore implements ProfileRepository {
       if(profile.type == ProfileType.host) {
         profile.places = await PlaceFirestore().retrievePlaces(profile.id);
         if(profile.places!.isEmpty) {
-          logger.v("Places not found");
+          logger.t("Places not found");
         }
       }
 
@@ -1448,9 +1507,9 @@ class ProfileFirestore implements ProfileRepository {
       }
 
       profile.genres = await GenreFirestore().retrieveGenres(profile.id);
-      profile.itemlists = await ItemlistFirestore().fetchAll(profileId: profile.id);
-      if(profile.genres!.isEmpty) logger.v("Genres not found");
-      if(profile.itemlists!.isEmpty) logger.v("Itemlists not found");
+      profile.itemlists = await ItemlistFirestore().fetchAll(ownerId: profile.id);
+      if(profile.genres!.isEmpty) logger.t("Genres not found");
+      if(profile.itemlists!.isEmpty) logger.t("Itemlists not found");
 
     } catch(e) {
       logger.e(e.toString());

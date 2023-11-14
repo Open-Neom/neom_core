@@ -58,9 +58,9 @@ class AppRequest {
       bandId = data["bandId"] ?? "";
       eventId = data["eventId"] ?? "";
       positionRequestedId = data["positionRequestedId"] ?? "";
-      instrument = data["instrument"] != null ? Instrument.fromJSON(data["instrument"]) : Instrument();
-      percentageCoverage = data["percentageCoverage"] ?? 0.0;
-      distanceKm = data["distanceKm"] ?? 0.0;
+      instrument = data["instrument"] != null ? Instrument.fromJSON(data["instrument"]) : null;
+      percentageCoverage = double.parse((data["percentageCoverage"] ?? '0').toString());
+      distanceKm = data["distanceKm"] ?? 0;
       requestDecision = EnumToString.fromString(RequestDecision.values, data["requestDecision"] ?? RequestDecision.pending.name) ?? RequestDecision.pending;
     } catch (e) {
       AppUtilities.logger.e(e.toString());
@@ -77,7 +77,7 @@ class AppRequest {
     'unread': unread,
     'eventId': eventId,
     'bandId': bandId,
-    'instrument': instrument?.toJSON() ?? Instrument().toJSON(),
+    'instrument': instrument?.toJSON(),
     'percentageCoverage': percentageCoverage,
     'distanceKm': distanceKm,
     'requestDecision': requestDecision.name,

@@ -34,7 +34,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
 
   @override
   Future<Map<String, AppReleaseItem>> retrieveAll() async {
-    logger.d("Get all AppReleaseItem");
+    logger.t("Get all AppReleaseItem");
 
     Map<String, AppReleaseItem> releaseItems = {};
     try {
@@ -44,7 +44,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
           AppReleaseItem releaseItem = AppReleaseItem.fromJSON(queryDocumentSnapshot.data());
           releaseItem.id = queryDocumentSnapshot.id;
 
-          if(releaseItem.isAvailable || DateTime.fromMillisecondsSinceEpoch(releaseItem.createdTime).add(const Duration(days: 7)).millisecondsSinceEpoch < DateTime.now().millisecondsSinceEpoch) {
+          if(releaseItem.isAvailable || DateTime.fromMillisecondsSinceEpoch(releaseItem.createdTime).add(const Duration(days: 28)).millisecondsSinceEpoch < DateTime.now().millisecondsSinceEpoch) {
             releaseItems[releaseItem.id] = releaseItem;
           }
         }
@@ -53,7 +53,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
       logger.e(e.toString());
     }
 
-    logger.d("${releaseItems.length} releaseItems found");
+    logger.t("${releaseItems.length} releaseItems found");
     return releaseItems;
   }
 
@@ -79,8 +79,8 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
   }
 
   @override
-  Future<Map<String, AppReleaseItem>> retrieveFromList(List<String> appItemIds) async {
-    logger.d("Getting appReleaseItems from list");
+  Future<Map<String, AppReleaseItem>> retrieveFromList(List<String> releaseItemIds) async {
+    logger.t("Getting ${releaseItemIds}appReleaseItems from list");
 
     Map<String, AppReleaseItem> appItems = {};
 
@@ -88,9 +88,8 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
       QuerySnapshot querySnapshot = await appReleaseItemReference.get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        logger.d("QuerySnapshot is not empty");
         for (var documentSnapshot in querySnapshot.docs) {
-          if(appItemIds.contains(documentSnapshot.id)){
+          if(releaseItemIds.contains(documentSnapshot.id)){
             AppReleaseItem releaseItem = AppReleaseItem.fromJSON(documentSnapshot.data());
             logger.d("AppReleaseItem ${releaseItem.name} was retrieved with details");
             appItems[documentSnapshot.id] = releaseItem;
@@ -106,7 +105,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
 
   @override
   Future<bool> remove(AppReleaseItem appReleaseItem) async {
-    logger.d("Removing appReleaseItem from database collection");
+    logger.d("Removing appReleaseItem ${appReleaseItem.name} with id ${appReleaseItem.id} from database collection");
     try {
       await appReleaseItemReference.doc(appReleaseItem.id).delete();
       return true;
@@ -118,7 +117,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
 
   @override
   Future<bool> addBoughtUser({required String releaseItemId, required String userId}) async {
-    logger.d("$releaseItemId would add User $userId");
+    logger.t("$releaseItemId would add User $userId");
 
     try {
       await appReleaseItemReference.get()

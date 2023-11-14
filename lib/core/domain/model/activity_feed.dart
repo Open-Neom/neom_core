@@ -1,6 +1,6 @@
 import 'package:enum_to_string/enum_to_string.dart';
 
-import '../../utils/enums/activity_feed_type.dart';
+import '../../../neom_commons.dart';
 
 class ActivityFeed {
 
@@ -58,4 +58,85 @@ class ActivityFeed {
     'unread': unread,
   };
 
+  Map<String, dynamic>  toJSONWithId()=>{
+    'id': id,
+    'ownerId': ownerId,
+    'profileId': profileId,
+    'profileName': profileName,
+    'profileImgUrl': profileImgUrl,
+    'message': message,
+    'activityReferenceId': activityReferenceId,
+    'activityFeedType': activityFeedType?.name ?? "",
+    'mediaUrl': mediaUrl,
+    'createdTime': createdTime,
+    'unread': unread,
+  };
+
+  ActivityFeed.fromEvent({required Event event, required AppProfile fromProfile,
+    required ActivityFeedType type, String msg = ''}) :
+        id = '',
+        ownerId = event.owner!.id,
+        activityReferenceId = event.id,
+        mediaUrl = event.imgUrl,
+        profileId = fromProfile.id,
+        profileName = fromProfile.name,
+        profileImgUrl = fromProfile.photoUrl,
+        activityFeedType = type,
+        createdTime = DateTime.now().millisecondsSinceEpoch,
+        message = msg,
+        unread = true;
+
+  ActivityFeed.fromPost({required Post post, required AppProfile fromProfile,
+    required ActivityFeedType type, String msg = ''}) :
+        id = '',
+        ownerId = post.ownerId,
+        activityReferenceId = post.id,
+        mediaUrl = post.mediaUrl,
+        profileId = fromProfile.id,
+        profileName = fromProfile.name,
+        profileImgUrl = fromProfile.photoUrl,
+        activityFeedType = type,
+        createdTime = DateTime.now().millisecondsSinceEpoch,
+        message = msg,
+        unread = true;
+
+  ActivityFeed.fromComment({required PostComment comment, required ActivityFeedType type,
+    AppProfile? fromProfile, String? mediaUrl}) :
+        id = '',
+        ownerId = comment.ownerId,
+        activityReferenceId = comment.postId,
+        mediaUrl = mediaUrl ?? comment.mediaUrl,
+        profileId = fromProfile?.id ?? comment.ownerId,
+        profileName = fromProfile?.name ?? comment.ownerName,
+        profileImgUrl = fromProfile?.photoUrl ?? comment.ownerImgUrl,
+        activityFeedType = type,
+        createdTime = DateTime.now().millisecondsSinceEpoch,
+        message = comment.text,
+        unread = true;
+
+  ActivityFeed.fromRequest({required AppRequest request, required ActivityFeedType type,
+    required AppProfile fromProfile, this.mediaUrl = '', bool isResponse = false,
+    bool isEvent = true, String? message}) :
+        id = '',
+        ownerId = isResponse ? request.from : request.to,
+        activityReferenceId = isEvent ? request.eventId : request.bandId,
+        profileId = fromProfile.id,
+        profileName = fromProfile.name,
+        profileImgUrl = fromProfile.photoUrl,
+        activityFeedType = type,
+        createdTime = DateTime.now().millisecondsSinceEpoch,
+        message = message ?? request.message,
+        unread = true;
+
+  ActivityFeed.fromAppBot({required String toProfileId, required referenceId,
+    required ActivityFeedType type, this.message = '', this.mediaUrl = ''}) :
+        id = '',
+        ownerId = toProfileId,
+        activityReferenceId = referenceId,
+        profileId = AppConstants.appBot,
+        profileName = "${AppFlavour.getAppName()} ${AppConstants.appBotName}",
+        profileImgUrl = AppFlavour.getAppLogoUrl(),
+        activityFeedType = type,
+        createdTime = DateTime.now().millisecondsSinceEpoch,
+        unread = true;
 }

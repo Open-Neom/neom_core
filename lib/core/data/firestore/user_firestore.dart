@@ -76,7 +76,7 @@ class UserFirestore implements UserRepository {
 
   @override
   Future<AppUser> getById(String userId) async {
-    logger.d("Start Id $userId");
+    logger.t("Get User by ID: $userId");
     AppUser user = AppUser();
     try {
         DocumentSnapshot documentSnapshot = await userReference.doc(userId).get();
@@ -176,8 +176,7 @@ class UserFirestore implements UserRepository {
 
   @override
   Future<bool> isAvailableEmail(String email) async {
-
-    logger.d("Verify if email $email is already in use");
+    logger.t("Verify if email $email is already in use");
 
     try {
       QuerySnapshot querySnapshot = await userReference
@@ -189,7 +188,7 @@ class UserFirestore implements UserRepository {
         return false;
       }
 
-      logger.d("Email is available");
+      logger.t("Email is available");
       return true;
 
     } catch (e) {
@@ -282,7 +281,7 @@ class UserFirestore implements UserRepository {
 
   @override
   Future<bool> updatePhotoUrl(String userId, String photoUrl) async {
-    logger.d("");
+    logger.t("updatePhotoUrl");
 
     try {
       DocumentSnapshot documentSnapshot = await userReference.doc(userId).get();
@@ -358,12 +357,12 @@ class UserFirestore implements UserRepository {
 
   @override
   Future<void> updateLastTimeOn(String userId) async {
-    logger.v("updating LastTimeOn for user $userId");
+    logger.t("updating LastTimeOn for user $userId");
 
     try {
       DocumentSnapshot documentSnapshot = await userReference.doc(userId).get();
       await documentSnapshot.reference.update({AppFirestoreConstants.lastTimeOn: DateTime.now().millisecondsSinceEpoch});
-      logger.i("LastTimeOn successfully updated for User $userId");
+      logger.t("LastTimeOn successfully updated for User $userId");
     } catch (e) {
       logger.e(e.toString());
     }
@@ -443,7 +442,7 @@ class UserFirestore implements UserRepository {
 
           if(needsPhone && user.phoneNumber.isEmpty) {
             usersWOPhone.add(user);
-            logger.v("${user.name} has no phone number");
+            logger.t("${user.name} has no phone number");
             continue;
           }
 
@@ -502,10 +501,10 @@ class UserFirestore implements UserRepository {
                       }
                       user.profiles.add(profile);
                     } else {
-                      logger.v("Profile ${profile.id} ${profile.name} is out of max distance");
+                      logger.t("Profile ${profile.id} ${profile.name} is out of max distance");
                     }
                   } else {
-                    logger.v("Profile ${profile.id} ${profile.name} has not posts");
+                    logger.t("Profile ${profile.id} ${profile.name} has not posts");
                   }
 
                 }
@@ -527,7 +526,7 @@ class UserFirestore implements UserRepository {
 
   @override
   Future<List<String>> getFCMTokens() async {
-    logger.d("Get available FCM Tokens from Users");
+    logger.t("Get available FCM Tokens from all Users on Firestore");
 
     List<String> fcmTokens = [];
     try {
@@ -544,12 +543,13 @@ class UserFirestore implements UserRepository {
       logger.e(e.toString());
     }
 
+    logger.d("${fcmTokens.length} FCM Tokens retrieved for user");
     return fcmTokens;
   }
 
   @override
   Future<bool> addReleaseItem({required String userId, required String releaseItemId}) async {
-    logger.d("ReleaseItem $releaseItemId would be added to User $userId");
+    logger.t("ReleaseItem $releaseItemId would be added to User $userId");
 
     try {
       DocumentSnapshot documentSnapshot = await userReference

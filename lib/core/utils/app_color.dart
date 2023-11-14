@@ -12,13 +12,13 @@ class AppColor {
     AppInUse appInUse = AppFlavour.appInUse;
     Color mainColor = Colors.white;
     switch(appInUse) {
-      case AppInUse.emxi:
+      case AppInUse.e:
         mainColor = const Color.fromRGBO(156, 48, 26, 1);
         break;
-      case AppInUse.gigmeout:
+      case AppInUse.g:
         mainColor = const Color.fromRGBO(22, 42, 93, 1);
         break;
-      case AppInUse.cyberneom:
+      case AppInUse.c:
         mainColor = const Color.fromRGBO(79, 25, 100, 1);
         break;
       default:
@@ -31,6 +31,7 @@ class AppColor {
   static Color main25 = getMain().withOpacity(0.25);
   static Color main50 = getMain().withOpacity(0.5);
   static Color main75 = getMain().withOpacity(0.75);
+  static Color main95 = getMain().withOpacity(0.95);
   static final Color bottomNavigationBar = getMain().withOpacity(0.5);
   static final Color messageComposer = getMain().withOpacity(0.5);
   static final Color drawer = getMain().withOpacity(0.5);

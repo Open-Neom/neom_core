@@ -1,2 +1,2 @@
 # neom_commons
-Common modules between apps.
+Music Player Module for apps.

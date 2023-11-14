@@ -14,66 +14,67 @@ class GenresGridView extends StatelessWidget {
 
   const GenresGridView(this.genres, this.color,
       {
-        Key? key,
+        super.key,
         this.alignment = Alignment.center,
-        this.fontSize = 15,
+        this.fontSize = 14,
         this.crossAxisCount = 3,
-      }) : super(key: key);
+      });
 
   @override
   Widget build(BuildContext context) {
     Widget dot = Container(
-      width: 6.0,
-      height: 6.0,
-      margin: const EdgeInsets.symmetric(horizontal: 4.0),
+      width: 5.0,
+      height: 5.0,
+      margin: const EdgeInsets.symmetric(horizontal: 5.0),
       decoration: BoxDecoration(
           color: color, borderRadius: BorderRadius.circular(50.0)),
     );
 
     double gridHeight = AppTheme.fullHeight(context);
+    int gridItems = genres.length;
 
-    if(genres.length <= crossAxisCount) {
-      gridHeight = (AppTheme.fullHeight(context) / 8) / (crossAxisCount/genres.length).ceil();
-    } else if(genres.length<15) {
-      gridHeight = (AppTheme.fullHeight(context) / 12) / (crossAxisCount/genres.length).ceil();
-    } else if(genres.length>=15) {
-      gridHeight = (AppTheme.fullHeight(context) / 3) / (crossAxisCount/genres.length).ceil();
+    if(gridItems <= crossAxisCount) {
+      gridHeight = (AppTheme.fullHeight(context)/13) / (crossAxisCount/gridItems).ceil();
+    } else if(gridItems<10) {
+      gridHeight = (AppTheme.fullHeight(context)/10) / (crossAxisCount/gridItems).ceil();
+    } else if(gridItems<15) {
+      gridHeight = (AppTheme.fullHeight(context)/8) / (crossAxisCount/gridItems).ceil();
+    } else if(gridItems>=15) {
+      gridHeight = (AppTheme.fullHeight(context)/6) / (crossAxisCount/gridItems).ceil();
     } else {
-      gridHeight = (AppTheme.fullHeight(context) / 5) / (crossAxisCount/genres.length).ceil();
+      gridHeight = (AppTheme.fullHeight(context)/6) / (crossAxisCount/gridItems).ceil();
     }
-    return genres.isNotEmpty ? SizedBox(
-      height: AppTheme.fullHeight(context) / 10,
-      width: AppTheme.fullWidth(context),
+    return genres.isNotEmpty ? Container(
+      constraints: BoxConstraints(
+        maxHeight: AppTheme.fullHeight(context)/10,
+      ),
       child: SingleChildScrollView(
         child: Container(
           alignment: alignment,
           height: gridHeight,
-          width: AppTheme.fullWidth(context),
           child: GridView.builder(
-            itemCount: genres.length,
+            itemCount: gridItems,
             shrinkWrap: true,
             scrollDirection: Axis.horizontal,
             itemBuilder: (context, index) {
               String genre = genres[index];
               return Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     dot,
-                    Text(
-                        (genre.length < AppConstants.maxGenreNameLength
-                          ? genre :  genre.substring(0, AppConstants.maxGenreNameLength)).capitalize!,
-                      style: TextStyle(
-                        color: color,
-                        fontSize: fontSize,
-                      ),
+                    Text((genre.length < AppConstants.maxGenreNameLength
+                        ? genre :  genre.substring(0, AppConstants.maxGenreNameLength)).capitalize,
+                      style: TextStyle(color: color, fontSize: fontSize,),
                       overflow: TextOverflow.ellipsis,
                     )
                   ]
               );
             },
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: (genres.length / crossAxisCount).ceil(),
-              mainAxisExtent: AppTheme.fullWidth(context) / crossAxisCount,
+              crossAxisCount: (gridItems/crossAxisCount).ceil(),
+              mainAxisExtent: (AppTheme.fullWidth(context)-40)/crossAxisCount,
             ),
+            padding: EdgeInsets.zero,
           ),
         ),
       ),

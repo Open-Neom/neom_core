@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 
-
 class PositionBackButton extends StatelessWidget {
-  const PositionBackButton({Key? key}) : super(key: key);
-
+  const PositionBackButton({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -13,4 +11,3 @@ class PositionBackButton extends StatelessWidget {
     );
   }
 }
-//

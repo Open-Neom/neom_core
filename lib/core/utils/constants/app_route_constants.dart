@@ -2,14 +2,19 @@ import 'package:neom_booking/booking/ui/booking_home_page.dart';
 import 'package:neom_events/events/ui/events_page.dart';
 import 'package:neom_inbox/inbox/ui/inbox_page.dart';
 import 'package:neom_itemlists/itemlists/ui/itemlist_page.dart';
+import 'package:neom_music_player/ui/home/music_player_home_page.dart';
 import 'package:neom_posts/blog/ui/blog_page.dart';
 import 'package:neom_timeline/neom_timeline.dart';
 
 class AppRouteConstants {
 
-  static final emxiHomePages = [const TimelinePage(), const ItemlistPage(), const BlogPage(), const InboxPage()];
-  static final gigHomePages = [const TimelinePage(), const BookingHomePage(), const EventsPage(), const EventsPage()];
-  static final neomHomePages = [const TimelinePage(), const ItemlistPage(), const EventsPage(), const InboxPage()];
+  static final eHomePages = [const TimelinePage(), const ItemlistPage(), const BlogPage(), const InboxPage()];
+  static final gHomePages = [const TimelinePage(), const BookingHomePage(), const EventsPage(), const EventsPage()];
+  static final nHomePages = [const TimelinePage(), const ItemlistPage(), const EventsPage(), const InboxPage()];
+
+  static final eMusicPlayerPages = [const MusicPlayerHomePage(), const ItemlistPage()];
+  static final gMusicPlayerPages = [const MusicPlayerHomePage(), const ItemlistPage()];
+  static final nMusicPlayerPages = [const MusicPlayerHomePage(), const ItemlistPage()];
 
   static const String root = "/";
   static const String login = "/login";
@@ -159,11 +164,14 @@ class AppRouteConstants {
 
   static const String releaseUpload  = '/releaseUpload';
   static const String releaseUploadType  = '/releaseUpload/type';
+  static const String releaseUploadBandOrSolo  = '/releaseUpload/bandOrSolo';
   static const String releaseUploadInstr  = '/releaseUpload/instr';
   static const String releaseUploadCover  = '/releaseUpload/cover';
   static const String releaseUploadGenres  = '/releaseUpload/genres';
   static const String releaseUploadReason  = '/releaseUpload/reason';
   static const String releaseUploadInfo  = '/releaseUpload/info';
+
+  static const String releaseUploadItemlistNameDesc  = '/releaseUpload/itemlist/nameDesc';
   static const String releaseUploadNameDesc  = '/releaseUpload/nameDesc';
   static const String releaseUploadSummary  = '/onlinePositioning/summary';
 
@@ -172,8 +180,16 @@ class AppRouteConstants {
   static const String generator  = '/generator';
   static const String chamberPresets  = '/chamber/presets';
 
+  static const String musicPlayer  = '/musicPlayer';
   static const String musicPlayerHome  = '/musicPlayer/home';
-  
-  
+  static const String musicPlayerMedia  = '/musicPlayer/media';
+  static const String musicPlayerMini  = '/musicPlayer/mini';
+  static const String musicPlayerRecent  = '/musicPlayer/recent';
+  static const String musicPlayerPref = '/musicPlayer//pref';
+  static const String musicPlayerSetting = '/musicPlayer//setting';
+  static const String musicPlayerPlaylists = '/musicPlayer//playlists';
+  static const String musicPlayerNowPlaying = '/musicPlayer//nowPlaying';
+  static const String musicPlayerDownloads = '/musicPlayer//downloads';
+  static const String musicPlayerStats  = '/musicPlayer/stats';
 
 }

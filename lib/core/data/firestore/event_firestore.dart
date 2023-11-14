@@ -25,16 +25,16 @@ class EventFirestore implements EventRepository {
 
   @override
   Future<Event> retrieve(String eventId) async {
-    logger.d("Retrieving Events");
+    logger.t("Retrieving Event by ID: $eventId");
     Event event = Event();
 
     try {
       DocumentSnapshot documentSnapshot = await eventsReference.doc(eventId).get();
       if (documentSnapshot.exists) {
-        logger.d("Snapshot is not empty");
+        logger.t("Snapshot is not empty");
         event = Event.fromJSON(documentSnapshot.data());
         event.id = documentSnapshot.id;
-        logger.v(event.toString());
+        logger.t(event.toString());
       }
     } catch (e) {
       logger.e(e.toString());
@@ -72,7 +72,7 @@ class EventFirestore implements EventRepository {
 
   @override
   Future<String> insert(Event event,{String eventId = ""}) async {
-    logger.d("");
+    logger.t("insert");
     try {
       DocumentReference documentReference;
       if(eventId.isEmpty) {
@@ -96,7 +96,7 @@ class EventFirestore implements EventRepository {
 
   @override
   Future<bool> remove(Event event) async {
-    logger.d("");
+    logger.t("Remove from firestore");
     bool wasDeleted = false;
     try {
       await eventsReference.doc(event.id).delete();
@@ -121,7 +121,7 @@ class EventFirestore implements EventRepository {
 
   @override
   Future<Map<String, Event>> getEvents() async {
-    logger.d("");
+    logger.t("getEvents");
     Map<String, Event> events = {};
 
     try {
@@ -130,7 +130,6 @@ class EventFirestore implements EventRepository {
           .limit(AppConstants.eventsLimit)
           .get();
 
-      logger.d("${snapshot.docs.length} Events Found as Snapshot");
       for (var documentSnapshot in snapshot.docs) {
         Event event = Event.fromJSON(documentSnapshot.data());
         event.id = documentSnapshot.id;
@@ -148,20 +147,18 @@ class EventFirestore implements EventRepository {
 
   @override
   Future<Map<String, Event>> getEventsById(List<String> eventIds) async {
-
-    logger.d("Retrieving Events By Id");
+    logger.t("Retrieving ${eventIds.length} events By id from firestore");
     Map<String, Event> events = {};
 
     try {
       QuerySnapshot querySnapshot = await eventsReference.get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        logger.d("Snapshot is not empty");
         for (var documentSnapshot in querySnapshot.docs) {
           if(eventIds.contains(documentSnapshot.id)){
             Event event = Event.fromJSON(documentSnapshot.data());
             event.id = documentSnapshot.id;
-            logger.d(event.toString());
+            logger.t('Event ${event.name} retrieved');
             events[event.id] = event;
           }
         }
@@ -171,7 +168,7 @@ class EventFirestore implements EventRepository {
     }
 
 
-    logger.d("${events.length} events found");
+    logger.t("${events.length} events found");
     return events;
   }
 
@@ -367,7 +364,7 @@ class EventFirestore implements EventRepository {
 
   @override
   Future<bool> addGoingProfile({required String eventId, required String profileId}) async {
-    logger.d("$profileId would be added as going to Event $eventId");
+    logger.t("$profileId would be added as going to Event $eventId");
 
     try {
 

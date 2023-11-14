@@ -2,16 +2,17 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
-import '../data/implementations/geolocator_controller.dart';
-import 'app_color.dart';
-import 'constants/app_route_constants.dart';
-import 'constants/app_translation_constants.dart';
+import 'package:timeago/timeago.dart' as timeago;
+
+import '../../neom_commons.dart';
 
 class AppUtilities {
 
@@ -26,7 +27,8 @@ class AppUtilities {
     )
   );
 
-  static void showAlert(context, title,  message) {
+  static void showAlert(BuildContext context, {String title = '',  String message = ''}) {
+    if(title.isEmpty) title = AppFlavour.getAppName();
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -49,7 +51,8 @@ class AppUtilities {
     );
   }
 
-  static void showSnackBar(String title, String message, {Duration duration = const Duration(seconds: 2)}) {
+  static void showSnackBar({String title = '', String message = '', Duration duration = const Duration(seconds: 3)}) {
+    if(title.isEmpty) title = AppFlavour.getAppName();
     Get.snackbar(title.tr, message.tr,
         snackPosition: SnackPosition.bottom,
         duration: duration
@@ -66,7 +69,7 @@ class AppUtilities {
       double refLongitude = refUserPos.longitude;
 
       int distanceInMeters = Geolocator.distanceBetween(mainLatitude, mainLongitude, refLatitude, refLongitude).round();
-      logger.v("Distance between positions $distanceInMeters");
+      logger.t("Distance between positions $distanceInMeters");
 
       distanceKm = (distanceInMeters / 1000).round();
     } catch (e) {
@@ -84,7 +87,7 @@ class AppUtilities {
     double refLongitude = refUserPos.longitude;
 
     int distanceInMeters = Geolocator.distanceBetween(mainLatitude, mainLongitude, refLatitude, refLongitude).round();
-    logger.v("Distance between positions $distanceInMeters");
+    logger.t("Distance between positions $distanceInMeters");
 
     return (distanceInMeters / 1000);
   }
@@ -105,11 +108,11 @@ class AppUtilities {
       address = country;
     }
 
-    logger.v(address);
+    logger.t(address);
     return address;
   }
 
-  static List<DateTime> getDaysFromNow({days = 21}){
+  static List<DateTime> getDaysFromNow({days = 28}){
 
     List<DateTime> dates = [];
 
@@ -131,6 +134,18 @@ class AppUtilities {
     return "$twoDigitMinutes:$twoDigitSeconds";
   }
 
+  static String getTimeAgo(int createdTime, {showShort = true}) {
+
+    Locale? locale;
+
+    if(!showShort) locale = Get.locale;
+
+    return timeago.format(
+        DateTime.fromMillisecondsSinceEpoch(createdTime),
+        locale: locale?.languageCode ?? 'en_short'
+    );
+  }
+
   static void goHome() {
     logger.d("");
     Get.offAllNamed(AppRouteConstants.home);
@@ -142,7 +157,7 @@ class AppUtilities {
     formattedDate = DateFormat(dateFormat)
         .format(DateTime.fromMillisecondsSinceEpoch(dateMsSinceEpoch));
 
-    AppUtilities.logger.v("Date formatted to: $formattedDate");
+    AppUtilities.logger.t("Date formatted to: $formattedDate");
 
     return formattedDate;
   }
@@ -189,7 +204,7 @@ class AppUtilities {
   }
 
   static Future<File> getFileFromPath(String filePath) async {
-    logger.d("Getting PDF File From Path");
+    logger.d("Getting File From Path");
     File file = File("");
 
     try {
@@ -200,11 +215,141 @@ class AppUtilities {
       } else {
         file = await File.fromUri(Uri.parse(filePath)).create();
       }
-
     } catch (e) {
       logger.e('Error getting File');
     }
 
     return file;
   }
+
+  static String secondsToMinutes(int seconds, {bool clockView = true}) {
+    // Calculate the number of minutes and remaining seconds
+    int minutes = seconds ~/ 60;
+    int remainingSeconds = seconds % 60;
+
+    // Format the minutes and seconds as two-digit strings
+    String minutesStr = minutes.toString().padLeft(2, '0');
+    String secondsStr = remainingSeconds.toString().padLeft(2, '0');
+
+    // Create the formatted string
+    String formattedTime = '';
+
+    if(clockView) {
+      formattedTime = '$minutesStr:$secondsStr';
+    } else {
+      formattedTime = '$minutesStr ${AppTranslationConstants.minutes.tr} - $secondsStr ${AppTranslationConstants.seconds.tr}';
+    }
+
+
+    return formattedTime;
+  }
+  
+  static bool isDeviceSupportedVersion({bool isIOS = false}){
+    logger.i(Platform.operatingSystemVersion);
+    if(isIOS) {
+      return Platform.operatingSystemVersion.contains('13')
+          || Platform.operatingSystemVersion.contains('14')
+          || Platform.operatingSystemVersion.contains('15')
+          || Platform.operatingSystemVersion.contains('16')
+          || Platform.operatingSystemVersion.contains('17');
+    } else {
+      return true;
+    }
+  }
+
+  static Future<File> cropImage(XFile mediaFile, {double ratioX = 1, double ratioY = 1}) async {
+    AppUtilities.logger.d("Initializing Image Cropper");
+
+    File croppedImageFile = File("");
+    try {
+      CroppedFile? croppedFile = await ImageCropper().cropImage(
+        sourcePath: mediaFile.path,
+        aspectRatio: CropAspectRatio(
+            ratioX: ratioX,
+            ratioY: ratioY
+        ),
+        uiSettings: [
+          AndroidUiSettings(
+              toolbarTitle: AppTranslationConstants.adjustImage.tr,
+              backgroundColor: AppColor.getMain(),
+              toolbarColor: AppColor.getMain(),
+              toolbarWidgetColor: AppColor.white,
+              statusBarColor: AppColor.getMain(),
+              dimmedLayerColor: AppColor.main50,
+              activeControlsWidgetColor: AppColor.yellow,
+              // initAspectRatio: CropAspectRatioPreset.square,
+          ),
+          IOSUiSettings(
+            title: AppTranslationConstants.adjustImage.tr,
+            cancelButtonTitle: AppTranslationConstants.cancel.tr,
+            doneButtonTitle: AppTranslationConstants.done.tr,
+            minimumAspectRatio: 1.0,
+            showCancelConfirmationDialog: true,
+            aspectRatioLockEnabled: true,
+          )
+        ],
+        aspectRatioPresets: [
+          CropAspectRatioPreset.square,
+          CropAspectRatioPreset.ratio3x2,
+          CropAspectRatioPreset.original,
+          CropAspectRatioPreset.ratio4x3,
+          CropAspectRatioPreset.ratio16x9
+        ],
+      );
+
+      croppedImageFile = File(croppedFile?.path ?? "");
+
+
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+    AppUtilities.logger.d("Cropped Image in file ${croppedImageFile.path}");
+
+    return croppedImageFile;
+  }
+
+  static Future<XFile> compressImageFile(XFile imageFile) async {
+
+    XFile compressedImageFile = XFile('');
+    CompressFormat compressFormat = CompressFormat.jpeg;
+
+    try {
+      ///DEPRECATED final lastIndex = imageFile.path.lastIndexOf(RegExp(r'.jp'));
+      final lastIndex = imageFile.path.lastIndexOf(RegExp(r'\.jp|\.png'));
+
+
+      if(lastIndex >= 0) {
+        String subPath = imageFile.path.substring(0, (lastIndex));
+        String fileFormat = imageFile.path.substring(lastIndex);
+
+        if(fileFormat.contains(CompressFormat.png.name)){
+          compressFormat = CompressFormat.png;
+        }
+
+        String outPath = "${subPath}_out$fileFormat";
+        XFile? result = await FlutterImageCompress.compressAndGetFile(imageFile.path, outPath, format: compressFormat);
+
+        if(result != null) {
+          compressedImageFile = result;
+          AppUtilities.logger.d("Image compressed successfully");
+        } else {
+          compressedImageFile = imageFile;
+          AppUtilities.logger.w("Image was not compressed and return as before");
+        }
+      }
+    } catch(e) {
+      AppUtilities.logger.e(e.toString());
+    }
+
+
+    return compressedImageFile;
+  }
+
+  static bool isWithinLastSevenDays(int date) {
+    DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(date);
+    DateTime now = DateTime.now();
+    Duration difference = now.difference(dateTime);
+    return difference.inDays < 7;
+  }
+
 }

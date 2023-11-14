@@ -6,7 +6,7 @@ import 'custom_url_text.dart';
 class HeaderWidget extends StatelessWidget {
   final String title;
   final bool secondHeader;
-  const HeaderWidget(this.title,{Key? key, this.secondHeader = false}) : super(key: key);
+  const HeaderWidget(this.title,{super.key, this.secondHeader = false});
 
   @override
   Widget build(BuildContext context) {

@@ -19,7 +19,7 @@ class TitleSubtitleRow extends StatelessWidget {
 
   const TitleSubtitleRow(
     this.title, {
-    Key? key,
+    super.key,
     this.navigateTo = "",
     this.url = "",
     this.subtitle = "",
@@ -29,7 +29,7 @@ class TitleSubtitleRow extends StatelessWidget {
     this.hPadding = 10,
     this.showDivider = true,
     this.visibleSwitch = true,
-  }) : super(key: key);
+  });
 
 
   @override
@@ -47,7 +47,7 @@ class TitleSubtitleRow extends StatelessWidget {
             if(navigateTo.isNotEmpty) {
               navigateTo != AppRouteConstants.underConstruction ?
               Get.toNamed(navigateTo)
-                  : AppUtilities.showAlert(context, title, AppTranslationConstants.underConstruction.tr);
+                  : AppUtilities.showAlert(context, title: title, message: AppTranslationConstants.underConstruction.tr);
             } else if(url.isNotEmpty) {
               CoreUtilities.launchURL(url);
             }

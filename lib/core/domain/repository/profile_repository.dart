@@ -38,7 +38,10 @@ abstract class ProfileRepository {
   Future<QuerySnapshot> handleSearch(String query);
 
   Future<bool> addFavoriteItem(String profileId, String itemId);
+  Future<bool> addFavoriteItems(String profileId, List<String> itemIds);
   Future<bool> removeFavoriteItem(String profileId, String itemId);
+  Future<bool> removeFavoriteItems(String profileId, List<String> itemIds);
+
   // Future<bool> addAllAppMediaItemIds(String profileId, List<String> itemIds);
 
   Future<Map<String, AppProfile>> getFollowers(String profileId);
@@ -77,8 +80,8 @@ abstract class ProfileRepository {
   Future<bool> addComment(String profileId, String commentId);
   Future<bool> removeComment(String profileId, String commentId);
   Future<bool> hideComment(String profileId, String commentId);
-  Future<bool> addBand(String profileId, String bandId);
-  Future<bool> removeBand(String profileId, String bandId);
+  Future<bool> addBand({required String profileId, required String bandId});
+  Future<bool> removeBand({required String profileId, required String bandId});
   Future<bool> removeRequest(String profileId, String requestId, RequestType requestType);
   Future<bool> addRequest(String profileId, String requestId, RequestType requestType);
   Future<bool> addToWallet(String profileId, double amount, {AppCurrency appCurrency = AppCurrency.appCoin});
@@ -95,5 +98,5 @@ abstract class ProfileRepository {
   Future<bool> removeBoughtItem(String profileId, String boughtItem);
 
   Future<bool> addChamberPreset({required String profileId, required String chamberPresetId});
-
+  Future<bool> updateAddress(String profileId, String address);
 }

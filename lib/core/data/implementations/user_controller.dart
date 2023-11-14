@@ -6,24 +6,19 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 
 import '../../../auth/ui/login/login_controller.dart';
-import '../../app_flavour.dart';
 import '../../domain/model/app_coupon.dart';
 import '../../domain/model/app_profile.dart';
 import '../../domain/model/app_user.dart';
 import '../../domain/model/band.dart';
-import '../../domain/model/item_list.dart';
-import '../../domain/model/neom/chamber_preset.dart';
 import '../../domain/use_cases/user_service.dart';
 import '../../utils/app_utilities.dart';
-import '../../utils/constants/app_constants.dart';
 import '../../utils/constants/app_facebook_constants.dart';
 import '../../utils/constants/app_page_id_constants.dart';
 import '../../utils/constants/app_route_constants.dart';
 import '../../utils/constants/app_translation_constants.dart';
 import '../../utils/constants/message_translation_constants.dart';
 import '../../utils/core_utilities.dart';
-import '../../utils/enums/app_in_use.dart';
-import '../../utils/enums/itemlist_owner.dart';
+import '../../utils/enums/owner_type.dart';
 import '../../utils/enums/user_role.dart';
 import '../firestore/coupon_firestore.dart';
 import '../firestore/itemlist_firestore.dart';
@@ -54,7 +49,7 @@ class UserController extends GetxController implements UserService {
   Band get band => _band.value ?? Band();
   set band(Band? band) => _band.value = band;
 
-  ItemlistOwner itemlistOwner  = ItemlistOwner.profile;
+  OwnerType itemlistOwner  = OwnerType.profile;
 
   bool appliedCoupon= false;
   AppCoupon coupon = AppCoupon();
@@ -256,7 +251,7 @@ class UserController extends GetxController implements UserService {
           user!.currentProfileId = profileId;
           UserFirestore().updateCurrentProfile(user!.id, profileId);
           profile = user!.profiles.first;
-          profile.itemlists = await ItemlistFirestore().fetchAll(profileId: profile.id);
+          profile.itemlists = await ItemlistFirestore().fetchAll(ownerId: profile.id);
           if(appliedCoupon) await CouponFirestore().incrementUsageCount(coupon.id);
           Get.offAllNamed(AppRouteConstants.home);
         } else {
@@ -387,7 +382,7 @@ class UserController extends GetxController implements UserService {
     try {
       AppUser userFromFirestore = await UserFirestore().getById(userId);
       if(userFromFirestore.id.isNotEmpty){
-        logger.v("User $userId exists!!");
+        logger.t("User $userId exists!!");
         user = userFromFirestore;
         profile = user!.profiles.first;
       } else {
@@ -459,7 +454,7 @@ class UserController extends GetxController implements UserService {
   Future<void> reloadProfileItemlists() async {
 
     try {
-      profile.itemlists = await ItemlistFirestore().fetchAll(profileId: profile.id);
+      profile.itemlists = await ItemlistFirestore().fetchAll(ownerId: profile.id);
       profile.favoriteItems?.clear();
       profile.chamberPresets?.clear();
 
@@ -467,7 +462,11 @@ class UserController extends GetxController implements UserService {
         profile.chamberPresets!.add(key);
       });
 
-      CoreUtilities.getTotalItems(profile.itemlists!).forEach((key, value) {
+      CoreUtilities.getTotalMediaItems(profile.itemlists!).forEach((key, value) {
+        profile.favoriteItems!.add(key);
+      });
+
+      CoreUtilities.getTotalReleaseItems(profile.itemlists!).forEach((key, value) {
         profile.favoriteItems!.add(key);
       });
     } catch (e) {

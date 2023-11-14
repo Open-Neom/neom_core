@@ -83,7 +83,7 @@ class LoginController extends GetxController implements LoginService {
   @override
   void onInit() async {
     super.onInit();
-    logger.d("");
+    logger.t("onInit Login Controller");
     appInfo = AppInfo();
     fbaUser = auth.currentUser;
     ever(_fbaUser, handleAuthChanged);
@@ -91,23 +91,16 @@ class LoginController extends GetxController implements LoginService {
 
 
     if(Platform.isIOS) {
-      logger.i(Platform.operatingSystemVersion);
-      if(Platform.operatingSystemVersion.contains('13')
-        || Platform.operatingSystemVersion.contains('14')
-        || Platform.operatingSystemVersion.contains('15')
-        || Platform.operatingSystemVersion.contains('16')
-      ) {
-        isIOS13 = true;
-      }
+      isIOS13 = AppUtilities.isDeviceSupportedVersion(isIOS: Platform.isIOS);
     } else if (Platform.isAndroid) {
-      logger.i(Platform.version);
+      logger.t(Platform.version);
     }
   }
 
   @override
   void onReady() async {
     super.onReady();
-    logger.d("");
+    logger.t("onReady Login Controller");
     await getAppInfo();
     isLoading = false;
     update([AppPageIdConstants.login]);
@@ -115,7 +108,7 @@ class LoginController extends GetxController implements LoginService {
 
   @override
   Future<void> handleAuthChanged(user) async {
-    logger.v("");
+    logger.t("");
     authStatus = AuthStatus.waiting;
 
     try {
@@ -496,10 +489,8 @@ class LoginController extends GetxController implements LoginService {
     } catch (e) {
       logger.e(e.toString());
       AppUtilities.showSnackBar(
-        MessageTranslationConstants.underConstruction.tr,
-        e.toString(),
-          duration: const Duration(seconds: 2)
-
+        title: MessageTranslationConstants.underConstruction.tr,
+        message: e.toString(),
       );
     }
 

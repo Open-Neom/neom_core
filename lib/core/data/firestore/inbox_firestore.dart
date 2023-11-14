@@ -24,11 +24,11 @@ class InboxFirestore implements InboxRepository {
   @override
   Future<bool> addMessage(String inboxRoomId, InboxMessage message,
       {InboxRoomType inboxRoomType = InboxRoomType.profile}) async {
-    logger.d("Adding Message to inbox $inboxRoomId");
+    logger.t("Adding Message to inbox $inboxRoomId");
 
     try {
-      await inboxReference.doc(inboxRoomId)
-          .collection(AppFirestoreCollectionConstants.messages).add(message.toJSON());
+      await inboxReference.doc(inboxRoomId).collection(AppFirestoreCollectionConstants.messages)
+          .add(message.toJSON());
       logger.d("${message.text} message added");
 
       if(inboxRoomType == InboxRoomType.profile) {
@@ -88,7 +88,7 @@ class InboxFirestore implements InboxRepository {
 
   @override
   Future<List<InboxMessage>> retrieveMessages(String inboxId) async {
-    logger.d("Retrieving messages for $inboxId");
+    logger.t("Retrieving messages for inbox room $inboxId from firestore");
     List<InboxMessage> messages = [];
 
     try {
@@ -96,25 +96,21 @@ class InboxFirestore implements InboxRepository {
           .collection(AppFirestoreCollectionConstants.messages)
           .orderBy(AppFirestoreConstants.createdTime).get();
       if (querySnapshot.docs.isNotEmpty) {
-        logger.d("snapshot is not empty");
         for (var messageSnapshot in querySnapshot.docs) {
           InboxMessage message = InboxMessage.fromJSON(messageSnapshot.data());
           message.id = messageSnapshot.id;
-
-          logger.d(message.toString());
+          logger.t('Message text ${message.text}');
           messages.add(message);
         }
-        logger.d("${messages.length} messages retrieved");
+        logger.t("${messages.length} messages retrieved");
       } else {
-
+        logger.t("No messages found Found");
       }
-      logger.d("No messages found Found");
 
     } catch (e) {
       logger.e(e.toString());
     }
 
-    logger.d("");
     return messages;
   }
 
@@ -136,7 +132,7 @@ class InboxFirestore implements InboxRepository {
 
   @override
   Future<List<Inbox>> getProfileInbox(String profileId) async {
-    logger.d("Getting Inbox for Profile $profileId");
+    logger.t("Getting Inbox for Profile $profileId from firestore");
 
     List<Inbox> inboxs = [];
 
@@ -146,8 +142,6 @@ class InboxFirestore implements InboxRepository {
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        logger.d("Snapshot is not empty");
-
         for(int queryIndex = 0; queryIndex < querySnapshot.docs.length; queryIndex++)  {
           Inbox inbox = Inbox.fromQueryDocumentSnapshot(querySnapshot.docs.elementAt(queryIndex));
           inbox.profiles = [];
@@ -174,7 +168,7 @@ class InboxFirestore implements InboxRepository {
             }
           }
 
-            logger.i(inbox.toString());
+            logger.i('Inbox ${inbox.id} found');
             inboxs.add(inbox);
           }
         }
@@ -250,7 +244,7 @@ class InboxFirestore implements InboxRepository {
 
 
   Future<Inbox> getOrCreateAppBotRoom(String profileId) async {
-    logger.d("");
+    logger.t("getOrCreateAppBotRoom for profile $profileId");
 
     Inbox inbox = Inbox();
 
