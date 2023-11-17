@@ -414,6 +414,7 @@ class AppTranslationConstants {
   static const String link = 'link';
   static const String latestArticles = 'latestArticles';
   static const String sponsors = 'sponsors';
+  static const String becomeSponsor = 'becomeSponsor';
 
   static const String createPostMsg = 'createPostMsg';
   static const String organizeEvent = 'organizeEvent';
@@ -888,6 +889,7 @@ class AppTranslationConstants {
   static const String splashSubtitle = "splashSubtitle";
   static const String poweredBy = 'Powered by';
   static const String listenOnSpotify = 'listenOnSpotify';
+  static const String listenFullOnSpotify = 'listenFullOnSpotify';
   static const String copied = 'copied';
   static const String videoAboveSizeMsg = 'videoAboveSizeMsg';
   static const String loose = 'loose';
@@ -928,5 +930,8 @@ class AppTranslationConstants {
   static const String requestSuccessfullySent = 'requestSuccessfullySent';
   static const String playlistSynchFinished = 'playlistSynchFinished';
   static const String digitalPositioningSuccess = 'digitalPositioningSuccess';
+  static const String playbackSpeed = 'playbackSpeed';
+  static const String previewFromSpotify = 'previewFromSpotify';
+  static const String playOnSpotify = 'playOnSpotify';
 
 }

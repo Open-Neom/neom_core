@@ -501,10 +501,10 @@ class UserFirestore implements UserRepository {
                       }
                       user.profiles.add(profile);
                     } else {
-                      logger.t("Profile ${profile.id} ${profile.name} is out of max distance");
+                      logger.d("Profile ${profile.id} ${profile.name} is out of max distance");
                     }
                   } else {
-                    logger.t("Profile ${profile.id} ${profile.name} has not posts");
+                    logger.d("Profile ${profile.id} ${profile.name} has not posts");
                   }
 
                 }

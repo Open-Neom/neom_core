@@ -93,7 +93,7 @@ class AppUtilities {
   }
 
   static Future<String> getAddressFromPlacerMark(Position position) async {
-    logger.d("");
+    logger.t("getAddressFromPlacerMark");
 
     Placemark placeMark = await GeoLocatorController().getPlaceMark(position);
     String country = placeMark.country ?? "";

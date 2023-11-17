@@ -52,9 +52,9 @@ dependencies:
   transparent_image: ^2.0.1
 
   firebase_core: ^2.22.0
-  cloud_firestore: ^4.13.0
-  firebase_storage: ^11.5.0
-  firebase_auth: ^4.13.0
+  cloud_firestore: ^4.13.1
+  firebase_storage: ^11.5.1
+  firebase_auth: ^4.14.0
   firebase_messaging: ^14.7.4
   firebase_crashlytics: ^3.4.4
   google_sign_in: ^6.1.6

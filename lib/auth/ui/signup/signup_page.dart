@@ -50,7 +50,7 @@ class SignupPage extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Checkbox(
-                          value: _.agreeTerms,
+                          value: _.agreeTerms.value,
                           onChanged: (value) {
                             _.setTermsAgreement(value ?? false);
                           },
@@ -68,7 +68,7 @@ class SignupPage extends StatelessWidget {
                         ),
                       ],
                     ),
-                    !_.agreeTerms ? Container() : Container(
+                    !_.agreeTerms.value ? Container() : Container(
                       margin: const EdgeInsets.symmetric(vertical: 15),
                       width: MediaQuery.of(context).size.width/2,
                       child: TextButton(

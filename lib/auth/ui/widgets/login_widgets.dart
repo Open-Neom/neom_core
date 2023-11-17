@@ -126,7 +126,7 @@ import '../login/login_controller.dart';
       child: ElevatedButton(
         onPressed: () async => {
           if(_.emailController.text.trim().isNotEmpty && _.passwordController.text.trim().isNotEmpty) {
-            if(!_.isButtonDisabled) {
+            if(!_.isButtonDisabled.value) {
               await _.handleLogin(LoginMethod.email)
             }
           } else {
@@ -180,12 +180,12 @@ import '../login/login_controller.dart';
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10.0),
       child: Row(
-        mainAxisAlignment: (_.isIOS13 && _.appInfo.googleLoginEnabled)
+        mainAxisAlignment: (_.isIOS13OrHigher && _.appInfo.value.googleLoginEnabled)
             ? MainAxisAlignment.spaceEvenly : MainAxisAlignment.center,
         children: <Widget>[
-          _.isIOS13 ? GestureDetector(
+          _.isIOS13OrHigher ? GestureDetector(
               onTap: () async => {
-                if(!_.isButtonDisabled) {
+                if(!_.isButtonDisabled.value) {
                   await _.handleLogin(LoginMethod.apple)
                 }
               },
@@ -210,10 +210,10 @@ import '../login/login_controller.dart';
                 ),
               )
           ) : Container(),
-          (_.appInfo.googleLoginEnabled || kDebugMode)
+          (_.appInfo.value.googleLoginEnabled || kDebugMode)
               ? TextButton(
             onPressed: () async => {
-              if(!_.isButtonDisabled) {
+              if(!_.isButtonDisabled.value) {
                 await _.handleLogin(LoginMethod.google)
               }
             },
@@ -244,7 +244,7 @@ import '../login/login_controller.dart';
   Widget buildSignupBtn(LoginController _) {
     return GestureDetector(
       onTap: () => {
-        if(!_.isButtonDisabled) Get.toNamed(AppRouteConstants.signup)
+        if(!_.isButtonDisabled.value) Get.toNamed(AppRouteConstants.signup)
       },
       child: RichText(
         textAlign: TextAlign.center,

@@ -7,6 +7,7 @@ import '../../utils/app_color.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/app_utilities.dart';
 import '../../utils/constants/app_constants.dart';
+import '../../utils/constants/app_translation_constants.dart';
 import 'appbar_child.dart';
 import 'video_play_button.dart';
 
@@ -26,6 +27,7 @@ class FullScreenVideoState extends State<FullScreenVideo> {
   late Stream<Duration> durationStream;
   final DeviceOrientation currentOrientation = DeviceOrientation.portraitUp;
   bool isLoading = true;
+  bool isPlaying = false;
   bool isFullScreen = false;
   
   @override
@@ -40,7 +42,12 @@ class FullScreenVideoState extends State<FullScreenVideo> {
         });
       });
 
-    controller.play();
+    controller.play().then((_) {
+      setState(() {
+        isPlaying = true;
+      });
+    });
+
 
     durationStream = Stream<Duration>.periodic(const Duration(seconds: 1), (data) {
       return controller.value.position;
@@ -131,16 +138,12 @@ class FullScreenVideoState extends State<FullScreenVideo> {
   Widget buildControlsOverlay() {
     return Stack(
       children: <Widget>[
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 50),
-          reverseDuration: const Duration(milliseconds: 200),
-          child: controller.value.isPlaying ? const SizedBox.shrink()
-              : VideoPlayButton(isPlaying: controller.value.isPlaying,)
-        ),
+        if(!isPlaying) const VideoPlayButton(),
         GestureDetector(
           onTap: () {
             setState(() {
-              controller.value.isPlaying ? controller.pause() : controller.play();
+              isPlaying ? controller.pause() : controller.play();
+              isPlaying = !isPlaying;
             });
           },
           onDoubleTap: () => Navigator.pop(context),
@@ -166,7 +169,7 @@ class FullScreenVideoState extends State<FullScreenVideo> {
           child: PopupMenuButton<double>(
             initialValue: controller.value.playbackSpeed,
             color: AppColor.getMain(),
-            tooltip: 'Playback speed',
+            tooltip: AppTranslationConstants.playbackSpeed,
             onSelected: (double speed) {
               controller.setPlaybackSpeed(speed);
               setState(() {});

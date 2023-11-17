@@ -24,7 +24,7 @@ class AppDrawerController extends GetxController {
   @override
   void onInit() async {
     super.onInit();
-    logger.i("SideBar Controller Init");
+    logger.t("SideBar Controller Init");
     user = userController.user!;
     appProfile = userController.profile;
   }

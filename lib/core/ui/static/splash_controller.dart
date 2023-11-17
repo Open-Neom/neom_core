@@ -152,7 +152,7 @@ class SplashController extends GetxController {
         break;
     }
 
-    if(loginController.authStatus == AuthStatus.loggingIn) {
+    if(loginController.authStatus.value == AuthStatus.loggingIn) {
       loginController.setAuthStatus(AuthStatus.loggedIn);
     }
 

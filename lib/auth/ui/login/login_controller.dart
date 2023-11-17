@@ -33,20 +33,13 @@ import 'login_page.dart';
 
 class LoginController extends GetxController implements LoginService {
 
-  final logger = AppUtilities.logger;
   final userController = Get.find<UserController>();
   final sharedPreferenceController = Get.find<SharedPreferenceController>();
 
-  final TextEditingController _emailController = TextEditingController();
-  TextEditingController get emailController => _emailController;
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
 
-  final TextEditingController _passwordController = TextEditingController();
-  TextEditingController get passwordController => _passwordController;
-
-  final Rx<AuthStatus> _authStatus = AuthStatus.notDetermined.obs;
-  AuthStatus get authStatus => _authStatus.value;
-  set authStatus(AuthStatus authStatus) => _authStatus.value = authStatus;
-
+  final Rx<AuthStatus> authStatus = AuthStatus.notDetermined.obs;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
   //TODO Verify if its not needed
   //final SignInWithApple _appleSignIn = SignInWithApple();
@@ -56,67 +49,53 @@ class LoginController extends GetxController implements LoginService {
   fba.AuthCredential? credentials;
 
   fba.FirebaseAuth auth = fba.FirebaseAuth.instance;
-
-  final Rxn<fba.User> _fbaUser = Rxn<fba.User>();
-  fba.User get fbaUser => _fbaUser.value!;
-  set fbaUser(fba.User? fbaUser) => _fbaUser.value = fbaUser;
-
+  final Rxn<fba.User> fbaUser = Rxn<fba.User>();
+  
   SignedInWith signedInWith = SignedInWith.notDetermined;
-
   LoginMethod loginMethod = LoginMethod.notDetermined;
+  
+  final RxBool isLoading = true.obs;
+  final RxBool isButtonDisabled = false.obs;
+  final Rx<AppInfo> appInfo = AppInfo().obs;
 
-  final RxBool _isLoading = true.obs;
-  bool get isLoading => _isLoading.value;
-  set isLoading(bool isLoading) => _isLoading.value = isLoading;
-
-  final RxBool _isButtonDisabled = false.obs;
-  bool get isButtonDisabled => _isButtonDisabled.value;
-  set isButtonDisabled(bool isButtonDisabled) => _isButtonDisabled.value = isButtonDisabled;
-
-  final Rxn<AppInfo> _appInfo = Rxn<AppInfo>();
-  AppInfo get appInfo => _appInfo.value!;
-  set appInfo(AppInfo appInfo) => _appInfo.value = appInfo;
-
-
-  bool isIOS13 = false;
+  bool isIOS13OrHigher = false;
 
   @override
   void onInit() async {
     super.onInit();
-    logger.t("onInit Login Controller");
-    appInfo = AppInfo();
-    fbaUser = auth.currentUser;
-    ever(_fbaUser, handleAuthChanged);
-    _fbaUser.bindStream(auth.authStateChanges());
-
+    AppUtilities.logger.t("onInit Login Controller");
+    appInfo.value = AppInfo();
+    fbaUser.value = auth.currentUser;
+    ever(fbaUser, handleAuthChanged);
+    fbaUser.bindStream(auth.authStateChanges());
 
     if(Platform.isIOS) {
-      isIOS13 = AppUtilities.isDeviceSupportedVersion(isIOS: Platform.isIOS);
+      isIOS13OrHigher = AppUtilities.isDeviceSupportedVersion(isIOS: Platform.isIOS);
     } else if (Platform.isAndroid) {
-      logger.t(Platform.version);
+      AppUtilities.logger.t(Platform.version);
     }
   }
 
   @override
   void onReady() async {
     super.onReady();
-    logger.t("onReady Login Controller");
+    AppUtilities.logger.t("onReady Login Controller");
     await getAppInfo();
-    isLoading = false;
+    isLoading.value = false;
     update([AppPageIdConstants.login]);
   }
 
   @override
   Future<void> handleAuthChanged(user) async {
-    logger.t("");
-    authStatus = AuthStatus.waiting;
+    AppUtilities.logger.t("");
+    authStatus.value = AuthStatus.waiting;
 
     try {
       if(auth.currentUser == null) {
-        authStatus = AuthStatus.notLoggedIn;
+        authStatus.value = AuthStatus.notLoggedIn;
         auth = fba.FirebaseAuth.instance;
       } else if (user == null) {
-        authStatus = AuthStatus.notLoggedIn;
+        authStatus.value = AuthStatus.notLoggedIn;
         user = auth.currentUser;
       } else {
         if(user.providerData.isNotEmpty){
@@ -143,18 +122,18 @@ class LoginController extends GetxController implements LoginService {
             case(SignedInWith.signUp):
               break;
             case(SignedInWith.notDetermined):
-              authStatus = AuthStatus.notDetermined;
+              authStatus.value = AuthStatus.notDetermined;
               break;
           }
         } else if(!userController.isNewUser && userController.user!.profiles.isEmpty) {
-          logger.i("No Profiles found for $_userId. Please Login Again");
-          authStatus = AuthStatus.notLoggedIn;
+          AppUtilities.logger.i("No Profiles found for $_userId. Please Login Again");
+          authStatus.value = AuthStatus.notLoggedIn;
         } else {
-          authStatus = AuthStatus.loggedIn;
+          authStatus.value = AuthStatus.loggedIn;
         }
 
         if (userController.isNewUser && userController.user!.id.isNotEmpty) {
-          authStatus = AuthStatus.loggedIn;
+          authStatus.value = AuthStatus.loggedIn;
           Get.offAndToNamed(AppRouteConstants.introRequiredPermissions);
         } else {
           sharedPreferenceController.setFirstTime(false);
@@ -162,15 +141,14 @@ class LoginController extends GetxController implements LoginService {
         }
       }
     } catch (e) {
-      logger.e(e.toString());
-      Get.snackbar(
-        MessageTranslationConstants.errorHandlingAuth,
-        e.toString(),
-        snackPosition: SnackPosition.bottom,
+      AppUtilities.logger.e(e.toString());
+      AppUtilities.showSnackBar(
+        title: MessageTranslationConstants.errorHandlingAuth,
+        message: e.toString()
       );
       Get.offAllNamed(AppRouteConstants.root);
     } finally {
-      isLoading = false;
+      isLoading.value = false;
     }
 
     update([AppPageIdConstants.login]);
@@ -178,8 +156,8 @@ class LoginController extends GetxController implements LoginService {
 
   @override
   Future<void> getAppInfo() async {
-    appInfo = await AppInfoFirestore().retrieve();
-    logger.i(appInfo.toString());
+    appInfo.value = await AppInfoFirestore().retrieve();
+    AppUtilities.logger.i(appInfo.value.toString());
     update([AppPageIdConstants.login]);
   }
 
@@ -187,41 +165,37 @@ class LoginController extends GetxController implements LoginService {
   @override
   Future<void> handleLogin(LoginMethod logMethod) async {
 
-    isButtonDisabled = true;
-    isLoading = true;
+    isButtonDisabled.value = true;
+    isLoading.value = true;
     update([AppPageIdConstants.login]);
 
     loginMethod = logMethod;
 
     try {
       switch (loginMethod) {
-        case LoginMethod.facebook:
-          break;
-        case LoginMethod.spotify:
-        //TODO
-        // await spotifyLogin();
-          break;
-        case LoginMethod.apple:
-          await appleLogin();
+        case LoginMethod.email:
+          await emailLogin();
           break;
         case LoginMethod.google:
           await googleLogin();
           break;
-        case LoginMethod.email:
-          await emailLogin();
+        case LoginMethod.apple:
+          await appleLogin();
+          break;
+        case LoginMethod.facebook:
+          break;
+        case LoginMethod.spotify:
           break;
         case LoginMethod.notDetermined:
           break;
       }
-
     } catch (e) {
-      logger.e(e.toString());
-      isLoading = false;
+      AppUtilities.logger.e(e.toString());
+      isLoading.value = false;
     }
 
-    isButtonDisabled = false;
+    isButtonDisabled.value = false;
     update([AppPageIdConstants.login]);
-
   }
 
   @override
@@ -233,18 +207,18 @@ class LoginController extends GetxController implements LoginService {
     fba.User? emailUser;
     try {
       fba.UserCredential userCredential = await auth.signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim()
+        email: emailController.text.trim(),
+        password: passwordController.text.trim()
       );
 
        if(userCredential.user != null) {
          emailUser = userCredential.user;
-         fbaUser = emailUser;
-         authStatus = AuthStatus.loggedIn;
+         fbaUser.value = emailUser;
+         authStatus.value = AuthStatus.loggedIn;
          signedInWith = SignedInWith.email;
        }
     } on fba.FirebaseAuthException catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
 
       String errorMsg = "";
       switch (e.code) {
@@ -263,23 +237,20 @@ class LoginController extends GetxController implements LoginService {
 
       }
 
-      Get.snackbar(
-        MessageTranslationConstants.errorLoginEmail.tr,
-        errorMsg.tr,
-        snackPosition: SnackPosition.bottom,
+      AppUtilities.showSnackBar(
+          title: MessageTranslationConstants.errorLoginEmail.tr,
+          message: errorMsg.tr
       );
-
     } catch (e) {
-      logger.e(e.toString());
-      Get.snackbar(
-        MessageTranslationConstants.errorLoginEmail.tr,
-        e.toString(),
-        snackPosition: SnackPosition.bottom,
+      AppUtilities.logger.e(e.toString());
+      AppUtilities.showSnackBar(
+          title: MessageTranslationConstants.errorLoginEmail.tr,
+          message: e.toString(),
       );
     } finally {
-      isButtonDisabled = false;
+      isButtonDisabled.value = false;
       if(emailUser == null) {
-        isLoading = false;
+        isLoading.value = false;
       }
     }
 
@@ -306,7 +277,7 @@ class LoginController extends GetxController implements LoginService {
   @override
   Future<void> appleLogin() async {
 
-    logger.d("Entering Logging Method with Apple Account");
+    AppUtilities.logger.d("Entering Logging Method with Apple Account");
 
     fba.AuthCredential? oauthCredential;
 
@@ -317,40 +288,37 @@ class LoginController extends GetxController implements LoginService {
        oauthCredential = await getAuthCredentials();
 
       if(oauthCredential != null) {
-        fbaUser = (await auth.signInWithCredential(oauthCredential)).user;
-        authStatus = AuthStatus.loggedIn;
+        fbaUser.value = (await auth.signInWithCredential(oauthCredential)).user;
+        authStatus.value = AuthStatus.loggedIn;
         signedInWith = SignedInWith.apple;
       }
 
     } on SignInWithAppleAuthorizationException catch (e) {
 
-      logger.e(e.toString());
-      fbaUser = null;
-      authStatus = AuthStatus.notLoggedIn;
+      AppUtilities.logger.e(e.toString());
+      fbaUser.value = null;
+      authStatus.value = AuthStatus.notLoggedIn;
 
       if(e.code != AuthorizationErrorCode.canceled) {
-        Get.snackbar(
-          MessageTranslationConstants.errorLoginApple.tr,
-          MessageTranslationConstants.errorLoginApple.tr,
-          snackPosition: SnackPosition.bottom,
+        AppUtilities.showSnackBar(
+          title: MessageTranslationConstants.errorLoginApple.tr,
+          message: MessageTranslationConstants.errorLoginApple.tr,
         );
       }
 
-    }  catch (e) {
-      fbaUser = null;
-      authStatus = AuthStatus.notLoggedIn;
-      logger.e(e.toString());
+    } catch (e) {
+      fbaUser.value = null;
+      authStatus.value = AuthStatus.notLoggedIn;
+      AppUtilities.logger.e(e.toString());
 
-      Get.snackbar(
-        MessageTranslationConstants.errorLoginApple.tr,
-        MessageTranslationConstants.errorLoginApple.tr,
-        snackPosition: SnackPosition.bottom,
+      AppUtilities.showSnackBar(
+        title: MessageTranslationConstants.errorLoginApple.tr,
+        message: MessageTranslationConstants.errorLoginApple.tr,
       );
     } finally {
-      isLoading = false;
-      isButtonDisabled = false;
+      isButtonDisabled.value = false;
       if(oauthCredential == null) {
-        isButtonDisabled = false;
+        isLoading.value = false;
       }
     }
 
@@ -361,7 +329,7 @@ class LoginController extends GetxController implements LoginService {
   @override
   Future<void> googleLogin() async {
 
-    logger.i("Entering Logging Method with Google Account");
+    AppUtilities.logger.i("Entering Logging Method with Google Account");
 
     try {
 
@@ -370,25 +338,25 @@ class LoginController extends GetxController implements LoginService {
        credentials = await getAuthCredentials();
 
       if(credentials != null) {
-        fbaUser = (await auth.signInWithCredential(credentials!)).user;
-        authStatus = AuthStatus.loggedIn;
+        fbaUser.value = (await auth.signInWithCredential(credentials!)).user;
+        authStatus.value = AuthStatus.loggedIn;
         signedInWith = SignedInWith.google;
       }
 
 
     } catch (e) {
-      fbaUser = null;
-      authStatus = AuthStatus.notLoggedIn;
-      logger.e(e.toString());
-      Get.snackbar(
-        MessageTranslationConstants.errorLoginGoogle.tr,
-        MessageTranslationConstants.errorLoginGoogle.tr,
-        snackPosition: SnackPosition.bottom,
+      fbaUser.value = null;
+      authStatus.value = AuthStatus.notLoggedIn;
+      AppUtilities.logger.e(e.toString());
+
+      AppUtilities.showSnackBar(
+        title: MessageTranslationConstants.errorLoginGoogle.tr,
+        message: MessageTranslationConstants.errorLoginGoogle.tr,
       );
     } finally {
-      isButtonDisabled = false;
+      isButtonDisabled.value = false;
       if(credentials == null) {
-        isLoading = false;
+        isLoading.value = false;
       }
     }
 
@@ -400,27 +368,26 @@ class LoginController extends GetxController implements LoginService {
     try {
       await _googleSignIn.signOut();
     } catch (e){
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
   }
 
   @override
   Future<void> signOut() async {
-    logger.d("Entering signOut method");
+    AppUtilities.logger.d("Entering signOut method");
     try {
       await auth.signOut();
       await googleLogout();
       clear();
       Get.offAllNamed(AppRouteConstants.login);
     } catch (e) {
-      Get.snackbar(
-        MessageTranslationConstants.errorSigningOut.tr,
-        e.toString(),
-        snackPosition: SnackPosition.bottom,
+      AppUtilities.showSnackBar(
+        title: MessageTranslationConstants.errorSigningOut.tr,
+        message: e.toString(),
       );
     }
 
-    logger.i("signOut method finished");
+    AppUtilities.logger.i("signOut method finished");
     update([AppPageIdConstants.login]);
   }
 
@@ -432,9 +399,9 @@ class LoginController extends GetxController implements LoginService {
 
 
   void clear() {
-    fbaUser = null;
-    authStatus = AuthStatus.notDetermined;
-    isButtonDisabled = false;
+    fbaUser.value = null;
+    authStatus.value = AuthStatus.notDetermined;
+    isButtonDisabled.value = false;
   }
 
 
@@ -445,8 +412,8 @@ class LoginController extends GetxController implements LoginService {
       switch(loginMethod) {
         case(LoginMethod.email):
           credentials = fba.EmailAuthProvider.credential(
-              email: _emailController.text.trim(),
-              password: _passwordController.text.trim()
+              email: emailController.text.trim(),
+              password: passwordController.text.trim()
           );
           break;
         case(LoginMethod.facebook):
@@ -487,7 +454,7 @@ class LoginController extends GetxController implements LoginService {
           break;
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
       AppUtilities.showSnackBar(
         title: MessageTranslationConstants.underConstruction.tr,
         message: e.toString(),
@@ -500,7 +467,7 @@ class LoginController extends GetxController implements LoginService {
 
   @override
   void setAuthStatus(AuthStatus status) {
-    authStatus = status;
+    authStatus.value = status;
     update([AppPageIdConstants.login]);
   }
 
@@ -509,21 +476,21 @@ class LoginController extends GetxController implements LoginService {
 
     Widget rootPage = const LoginPage();
 
-    if (appInfo.lastStableBuild > appLastStableBuild) {
+    if (appInfo.value.lastStableBuild > appLastStableBuild) {
       rootPage = const PreviousVersionPage();
     } else if(sharedPreferenceController.firstTime) {
       rootPage = const OnGoing();
       sharedPreferenceController.updateFirstTIme(false);
-    } else if(authStatus == AuthStatus.loggingIn) {
+    } else if(authStatus.value == AuthStatus.loggingIn) {
       rootPage = const SplashPage();
-    } else if (authStatus == AuthStatus.loggedIn
+    } else if (authStatus.value == AuthStatus.loggedIn
       && (userController.user?.id.isNotEmpty ?? false)
       && ((userController.user?.profiles.isNotEmpty ?? false)
             && (userController.user?.profiles.first.id.isNotEmpty ?? false)
         )
     ) {
       rootPage = homePage;
-      isLoading = true;
+      isLoading.value = true;
     }
 
     return rootPage;
@@ -532,7 +499,7 @@ class LoginController extends GetxController implements LoginService {
 
   @override
   void setIsLoading(bool loading) {
-    isLoading = loading;
+    isLoading.value = loading;
     update([AppPageIdConstants.login]);
   }
 

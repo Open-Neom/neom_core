@@ -98,8 +98,8 @@ class UserController extends GetxController implements UserService {
         }
 
         if(await UserFirestore().remove(user!.id)) {
-          await loginController.fbaUser.reauthenticateWithCredential(authCredential);
-          await loginController.fbaUser.delete();
+          await loginController.fbaUser.value?.reauthenticateWithCredential(authCredential);
+          await loginController.fbaUser.value?.delete();
           await loginController.signOut();
           clear();
         }
@@ -227,9 +227,9 @@ class UserController extends GetxController implements UserService {
     newUser.profiles = [newProfile];
     newUser.userRole = UserRole.subscriber;
 
-    if(Get.find<LoginController>().appInfo.coinPromo) {
+    if(Get.find<LoginController>().appInfo.value.coinPromo) {
       logger.i("GIVING COINS AS PART OF BETA LAUNCH");
-      newUser.wallet.amount = newUser.wallet.amount + Get.find<LoginController>().appInfo.coinAmount;
+      newUser.wallet.amount = newUser.wallet.amount + Get.find<LoginController>().appInfo.value.coinAmount;
     }
 
     await Future.delayed(const Duration(seconds: 1));

@@ -28,7 +28,8 @@ class LoginPage extends StatelessWidget {
               width: AppTheme.fullWidth(context),
               height: AppTheme.fullHeight(context),
               decoration: AppTheme.appBoxDecoration,
-              child: _.isLoading ? Center(child: Column(
+              child: _.isLoading.value ? Center(
+                child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const CircularProgressIndicator(),
@@ -36,12 +37,12 @@ class LoginPage extends StatelessWidget {
                     Text(AppTranslationConstants.loadingAccount.tr,
                         style: const TextStyle(fontSize: 20)
                     )
-                  ]))
-                  : Column(
+                  ])
+              ) : Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   AppTheme.heightSpace50,
-                  const HeaderIntro(title: kDebugMode ? "Dev" : "",),
+                  HeaderIntro(title: kDebugMode && Platform.isAndroid ? "Dev" : "",),
                   AppTheme.heightSpace30,
                   Text(AppTranslationConstants.signIn.tr,
                     style: const TextStyle(
@@ -57,7 +58,7 @@ class LoginPage extends StatelessWidget {
                   buildPasswordTF(_),
                   buildForgotPasswordBtn(_),
                   buildLoginBtn(_),
-                  ((Platform.isIOS && !_.isIOS13) || (!_.appInfo.googleLoginEnabled && !kDebugMode))
+                  ((Platform.isIOS && !_.isIOS13OrHigher) || (!_.appInfo.value.googleLoginEnabled && !kDebugMode))
                       ? Container() :
                   Column(
                     children: [

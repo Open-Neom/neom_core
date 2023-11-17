@@ -20,74 +20,41 @@ import '../login/login_controller.dart';
 
 class SignUpController extends GetxController implements SignUpService {
 
-  final logger = AppUtilities.logger;
   final loginController = Get.find<LoginController>();
   final userController = Get.find<UserController>();
   CustomLoader loader = CustomLoader();
 
-  final TextEditingController _firstNameController = TextEditingController();
-  TextEditingController get firstNameController => _firstNameController;
+  final TextEditingController firstNameController = TextEditingController();
+  final TextEditingController lastNameController = TextEditingController();
+  final TextEditingController usernameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController confirmController = TextEditingController();
 
-  final TextEditingController _lastNameController = TextEditingController();
-  TextEditingController get lastNameController => _lastNameController;
-
-  final TextEditingController _usernameController = TextEditingController();
-  TextEditingController get usernameController => _usernameController;
-
-  final TextEditingController _emailController = TextEditingController();
-  TextEditingController get emailController => _emailController;
-
-  final TextEditingController _passwordController = TextEditingController();
-  TextEditingController get passwordController => _passwordController;
-
-  final TextEditingController _confirmController = TextEditingController();
-  TextEditingController get confirmController => _confirmController;
-
-  final Rxn<AppUser> _user = Rxn<AppUser>();
-  AppUser? get user => _user.value;
-  set user(AppUser? user) => _user.value = user;
-
-  final RxBool _isLoading = true.obs;
-  bool get isLoading => _isLoading.value;
-  set isLoading(bool isLoading) => _isLoading.value = isLoading;
-
-  final RxBool _isButtonDisabled = false.obs;
-  bool get isButtonDisabled => _isButtonDisabled.value;
-  set isButtonDisabled(bool isButtonDisabled) => _isButtonDisabled.value = isButtonDisabled;
-
-  final RxString _email = "".obs;
-  String get email => _email.value;
-  set email(String email) => _email.value = email;
-
-  final RxString _password = "".obs;
-  String get password => _password.value;
-  set password(String password) => _password.value = password;
-
-  final RxBool _agreeTerms = false.obs;
-  bool get agreeTerms => _agreeTerms.value;
-  set agreeTerms(bool agreeTerms) => _agreeTerms.value = agreeTerms;
+  final RxBool agreeTerms = false.obs;
+  final RxBool isLoading = true.obs;
 
   @override
   void onInit() async {
     super.onInit();
-    logger.d("");
+    AppUtilities.logger.d("");
   }
 
   @override
   void onReady() async {
     super.onReady();
-    logger.d("");
-    isLoading = false;
+    AppUtilities.logger.d("");
+    isLoading.value = false;
   }
 
   @override
   void dispose() {
-    _firstNameController.dispose();
-    _lastNameController.dispose();
-    _usernameController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
-    _confirmController.dispose();
+    firstNameController.dispose();
+    lastNameController.dispose();
+    usernameController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+    confirmController.dispose();
     super.dispose();
   }
 
@@ -99,12 +66,12 @@ class SignUpController extends GetxController implements SignUpService {
       if(await validateInfo()) {
         User? fbaUser = (await loginController.auth
             .createUserWithEmailAndPassword(
-            email: _emailController.text.toLowerCase().trim(),
-            password: _passwordController.text.trim())
+            email: emailController.text.toLowerCase().trim(),
+            password: passwordController.text.trim())
         ).user;
 
         loginController.signedInWith = SignedInWith.signUp;
-        loginController.fbaUser = fbaUser;
+        loginController.fbaUser.value = fbaUser;
         setUserFromSignUp();
         Get.offAllNamed(AppRouteConstants.introCreating, arguments: [AppRouteConstants.signup]);
 
@@ -140,7 +107,7 @@ class SignUpController extends GetxController implements SignUpService {
   }
 
   void setUserFromSignUp() {
-    logger.d("Getting User Info From Sign-up text fields");
+    AppUtilities.logger.d("Getting User Info From Sign-up text fields");
 
     try {
       userController.user =  AppUser(
@@ -154,40 +121,40 @@ class SignUpController extends GetxController implements SignUpService {
         password: passwordController.text.trim(),
       );
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
-    logger.d(userController.user.toString());
+    AppUtilities.logger.d(userController.user.toString());
   }
 
   @override
   Future<bool> validateInfo() async {
 
-    String validatorMsg = Validator.validateName(_firstNameController.text);
+    String validatorMsg = Validator.validateName(firstNameController.text);
 
     if (validatorMsg.isEmpty) {
 
-      validatorMsg = Validator.validateName(_lastNameController.text);
+      validatorMsg = Validator.validateName(lastNameController.text);
 
       if (validatorMsg.isEmpty) {
-        validatorMsg = Validator.validateUsername(_usernameController.text);
+        validatorMsg = Validator.validateUsername(usernameController.text);
 
-        if (validatorMsg.isEmpty && _emailController.text.isEmpty
-            && _passwordController.text.isEmpty) {
+        if (validatorMsg.isEmpty && emailController.text.isEmpty
+            && passwordController.text.isEmpty) {
           validatorMsg = MessageTranslationConstants.pleaseFillSignUpForm;
         }
 
         if (validatorMsg.isEmpty) {
-          validatorMsg = Validator.validateEmail(_emailController.text);
+          validatorMsg = Validator.validateEmail(emailController.text);
         }
         if (validatorMsg.isEmpty) {
           validatorMsg = Validator.validatePassword(
-            _passwordController.text, _confirmController.text);
+            passwordController.text, confirmController.text);
         }
       }
     }
 
-    if(validatorMsg.isEmpty && !await UserFirestore().isAvailableEmail(_emailController.text)) {
+    if(validatorMsg.isEmpty && !await UserFirestore().isAvailableEmail(emailController.text)) {
       validatorMsg = MessageTranslationConstants.emailUsed;
     }
 
@@ -204,11 +171,11 @@ class SignUpController extends GetxController implements SignUpService {
 
   @override
   void setTermsAgreement(bool agree) {
-    logger.d("");
+    AppUtilities.logger.d("");
     try {
-      agreeTerms = agree;
+      agreeTerms.value = agree;
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     update([AppPageIdConstants.signUp]);
