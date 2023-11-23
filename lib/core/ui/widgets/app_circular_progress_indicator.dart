@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
 import '../../app_flavour.dart';
 import '../../utils/app_theme.dart';
 
 
 class AppCircularProgressIndicator extends StatelessWidget {
 
-  const AppCircularProgressIndicator({super.key});
+  final String subtitle;
+  const AppCircularProgressIndicator({this.subtitle = '', super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +22,19 @@ class AppCircularProgressIndicator extends StatelessWidget {
               fit: BoxFit.fitWidth,
             ),
             AppTheme.heightSpace20,
-            const CircularProgressIndicator()
+            const CircularProgressIndicator(),
+            if(subtitle.isNotEmpty) Column(
+              children: [
+                AppTheme.heightSpace10,
+                Text(subtitle.tr,
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(1.0),
+                    fontFamily: AppTheme.fontFamily,
+                    fontSize: 12.0,
+                  ),
+                )
+              ],
+            )
           ],
         )
     );

@@ -102,7 +102,7 @@ class AppAnalyticsFirestore implements AppAnalyticsRepository {
               AppFirestoreConstants.totalLocations: "${totalLocations.length}"
             });
 
-
+        WriteBatch batch = FirebaseFirestore.instance.batch();
         Map<String,int> locationTimes = {};
 
         for (var locationName in totalLocations) {
@@ -112,14 +112,18 @@ class AppAnalyticsFirestore implements AppAnalyticsRepository {
               locationNameIndex++;
             }
           }
-
           locationTimes[locationName] = locationNameIndex;
-          await analyticsReference.
-            doc(AppFirestoreCollectionConstants.analytics)
-              .update({
-                locationName: "$locationNameIndex"
-              });
+
+          batch.update(
+            analyticsReference.doc(AppFirestoreCollectionConstants.analytics),
+            {locationName: "$locationNameIndex"},
+          );
+
+          // await analyticsReference.doc(AppFirestoreCollectionConstants.analytics)
+          //     .update({locationName: "$locationNameIndex"});
         }
+
+        await batch.commit();
 
         if(getEmailsAsText) {
           StringBuffer emailList = StringBuffer();

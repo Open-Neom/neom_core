@@ -37,7 +37,7 @@ class InstrumentFirestore implements InstrumentRepository {
       logger.e("No instruments found");
     }
 
-    logger.d("${instruments.length} instruments found");
+    logger.d("${instruments.length} instruments found for Profile: $profileId");
     return instruments;
   }
 

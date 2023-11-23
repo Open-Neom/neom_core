@@ -432,10 +432,11 @@ class UserFirestore implements UserRepository {
     Map<String,AppProfile> noMainPlaceProfiles = <String, AppProfile>{};
 
     try {
-      QuerySnapshot querySnapshot = await userReference.get();
-      QuerySnapshot profileQuerySnapshot = await profileReference.get();
+      QuerySnapshot userQuerySnapshot = await userReference.get();
+      QuerySnapshot? profileQuerySnapshot;
+      if(includeProfile) profileQuerySnapshot = await profileReference.get();
       List<Post> totalPosts = await PostFirestore().retrievePosts();
-      for (var queryDocumentSnapshot in querySnapshot.docs) {
+      for (var queryDocumentSnapshot in userQuerySnapshot.docs) {
         if (queryDocumentSnapshot.exists) {
           AppUser user = AppUser.fromJSON(queryDocumentSnapshot.data());
           user.id = queryDocumentSnapshot.id;
@@ -446,13 +447,13 @@ class UserFirestore implements UserRepository {
             continue;
           }
 
-          if(includeProfile) {
+          if(includeProfile && profileQuerySnapshot != null) {
             for (var document in profileQuerySnapshot.docs) {
               if(document.reference.parent.parent!.id == user.id) {
                 profile = AppProfile.fromJSON(document.data());
                 profile.id = document.id;
                 if((profileTypes == null || profileTypes.contains(profile.type))
-                    && (usageReasons == null || usageReasons.contains(profile.reason))) {
+                    && (usageReasons == null || usageReasons.contains(profile.reason) || profile.reason == UsageReason.any)) {
                   if(profile.posts?.isNotEmpty ?? false) {
                     if(AppUtilities.distanceBetweenPositionsRounded(profile.position!, currentPosition!) < maxDistance) {
                       List<Post> profilePosts = totalPosts.where((element) => element.ownerId == profile.id).toList();
@@ -464,6 +465,7 @@ class UserFirestore implements UserRepository {
                       }
 
                       if(facilityType != null) {
+                        AppUtilities.logger.d("Retrieving Facility for ${profile.name} - ${profile.id}");
                         profile.facilities = await FacilityFirestore().retrieveFacilities(profile.id);
                         if(profile.facilities!.keys.contains(facilityType.value)) {
                           if((profile.facilities?[facilityType.value]?.isMain == true)) {
@@ -480,6 +482,7 @@ class UserFirestore implements UserRepository {
                       }
 
                       if(placeType != null) {
+                        AppUtilities.logger.d("Retrieving Places for ${profile.name} - ${profile.id}");
                         profile.places = await PlaceFirestore().retrievePlaces(profile.id);
                         if(profile.places!.keys.contains(placeType.value)) {
                           if((profile.places?[placeType.value]?.isMain == true)) {
@@ -506,8 +509,10 @@ class UserFirestore implements UserRepository {
                   } else {
                     logger.d("Profile ${profile.id} ${profile.name} has not posts");
                   }
-
+                } else {
+                  logger.d("Profile ${profile.id} ${profile.name} - ${profile.type.name} / ${profile.reason.name} is not profile type ${profileTypes.toString()} or the usage reason ${usageReasons.toString()} required");
                 }
+
               }
             }
 

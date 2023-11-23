@@ -2,7 +2,7 @@
 class AppConstants {
 
   static const String appTitle = "appTitle";
-  
+
   static const String myFavorites = "myFavorites";
   static const String firstChamberPreset = "firstChamberPreset";
   static const String customPreset = "customPreset";
@@ -116,4 +116,6 @@ class AppConstants {
   static const List<double> playbackRates = [0.75, 1.0, 1.5, 2.0, 2.5, 3.0,];
 
   static const String yyyyMMddHHmm = "yyyy-MM-dd HH:mm";
+  static const String dev = "Dev";
+
 }

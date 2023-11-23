@@ -14,7 +14,6 @@ class HeaderWidget extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
       color: AppColor.mystic.withOpacity(0.05),
       alignment: Alignment.centerLeft,
-
       child: UrlText(
         text: title,
         style: const TextStyle(

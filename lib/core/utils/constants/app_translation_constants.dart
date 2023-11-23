@@ -693,6 +693,7 @@ class AppTranslationConstants {
   static const String music = 'music';
   static const String player = 'player';
   static const String library = 'library';
+  static const String bookShop = 'bookShop';
   static const String bookshelf = 'bookshelf';
   static const String searchBooks = 'searchBooks';
   static const String popular = 'popular';
@@ -933,5 +934,6 @@ class AppTranslationConstants {
   static const String playbackSpeed = 'playbackSpeed';
   static const String previewFromSpotify = 'previewFromSpotify';
   static const String playOnSpotify = 'playOnSpotify';
+  static const String instagram = 'instagram';
 
 }

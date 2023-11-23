@@ -22,10 +22,10 @@ class HeaderIntro extends StatelessWidget{
         children: <Widget>[
           (AppFlavour.appInUse == AppInUse.e && showPreLogo)
               ? Image.asset(AppAssets.logoAppWhite,
-            height: AppTheme.fullWidth(context)/2.5,
-            width: AppTheme.fullWidth(context)/2.5,
+            height: AppTheme.fullWidth(context)/3,
+            width: AppTheme.fullWidth(context)/3,
           ) : Container(),
-          AppTheme.heightSpace20,
+          AppTheme.heightSpace10,
           showLogo ? Image.asset(AppFlavour.getAppLogoPath(),
             width: AppTheme.fullWidth(context)*0.75,
             fit: BoxFit.fitWidth,

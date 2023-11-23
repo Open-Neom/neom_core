@@ -321,7 +321,7 @@ class CoreUtilities {
     }
   }
 
-  static List<EventTypeModel> getEventTypes(){
+  static List<EventTypeModel> getEventTypes() {
 
     List<EventTypeModel> eventTypes = [];
     eventTypes.add(EventTypeModel(
@@ -330,15 +330,14 @@ class CoreUtilities {
     );
     eventTypes.add(EventTypeModel(
         imgAssetPath: AppAssets.microphone,
-        type: EventType.gig)
+        type: AppFlavour.appInUse != AppInUse.e ? EventType.gig : EventType.jamming)
     );
     eventTypes.add(EventTypeModel(
         imgAssetPath: AppAssets.festival,
-        type: EventType.festival)
+        type: AppFlavour.appInUse != AppInUse.e ? EventType.festival : EventType.gig)
     );
 
     //TODO Add more event types as Class, Clinic, Event for musicians, etc
-
     return eventTypes;
   }
 

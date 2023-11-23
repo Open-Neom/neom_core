@@ -17,7 +17,8 @@ enum AppDrawerMenu {
   appItemQuotation("appItemQuotation"),
   crowdfunding("crowdfunding"),
   logout("releaseUpload"),
-  releaseUpload("releaseUpload");
+  releaseUpload("releaseUpload"),
+  inspiration("inspiration");
 
   final String value;
   const AppDrawerMenu(this.value);

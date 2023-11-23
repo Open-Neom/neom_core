@@ -15,6 +15,7 @@ class TitleSubtitleRow extends StatelessWidget {
   final String subtitle, title;
   final Color textColor;
   final Function? onPressed;
+  final double titleFontSize, subTitleFontSize;
   final double vPadding, hPadding;
 
   const TitleSubtitleRow(
@@ -23,6 +24,8 @@ class TitleSubtitleRow extends StatelessWidget {
     this.navigateTo = "",
     this.url = "",
     this.subtitle = "",
+    this.titleFontSize = 16,
+    this.subTitleFontSize = 14,
     this.textColor = Colors.white70,
     this.onPressed,
     this.vPadding = 0,
@@ -54,12 +57,13 @@ class TitleSubtitleRow extends StatelessWidget {
           },
           title: title.isNotEmpty ? UrlText(
             text: title,
-            style: TextStyle(fontSize: 16, color: textColor, ),
+            style: TextStyle(fontSize: titleFontSize, color: textColor, ),
           ) : Container(),
-          subtitle: Text(
-            subtitle,
-            style: const TextStyle(
-                color: Colors.white70, fontWeight: FontWeight.w400,
+          subtitle: Text(subtitle,
+            style: TextStyle(
+              color: Colors.white70,
+              fontWeight: FontWeight.w400,
+              fontSize: subTitleFontSize,
             ),
             textAlign: TextAlign.justify,
           ),

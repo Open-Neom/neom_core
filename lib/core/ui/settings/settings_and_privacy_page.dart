@@ -11,7 +11,9 @@ import '../../utils/constants/app_page_id_constants.dart';
 import '../../utils/constants/app_route_constants.dart';
 import '../../utils/constants/app_translation_constants.dart';
 import '../../utils/core_utilities.dart';
+import '../../utils/enums/app_in_use.dart';
 import '../../utils/enums/user_role.dart';
+import '../widgets/app_circular_progress_indicator.dart';
 import '../widgets/appbar_child.dart';
 import '../widgets/header_widget.dart';
 import '../widgets/title_subtitle_row.dart';
@@ -33,10 +35,8 @@ class SettingsPrivacyPage extends StatelessWidget {
           decoration: AppTheme.appBoxDecoration,
           child: _.isLoading ? Container(
               decoration: AppTheme.appBoxDecoration,
-              child: const Center(
-                  child: CircularProgressIndicator()
-              )
-          ) : ListView(
+              child: const AppCircularProgressIndicator()) :
+          ListView(
           children: <Widget>[
             HeaderWidget(_.userController.user!.name),
             TitleSubtitleRow(AppTranslationConstants.account.tr, navigateTo: AppRouteConstants.settingsAccount),
@@ -68,7 +68,7 @@ class SettingsPrivacyPage extends StatelessWidget {
                                   tooltip: AppTranslationConstants.gmail.tr,
                                   onPressed: () {
                                     Navigator.pop(context);
-                                    final email = Uri.encodeFull('gigmeoutmx@gmail.com');
+                                    final email = Uri.encodeFull(AppFlavour.getEmail());
                                     final subject = Uri.encodeFull('Regarding Mobile App');
                                     final uri = Uri.parse(
                                       'mailto:$email?subject=$subject',
@@ -78,9 +78,7 @@ class SettingsPrivacyPage extends StatelessWidget {
                                     );
                                   },
                                 ),
-                                Text(
-                                  AppTranslationConstants.gmail.tr,
-                                ),
+                                Text(AppTranslationConstants.gmail.tr,),
                               ],
                             ),
                             Column(
@@ -104,10 +102,10 @@ class SettingsPrivacyPage extends StatelessWidget {
                                 IconButton(
                                   icon: const Icon(FontAwesomeIcons.instagram,),
                                   iconSize: 40,
-                                  tooltip: AppTranslationConstants.insta.tr,
+                                  tooltip: AppTranslationConstants.instagram.tr,
                                   onPressed: () {
                                     Navigator.pop(context);
-                                    launchUrl(Uri.parse('https://instagram.com/gigmeoutmx',),
+                                    launchUrl(Uri.parse(AppFlavour.getInstagram(),),
                                       mode: LaunchMode.externalApplication,
                                     );
                                   },
@@ -127,7 +125,7 @@ class SettingsPrivacyPage extends StatelessWidget {
             ),
             TitleSubtitleRow(AppTranslationConstants.joinWhats.tr, subtitle: AppTranslationConstants.joinWhatsSub.tr,
             onPressed: () {
-              showModalBottomSheet(
+              AppFlavour.appInUse == AppInUse.g ? showModalBottomSheet(
                   context: context,
                   builder: (BuildContext context) {
                     return SizedBox(
@@ -181,7 +179,9 @@ class SettingsPrivacyPage extends StatelessWidget {
                       ),
                     );
                   },
-                );
+                ) : launchUrl(Uri.parse('https://chat.whatsapp.com/HVE32LpAFyi4jABuBTV2hB',),
+                mode: LaunchMode.externalApplication,
+              );
               },
             ),
             //TODO

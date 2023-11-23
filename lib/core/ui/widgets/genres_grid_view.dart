@@ -45,9 +45,7 @@ class GenresGridView extends StatelessWidget {
       gridHeight = (AppTheme.fullHeight(context)/6) / (crossAxisCount/gridItems).ceil();
     }
     return genres.isNotEmpty ? Container(
-      constraints: BoxConstraints(
-        maxHeight: AppTheme.fullHeight(context)/10,
-      ),
+      constraints: BoxConstraints(maxHeight: AppTheme.fullHeight(context)/10,),
       child: SingleChildScrollView(
         child: Container(
           alignment: alignment,

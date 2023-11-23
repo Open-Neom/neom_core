@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import '../../../core/ui/widgets/header_intro.dart';
 import '../../../core/utils/app_color.dart';
 import '../../../core/utils/app_theme.dart';
+import '../../../core/utils/constants/app_constants.dart';
 import '../../../core/utils/constants/app_page_id_constants.dart';
 import '../../../core/utils/constants/app_translation_constants.dart';
 import '../widgets/login_widgets.dart';
@@ -42,8 +43,8 @@ class LoginPage extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   AppTheme.heightSpace50,
-                  HeaderIntro(title: kDebugMode && Platform.isAndroid ? "Dev" : "",),
-                  AppTheme.heightSpace30,
+                  HeaderIntro(title: kDebugMode && Platform.isAndroid ? AppConstants.dev : "",),
+                  AppTheme.heightSpace20,
                   Text(AppTranslationConstants.signIn.tr,
                     style: const TextStyle(
                       color: Colors.white,

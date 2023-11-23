@@ -466,7 +466,7 @@ class AppFlavour {
       case AppInUse.g:
         return FontAwesomeIcons.building;
       case AppInUse.e:
-        return FontAwesomeIcons.bookOpen;
+        return FontAwesomeIcons.building;
       case AppInUse.c:
         return Icons.surround_sound_outlined;
     }
@@ -477,7 +477,7 @@ class AppFlavour {
       case AppInUse.g:
         return AppTranslationConstants.directory;
       case AppInUse.e:
-        return AppTranslationConstants.itemlists;
+        return AppTranslationConstants.directory;
       case AppInUse.c:
         return AppTranslationConstants.presets;
     }
@@ -488,7 +488,7 @@ class AppFlavour {
       case AppInUse.g:
         return FontAwesomeIcons.calendar;
       case AppInUse.e:
-        return FontAwesomeIcons.filePen;
+        return FontAwesomeIcons.calendar;
       case AppInUse.c:
         return FontAwesomeIcons.calendar;
     }
@@ -499,7 +499,7 @@ class AppFlavour {
       case AppInUse.g:
         return AppTranslationConstants.events;
       case AppInUse.e:
-        return AppTranslationConstants.inspiration;
+        return AppTranslationConstants.events;
       case AppInUse.c:
         return AppTranslationConstants.events;
     }
@@ -561,6 +561,17 @@ class AppFlavour {
       return AppAssets.logoCompanyWhite;
       case AppInUse.c:
         return AppAssets.logoAppWhite;
+    }
+  }
+
+  static String getAppPreLogoPath() {
+    switch (appInUse) {
+      case AppInUse.g:
+        return '';
+      case AppInUse.e:
+        return AppAssets.logoAppWhite;
+      case AppInUse.c:
+        return '';
     }
   }
 
@@ -657,6 +668,28 @@ class AppFlavour {
 
   static String getNotificationIcon() {
     return appProperties['notificationIcon'];
+  }
+
+  static String getInstagram() {
+    switch (appInUse) {
+      case AppInUse.g:
+        return 'https://instagram.com/gigmeoutmx';
+      case AppInUse.e:
+        return 'https://instagram.com/escritoresmxi';
+      case AppInUse.c:
+        return 'https://instagram.com/cyber.neom';
+    }
+  }
+
+  static String getEmail() {
+    switch (appInUse) {
+      case AppInUse.g:
+        return 'gigmeoutmx@gmail.com';
+      case AppInUse.e:
+        return 'escritoresmxi@gmail.com';
+      case AppInUse.c:
+        return '';
+    }
   }
 
 }
