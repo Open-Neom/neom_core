@@ -692,4 +692,8 @@ class AppFlavour {
     }
   }
 
+  static String getSubscriptionPlansUrl() {
+    return appProperties['subscriptionPlansUrl'];
+  }
+
 }

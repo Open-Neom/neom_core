@@ -36,6 +36,7 @@ class Post {
   bool isPrivate;
   bool isDraft;
   bool isHidden;
+  bool isVerified;
 
   List<String> commentIds;
   List<PostComment> comments;
@@ -63,12 +64,14 @@ class Post {
     this.isPrivate = false,
     this.isDraft = false,
     this.isHidden = false,
+    this.isVerified = false,
     this.referenceId = "",
     this.mediaOwner = ""});
 
+
   @override
   String toString() {
-    return 'Post{id: $id, ownerId: $ownerId, profileName: $profileName, profileImgUrl: $profileImgUrl, caption: $caption, type: $type, mediaUrl: $mediaUrl, thumbnailUrl: $thumbnailUrl, createdTime: $createdTime, modifiedTime: $modifiedTime, position: $position, location: $location, likedProfiles: $likedProfiles, sharedProfiles: $sharedProfiles, mentionedProfiles: $mentionedProfiles, hashtags: $hashtags, isCommentEnabled: $isCommentEnabled, isPrivate: $isPrivate, mediaOwner: $mediaOwner, referenceId: $referenceId, isTest: $isDraft, commentIds: $commentIds, comments: $comments}';
+    return 'Post{id: $id, ownerId: $ownerId, profileName: $profileName, profileImgUrl: $profileImgUrl, caption: $caption, type: $type, mediaUrl: $mediaUrl, thumbnailUrl: $thumbnailUrl, createdTime: $createdTime, modifiedTime: $modifiedTime, position: $position, location: $location, likedProfiles: $likedProfiles, sharedProfiles: $sharedProfiles, mentionedProfiles: $mentionedProfiles, hashtags: $hashtags, mediaOwner: $mediaOwner, referenceId: $referenceId, isCommentEnabled: $isCommentEnabled, isPrivate: $isPrivate, isDraft: $isDraft, isHidden: $isHidden, isVerified: $isVerified, commentIds: $commentIds, comments: $comments}';
   }
 
   Post.fromJSON(data) :
@@ -94,6 +97,7 @@ class Post {
         isPrivate = data["isPrivate"] ?? false,
         isDraft = data["isDraft"] ?? false,
         isHidden = data["isHidden"] ?? false,
+        isVerified = data['isVerified'] ?? false,
         mediaOwner = data["mediaOwner"] ?? "",
         referenceId = data["referenceId"] ?? "";
 
@@ -119,6 +123,7 @@ class Post {
     'isPrivate': isPrivate,
     'isDraft': isDraft,
     'isHidden': isHidden,
+    'isVerified': isVerified,
     'mediaOwner': mediaOwner,
     'referenceId': referenceId,
   };
@@ -146,6 +151,7 @@ class Post {
     isPrivate = post.isPrivate,
     isDraft = post.isDraft,
     isHidden = post.isHidden,
+    isVerified = post.isVerified,
     mediaOwner = post.mediaOwner,
     referenceId = post.referenceId;
 

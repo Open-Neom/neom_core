@@ -935,5 +935,6 @@ class AppTranslationConstants {
   static const String previewFromSpotify = 'previewFromSpotify';
   static const String playOnSpotify = 'playOnSpotify';
   static const String instagram = 'instagram';
+  static const String verifyProfile = 'verifyProfile';
 
 }

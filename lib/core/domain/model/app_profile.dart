@@ -73,6 +73,7 @@ class AppProfile {
   Map<String, Place>? places;
 
   bool showInDirectory;
+  bool isVerified;
   int lastNameUpdate = 0;
 
   AppProfile({
@@ -90,6 +91,7 @@ class AppProfile {
     this.isActive = false,
     this.type = ProfileType.instrumentist,
     this.showInDirectory = false,
+    this.isVerified = false,
     this.lastNameUpdate = 0,
   });
 
@@ -142,6 +144,7 @@ class AppProfile {
       'sentRequests': sentRequests,
       'invitationRequests': invitationRequests,
       'showInDirectory': showInDirectory,
+      'isVerified': isVerified,
       'lastNameUpdate': lastNameUpdate,
     };
   }
@@ -187,6 +190,7 @@ class AppProfile {
         sentRequests = data["sentRequests"]?.cast<String>() ?? [],
         invitationRequests = data["invitationRequests"]?.cast<String>() ?? [],
         showInDirectory = data["showInDirectory"] ?? false,
+        isVerified = data['isVerified'] ?? false,
         lastNameUpdate = data["lastNameUpdate"] ?? 0;
 
   AppProfile.fromProfileInstruments(data) :
@@ -204,11 +208,12 @@ class AppProfile {
         frequencies = { for (var e in data["frequencies"]?.cast<String>() ?? []) e : NeomFrequency() },
         type = ProfileType.instrumentist, coverImgUrl = "",
         isActive = true,
-        showInDirectory = false;
+        showInDirectory = false,
+        isVerified = data['isVerified'] ?? false;
 
 
   Map<String, dynamic> toProfileInstrumentsJSON() {
-    Get.log("Profile toJSON for Firestore with no Id");
+    AppUtilities.logger.d("Profile toJSON for Firestore with no Id");
     return <String, dynamic>{
       'id': id,
       'name': name,
@@ -222,6 +227,7 @@ class AppProfile {
       'mainFeature': mainFeature,
       'instruments': instruments?.values.map((instrument) => instrument.name).toList(),
       'frequencies': frequencies?.values.map((frequency) => frequency.name).toList(),
+      'isVerified': isVerified
     };
   }
 
