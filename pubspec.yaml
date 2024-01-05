@@ -42,6 +42,9 @@ dependencies:
   neom_home:
     git:
       url: https://github.com/emmanuel-montoya/neom_home.git
+  neom_generator:
+    git:
+      url: https://github.com/Cyberneom/neom_generator.git
 
   get: ^5.0.0-release-candidate-5
   get_it: ^7.6.4
@@ -49,20 +52,21 @@ dependencies:
   cupertino_icons: ^1.0.6
 #  material_design_icons_flutter: ^7.0.7296
   font_awesome_flutter: ^10.6.0
+  lucide_icons_flutter: ^1.0.1
   transparent_image: ^2.0.1
 
-  firebase_core: ^2.22.0
-  cloud_firestore: ^4.13.1
-  firebase_storage: ^11.5.1
-  firebase_auth: ^4.14.0
-  firebase_messaging: ^14.7.4
-  firebase_crashlytics: ^3.4.4
-  google_sign_in: ^6.1.6
+  firebase_core: ^2.24.2
+  cloud_firestore: ^4.13.6
+  firebase_storage: ^11.5.6
+  firebase_auth: ^4.15.3
+  firebase_messaging: ^14.7.9
+  firebase_crashlytics: ^3.4.8
+  google_sign_in: ^6.2.1
   sign_in_with_apple: ^5.0.0
   crypto: ^3.0.3
 
-  url_launcher: ^6.2.1
-  http: ^1.1.0
+  url_launcher: ^6.2.2
+  http: ^1.1.2
   dio: ^4.0.6
 
   hive: ^2.2.3
@@ -171,6 +175,8 @@ dependency_overrides:
     path: ../neom_home
   neom_music_player:
     path: ../neom_music_player
+  neom_generator:
+    path: ../neom_generator
   uuid: 4.1.0
   logger: 2.0.2+1
 #  http: 1.1.0

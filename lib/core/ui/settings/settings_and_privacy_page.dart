@@ -191,6 +191,7 @@ class SettingsPrivacyPage extends StatelessWidget {
                 HeaderWidget(AppTranslationConstants.adminCenter.tr, secondHeader: true),
                 TitleSubtitleRow(AppTranslationConstants.createCoupon.tr, navigateTo: AppRouteConstants.createCoupon),
                 TitleSubtitleRow(AppTranslationConstants.createSponsor.tr, navigateTo: AppRouteConstants.createSponsor),
+                TitleSubtitleRow(AppTranslationConstants.usersDirectory.tr, navigateTo: AppRouteConstants.directory, navigateArguments: const [true],),
                 TitleSubtitleRow(AppTranslationConstants.seeAnalytics.tr, navigateTo: AppRouteConstants.analytics),
                 _.userController.user!.userRole == UserRole.superAdmin ?
                 Column(

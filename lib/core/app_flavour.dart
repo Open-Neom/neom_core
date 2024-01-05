@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../neom_commons.dart';
 import 'domain/model/app_media_item.dart';
@@ -453,7 +454,7 @@ class AppFlavour {
   static List<Widget> getHomePages() {
     switch (appInUse) {
       case AppInUse.c:
-        return AppRouteConstants.nHomePages;
+        return AppRouteConstants.cHomePages;
       case AppInUse.g:
         return AppRouteConstants.gHomePages;
       case AppInUse.e:
@@ -513,7 +514,7 @@ class AppFlavour {
         return FontAwesomeIcons.shop;
       case AppInUse.c:
       ///CHANGE TO MUSIC IN NEXT VERSION
-        return FontAwesomeIcons.comments;
+        return LucideIcons.audioWaveform;
     }
   }
 
@@ -525,7 +526,7 @@ class AppFlavour {
         return AppTranslationConstants.library;
       case AppInUse.c:
         ///CHANGE TO MUSIC IN NEXT VERSION
-        return AppTranslationConstants.inbox;
+        return AppTranslationConstants.library;
     }
   }
 
@@ -543,7 +544,7 @@ class AppFlavour {
   static List<Widget> getMusicPlayerPages() {
     switch (appInUse) {
       case AppInUse.c:
-        return AppRouteConstants.nMusicPlayerPages;
+        return AppRouteConstants.cMusicPlayerPages;
       case AppInUse.g:
         return AppRouteConstants.gMusicPlayerPages;
       case AppInUse.e:

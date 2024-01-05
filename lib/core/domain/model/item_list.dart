@@ -10,7 +10,6 @@ import '../../utils/enums/itemlist_type.dart';
 import '../../utils/enums/owner_type.dart';
 import 'app_media_item.dart';
 import 'app_release_item.dart';
-import 'neom/chamber_preset.dart';
 
 class Itemlist {
 
@@ -26,7 +25,6 @@ class Itemlist {
   String uri; /// A link to the Web API endpoint providing full details of the playlist.
   // List<AppItem>? appItems;
   List<AppReleaseItem>? appReleaseItems;
-  List<ChamberPreset>? chamberPresets;
   List<AppMediaItem>? appMediaItems;
   ItemlistType type;
   Position? position;
@@ -44,7 +42,6 @@ class Itemlist {
     this.public = true,
     this.uri = "",
     this.appMediaItems,
-    this.chamberPresets,
     this.type = ItemlistType.playlist,
     this.position,
     this.isModifiable = true,
@@ -61,7 +58,6 @@ class Itemlist {
     ownerName = '',
     ownerType = OwnerType.profile,
     appMediaItems = [],
-    chamberPresets = [],
     type = ItemlistType.playlist,
     isModifiable = true;
 
@@ -82,17 +78,13 @@ class Itemlist {
     appReleaseItems = data["appReleaseItems"]?.map<AppReleaseItem>((item) {
       return AppReleaseItem.fromJSON(item);
     }).toList() ?? [],
-    chamberPresets =  data["chamberPresets"]?.map<ChamberPreset>((preset) {
-      return ChamberPreset.fromJSON(preset);
-    }).toList() ?? [],
     position = CoreUtilities.JSONtoPosition(data["position"]),
     type = EnumToString.fromString(ItemlistType.values, data["type"] ?? ItemlistType.playlist.name) ?? ItemlistType.playlist,
     ownerType = EnumToString.fromString(OwnerType.values, data["ownerType"] ?? OwnerType.profile.name) ?? OwnerType.profile;
 
-
   @override
   String toString() {
-    return 'Itemlist{id: $id, name: $name, description: $description, ownerId: $ownerId, ownerName: $ownerName, ownerType: $ownerType, href: $href, imgUrl: $imgUrl, public: $public, uri: $uri, appReleaseItems: $appReleaseItems, chamberPresets: $chamberPresets, appMediaItems: $appMediaItems, type: $type, position: $position, isModifiable: $isModifiable}';
+    return 'Itemlist{id: $id, name: $name, description: $description, ownerId: $ownerId, ownerName: $ownerName, ownerType: $ownerType, href: $href, imgUrl: $imgUrl, public: $public, uri: $uri, appReleaseItems: $appReleaseItems, appMediaItems: $appMediaItems, type: $type, position: $position, isModifiable: $isModifiable}';
   }
 
   Map<String, dynamic>  toJSON()=>{
@@ -106,7 +98,6 @@ class Itemlist {
     'uri': uri,
     'appMediaItems': appMediaItems?.map((appMediaItem) => appMediaItem.toJSON()).toList() ?? [],
     'appReleaseItems': appReleaseItems?.map((appReleaseItem) => appReleaseItem.toJSON()).toList() ?? [],
-    'chamberPresets': chamberPresets?.map((appReleaseItem) => appReleaseItem.toJSON()).toList() ?? [],
     'position': jsonEncode(position),
     'type': type.name,
     'ownerType': ownerType.name,
@@ -163,10 +154,6 @@ class Itemlist {
       totalItems = totalItems + (appReleaseItems?.length ?? 0);
     }
 
-    if(chamberPresets != null) {
-      totalItems = totalItems + (chamberPresets?.length ?? 0);
-    }
-
     AppUtilities.logger.t("Retrieving $totalItems Total Items.");
     return totalItems;
   }
@@ -198,14 +185,6 @@ class Itemlist {
         }
       }
 
-    }
-
-    if(chamberPresets != null) {
-      for (var element in chamberPresets!) {
-        if(element.imgUrl.isNotEmpty) {
-          imgUrls.add(element.imgUrl);
-        }
-      }
     }
 
     AppUtilities.logger.t("Retrieving ${imgUrls.length} total Images for itemlist $name.");

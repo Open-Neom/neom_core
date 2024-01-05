@@ -55,6 +55,8 @@ class PushNotificationController extends ChangeNotifier {
       case PushNotificationType.releaseAppItemAdded:
         Get.toNamed(AppFlavour.getItemDetailsRoute(), arguments: [referenceId]);
         break;
+      case PushNotificationType.chamberPresetAdded:
+        // TODO: Handle this case.
     }
   }
 

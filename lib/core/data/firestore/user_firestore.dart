@@ -24,38 +24,37 @@ import 'post_firestore.dart';
 import 'profile_firestore.dart';
 
 class UserFirestore implements UserRepository {
-
-  var logger = AppUtilities.logger;
+  
   final userReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.users);
   final profileReference = FirebaseFirestore.instance.collectionGroup(AppFirestoreCollectionConstants.profiles);
 
   @override
   Future<bool> insert(AppUser user) async {
     String userId = user.id.toLowerCase();
-    logger.i("Inserting user $userId to Firestore");
+    AppUtilities.logger.i("Inserting user $userId to Firestore");
 
     Map<String,dynamic> userJSON = user.toJSON();
-    logger.d(userJSON.toString());
+    AppUtilities.logger.d(userJSON.toString());
 
     DocumentReference documentReferencer = userReference.doc(userId);
 
     try {
       await documentReferencer.set(userJSON)
-          .whenComplete(() => logger.i('User added to the database'))
-          .catchError((e) => logger.e(e));
+          .whenComplete(() => AppUtilities.logger.i('User added to the database'))
+          .catchError((e) => AppUtilities.logger.e(e));
 
-      logger.d("User ${user.toString()} inserted successfully.");
+      AppUtilities.logger.d("User ${user.toString()} inserted successfully.");
       return true;
 
     } catch (e) {
-      await remove(userId) ? logger.i("User rollback") : logger.e(e.toString());
+      await remove(userId) ? AppUtilities.logger.i("User rollback") : AppUtilities.logger.e(e.toString());
       return false;
     }
   }
 
   @override
   Future<List<AppUser>> getAll() async {
-    logger.d("Get all Users");
+    AppUtilities.logger.d("Get all Users");
 
     List<AppUser> users = [];
     try {
@@ -68,7 +67,7 @@ class UserFirestore implements UserRepository {
         }
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     return users;
@@ -76,7 +75,7 @@ class UserFirestore implements UserRepository {
 
   @override
   Future<AppUser> getById(String userId) async {
-    logger.t("Get User by ID: $userId");
+    AppUtilities.logger.t("Get User by ID: $userId");
     AppUser user = AppUser();
     try {
         DocumentSnapshot documentSnapshot = await userReference.doc(userId).get();
@@ -92,7 +91,7 @@ class UserFirestore implements UserRepository {
                profile = await ProfileFirestore().getProfileFeatures(profile);
                user.profiles = [profile];
              } else {
-               logger.d("Profile not found");
+               AppUtilities.logger.d("Profile not found");
              }
           } else {
              user.profiles = await ProfileFirestore().retrieveProfiles(userId);
@@ -102,10 +101,10 @@ class UserFirestore implements UserRepository {
              }
           }
         } else {
-          logger.i("No user found");
+          AppUtilities.logger.i("No user found");
         }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     return user;
@@ -113,7 +112,7 @@ class UserFirestore implements UserRepository {
 
   @override
   Future<AppUser> getByProfileId(String profileId) async {
-    logger.d("Getting user for ProfileId: $profileId");
+    AppUtilities.logger.d("Getting user for ProfileId: $profileId");
     AppUser user = AppUser();
     String userId = "";
     QuerySnapshot userQuerySnapshot;
@@ -123,20 +122,20 @@ class UserFirestore implements UserRepository {
 
       for (var profile in querySnapshot.docs) {
         if(profile.id == profileId) {
-          logger.w("Reference id: ${profile.reference.parent.parent!.id}");
+          AppUtilities.logger.w("Reference id: ${profile.reference.parent.parent!.id}");
           DocumentReference documentReference = profile.reference;
           userId = documentReference.parent.parent!.id;
 
           userQuerySnapshot = await userReference
               .where(FieldPath.documentId, isEqualTo: userId)
               .get();
-          logger.i("${userQuerySnapshot.docs.length} users found");
+          AppUtilities.logger.i("${userQuerySnapshot.docs.length} users found");
 
           user = AppUser.fromJSON(userQuerySnapshot.docs.first.data());
         }
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     return user;
@@ -145,13 +144,13 @@ class UserFirestore implements UserRepository {
 
   @override
   Future<bool> remove(String userId) async {
-    logger.d("Removing User $userId from Firestore");
+    AppUtilities.logger.d("Removing User $userId from Firestore");
 
     try {
       await userReference.doc(userId).delete();
-      logger.d("User $userId removed successfully.");
+      AppUtilities.logger.d("User $userId removed successfully.");
     } catch (e) {
-      logger.e(e);
+      AppUtilities.logger.e(e);
       return false;
     }
 
@@ -161,14 +160,14 @@ class UserFirestore implements UserRepository {
 
   @override
   Future<bool> updateAndroidNotificationToken(String userId, String token) async {
-    logger.d("Updating Android Notification Token for User $userId");
+    AppUtilities.logger.d("Updating Android Notification Token for User $userId");
 
     try {
       await userReference.doc(userId).update({AppFirestoreConstants.androidNotificationToken: token});
-      logger.d("User $userId removed successfully.");
+      AppUtilities.logger.d("User $userId removed successfully.");
       return true;
     } catch (e) {
-      logger.e(e);
+      AppUtilities.logger.e(e);
       return false;
     }
   }
@@ -176,7 +175,7 @@ class UserFirestore implements UserRepository {
 
   @override
   Future<bool> isAvailableEmail(String email) async {
-    logger.t("Verify if email $email is already in use");
+    AppUtilities.logger.t("Verify if email $email is already in use");
 
     try {
       QuerySnapshot querySnapshot = await userReference
@@ -184,15 +183,15 @@ class UserFirestore implements UserRepository {
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        logger.i("Email already in use");
+        AppUtilities.logger.i("Email already in use");
         return false;
       }
 
-      logger.t("Email is available");
+      AppUtilities.logger.t("Email is available");
       return true;
 
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
       rethrow;
     }
   }
@@ -201,7 +200,7 @@ class UserFirestore implements UserRepository {
   @override
   Future<bool> isAvailablePhone(String phoneNumber) async {
 
-    logger.d("Verify if phoneNumber $phoneNumber is available");
+    AppUtilities.logger.d("Verify if phoneNumber $phoneNumber is available");
 
     try {
       QuerySnapshot querySnapshot = await userReference.where(
@@ -209,15 +208,15 @@ class UserFirestore implements UserRepository {
           isEqualTo: phoneNumber).get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        logger.i("Phone number already in use");
+        AppUtilities.logger.i("Phone number already in use");
         return false;
       }
 
-      logger.d("No phoneNumber found");
+      AppUtilities.logger.d("No phoneNumber found");
       return true;
 
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
       rethrow;
     }
   }
@@ -225,7 +224,7 @@ class UserFirestore implements UserRepository {
 
   @override
   Future<bool> addToWallet(String userId, double amount, {AppCurrency appCurrency = AppCurrency.appCoin}) async {
-    logger.d("Entering addToWalletMethod");
+    AppUtilities.logger.d("Entering addToWalletMethod");
 
     AppUser user = AppUser();
     try {
@@ -239,13 +238,13 @@ class UserFirestore implements UserRepository {
           AppFirestoreConstants.wallet: jsonEncode(user.wallet)
         });
 
-        logger.d("User Wallet updated");
+        AppUtilities.logger.d("User Wallet updated");
         return true;
       } else {
-        logger.i("No user found");
+        AppUtilities.logger.i("No user found");
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     return false;
@@ -253,7 +252,7 @@ class UserFirestore implements UserRepository {
 
 
   Future<bool> subtractFromWallet(String userId, double amount, {AppCurrency appCurrency = AppCurrency.appCoin}) async {
-    logger.d("Subtraction $amount Aopcoins from UserId $userId");
+    AppUtilities.logger.d("Subtraction $amount Aopcoins from UserId $userId");
     AppUser user = AppUser();
     try {
       DocumentSnapshot documentSnapshot = await userReference.doc(userId).get();
@@ -266,13 +265,13 @@ class UserFirestore implements UserRepository {
           AppFirestoreConstants.wallet: user.wallet.toJSON()
         });
 
-        logger.i("User Wallet updated for user $userId");
+        AppUtilities.logger.i("User Wallet updated for user $userId");
         return true;
       } else {
-        logger.i("No user found");
+        AppUtilities.logger.i("No user found");
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     return false;
@@ -281,14 +280,14 @@ class UserFirestore implements UserRepository {
 
   @override
   Future<bool> updatePhotoUrl(String userId, String photoUrl) async {
-    logger.t("updatePhotoUrl");
+    AppUtilities.logger.t("updatePhotoUrl");
 
     try {
       DocumentSnapshot documentSnapshot = await userReference.doc(userId).get();
       await documentSnapshot.reference.update({AppFirestoreConstants.photoUrl: photoUrl});
 
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
       return false;
     }
 
@@ -299,7 +298,7 @@ class UserFirestore implements UserRepository {
 
   @override
   Future<bool> addOrderId({required String userId, required String orderId}) async {
-    logger.d("Order $orderId would be added to User $userId");
+    AppUtilities.logger.d("Order $orderId would be added to User $userId");
 
     try {
       DocumentSnapshot documentSnapshot = await userReference
@@ -308,10 +307,10 @@ class UserFirestore implements UserRepository {
       await documentSnapshot.reference.update({
         AppFirestoreConstants.orderIds: FieldValue.arrayUnion([orderId])
       });
-      logger.d("Order $orderId is now at User $userId");
+      AppUtilities.logger.d("Order $orderId is now at User $userId");
       return true;
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     return false;
@@ -320,7 +319,7 @@ class UserFirestore implements UserRepository {
 
   @override
   Future<bool> removeOrderId({required String userId, required String orderId}) async {
-    logger.d("Order $orderId would be removed from User $userId");
+    AppUtilities.logger.d("Order $orderId would be removed from User $userId");
 
     try {
       DocumentSnapshot documentSnapshot = await userReference
@@ -329,10 +328,10 @@ class UserFirestore implements UserRepository {
       await documentSnapshot.reference.update({
         AppFirestoreConstants.orderIds: FieldValue.arrayRemove([orderId])
       });
-      logger.d("Order $orderId was removed from User $userId");
+      AppUtilities.logger.d("Order $orderId was removed from User $userId");
       return true;
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     return false;
@@ -341,15 +340,15 @@ class UserFirestore implements UserRepository {
 
   @override
   Future<bool> updateFcmToken(String userId, String fcmToken) async {
-    logger.d("updating Firebase Cloud Messaging Token for User $userId");
+    AppUtilities.logger.d("updating Firebase Cloud Messaging Token for User $userId");
 
     try {
       DocumentSnapshot documentSnapshot = await userReference.doc(userId).get();
       await documentSnapshot.reference.update({AppFirestoreConstants.fcmToken: fcmToken});
-      logger.i("FCM Token successfully updated for User $userId");
+      AppUtilities.logger.i("FCM Token successfully updated for User $userId");
       return true;
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     return false;
@@ -357,29 +356,29 @@ class UserFirestore implements UserRepository {
 
   @override
   Future<void> updateLastTimeOn(String userId) async {
-    logger.t("updating LastTimeOn for user $userId");
+    AppUtilities.logger.t("updating LastTimeOn for user $userId");
 
     try {
       DocumentSnapshot documentSnapshot = await userReference.doc(userId).get();
       await documentSnapshot.reference.update({AppFirestoreConstants.lastTimeOn: DateTime.now().millisecondsSinceEpoch});
-      logger.t("LastTimeOn successfully updated for User $userId");
+      AppUtilities.logger.t("LastTimeOn successfully updated for User $userId");
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
   }
 
   @override
   Future<String> retrieveFcmToken(String userId) async {
-    logger.d("Retrieving Firebase Cloud Messaging Token for User $userId device");
+    AppUtilities.logger.d("Retrieving Firebase Cloud Messaging Token for User $userId device");
 
     String fcmToken = "";
     try {
       DocumentSnapshot documentSnapshot = await userReference.doc(userId).get();
       fcmToken = AppUser.fromJSON(documentSnapshot.data()).fcmToken;
-      logger.i("FCM Token $fcmToken retrieved");
+      AppUtilities.logger.i("FCM Token $fcmToken retrieved");
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     return fcmToken;
@@ -387,30 +386,30 @@ class UserFirestore implements UserRepository {
 
   @override
   Future<bool> updateSpotifyToken(String userId, String spotifyToken) async {
-    logger.d("updating Spotify Access Token for User $userId");
+    AppUtilities.logger.d("updating Spotify Access Token for User $userId");
 
     try {
       DocumentSnapshot documentSnapshot = await userReference.doc(userId).get();
       await documentSnapshot.reference.update({AppFirestoreConstants.spotifyToken: spotifyToken});
-      logger.i("Spotify Token successfully updated for User $userId");
+      AppUtilities.logger.i("Spotify Token successfully updated for User $userId");
       return true;
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     return false;
   }
 
   Future<AppProfile> updateCurrentProfile(String userId, String currentProfileId) async {
-    logger.d("Updating current profile $userId");
+    AppUtilities.logger.d("Updating current profile $userId");
     AppProfile profile = AppProfile();
     try {
       DocumentSnapshot documentSnapshot = await userReference.doc(userId).get();
       await documentSnapshot.reference.update({AppFirestoreConstants.currentProfileId: currentProfileId});
-      logger.i("CurrentProfileId successfully updated for User $userId");
+      AppUtilities.logger.i("CurrentProfileId successfully updated for User $userId");
       profile = await ProfileFirestore().retrieveFull(currentProfileId);
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     return profile;
@@ -418,13 +417,13 @@ class UserFirestore implements UserRepository {
 
   @override
   Future<List<AppUser>> getWithParameters({
-    bool needsPhone  = false, bool includeProfile = false,
+    bool needsPhone  = false, bool includeProfile = false, bool needsPosts = false,
     List<ProfileType>? profileTypes, FacilityType? facilityType, PlaceType? placeType,
     List<UsageReason>? usageReasons, Position? currentPosition, int maxDistance = 30,}) async {
-    logger.d("Get all Users by paremeters");
+
+    AppUtilities.logger.d("Get all Users by parameters");
 
     List<AppUser> users = [];
-    List<AppUser> usersWOPhone = [];
     AppProfile profile = AppProfile();
     Map<String,AppProfile> facilityProfiles = <String, AppProfile>{};
     Map<String,AppProfile> placeProfiles = <String, AppProfile>{};
@@ -432,87 +431,105 @@ class UserFirestore implements UserRepository {
     Map<String,AppProfile> noMainPlaceProfiles = <String, AppProfile>{};
 
     try {
-      QuerySnapshot userQuerySnapshot = await userReference.get();
+      QuerySnapshot userQuerySnapshot = !needsPhone ? await userReference.get()
+          : await userReference.where(AppFirestoreConstants.phoneNumber, isNotEqualTo: '').get();
+
+
       QuerySnapshot? profileQuerySnapshot;
-      if(includeProfile) profileQuerySnapshot = await profileReference.get();
-      List<Post> totalPosts = await PostFirestore().retrievePosts();
+      List<Post> totalPosts = [];
+
+      if(includeProfile) {
+        profileQuerySnapshot = await profileReference.get();
+        totalPosts = await PostFirestore().retrievePosts();
+      }
+
       for (var queryDocumentSnapshot in userQuerySnapshot.docs) {
         if (queryDocumentSnapshot.exists) {
           AppUser user = AppUser.fromJSON(queryDocumentSnapshot.data());
           user.id = queryDocumentSnapshot.id;
-
-          if(needsPhone && user.phoneNumber.isEmpty) {
-            usersWOPhone.add(user);
-            logger.t("${user.name} has no phone number");
-            continue;
-          }
 
           if(includeProfile && profileQuerySnapshot != null) {
             for (var document in profileQuerySnapshot.docs) {
               if(document.reference.parent.parent!.id == user.id) {
                 profile = AppProfile.fromJSON(document.data());
                 profile.id = document.id;
-                if((profileTypes == null || profileTypes.contains(profile.type))
-                    && (usageReasons == null || usageReasons.contains(profile.reason) || profile.reason == UsageReason.any)) {
-                  if(profile.posts?.isNotEmpty ?? false) {
-                    if(AppUtilities.distanceBetweenPositionsRounded(profile.position!, currentPosition!) < maxDistance) {
-                      List<Post> profilePosts = totalPosts.where((element) => element.ownerId == profile.id).toList();
-                      List<String> postImgUrls = [];
-                      for (var profilePost in profilePosts) {
-                        if(postImgUrls.length < 6 && profilePost.mediaUrl.isNotEmpty) {
-                          postImgUrls.add(profilePost.mediaUrl);
-                        }
-                      }
 
-                      if(facilityType != null) {
-                        AppUtilities.logger.d("Retrieving Facility for ${profile.name} - ${profile.id}");
-                        profile.facilities = await FacilityFirestore().retrieveFacilities(profile.id);
-                        if(profile.facilities!.keys.contains(facilityType.value)) {
-                          if((profile.facilities?[facilityType.value]?.isMain == true)) {
-                            facilityProfiles[profile.id] = profile;
-                          } else {
-                            noMainFacilityProfiles[profile.id] = profile;
-                          }
-                        }
-                      } else {
-                        profile.facilities = {};
-                        profile.facilities![profile.id] = Facility();
-                        profile.facilities!.values.first.galleryImgUrls  = postImgUrls;
-                        facilityProfiles[profile.id] = profile;
-                      }
-
-                      if(placeType != null) {
-                        AppUtilities.logger.d("Retrieving Places for ${profile.name} - ${profile.id}");
-                        profile.places = await PlaceFirestore().retrievePlaces(profile.id);
-                        if(profile.places!.keys.contains(placeType.value)) {
-                          if((profile.places?[placeType.value]?.isMain == true)) {
-                            placeProfiles[profile.id] = profile;
-                          } else {
-                            noMainPlaceProfiles[profile.id] = profile;
-                          }
-                        }
-                      } else {
-                        profile.places = {};
-                        profile.places![profile.id] = Place();
-                        profile.places!.values.first.galleryImgUrls  = postImgUrls;
-                        placeProfiles[profile.id] = profile;
-                      }
-
-                      if(profile.address.isEmpty && profile.position != null) {
-                        profile.address = await AppUtilities.getAddressFromPlacerMark(profile.position!);
-                        ProfileFirestore().updateAddress(profile.id, profile.address);
-                      }
-                      user.profiles.add(profile);
-                    } else {
-                      logger.d("Profile ${profile.id} ${profile.name} is out of max distance");
-                    }
-                  } else {
-                    logger.d("Profile ${profile.id} ${profile.name} has not posts");
-                  }
-                } else {
-                  logger.d("Profile ${profile.id} ${profile.name} - ${profile.type.name} / ${profile.reason.name} is not profile type ${profileTypes.toString()} or the usage reason ${usageReasons.toString()} required");
+                if(profileTypes != null && !profileTypes.contains(profile.type)) {
+                  AppUtilities.logger.t("Profile ${profile.id} ${profile.name} - ${profile.type.name} is not profile type ${profileTypes.toString()} required");
+                  continue;
                 }
 
+                if(usageReasons != null && (!usageReasons.contains(profile.reason) && profile.reason != UsageReason.any)) {
+                  AppUtilities.logger.t("Profile ${profile.id} ${profile.name} - ${profile.reason.name} has not the usage reason ${usageReasons.toString()} required");
+                  continue;
+                }
+
+                if(needsPosts && (profile.posts?.isEmpty ?? true)) {
+                  AppUtilities.logger.t("Profile ${profile.id} ${profile.name} has not posts");
+                  continue;
+                }
+
+                if(currentPosition != null && (profile.position != null
+                    && AppUtilities.distanceBetweenPositionsRounded(profile.position!, currentPosition) > maxDistance)) {
+                  AppUtilities.logger.t("Profile ${profile.id} ${profile.name} is out of max distance");
+                  continue;
+                }
+
+                List<String> postImgUrls = [];
+                if(needsPosts) {
+                  List<Post> profilePosts = totalPosts.where((element) => element.ownerId == profile.id).toList();
+                  for (var profilePost in profilePosts) {
+                    if(postImgUrls.length < 6 && profilePost.mediaUrl.isNotEmpty) {
+                      postImgUrls.add(profilePost.mediaUrl);
+                    }
+                  }
+                }
+
+                if(facilityType != null) {
+                  AppUtilities.logger.d("Retrieving Facility for ${profile.name} - ${profile.id}");
+                  profile.facilities = await FacilityFirestore().retrieveFacilities(profile.id);
+                  if(profile.facilities!.keys.contains(facilityType.value)) {
+                    if((profile.facilities?[facilityType.value]?.isMain == true)) {
+                      facilityProfiles[profile.id] = profile;
+                    } else {
+                      noMainFacilityProfiles[profile.id] = profile;
+                    }
+                  }
+                } else {
+                  profile.facilities = {};
+                  profile.facilities![profile.id] = Facility();
+                  profile.facilities!.values.first.galleryImgUrls  = postImgUrls;
+                  facilityProfiles[profile.id] = profile;
+                }
+
+                if(placeType != null) {
+                  AppUtilities.logger.d("Retrieving Places for ${profile.name} - ${profile.id}");
+                  profile.places = await PlaceFirestore().retrievePlaces(profile.id);
+                  if(profile.places!.keys.contains(placeType.value)) {
+                    if((profile.places?[placeType.value]?.isMain == true)) {
+                      placeProfiles[profile.id] = profile;
+                    } else {
+                      noMainPlaceProfiles[profile.id] = profile;
+                    }
+                  }
+                } else {
+                  profile.places = {};
+                  profile.places![profile.id] = Place();
+                  profile.places!.values.first.galleryImgUrls  = postImgUrls;
+                  placeProfiles[profile.id] = profile;
+                }
+
+                if(profile.address.isEmpty) {
+                  profile.address = await AppUtilities.getAddressFromPlacerMark(profile.position!);
+                  if(profile.address.isNotEmpty) await ProfileFirestore().updateAddress(profile.id, profile.address);
+                }
+
+                if(profile.phoneNumber.isEmpty) {
+                  profile.phoneNumber = user.countryCode + user.phoneNumber;
+                  await ProfileFirestore().updatePhoneNumber(profile.id, profile.phoneNumber);
+                }
+
+                user.profiles.add(profile);
               }
             }
 
@@ -523,7 +540,7 @@ class UserFirestore implements UserRepository {
         }
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     return users;
@@ -531,7 +548,7 @@ class UserFirestore implements UserRepository {
 
   @override
   Future<List<String>> getFCMTokens() async {
-    logger.t("Get available FCM Tokens from all Users on Firestore");
+    AppUtilities.logger.t("Get available FCM Tokens from all Users on Firestore");
 
     List<String> fcmTokens = [];
     try {
@@ -545,16 +562,16 @@ class UserFirestore implements UserRepository {
         }
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
-    logger.d("${fcmTokens.length} FCM Tokens retrieved for user");
+    AppUtilities.logger.d("${fcmTokens.length} FCM Tokens retrieved for user");
     return fcmTokens;
   }
 
   @override
   Future<bool> addReleaseItem({required String userId, required String releaseItemId}) async {
-    logger.t("ReleaseItem $releaseItemId would be added to User $userId");
+    AppUtilities.logger.t("ReleaseItem $releaseItemId would be added to User $userId");
 
     try {
       DocumentSnapshot documentSnapshot = await userReference
@@ -563,10 +580,10 @@ class UserFirestore implements UserRepository {
       await documentSnapshot.reference.update({
         AppFirestoreConstants.releaseItemIds: FieldValue.arrayUnion([releaseItemId])
       });
-      logger.d("ReleaseItem $releaseItemId is now at User $userId");
+      AppUtilities.logger.d("ReleaseItem $releaseItemId is now at User $userId");
       return true;
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     return false;

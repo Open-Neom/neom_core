@@ -17,7 +17,7 @@ class PlaceFirestore implements PlaceRepository {
 
   @override
   Future<Map<String,Place>> retrievePlaces(profileId) async {
-    logger.t("Retrieving Place by Profile $profileId");
+    logger.d("Retrieving Place by Profile $profileId");
 
     Map<String, Place> places = {};
 

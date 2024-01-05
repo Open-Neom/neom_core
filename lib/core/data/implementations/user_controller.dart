@@ -20,6 +20,7 @@ import '../../utils/constants/message_translation_constants.dart';
 import '../../utils/core_utilities.dart';
 import '../../utils/enums/owner_type.dart';
 import '../../utils/enums/user_role.dart';
+import '../firestore/chamber_firestore.dart';
 import '../firestore/coupon_firestore.dart';
 import '../firestore/itemlist_firestore.dart';
 import '../firestore/profile_firestore.dart';
@@ -240,7 +241,7 @@ class UserController extends GetxController implements UserService {
         newUser.name = newProfile.name;
       }
 
-      if(await UserFirestore().insert(newUser)){
+      if(await UserFirestore().insert(newUser)) {
         isNewUser = false;
         user = newUser;
 
@@ -458,7 +459,7 @@ class UserController extends GetxController implements UserService {
       profile.favoriteItems?.clear();
       profile.chamberPresets?.clear();
 
-      CoreUtilities.getTotalPresets(profile.itemlists!).forEach((key, value) {
+      CoreUtilities.getTotalPresets(profile.chambers!).forEach((key, value) {
         profile.chamberPresets!.add(key);
       });
 
@@ -469,6 +470,24 @@ class UserController extends GetxController implements UserService {
       CoreUtilities.getTotalReleaseItems(profile.itemlists!).forEach((key, value) {
         profile.favoriteItems!.add(key);
       });
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+
+    update([]);
+  }
+
+  @override
+  Future<void> reloadProfileChambers() async {
+
+    try {
+      profile.chambers = await ChamberFirestore().fetchAll(ownerId: profile.id);
+      profile.chamberPresets?.clear();
+
+      CoreUtilities.getTotalPresets(profile.chambers!).forEach((key, value) {
+        profile.chamberPresets!.add(key);
+      });
+
     } catch (e) {
       AppUtilities.logger.e(e.toString());
     }

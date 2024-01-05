@@ -11,5 +11,6 @@ abstract class UserService {
   Future<void> getProfiles();
   Future<void> removeProfile();
   Future<void> reloadProfileItemlists();
+  Future<void> reloadProfileChambers();
 
 }

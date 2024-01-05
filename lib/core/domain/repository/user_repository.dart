@@ -24,7 +24,7 @@ abstract class UserRepository {
   Future<bool> updateSpotifyToken(String userId, String spotifyToken);
   Future<void> updateLastTimeOn(String userId);
   Future<List<AppUser>> getWithParameters({
-    bool needsPhone  = false, bool includeProfile = false,
+    bool needsPhone  = false, bool includeProfile = false, bool needsPosts = false,
     List<ProfileType>? profileTypes, FacilityType? facilityType,
     Position? currentPosition, int maxDistance = 30,});
 

@@ -14,6 +14,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../neom_commons.dart';
 import '../domain/model/app_media_item.dart';
 import '../domain/model/app_release_item.dart';
+import '../domain/model/chamber.dart';
 import '../domain/model/neom/chamber_preset.dart';
 import 'enums/media_item_type.dart';
 
@@ -143,11 +144,11 @@ class CoreUtilities {
     return totalItems;
   }
 
-  static Map<String, ChamberPreset> getTotalPresets(Map<String, Itemlist> itemlists){
+  static Map<String, ChamberPreset> getTotalPresets(Map<String, Chamber> chambers){
     Map<String, ChamberPreset> totalPresets = {};
 
-    itemlists.forEach((key, itemlist) {
-      for (var preset in itemlist.chamberPresets ?? []) {
+    chambers.forEach((key, chamber) {
+      for (var preset in chamber.chamberPresets ?? []) {
         totalPresets[preset.id] = preset;
       }
     });

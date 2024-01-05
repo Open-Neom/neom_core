@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import '../../utils/core_utilities.dart';
 import '../../utils/enums/usage_reason.dart';
 import 'band_member.dart';
+import 'chamber.dart';
 import 'genre.dart';
 import 'item_list.dart';
 import 'price.dart';
@@ -55,6 +56,7 @@ class Band {
 
   ///These are retrieved from a Firebase Collection
   Map<String, Itemlist>? itemlists;
+  Map<String, Chamber>? chambers;
   Map<String, Genre>? genres;
   Map<String, BandMember>? members;
 
@@ -92,7 +94,7 @@ class Band {
 
   @override
   String toString() {
-    return 'Band{id: $id, name: $name, description: $description, photoUrl: $photoUrl, coverImgUrl: $coverImgUrl, reason: $reason, pricePerHour: $pricePerHour, reviewStars: $reviewStars, lastReview: $lastReview, isActive: $isActive, createdTime: $createdTime, lastSession: $lastSession, position: $position, bannedGenres: $bannedGenres, itemmates: $itemmates, eventmates: $eventmates, followers: $followers, following: $following, unfollowing: $unfollowing, posts: $posts, hiddenPosts: $hiddenPosts, hiddenComments: $hiddenComments, reports: $reports, events: $events, reviews: $reviews, playingEvents: $playingEvents, requests: $requests, sentRequests: $sentRequests, invitationRequests: $invitationRequests, isFulfilled: $isFulfilled, itemlists: $itemlists, genres: $genres, bandMembers: $members}';
+    return 'Band{id: $id, name: $name, description: $description, photoUrl: $photoUrl, coverImgUrl: $coverImgUrl, reason: $reason, pricePerHour: $pricePerHour, reviewStars: $reviewStars, lastReview: $lastReview, isActive: $isActive, createdTime: $createdTime, lastSession: $lastSession, position: $position, bannedGenres: $bannedGenres, itemmates: $itemmates, eventmates: $eventmates, followers: $followers, following: $following, unfollowing: $unfollowing, posts: $posts, hiddenPosts: $hiddenPosts, hiddenComments: $hiddenComments, reports: $reports, events: $events, reviews: $reviews, playingEvents: $playingEvents, requests: $requests, sentRequests: $sentRequests, invitationRequests: $invitationRequests, isFulfilled: $isFulfilled, itemlists: $itemlists, chambers: $chambers, genres: $genres, members: $members}';
   }
 
   Map<String, dynamic> toJSON() {

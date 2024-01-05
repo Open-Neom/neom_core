@@ -252,6 +252,8 @@ class AppTranslationConstants {
   static const String createCoupon = 'createCoupon';
   static const String createSponsor = 'createSponsor';
   static const String adminCenter = 'adminCenter';
+  static const String usersDirectory = 'usersDirectory';
+  static const String gotoUsersDirectory = 'gotoUsersDirectory';
 
   static const String createAccount = 'createAccount';
   static const String finishAccount = 'finishAccount';
@@ -724,6 +726,10 @@ class AppTranslationConstants {
   static const String dirWhatsappMsgA = 'dirWhatsappMsgA';
   static const String dirWhatsappMsgB = 'dirWhatsappMsgB';
 
+  static const String dirWhatsappAdminMsgA = 'dirWhatsappAdminMsgA';
+  static const String dirWhatsappAdminMsgB = 'dirWhatsappAdminMsgB';
+  static const String dirWhatsappAdminMsgC = 'dirWhatsappAdminMsgC';
+
   static const String noItemlistsMsg = 'noItemlistsMsg';
   static const String noItemlistsMsg2 = 'noItemlistsMsg2';
 
@@ -936,5 +942,9 @@ class AppTranslationConstants {
   static const String playOnSpotify = 'playOnSpotify';
   static const String instagram = 'instagram';
   static const String verifyProfile = 'verifyProfile';
+  static const String meditations = 'meditations';
+  static const String chamberCreated = 'chamberCreated';
+  static const String chamberPresetAdded = 'chamberPresetAdded';
+  static const String maxVideosPerWeekReachedMsg = 'maxVideosPerWeekReachedMsg';
 
 }

@@ -7,6 +7,7 @@ import 'package:geolocator/geolocator.dart';
 import '../../domain/model/app_profile.dart';
 import '../../domain/model/app_user.dart';
 import '../../domain/model/facility.dart';
+import '../../domain/model/place.dart';
 import '../../domain/model/post.dart';
 import '../../domain/repository/profile_repository.dart';
 import '../../utils/app_utilities.dart';
@@ -17,6 +18,7 @@ import '../../utils/enums/facilitator_type.dart';
 import '../../utils/enums/place_type.dart';
 import '../../utils/enums/profile_type.dart';
 import '../../utils/enums/request_type.dart';
+import '../../utils/enums/usage_reason.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
 import 'facility_firestore.dart';
@@ -109,7 +111,6 @@ class ProfileFirestore implements ProfileRepository {
     return profileId;
   }
 
-
   @override
   Future<AppProfile> retrieve(String profileId) async {
     logger.t("Retrieving Profile $profileId");
@@ -167,6 +168,114 @@ class ProfileFirestore implements ProfileRepository {
     return profile;
   }
 
+  @override
+  Future<List<AppProfile>> getWithParameters({
+    bool needsPhone  = false, bool needsPosts = false,
+    List<ProfileType>? profileTypes, FacilityType? facilityType, PlaceType? placeType,
+    List<UsageReason>? usageReasons, Position? currentPosition, int maxDistance = 30,}) async {
+
+    AppUtilities.logger.d("Get all profiles by parameters");
+
+    List<AppProfile> profiles = [];
+
+    Map<String,AppProfile> facilityProfiles = <String, AppProfile>{};
+    Map<String,AppProfile> placeProfiles = <String, AppProfile>{};
+    Map<String,AppProfile> noMainFacilityProfiles = <String, AppProfile>{};
+    Map<String,AppProfile> noMainPlaceProfiles = <String, AppProfile>{};
+
+    try {
+      QuerySnapshot profileQuerySnapshot = await profileReference.get();
+      List<Post> totalPosts = await PostFirestore().retrievePosts();
+
+      for (var queryDocumentSnapshot in profileQuerySnapshot.docs) {
+        if(!queryDocumentSnapshot.exists) continue;
+
+        AppProfile profile = AppProfile.fromJSON(queryDocumentSnapshot.data());
+        profile.id = queryDocumentSnapshot.id;
+
+        if(needsPhone && profile.phoneNumber.isEmpty) {
+          AppUtilities.logger.t("Profile ${profile.id} ${profile.name} - ${profile.type.name} has no phoneNumber");
+          continue;
+        }
+
+        if(profileTypes != null && !profileTypes.contains(profile.type)) {
+          AppUtilities.logger.t("Profile ${profile.id} ${profile.name} - ${profile.type.name} is not profile type ${profileTypes.toString()} required");
+          continue;
+        }
+
+        if(usageReasons != null && (!usageReasons.contains(profile.reason) && profile.reason != UsageReason.any)) {
+          AppUtilities.logger.t("Profile ${profile.id} ${profile.name} - ${profile.reason.name} has not the usage reason ${usageReasons.toString()} required");
+          continue;
+        }
+
+        if(needsPosts && (profile.posts?.isEmpty ?? true)) {
+          AppUtilities.logger.t("Profile ${profile.id} ${profile.name} has not posts");
+          continue;
+        }
+
+        if(currentPosition != null && (profile.position != null
+            && AppUtilities.distanceBetweenPositionsRounded(profile.position!, currentPosition) > maxDistance)) {
+          AppUtilities.logger.t("Profile ${profile.id} ${profile.name} is out of max distance");
+          continue;
+        }
+
+        List<String> postImgUrls = [];
+        if(needsPosts) {
+          List<Post> profilePosts = totalPosts.where((element) => element.ownerId == profile.id).toList();
+          for (var profilePost in profilePosts) {
+            if(postImgUrls.length < 6 && profilePost.mediaUrl.isNotEmpty) {
+              postImgUrls.add(profilePost.mediaUrl);
+            }
+          }
+        }
+
+        if(facilityType != null) {
+          AppUtilities.logger.d("Retrieving Facility for ${profile.name} - ${profile.id}");
+          profile.facilities = await FacilityFirestore().retrieveFacilities(profile.id);
+          if(profile.facilities!.keys.contains(facilityType.value)) {
+            if((profile.facilities?[facilityType.value]?.isMain == true)) {
+              facilityProfiles[profile.id] = profile;
+            } else {
+              noMainFacilityProfiles[profile.id] = profile;
+            }
+          }
+        } else {
+          profile.facilities = {};
+          profile.facilities![profile.id] = Facility();
+          profile.facilities!.values.first.galleryImgUrls  = postImgUrls;
+          facilityProfiles[profile.id] = profile;
+        }
+
+        if(placeType != null) {
+          AppUtilities.logger.d("Retrieving Places for ${profile.name} - ${profile.id}");
+          profile.places = await PlaceFirestore().retrievePlaces(profile.id);
+          if(profile.places!.keys.contains(placeType.value)) {
+            if((profile.places?[placeType.value]?.isMain == true)) {
+              placeProfiles[profile.id] = profile;
+            } else {
+              noMainPlaceProfiles[profile.id] = profile;
+            }
+          }
+        } else {
+          profile.places = {};
+          profile.places![profile.id] = Place();
+          profile.places!.values.first.galleryImgUrls  = postImgUrls;
+          placeProfiles[profile.id] = profile;
+        }
+
+        if(profile.address.isEmpty) {
+          profile.address = await AppUtilities.getAddressFromPlacerMark(profile.position!);
+          if(profile.address.isNotEmpty) ProfileFirestore().updateAddress(profile.id, profile.address);
+        }
+
+        profiles.add(profile);
+      }
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+
+    return profiles;
+  }
 
   @override
   Future<bool> remove({required String userId, required String profileId}) async {
@@ -713,7 +822,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> updateAddress(String profileId, String address) async {
-    logger.i("Updating profile $profileId to address $address");
+    logger.i("Updating Profile $profileId with new address as $address");
 
     try {
       await profileReference.get()
@@ -722,6 +831,52 @@ class ProfileFirestore implements ProfileRepository {
           if(document.id == profileId) {
             await document.reference.update({
               AppFirestoreConstants.address: address,
+            });
+          }
+        }
+      });
+      return true;
+    } catch (e) {
+      logger.e(e.toString());
+    }
+
+    return false;
+  }
+
+  @override
+  Future<bool> updatePhoneNumber(String profileId, String phoneNumber) async {
+    logger.i("Updating Profile $profileId with new phoneNumber as $phoneNumber");
+
+    try {
+      await profileReference.get()
+          .then((querySnapshot) async {
+        for (var document in querySnapshot.docs) {
+          if(document.id == profileId) {
+            await document.reference.update({
+              AppFirestoreConstants.phoneNumber: phoneNumber,
+            });
+          }
+        }
+      });
+      return true;
+    } catch (e) {
+      logger.e(e.toString());
+    }
+
+    return false;
+  }
+
+  @override
+  Future<bool> updateType(String profileId, ProfileType type) async {
+    logger.i("Updating Profile $profileId with new type as ${type.name}");
+
+    try {
+      await profileReference.get()
+          .then((querySnapshot) async {
+        for (var document in querySnapshot.docs) {
+          if(document.id == profileId) {
+            await document.reference.update({
+              AppFirestoreConstants.type: type.value,
             });
           }
         }

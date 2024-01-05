@@ -8,8 +8,7 @@ enum ItemlistType {
   demo('demo'),
   audiobook("audiobook"),
   podcast("podcast"),
-  radioStation("radioStation"),
-  chamberPresets("chamberPresets");
+  radioStation("radioStation");
 
   final String value;
   const ItemlistType(this.value);

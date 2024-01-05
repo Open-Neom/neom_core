@@ -20,7 +20,7 @@ class PostFirestore implements PostRepository {
 
   @override
   Future<List<Post>> retrievePosts() async {
-    logger.d("RetrievingProfiles");
+    logger.d("Retrieving Posts");
     List<Post> posts = <Post>[];
 
     try {

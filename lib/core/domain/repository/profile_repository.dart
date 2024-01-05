@@ -5,7 +5,9 @@ import '../../utils/enums/app_currency.dart';
 import '../../utils/enums/event_action.dart';
 import '../../utils/enums/facilitator_type.dart';
 import '../../utils/enums/place_type.dart';
+import '../../utils/enums/profile_type.dart';
 import '../../utils/enums/request_type.dart';
+import '../../utils/enums/usage_reason.dart';
 import '../model/app_profile.dart';
 
 abstract class ProfileRepository {
@@ -18,6 +20,10 @@ abstract class ProfileRepository {
 
   Future<List<AppProfile>> retrieveProfiles(String userId);
   Future<Map<String,AppProfile>> retrieveAllProfiles();
+  Future<List<AppProfile>> getWithParameters({
+    bool needsPhone  = false, bool needsPosts = false,
+    List<ProfileType>? profileTypes, FacilityType? facilityType, PlaceType? placeType,
+    List<UsageReason>? usageReasons, Position? currentPosition, int maxDistance = 30,});
 
   Future<bool> followProfile({required String profileId, required String followedProfileId});
   Future<bool> unfollowProfile({required String profileId, required  String unfollowProfileId});
@@ -99,4 +105,6 @@ abstract class ProfileRepository {
 
   Future<bool> addChamberPreset({required String profileId, required String chamberPresetId});
   Future<bool> updateAddress(String profileId, String address);
+  Future<bool> updatePhoneNumber(String profileId, String phoneNumber);
+  Future<bool> updateType(String profileId, ProfileType type);
 }

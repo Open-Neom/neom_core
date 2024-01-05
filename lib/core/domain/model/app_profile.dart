@@ -2,12 +2,12 @@ import 'dart:convert';
 
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:get/get.dart';
 
 import '../../utils/app_utilities.dart';
 import '../../utils/core_utilities.dart';
 import '../../utils/enums/profile_type.dart';
 import '../../utils/enums/usage_reason.dart';
+import 'chamber.dart';
 import 'facility.dart';
 import 'genre.dart';
 import 'instrument.dart';
@@ -30,6 +30,7 @@ class AppProfile {
   bool isActive;
   Position? position;
   String address;
+  String phoneNumber;
   ProfileType type;
   UsageReason reason;
 
@@ -67,6 +68,7 @@ class AppProfile {
   ///These are retrieved from a Firebase Collection
   Map<String, Itemlist>? itemlists;
   Map<String, Instrument>? instruments;
+  Map<String, Chamber>? chambers;
   Map<String, NeomFrequency>? frequencies;
   Map<String, Genre>? genres;
   Map<String, Facility>? facilities;
@@ -81,6 +83,7 @@ class AppProfile {
     this.name = "",
     this.position,
     this.address = "",
+    this.phoneNumber = "",
     this.photoUrl = "",
     this.coverImgUrl = "",
     this.aboutMe = "",
@@ -98,7 +101,7 @@ class AppProfile {
 
   @override
   String toString() {
-    return 'AppProfile{id: $id, name: $name, aboutMe: $aboutMe, photoUrl: $photoUrl, coverImgUrl: $coverImgUrl, mainFeature: $mainFeature, lastTimeOn: $lastTimeOn, lastSpotifySync: $lastSpotifySync, reviewStars: $reviewStars, isActive: $isActive, position: $position, address: $address, type: $type, reason: $reason, lastReview: $lastReview, bannedGenres: $bannedGenres, itemmates: $itemmates, eventmates: $eventmates, followers: $followers, following: $following, unfollowing: $unfollowing, blockTo: $blockTo, blockedBy: $blockedBy, posts: $posts, blogEntries: $blogEntries, comments: $comments, hiddenPosts: $hiddenPosts, hiddenComments: $hiddenComments, reports: $reports, bands: $bands, events: $events, reviews: $reviews, appItems: $favoriteItems, chamberPresets: $chamberPresets, watchingEvents: $watchingEvents, goingEvents: $goingEvents, playingEvents: $playingEvents, requests: $requests, sentRequests: $sentRequests, invitationRequests: $invitationRequests, itemlists: $itemlists, instruments: $instruments, frequencies: $frequencies, genres: $genres, facilities: $facilities, places: $places, showInDirectory: $showInDirectory}';
+    return 'AppProfile{id: $id, name: $name, aboutMe: $aboutMe, photoUrl: $photoUrl, coverImgUrl: $coverImgUrl, mainFeature: $mainFeature, lastTimeOn: $lastTimeOn, lastSpotifySync: $lastSpotifySync, reviewStars: $reviewStars, isActive: $isActive, position: $position, address: $address, phoneNumber: $phoneNumber, type: $type, reason: $reason, lastReview: $lastReview, bannedGenres: $bannedGenres, itemmates: $itemmates, eventmates: $eventmates, followers: $followers, following: $following, unfollowing: $unfollowing, blockTo: $blockTo, blockedBy: $blockedBy, posts: $posts, blogEntries: $blogEntries, comments: $comments, hiddenPosts: $hiddenPosts, hiddenComments: $hiddenComments, reports: $reports, bands: $bands, events: $events, reviews: $reviews, favoriteItems: $favoriteItems, chamberPresets: $chamberPresets, watchingEvents: $watchingEvents, goingEvents: $goingEvents, playingEvents: $playingEvents, requests: $requests, sentRequests: $sentRequests, invitationRequests: $invitationRequests, itemlists: $itemlists, instruments: $instruments, chambers: $chambers, frequencies: $frequencies, genres: $genres, facilities: $facilities, places: $places, showInDirectory: $showInDirectory, isVerified: $isVerified, lastNameUpdate: $lastNameUpdate}';
   }
 
   Map<String, dynamic> toJSON() {
@@ -107,6 +110,8 @@ class AppProfile {
       'id': id,
       'name': name,
       'position': jsonEncode(position),
+      'address': address,
+      'phoneNumber': phoneNumber,
       'photoUrl': photoUrl,
       'coverImgUrl': coverImgUrl,
       'aboutMe': aboutMe,
@@ -162,7 +167,8 @@ class AppProfile {
         mainFeature = data["mainFeature"] ?? "",
         isActive = data["isActive"] ?? true,
         position = CoreUtilities.JSONtoPosition(data["position"]),
-        address = data["address"] ?? "",
+        address = data["address"] ?? '',
+        phoneNumber = data["phoneNumber"] ?? '',
         bannedGenres = data["bannedGenres"]?.cast<String>() ?? [],
         itemmates = data["itemmates"]?.cast<String>() ?? [],
         eventmates = data["eventmates"]?.cast<String>() ?? [],
@@ -201,7 +207,8 @@ class AppProfile {
         aboutMe = data["aboutMe"] ?? "",
         mainFeature = data["mainFeature"] ?? "",
         position = CoreUtilities.JSONtoPosition(data["position"]),
-        address = data["address"] ?? "",
+        address = data["address"] ?? '',
+        phoneNumber = data["phoneNumber"] ?? '',
         favoriteItems = data["favoriteItems"]?.cast<String>() ?? [],
         chamberPresets = data["chamberPresets"]?.cast<String>() ?? [],
         instruments = { for (var e in data["instruments"]?.cast<String>() ?? []) e : Instrument() },
@@ -221,7 +228,7 @@ class AppProfile {
       'photoUrl': photoUrl,
       'aboutMe': aboutMe,
       'reason': reason.name,
-      // 'appMediaItems': appMediaItems,
+      ///DEPRECATED 'appMediaItems': appMediaItems,
       'chamberPresets': chamberPresets,
       'genres': genres?.values.map((genre) => genre.name).toList(),
       'mainFeature': mainFeature,
