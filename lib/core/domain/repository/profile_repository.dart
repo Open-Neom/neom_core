@@ -8,6 +8,7 @@ import '../../utils/enums/place_type.dart';
 import '../../utils/enums/profile_type.dart';
 import '../../utils/enums/request_type.dart';
 import '../../utils/enums/usage_reason.dart';
+import '../../utils/enums/verification_level.dart';
 import '../model/app_profile.dart';
 
 abstract class ProfileRepository {
@@ -107,4 +108,5 @@ abstract class ProfileRepository {
   Future<bool> updateAddress(String profileId, String address);
   Future<bool> updatePhoneNumber(String profileId, String phoneNumber);
   Future<bool> updateType(String profileId, ProfileType type);
+  Future<bool> updateVerificationLevel(String profileId, VerificationLevel verificationLevel);
 }

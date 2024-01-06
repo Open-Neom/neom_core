@@ -7,6 +7,7 @@ import '../../utils/app_utilities.dart';
 import '../../utils/core_utilities.dart';
 import '../../utils/enums/profile_type.dart';
 import '../../utils/enums/usage_reason.dart';
+import '../../utils/enums/verification_level.dart';
 import 'chamber.dart';
 import 'facility.dart';
 import 'genre.dart';
@@ -75,7 +76,7 @@ class AppProfile {
   Map<String, Place>? places;
 
   bool showInDirectory;
-  bool isVerified;
+  VerificationLevel verificationLevel;
   int lastNameUpdate = 0;
 
   AppProfile({
@@ -94,14 +95,13 @@ class AppProfile {
     this.isActive = false,
     this.type = ProfileType.instrumentist,
     this.showInDirectory = false,
-    this.isVerified = false,
+    this.verificationLevel = VerificationLevel.none,
     this.lastNameUpdate = 0,
   });
 
-
   @override
   String toString() {
-    return 'AppProfile{id: $id, name: $name, aboutMe: $aboutMe, photoUrl: $photoUrl, coverImgUrl: $coverImgUrl, mainFeature: $mainFeature, lastTimeOn: $lastTimeOn, lastSpotifySync: $lastSpotifySync, reviewStars: $reviewStars, isActive: $isActive, position: $position, address: $address, phoneNumber: $phoneNumber, type: $type, reason: $reason, lastReview: $lastReview, bannedGenres: $bannedGenres, itemmates: $itemmates, eventmates: $eventmates, followers: $followers, following: $following, unfollowing: $unfollowing, blockTo: $blockTo, blockedBy: $blockedBy, posts: $posts, blogEntries: $blogEntries, comments: $comments, hiddenPosts: $hiddenPosts, hiddenComments: $hiddenComments, reports: $reports, bands: $bands, events: $events, reviews: $reviews, favoriteItems: $favoriteItems, chamberPresets: $chamberPresets, watchingEvents: $watchingEvents, goingEvents: $goingEvents, playingEvents: $playingEvents, requests: $requests, sentRequests: $sentRequests, invitationRequests: $invitationRequests, itemlists: $itemlists, instruments: $instruments, chambers: $chambers, frequencies: $frequencies, genres: $genres, facilities: $facilities, places: $places, showInDirectory: $showInDirectory, isVerified: $isVerified, lastNameUpdate: $lastNameUpdate}';
+    return 'AppProfile{id: $id, name: $name, aboutMe: $aboutMe, photoUrl: $photoUrl, coverImgUrl: $coverImgUrl, mainFeature: $mainFeature, lastTimeOn: $lastTimeOn, lastSpotifySync: $lastSpotifySync, reviewStars: $reviewStars, isActive: $isActive, position: $position, address: $address, phoneNumber: $phoneNumber, type: $type, reason: $reason, lastReview: $lastReview, bannedGenres: $bannedGenres, itemmates: $itemmates, eventmates: $eventmates, followers: $followers, following: $following, unfollowing: $unfollowing, blockTo: $blockTo, blockedBy: $blockedBy, posts: $posts, blogEntries: $blogEntries, comments: $comments, hiddenPosts: $hiddenPosts, hiddenComments: $hiddenComments, reports: $reports, bands: $bands, events: $events, reviews: $reviews, favoriteItems: $favoriteItems, chamberPresets: $chamberPresets, watchingEvents: $watchingEvents, goingEvents: $goingEvents, playingEvents: $playingEvents, requests: $requests, sentRequests: $sentRequests, invitationRequests: $invitationRequests, itemlists: $itemlists, instruments: $instruments, chambers: $chambers, frequencies: $frequencies, genres: $genres, facilities: $facilities, places: $places, showInDirectory: $showInDirectory, verificationLevel: $verificationLevel, lastNameUpdate: $lastNameUpdate}';
   }
 
   Map<String, dynamic> toJSON() {
@@ -149,7 +149,7 @@ class AppProfile {
       'sentRequests': sentRequests,
       'invitationRequests': invitationRequests,
       'showInDirectory': showInDirectory,
-      'isVerified': isVerified,
+      'verificationLevel': verificationLevel.name,
       'lastNameUpdate': lastNameUpdate,
     };
   }
@@ -196,7 +196,7 @@ class AppProfile {
         sentRequests = data["sentRequests"]?.cast<String>() ?? [],
         invitationRequests = data["invitationRequests"]?.cast<String>() ?? [],
         showInDirectory = data["showInDirectory"] ?? false,
-        isVerified = data['isVerified'] ?? false,
+        verificationLevel = EnumToString.fromString(VerificationLevel.values, data["verificationLevel"] ?? VerificationLevel.none.name) ?? VerificationLevel.none,
         lastNameUpdate = data["lastNameUpdate"] ?? 0;
 
   AppProfile.fromProfileInstruments(data) :
@@ -216,7 +216,7 @@ class AppProfile {
         type = ProfileType.instrumentist, coverImgUrl = "",
         isActive = true,
         showInDirectory = false,
-        isVerified = data['isVerified'] ?? false;
+        verificationLevel = EnumToString.fromString(VerificationLevel.values, data["verificationLevel"] ?? VerificationLevel.none.name) ?? VerificationLevel.none;
 
 
   Map<String, dynamic> toProfileInstrumentsJSON() {
@@ -234,7 +234,7 @@ class AppProfile {
       'mainFeature': mainFeature,
       'instruments': instruments?.values.map((instrument) => instrument.name).toList(),
       'frequencies': frequencies?.values.map((frequency) => frequency.name).toList(),
-      'isVerified': isVerified
+      'verificationLevel': verificationLevel.name
     };
   }
 

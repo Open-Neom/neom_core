@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
 
@@ -19,6 +18,7 @@ import '../../utils/enums/place_type.dart';
 import '../../utils/enums/profile_type.dart';
 import '../../utils/enums/request_type.dart';
 import '../../utils/enums/usage_reason.dart';
+import '../../utils/enums/verification_level.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
 import 'facility_firestore.dart';
@@ -185,7 +185,6 @@ class ProfileFirestore implements ProfileRepository {
 
     try {
       QuerySnapshot profileQuerySnapshot = await profileReference.get();
-      List<Post> totalPosts = await PostFirestore().retrievePosts();
 
       for (var queryDocumentSnapshot in profileQuerySnapshot.docs) {
         if(!queryDocumentSnapshot.exists) continue;
@@ -221,7 +220,7 @@ class ProfileFirestore implements ProfileRepository {
 
         List<String> postImgUrls = [];
         if(needsPosts) {
-          List<Post> profilePosts = totalPosts.where((element) => element.ownerId == profile.id).toList();
+          List<Post> profilePosts = await PostFirestore().getProfilePosts(profile.id);
           for (var profilePost in profilePosts) {
             if(postImgUrls.length < 6 && profilePost.mediaUrl.isNotEmpty) {
               postImgUrls.add(profilePost.mediaUrl);
@@ -888,6 +887,30 @@ class ProfileFirestore implements ProfileRepository {
 
     return false;
   }
+
+  @override
+  Future<bool> updateVerificationLevel(String profileId, VerificationLevel verificationLevel) async {
+    logger.i("Updating Profile $profileId with VerificationLevel as ${verificationLevel.name}");
+
+    try {
+      await profileReference.get()
+          .then((querySnapshot) async {
+        for (var document in querySnapshot.docs) {
+          if(document.id == profileId) {
+            await document.reference.update({
+              AppFirestoreConstants.verificationLevel: verificationLevel.name,
+            });
+          }
+        }
+      });
+      return true;
+    } catch (e) {
+      logger.e(e.toString());
+    }
+
+    return false;
+  }
+
 
   @override
   Future<bool> addEvent(String profileId, String eventId, EventAction eventAction) async {

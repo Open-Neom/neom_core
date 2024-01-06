@@ -112,5 +112,6 @@ class AppFirestoreConstants {
 
   static const String videoMediaFolder = "videoMedia";
   static const String releaseItemsFolder = "releaseItems";
+  static const String verificationLevel = "verificationLevel";
 
 }
