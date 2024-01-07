@@ -381,7 +381,7 @@ class UserController extends GetxController implements UserService {
   Future<void> getUserById(String userId) async {
 
     try {
-      AppUser userFromFirestore = await UserFirestore().getById(userId);
+      AppUser userFromFirestore = await UserFirestore().getById(userId, getProfileFeatures: false);
       if(userFromFirestore.id.isNotEmpty){
         logger.t("User $userId exists!!");
         user = userFromFirestore;

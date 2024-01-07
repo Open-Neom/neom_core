@@ -59,6 +59,7 @@ class AppConstants {
   static const int maxEventNameLength = 22;
   static const int maxLocationNameLength = 25;
   static const int significantDistanceKM = 5;
+  static const int directoryLimit = 20;
 
   static final profileTabs = ['posts', 'items', 'events'];
   static final eventTabs = ['items', 'going'];

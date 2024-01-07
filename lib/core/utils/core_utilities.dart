@@ -1,5 +1,7 @@
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -823,4 +825,30 @@ class CoreUtilities {
     );
   }
 
+  static Map<double, AppProfile> sortProfilesByLocation(Position currentPosition, List<AppProfile> profiles) {
+    SplayTreeMap<double, AppProfile> sortedProfiles = SplayTreeMap<double, AppProfile>();
+
+    for (var mate in profiles) {
+      double distanceBetweenProfiles = AppUtilities.distanceBetweenPositions(
+          currentPosition, mate.position!);
+      distanceBetweenProfiles = distanceBetweenProfiles + Random().nextDouble();
+      sortedProfiles[distanceBetweenProfiles] = mate;
+    }
+
+    AppUtilities.logger.d("Sorted Profiles ${sortedProfiles.length}");
+    return Map.from(sortedProfiles);
+  }
+
+  static Map<String, AppProfile> sortProfilesByName(List<AppProfile> profiles) {
+
+    profiles.sort((a, b) => a.name.compareTo(b.name));
+
+    Map<String, AppProfile> profileMap = LinkedHashMap.fromIterable(
+      profiles,
+      key: (profile) => profile.name,
+      value: (profile) => profile,
+    );
+
+    return profileMap;
+  }
 }

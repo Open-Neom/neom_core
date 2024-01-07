@@ -11,6 +11,7 @@ import '../../domain/model/post.dart';
 import '../../domain/repository/profile_repository.dart';
 import '../../utils/app_utilities.dart';
 import '../../utils/constants/app_constants.dart';
+import '../../utils/core_utilities.dart';
 import '../../utils/enums/app_currency.dart';
 import '../../utils/enums/event_action.dart';
 import '../../utils/enums/facilitator_type.dart';
@@ -34,7 +35,9 @@ class ProfileFirestore implements ProfileRepository {
   var logger = AppUtilities.logger;
   final usersReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.users);
   final profileReference = FirebaseFirestore.instance.collectionGroup(AppFirestoreCollectionConstants.profiles);
-
+  List<QueryDocumentSnapshot> _profileDocuments = [];
+  Map<dynamic, AppProfile> sortedProfiles = {};
+  List<String> currentProfileIds = [];
   @override
   Future<String> insert(String userId, AppProfile profile) async {
 
@@ -172,9 +175,9 @@ class ProfileFirestore implements ProfileRepository {
   Future<List<AppProfile>> getWithParameters({
     bool needsPhone  = false, bool needsPosts = false,
     List<ProfileType>? profileTypes, FacilityType? facilityType, PlaceType? placeType,
-    List<UsageReason>? usageReasons, Position? currentPosition, int maxDistance = 30,}) async {
+    List<UsageReason>? usageReasons, Position? currentPosition, int maxDistance = 150, int? limit, bool isFirstCall = true}) async {
 
-    AppUtilities.logger.d("Get all profiles by parameters");
+    AppUtilities.logger.d("Get profiles by parameters");
 
     List<AppProfile> profiles = [];
 
@@ -184,13 +187,31 @@ class ProfileFirestore implements ProfileRepository {
     Map<String,AppProfile> noMainPlaceProfiles = <String, AppProfile>{};
 
     try {
-      QuerySnapshot profileQuerySnapshot = await profileReference.get();
+      if(isFirstCall) {
+        QuerySnapshot profileQuerySnapshot = await profileReference.get();
+        _profileDocuments = profileQuerySnapshot.docs;
+        List<AppProfile> unsortedProfiles = [];
+        for (var queryDocumentSnapshot in _profileDocuments) {
+          if (!queryDocumentSnapshot.exists) continue;
+          AppProfile profile = AppProfile.fromJSON(queryDocumentSnapshot.data());
+          profile.id = queryDocumentSnapshot.id;
+          unsortedProfiles.add(profile);
+        }
 
-      for (var queryDocumentSnapshot in profileQuerySnapshot.docs) {
-        if(!queryDocumentSnapshot.exists) continue;
+        if(currentPosition != null) {
+          sortedProfiles = CoreUtilities.sortProfilesByLocation(currentPosition, unsortedProfiles);
+        } else {
+          sortedProfiles = CoreUtilities.sortProfilesByName(unsortedProfiles);
+        }
+        
+      }
 
-        AppProfile profile = AppProfile.fromJSON(queryDocumentSnapshot.data());
-        profile.id = queryDocumentSnapshot.id;
+      for (var profile in sortedProfiles.values) {
+      // for (var queryDocumentSnapshot in _profileDocuments) {
+      //   if(!queryDocumentSnapshot.exists) continue;
+        if(currentProfileIds.contains(profile.id)) continue;
+        // AppProfile profile = AppProfile.fromJSON(queryDocumentSnapshot.data());
+        // profile.id = queryDocumentSnapshot.id;
 
         if(needsPhone && profile.phoneNumber.isEmpty) {
           AppUtilities.logger.t("Profile ${profile.id} ${profile.name} - ${profile.type.name} has no phoneNumber");
@@ -267,7 +288,9 @@ class ProfileFirestore implements ProfileRepository {
           if(profile.address.isNotEmpty) ProfileFirestore().updateAddress(profile.id, profile.address);
         }
 
+        currentProfileIds.add(profile.id);
         profiles.add(profile);
+        if(limit != null && profiles.length >= limit) break;
       }
     } catch (e) {
       AppUtilities.logger.e(e.toString());

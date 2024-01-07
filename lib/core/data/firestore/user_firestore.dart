@@ -74,7 +74,7 @@ class UserFirestore implements UserRepository {
   }
 
   @override
-  Future<AppUser> getById(String userId) async {
+  Future<AppUser> getById(String userId, {getProfileFeatures = true}) async {
     AppUtilities.logger.t("Get User by ID: $userId");
     AppUser user = AppUser();
     try {
@@ -88,17 +88,19 @@ class UserFirestore implements UserRepository {
           if(user.currentProfileId.isNotEmpty) {
              profile = await ProfileFirestore().retrieve(user.currentProfileId);
              if(profile.id.isNotEmpty) {
-               profile = await ProfileFirestore().getProfileFeatures(profile);
                user.profiles = [profile];
              } else {
-               AppUtilities.logger.d("Profile not found");
+               AppUtilities.logger.d("Profile for userId $userId not found");
              }
           } else {
              user.profiles = await ProfileFirestore().retrieveProfiles(userId);
-             if(user.profiles.isNotEmpty && user.profiles.first.id.isNotEmpty) {
-               user.profiles.first = await ProfileFirestore()
-                   .getProfileFeatures(user.profiles.first);
-             }
+
+          }
+
+          if(getProfileFeatures) {
+            if(user.profiles.isNotEmpty && user.profiles.first.id.isNotEmpty) {
+              user.profiles.first = await ProfileFirestore().getProfileFeatures(user.profiles.first);
+            }
           }
         } else {
           AppUtilities.logger.i("No user found");

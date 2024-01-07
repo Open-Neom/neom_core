@@ -185,7 +185,7 @@ class SettingsPrivacyPage extends StatelessWidget {
               },
             ),
             //TODO
-            _.userController.user!.userRole != UserRole.subscriber ?
+            if(_.userController.user!.userRole != UserRole.subscriber)
             Column(
               children: [
                 HeaderWidget(AppTranslationConstants.adminCenter.tr, secondHeader: true),
@@ -200,7 +200,7 @@ class SettingsPrivacyPage extends StatelessWidget {
                     TitleSubtitleRow(AppTranslationConstants.runProfileJobs.tr, onPressed: _.runProfileJobs),
                 ],) : Container(),
               ],
-            ) : Container(),
+            ),
             TitleSubtitleRow("", showDivider: false, vPadding: 10, subtitle: AppTranslationConstants.settingPrivacyMsg.tr),
           ],
         ),

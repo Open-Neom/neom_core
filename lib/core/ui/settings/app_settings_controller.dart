@@ -80,7 +80,7 @@ class AppSettingsController extends GetxController {
           AppTranslationConstants.underConstructionMsg.tr,
           snackPosition: SnackPosition.bottom);
     } catch (e) {
-      logger.toString();
+      logger.e(e.toString());
     }
 
     update([AppPageIdConstants.settingsPrivacy]);
@@ -103,7 +103,7 @@ class AppSettingsController extends GetxController {
     }
 
     isLoading = false;
-    logger.d("Analytic Jobs successfully ran.");
+    logger.d("Analytic Job successfully ran.");
     update([AppPageIdConstants.settingsPrivacy]);
   }
 
@@ -118,9 +118,8 @@ class AppSettingsController extends GetxController {
     }
 
     isLoading = false;
-    logger.d("Jobs successfully ran.");
+    logger.d("Profile Job successfully ran.");
     update([AppPageIdConstants.settingsPrivacy]);
   }
-
 
 }
