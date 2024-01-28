@@ -812,17 +812,9 @@ class CoreUtilities {
     return url.substring(0, questionMarkIndex);
   }
 
-  static void copyToClipboard({
-    required BuildContext context,
-    required String text,
-    String? displayText,
-  }) {
-    Clipboard.setData(
-      ClipboardData(text: text),
-    );
-    AppUtilities.showSnackBar(
-      message: displayText ?? AppTranslationConstants.copied.tr,
-    );
+  static void copyToClipboard({required String text, String? displayText,}) {
+    Clipboard.setData(ClipboardData(text: text),);
+    AppUtilities.showSnackBar(message: displayText ?? AppTranslationConstants.copied.tr);
   }
 
   static Map<double, AppProfile> sortProfilesByLocation(Position currentPosition, List<AppProfile> profiles) {

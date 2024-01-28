@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:csv/csv.dart';
 
 import '../../app_flavour.dart';
 import '../../domain/model/app_analytics.dart';
@@ -125,11 +126,18 @@ class AppAnalyticsFirestore implements AppAnalyticsRepository {
 
         await batch.commit();
 
-        if(getEmailsAsText) {
+        if(getEmailsAsText || true) {
           StringBuffer emailList = StringBuffer();
+
+          List<List<dynamic>> rows = [];
+          rows.add(['Email']);
+
+
           for (var user in users) {
-            if(user.email.isNotEmpty) {
+            if(user.email.isNotEmpty && !user.email.contains("@privaterelay.appleid.com")) {
               emailList.write("${user.email}, ");
+              rows.add([user.email]);
+
             }
           }
 
@@ -138,9 +146,18 @@ class AppAnalyticsFirestore implements AppAnalyticsRepository {
             String emailListPath = "$localPath/${AppFlavour.getAppName()}_email_list.txt";
             File txtFileRef = File(emailListPath);
             await txtFileRef.writeAsString(emailList.toString());
-            AppUtilities.logger.i("Email List created to path $emailListPath successfully.");
-          }
+            CoreUtilities.copyToClipboard(text: emailList.toString());
+            AppUtilities.logger.i("Email List created to path $emailListPath successfully and copied to Clipboard.");
 
+            String csv = const ListToCsvConverter().convert(rows);
+            String emailCsvPath = '$localPath/${AppFlavour.getAppName()}_emails_list.csv';
+            // Create the CSV file
+            File csvFile = File(emailCsvPath);
+            // Write the CSV contents to the file
+            await csvFile.writeAsString(csv);
+            AppUtilities.logger.i("Email CSV created to path $emailListPath successfully and copied to Clipboard.");
+
+          }
         }
       } catch (e) {
         logger.e(e.toString());
