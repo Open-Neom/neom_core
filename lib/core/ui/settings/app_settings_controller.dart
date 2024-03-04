@@ -67,7 +67,7 @@ class AppSettingsController extends GetxController {
         isAvailable = true;
         break;
       case AppLocale.french:
-        isAvailable = false;
+        isAvailable = true;
         break;
       case AppLocale.deutsch:
         isAvailable = false;

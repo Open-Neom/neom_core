@@ -79,10 +79,8 @@ class AppDrawerController extends GetxController {
                               }
                             },
                           ),
-                          trailing: Icon(
-                              appProfile.id == profile.id
-                                  ? FontAwesomeIcons.circleDot
-                                  : Icons.circle_outlined,
+                          trailing: Icon(appProfile.id == profile.id
+                                  ? FontAwesomeIcons.circleDot : Icons.circle_outlined,
                               size: 30
                           ),
                           title: Text(profile.name,

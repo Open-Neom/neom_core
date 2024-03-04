@@ -947,5 +947,6 @@ class AppTranslationConstants {
   static const String chamberCreated = 'chamberCreated';
   static const String chamberPresetAdded = 'chamberPresetAdded';
   static const String maxVideosPerWeekReachedMsg = 'maxVideosPerWeekReachedMsg';
+  static const String freeSingleReleaseUploadMsg = 'freeSingleReleaseUploadMsg';
 
 }
