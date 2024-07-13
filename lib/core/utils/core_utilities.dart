@@ -270,6 +270,11 @@ class CoreUtilities {
   static void launchURL(String url, {bool openInApp = true}) async {
     try {
       if (await canLaunchUrl(Uri.parse(url))) {
+
+        if(openInApp && CoreUtilities.isExternalDomain(url)) {
+          openInApp = false;
+        }
+
         await launchUrl(Uri.parse(url),
             mode: openInApp ? LaunchMode.inAppWebView : LaunchMode.externalApplication
         );
@@ -638,7 +643,7 @@ class CoreUtilities {
 
 
   Future<void> shareApp() async {
-    ShareResult shareResult = await Share.shareWithResult('${MessageTranslationConstants.shareAppMsg.tr}\n'
+    ShareResult shareResult = await Share.share('${MessageTranslationConstants.shareAppMsg.tr}\n'
         '${AppFlavour.getLinksUrl()}'
     );
 
@@ -683,7 +688,7 @@ class CoreUtilities {
               '\n${AppFlavour.getLinksUrl()}\n'
       );
     } else {
-      shareResult = await Share.shareWithResult(
+      shareResult = await Share.share(
           '$caption${caption.isNotEmpty ? "\n\n" : ""}'
               '${MessageTranslationConstants.shareAppMsg.tr}\n'
               '\n${AppFlavour.getLinksUrl()}\n'
@@ -731,7 +736,7 @@ class CoreUtilities {
               '\n${AppFlavour.getLinksUrl()}\n'
       );
     } else {
-      shareResult = await Share.shareWithResult(
+      shareResult = await Share.share(
           '$caption${caption.isNotEmpty ? "\n\n" : ""}'
               '${MessageTranslationConstants.shareMediaItemMsg.tr}\n'
               '\n${AppFlavour.getLinksUrl()}\n'
@@ -843,4 +848,17 @@ class CoreUtilities {
 
     return profileMap;
   }
+
+  static String capitalizeFirstLetter(String input) {
+    if (input.isEmpty) {
+      return input;
+    }
+    return input[0].toUpperCase() + input.substring(1);
+  }
+
+  static bool isExternalDomain(String url) {
+    final uri = Uri.parse(url);
+    return UrlConstants.externalDomains.contains(uri.host);
+  }
+
 }

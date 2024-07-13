@@ -34,15 +34,15 @@ class GenresGridView extends StatelessWidget {
     int gridItems = genres.length;
 
     if(gridItems <= crossAxisCount) {
-      gridHeight = (AppTheme.fullHeight(context)/13) / (crossAxisCount/gridItems).ceil();
+      gridHeight = (AppTheme.fullHeight(context)/15) / (crossAxisCount/gridItems).ceil();
     } else if(gridItems<10) {
-      gridHeight = (AppTheme.fullHeight(context)/10) / (crossAxisCount/gridItems).ceil();
+      gridHeight = (AppTheme.fullHeight(context)/12) / (crossAxisCount/gridItems).ceil();
     } else if(gridItems<15) {
-      gridHeight = (AppTheme.fullHeight(context)/8) / (crossAxisCount/gridItems).ceil();
+      gridHeight = (AppTheme.fullHeight(context)/10) / (crossAxisCount/gridItems).ceil();
     } else if(gridItems>=15) {
-      gridHeight = (AppTheme.fullHeight(context)/6) / (crossAxisCount/gridItems).ceil();
+      gridHeight = (AppTheme.fullHeight(context)/8) / (crossAxisCount/gridItems).ceil();
     } else {
-      gridHeight = (AppTheme.fullHeight(context)/6) / (crossAxisCount/gridItems).ceil();
+      gridHeight = (AppTheme.fullHeight(context)/8) / (crossAxisCount/gridItems).ceil();
     }
     return genres.isNotEmpty ? Container(
       constraints: BoxConstraints(maxHeight: AppTheme.fullHeight(context)/10,),
@@ -76,7 +76,7 @@ class GenresGridView extends StatelessWidget {
           ),
         ),
       ),
-    ) : Container();
+    ) : const SizedBox.shrink();
   }
 
 }

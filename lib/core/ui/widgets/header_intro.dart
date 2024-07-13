@@ -15,7 +15,7 @@ class HeaderIntro extends StatelessWidget{
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -24,25 +24,25 @@ class HeaderIntro extends StatelessWidget{
               ? Image.asset(AppAssets.logoAppWhite,
             height: AppTheme.fullWidth(context)/3,
             width: AppTheme.fullWidth(context)/3,
-          ) : Container(),
+          ) : const SizedBox.shrink(),
           AppTheme.heightSpace10,
           showLogo ? Image.asset(AppFlavour.getAppLogoPath(),
             width: AppTheme.fullWidth(context)*0.75,
             fit: BoxFit.fitWidth,
-          ) : Container(),
-          title.isEmpty ? Container() : Column(
+          ) : const SizedBox.shrink(),
+          title.isEmpty ? const SizedBox.shrink() : Column(
             children: [
-              showLogo ? Container() : AppTheme.heightSpace20,
+              showLogo ? const SizedBox.shrink() : AppTheme.heightSpace20,
               Text(title,
                 textAlign: TextAlign.center,
                 style: AppTheme.headerTitleStyle
               ),
             ],
           ),
-          subtitle.isEmpty ? Container() : Column(
+          subtitle.isEmpty ? const SizedBox.shrink() : Column(
             children: [
               (showLogo && title.isNotEmpty)
-                  ? AppTheme.heightSpace10 : showLogo ? AppTheme.heightSpace20 : Container(),
+                  ? AppTheme.heightSpace10 : showLogo ? AppTheme.heightSpace20 : const SizedBox.shrink(),
               Text(subtitle,
                 textAlign: TextAlign.center,
                 style: AppTheme.headerSubtitleStyle

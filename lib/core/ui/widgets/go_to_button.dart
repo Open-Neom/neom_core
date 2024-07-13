@@ -34,7 +34,7 @@ class GoToButton extends StatelessWidget {
       ),
       child: TextButton(
           onPressed: onPressed,
-          child: Container(
+          child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppTheme.padding20),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,

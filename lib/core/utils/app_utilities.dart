@@ -270,14 +270,22 @@ class AppUtilities {
         ),
         uiSettings: [
           AndroidUiSettings(
-              toolbarTitle: AppTranslationConstants.adjustImage.tr,
-              backgroundColor: AppColor.getMain(),
-              toolbarColor: AppColor.getMain(),
-              toolbarWidgetColor: AppColor.white,
-              statusBarColor: AppColor.getMain(),
-              dimmedLayerColor: AppColor.main50,
-              activeControlsWidgetColor: AppColor.yellow,
+            toolbarTitle: AppTranslationConstants.adjustImage.tr,
+            backgroundColor: AppColor.getMain(),
+            toolbarColor: AppColor.getMain(),
+            toolbarWidgetColor: AppColor.white,
+            statusBarColor: AppColor.getMain(),
+            dimmedLayerColor: AppColor.main50,
+            activeControlsWidgetColor: AppColor.yellow,
+            aspectRatioPresets: [
+              CropAspectRatioPreset.square,
+              CropAspectRatioPreset.ratio3x2,
+              CropAspectRatioPreset.original,
+              CropAspectRatioPreset.ratio4x3,
+              CropAspectRatioPreset.ratio16x9
+            ],
               // initAspectRatio: CropAspectRatioPreset.square,
+
           ),
           IOSUiSettings(
             title: AppTranslationConstants.adjustImage.tr,
@@ -286,14 +294,14 @@ class AppUtilities {
             minimumAspectRatio: 1.0,
             showCancelConfirmationDialog: true,
             aspectRatioLockEnabled: true,
+            aspectRatioPresets: [
+              CropAspectRatioPreset.square,
+              CropAspectRatioPreset.ratio3x2,
+              CropAspectRatioPreset.original,
+              CropAspectRatioPreset.ratio4x3,
+              CropAspectRatioPreset.ratio16x9
+            ],
           )
-        ],
-        aspectRatioPresets: [
-          CropAspectRatioPreset.square,
-          CropAspectRatioPreset.ratio3x2,
-          CropAspectRatioPreset.original,
-          CropAspectRatioPreset.ratio4x3,
-          CropAspectRatioPreset.ratio16x9
         ],
       );
 

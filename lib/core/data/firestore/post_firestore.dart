@@ -149,7 +149,7 @@ class PostFirestore implements PostRepository {
 
   @override
   Future<Map<String, Post>> getTimeline() async {
-    logger.t("");
+    logger.t("getTimeline");
     Map<String, Post> posts = {};
 
     try {

@@ -38,7 +38,7 @@ class EventTile extends StatelessWidget {
                 children: <Widget>[
                   kDebugMode && event.isTest ? Text(AppTranslationConstants.test.tr,
                       style: const TextStyle(fontWeight: FontWeight.bold)
-                  ) : Container(),
+                  ) : const SizedBox.shrink(),
                   Text(
                       event.name.length <= AppConstants.maxEventNameLength ? event.name.capitalizeFirst
                           : "${event.name.substring(0,AppConstants.maxEventNameLength)}...",
@@ -62,7 +62,7 @@ class EventTile extends StatelessWidget {
                     ],
                   ),
                   AppTheme.heightSpace5,
-                  event.place!.name.isEmpty ? Container() :
+                  event.place!.name.isEmpty ? const SizedBox.shrink() :
                   Row(
                     children: <Widget>[
                       const Icon(Icons.location_on, size: 12),

@@ -103,7 +103,8 @@ class FullScreenVideoState extends State<FullScreenVideo> {
       extendBodyBehindAppBar: true,
       backgroundColor: AppColor.main50,
       appBar: AppBarChild(color: Colors.transparent),
-      body: Container(decoration: AppTheme.appBoxDecoration,
+      body: Container(
+        decoration: AppTheme.appBoxDecoration,
         child: !isLoading ? Center(
             child: controller.value.isInitialized
                 ? AspectRatio(
@@ -119,7 +120,7 @@ class FullScreenVideoState extends State<FullScreenVideo> {
                     ),
                   ),
               ],)
-            ) : Container(),
+            ) : const SizedBox.shrink(),
           ) : Stack(
               children: [
                 Center(
@@ -160,7 +161,7 @@ class FullScreenVideoState extends State<FullScreenVideo> {
                 ),
               );
             } else {
-              return Container();
+              return const SizedBox.shrink();
             }
           },
         ),
@@ -183,7 +184,7 @@ class FullScreenVideoState extends State<FullScreenVideo> {
                   )
               ];
             },
-            child: Container(
+            child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 15,),
               child: Text('${controller.value.playbackSpeed}x'),
             ),

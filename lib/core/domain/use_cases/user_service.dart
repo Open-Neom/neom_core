@@ -12,5 +12,7 @@ abstract class UserService {
   Future<void> removeProfile();
   Future<void> reloadProfileItemlists();
   Future<void> reloadProfileChambers();
+  void stopGoingToEvent(String eventId);
+  void goingToEvent(String eventId);
 
 }

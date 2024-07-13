@@ -22,30 +22,38 @@ class Itemlist {
   String href; ///Reference to something in future
   String imgUrl;
   bool public;
-  String uri; /// A link to the Web API endpoint providing full details of the playlist.
-  // List<AppItem>? appItems;
-  List<AppReleaseItem>? appReleaseItems;
-  List<AppMediaItem>? appMediaItems;
-  ItemlistType type;
   Position? position;
   bool isModifiable;
+
+  List<AppReleaseItem>? appReleaseItems;
+  List<AppMediaItem>? appMediaItems;
+  String uri; /// A link to the Web API endpoint providing full details of the external list.
+  ItemlistType type;
+
 
   Itemlist({
     this.id = "",
     this.name = "",
     this.description = "",
-    this.href = "",
-    this.imgUrl = "",
     this.ownerId = "",
     this.ownerName = "",
     this.ownerType = OwnerType.profile,
+    this.href = "",
+    this.imgUrl = "",
     this.public = true,
-    this.uri = "",
-    this.appMediaItems,
-    this.type = ItemlistType.playlist,
     this.position,
     this.isModifiable = true,
+    this.appReleaseItems,
+    this.appMediaItems,
+    this.uri = "",
+    this.type = ItemlistType.playlist,
+
   });
+
+  @override
+  String toString() {
+    return 'Itemlist{id: $id, name: $name, description: $description, ownerId: $ownerId, ownerName: $ownerName, ownerType: $ownerType, href: $href, imgUrl: $imgUrl, public: $public, position: $position, isModifiable: $isModifiable, appReleaseItems: $appReleaseItems, appMediaItems: $appMediaItems, uri: $uri, type: $type}';
+  }
 
   Itemlist.createBasic(this.name, desc) :
     id = "",
@@ -81,11 +89,6 @@ class Itemlist {
     position = CoreUtilities.JSONtoPosition(data["position"]),
     type = EnumToString.fromString(ItemlistType.values, data["type"] ?? ItemlistType.playlist.name) ?? ItemlistType.playlist,
     ownerType = EnumToString.fromString(OwnerType.values, data["ownerType"] ?? OwnerType.profile.name) ?? OwnerType.profile;
-
-  @override
-  String toString() {
-    return 'Itemlist{id: $id, name: $name, description: $description, ownerId: $ownerId, ownerName: $ownerName, ownerType: $ownerType, href: $href, imgUrl: $imgUrl, public: $public, uri: $uri, appReleaseItems: $appReleaseItems, appMediaItems: $appMediaItems, type: $type, position: $position, isModifiable: $isModifiable}';
-  }
 
   Map<String, dynamic>  toJSON()=>{
     //'id': id, generated in firebase
@@ -190,29 +193,5 @@ class Itemlist {
     AppUtilities.logger.t("Retrieving ${imgUrls.length} total Images for itemlist $name.");
     return imgUrls;
   }
-
-  ///DEPRECATED
-  // Itemlist.myFirstItemlist() :
-  //   id = AppConstants.myFavorites,
-  //   name = AppTranslationConstants.myFavItemlistName.tr,
-  //   description = AppTranslationConstants.myFavItemlistDesc.tr,
-  //   href = "",
-  //   imgUrl = "",
-  //   public = false,
-  //   uri = "",
-  //   appMediaItems = [],
-  //   type = ItemlistType.playlist;
-  //
-  // Itemlist.myFirstItemlistFan() :
-  //   id = AppConstants.myFavorites,
-  //   name = AppTranslationConstants.myFavItemlistName.tr,
-  //   description = AppTranslationConstants.myFavItemlistFanDesc.tr,
-  //   href = "",
-  //   imgUrl = "",
-  //   public = false,
-  //   uri = "",
-  //   appMediaItems = [],
-  //   chamberPresets = [],
-  //   type = ItemlistType.playlist;
 
 }

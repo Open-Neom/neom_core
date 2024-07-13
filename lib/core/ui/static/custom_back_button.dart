@@ -14,7 +14,7 @@ class CustomBackButton extends StatelessWidget {
       top: 26,
       child: GestureDetector(
         onTap: () => Get.back(),
-        child: Container(
+        child: Padding(
           padding: const EdgeInsets.all(AppTheme.padding10),
           child: Container(
             decoration: BoxDecoration(

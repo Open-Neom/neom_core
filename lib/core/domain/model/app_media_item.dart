@@ -1,22 +1,3 @@
-/*
- *  This file is part of BlackHole (https://github.com/Sangwan5688/BlackHole).
- *
- * BlackHole is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * BlackHole is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with BlackHole.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Copyright (c) 2021-2023, Ankit Sangwan
- */
-
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import 'package:spotify/spotify.dart';
@@ -35,7 +16,7 @@ class AppMediaItem {
   String name;
   String? description;
   String artist;
-  String artistId; ///IF ARTIST IS ON GIGMEOUT
+  String? artistId; ///IF ARTIST IS ON GIGMEOUT
   String album;
   String? albumId; ///IF ALBUM IS ON GIGMEOUT
   int duration; ///DURATION IN SECONDS
@@ -77,7 +58,7 @@ class AppMediaItem {
     this.album = '',
     this.albumId,
     this.artist = '',
-    this.artistId = '',
+    this.artistId,
     this.externalArtists,
     this.featInternalArtists,
     this.duration = 0,
@@ -267,31 +248,6 @@ class AppMediaItem {
       throw Exception('Error parsing song item: $e');
     }
   }
-
-  // static AppMediaItem fromAppItem(AppItem appItem) {
-  //   try {
-  //     return AppMediaItem(
-  //       id: appItem.id,
-  //       name: appItem.name,
-  //       description: appItem.description,
-  //       lyrics: appItem.lyrics,
-  //       language: appItem.language,
-  //       album: appItem.albumName,
-  //       duration: Duration(milliseconds: appItem.durationMs,).inSeconds,
-  //       genre: appItem.genres.join(', '),
-  //       imgUrl: appItem.albumImgUrl,
-  //       allImgs: [appItem.artistImgUrl],
-  //       releaseDate: 0,//appItem.publishedYear,
-  //       url: appItem.previewUrl,
-  //       permaUrl: appItem.previewUrl,
-  //       artist: appItem.artist,
-  //       artistId: appItem.artistId,
-  //       state: appItem.state
-  //     );
-  //   } catch (e) {
-  //     throw Exception('Error parsing song item: $e');
-  //   }
-  // }
 
   static List<AppMediaItem> mapItemsFromItemlist(Itemlist itemlist) {
 

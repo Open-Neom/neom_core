@@ -97,7 +97,7 @@ Widget buildContainerTextField(String hint, {
   TextInputType textInputType = TextInputType.multiline,
   int maxLines = 1
 }) {
-  return Container(
+  return Padding(
       padding: const EdgeInsets.only(
           left: AppTheme.padding20,
           right: AppTheme.padding20

@@ -1,6 +1,4 @@
 import 'package:get/get.dart';
-import 'package:neom_home/home/ui/home_controller.dart';
-
 import '../../../auth/ui/login/login_controller.dart';
 import '../../data/implementations/user_controller.dart';
 import '../../utils/app_utilities.dart';
@@ -136,8 +134,8 @@ class SplashController extends GetxController {
       case AppRouteConstants.paymentGateway:
         await changeSubtitle(AppTranslationConstants.paymentProcessed);
         update([AppPageIdConstants.splash]);
-
-        Get.delete<HomeController>();
+        //TODO VERIFY FUNCTIONALITY
+        // Get.delete<HomeController>();
         await Get.offAllNamed(AppRouteConstants.home, arguments: [toRoute]);
         break;
       case AppRouteConstants.finishingSpotifySync:

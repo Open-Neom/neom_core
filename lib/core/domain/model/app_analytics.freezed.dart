@@ -12,7 +12,7 @@ part of 'app_analytics.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 AppAnalytics _$AppAnalyticsFromJson(Map<String, dynamic> json) {
   return _AppAnalytics.fromJson(json);
@@ -68,22 +68,22 @@ class _$AppAnalyticsCopyWithImpl<$Res, $Val extends AppAnalytics>
 }
 
 /// @nodoc
-abstract class _$$_AppAnalyticsCopyWith<$Res>
+abstract class _$$AppAnalyticsImplCopyWith<$Res>
     implements $AppAnalyticsCopyWith<$Res> {
-  factory _$$_AppAnalyticsCopyWith(
-          _$_AppAnalytics value, $Res Function(_$_AppAnalytics) then) =
-      __$$_AppAnalyticsCopyWithImpl<$Res>;
+  factory _$$AppAnalyticsImplCopyWith(
+          _$AppAnalyticsImpl value, $Res Function(_$AppAnalyticsImpl) then) =
+      __$$AppAnalyticsImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({String location, int qty});
 }
 
 /// @nodoc
-class __$$_AppAnalyticsCopyWithImpl<$Res>
-    extends _$AppAnalyticsCopyWithImpl<$Res, _$_AppAnalytics>
-    implements _$$_AppAnalyticsCopyWith<$Res> {
-  __$$_AppAnalyticsCopyWithImpl(
-      _$_AppAnalytics _value, $Res Function(_$_AppAnalytics) _then)
+class __$$AppAnalyticsImplCopyWithImpl<$Res>
+    extends _$AppAnalyticsCopyWithImpl<$Res, _$AppAnalyticsImpl>
+    implements _$$AppAnalyticsImplCopyWith<$Res> {
+  __$$AppAnalyticsImplCopyWithImpl(
+      _$AppAnalyticsImpl _value, $Res Function(_$AppAnalyticsImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -92,7 +92,7 @@ class __$$_AppAnalyticsCopyWithImpl<$Res>
     Object? location = null,
     Object? qty = null,
   }) {
-    return _then(_$_AppAnalytics(
+    return _then(_$AppAnalyticsImpl(
       location: null == location
           ? _value.location
           : location // ignore: cast_nullable_to_non_nullable
@@ -107,11 +107,11 @@ class __$$_AppAnalyticsCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_AppAnalytics implements _AppAnalytics {
-  _$_AppAnalytics({required this.location, required this.qty});
+class _$AppAnalyticsImpl implements _AppAnalytics {
+  _$AppAnalyticsImpl({required this.location, required this.qty});
 
-  factory _$_AppAnalytics.fromJson(Map<String, dynamic> json) =>
-      _$$_AppAnalyticsFromJson(json);
+  factory _$AppAnalyticsImpl.fromJson(Map<String, dynamic> json) =>
+      _$$AppAnalyticsImplFromJson(json);
 
   @override
   final String location;
@@ -124,10 +124,10 @@ class _$_AppAnalytics implements _AppAnalytics {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_AppAnalytics &&
+            other is _$AppAnalyticsImpl &&
             (identical(other.location, location) ||
                 other.location == location) &&
             (identical(other.qty, qty) || other.qty == qty));
@@ -140,12 +140,12 @@ class _$_AppAnalytics implements _AppAnalytics {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_AppAnalyticsCopyWith<_$_AppAnalytics> get copyWith =>
-      __$$_AppAnalyticsCopyWithImpl<_$_AppAnalytics>(this, _$identity);
+  _$$AppAnalyticsImplCopyWith<_$AppAnalyticsImpl> get copyWith =>
+      __$$AppAnalyticsImplCopyWithImpl<_$AppAnalyticsImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_AppAnalyticsToJson(
+    return _$$AppAnalyticsImplToJson(
       this,
     );
   }
@@ -154,10 +154,10 @@ class _$_AppAnalytics implements _AppAnalytics {
 abstract class _AppAnalytics implements AppAnalytics {
   factory _AppAnalytics(
       {required final String location,
-      required final int qty}) = _$_AppAnalytics;
+      required final int qty}) = _$AppAnalyticsImpl;
 
   factory _AppAnalytics.fromJson(Map<String, dynamic> json) =
-      _$_AppAnalytics.fromJson;
+      _$AppAnalyticsImpl.fromJson;
 
   @override
   String get location;
@@ -165,6 +165,6 @@ abstract class _AppAnalytics implements AppAnalytics {
   int get qty;
   @override
   @JsonKey(ignore: true)
-  _$$_AppAnalyticsCopyWith<_$_AppAnalytics> get copyWith =>
+  _$$AppAnalyticsImplCopyWith<_$AppAnalyticsImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

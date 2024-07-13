@@ -12,6 +12,6 @@ class AppAnalytics with _$AppAnalytics {
   }) = _AppAnalytics;
 
   factory AppAnalytics.fromJson(Map<String, dynamic> json) =>
-      _$$_AppAnalyticsFromJson(json);
+      _$AppAnalyticsFromJson(json);
 
 }

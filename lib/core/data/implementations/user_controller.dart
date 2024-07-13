@@ -27,10 +27,7 @@ import '../firestore/profile_firestore.dart';
 import '../firestore/user_firestore.dart';
 import 'shared_preference_controller.dart';
 
-
 class UserController extends GetxController implements UserService {
-
-  final logger = AppUtilities.logger;
 
   final Rxn<AppUser> _user = Rxn<AppUser>();
   AppUser? get user => _user.value;
@@ -73,7 +70,7 @@ class UserController extends GetxController implements UserService {
     try {
       fcmToken = await FirebaseMessaging.instance.getToken() ?? "";
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     update([AppPageIdConstants.coupon]);
@@ -82,7 +79,7 @@ class UserController extends GetxController implements UserService {
 
   @override
   Future<void> removeAccount() async {
-    logger.d("removeAccount method Started");
+    AppUtilities.logger.d("removeAccount method Started");
     try {
 
       LoginController loginController = Get.find<LoginController>();
@@ -105,7 +102,7 @@ class UserController extends GetxController implements UserService {
           clear();
         }
       } else {
-        logger.e("AuthCredentials to reauthenticate were null");
+        AppUtilities.logger.e("AuthCredentials to reauthenticate were null");
         Get.offAndToNamed(AppRouteConstants.login);
       }
 
@@ -118,14 +115,14 @@ class UserController extends GetxController implements UserService {
       Get.toNamed(AppRouteConstants.logout);
     }
 
-    logger.i("removeAccount method Finished");
+    AppUtilities.logger.i("removeAccount method Finished");
     update();
   }
 
 
   @override
   Future<void> getUserFromFacebook(String fbAccessToken) async {
-    logger.i("User is new");
+    AppUtilities.logger.i("User is new");
     try {
 
       Uri fbURI = Uri.https(AppFacebookConstants.graphApiAuthorityUrl, AppFacebookConstants.graphApiUnencondedPath,
@@ -136,10 +133,10 @@ class UserController extends GetxController implements UserService {
 
       if(graphResponse.statusCode == 200) {
         var jsonResponse = jsonDecode(graphResponse.body) as Map<String, dynamic>;
-        logger.i("Profile from Graph FB API ${jsonResponse.toString()}");
+        AppUtilities.logger.i("Profile from Graph FB API ${jsonResponse.toString()}");
         user = AppUser.fromFbProfile(jsonResponse);
       } else {
-        logger.w("Request failed with status: ${graphResponse.statusCode}");
+        AppUtilities.logger.w("Request failed with status: ${graphResponse.statusCode}");
       }
     } catch (e) {
       Get.snackbar(
@@ -147,7 +144,7 @@ class UserController extends GetxController implements UserService {
         e.toString(),
         snackPosition: SnackPosition.bottom,
       );
-      logger.e(e);
+      AppUtilities.logger.e(e);
     }
   }
 
@@ -155,7 +152,7 @@ class UserController extends GetxController implements UserService {
   /// Create user profile from google login
   @override
   void getUserFromFirebase(fba.User fbaUser) {
-    logger.d("Getting User Info From Firebase Authentication");
+    AppUtilities.logger.d("Getting User Info From Firebase Authentication");
     user =  AppUser(
       dateOfBirth: DateTime(1950, DateTime.now().month, DateTime.now().day + 3)
           .toString(),
@@ -172,8 +169,8 @@ class UserController extends GetxController implements UserService {
       password: "",
       );
 
-    logger.d('Last login at: ${fbaUser.metadata.lastSignInTime}');
-    logger.d(user.toString());
+    AppUtilities.logger.d('Last login at: ${fbaUser.metadata.lastSignInTime}');
+    AppUtilities.logger.d(user.toString());
   }
 
   void clear() {
@@ -184,7 +181,7 @@ class UserController extends GetxController implements UserService {
   @override
   Future<void> createUser() async {
 
-    logger.d("User to create ${user!.name}");
+    AppUtilities.logger.d("User to create ${user!.name}");
     AppUser newUser = user!;
 
     newProfile.photoUrl = newUser.photoUrl;
@@ -229,7 +226,7 @@ class UserController extends GetxController implements UserService {
     newUser.userRole = UserRole.subscriber;
 
     if(Get.find<LoginController>().appInfo.value.coinPromo) {
-      logger.i("GIVING COINS AS PART OF BETA LAUNCH");
+      AppUtilities.logger.i("GIVING COINS AS PART OF BETA LAUNCH");
       newUser.wallet.amount = newUser.wallet.amount + Get.find<LoginController>().appInfo.value.coinAmount;
     }
 
@@ -257,11 +254,11 @@ class UserController extends GetxController implements UserService {
           Get.offAllNamed(AppRouteConstants.home);
         } else {
           await UserFirestore().remove(newUser.id);
-          logger.e("Something wrong creating account.");
+          AppUtilities.logger.e("Something wrong creating account.");
           Get.offAllNamed(AppRouteConstants.login);
         }
       } else {
-        logger.e("Something wrong creating account.");
+        AppUtilities.logger.e("Something wrong creating account.");
         Get.offAllNamed(AppRouteConstants.login);
       }
     } catch (e) {
@@ -272,7 +269,7 @@ class UserController extends GetxController implements UserService {
       );
     }
 
-    logger.d("");
+    AppUtilities.logger.d("");
     Get.find<SharedPreferenceController>().writeLocal();
     update([AppPageIdConstants.login, AppPageIdConstants.home]);
   }
@@ -280,7 +277,7 @@ class UserController extends GetxController implements UserService {
   @override
   Future<void> createProfile() async {
 
-    logger.d("Profile to create ${newProfile.name}");
+    AppUtilities.logger.d("Profile to create ${newProfile.name}");
 
     if(newProfile.photoUrl.isEmpty) {
       newProfile.photoUrl = user!.photoUrl;
@@ -337,10 +334,10 @@ class UserController extends GetxController implements UserService {
 
         if(profileId.isNotEmpty) {
           await UserFirestore().updateCurrentProfile(user!.id, profileId);
-          logger.i("Additional profile created successfully.");
+          AppUtilities.logger.i("Additional profile created successfully.");
           Get.offAllNamed(AppRouteConstants.home);
         } else {
-          logger.e("Something wrong creating account.");
+          AppUtilities.logger.e("Something wrong creating account.");
           Get.offAllNamed(AppRouteConstants.login);
         }
       }
@@ -350,19 +347,19 @@ class UserController extends GetxController implements UserService {
         e.toString(),
         snackPosition: SnackPosition.bottom,
       );
-      logger.e("Something wrong creating account.");
+      AppUtilities.logger.e("Something wrong creating account.");
       Get.offAllNamed(AppRouteConstants.login);
       update();
     }
 
-    logger.d("");
+    AppUtilities.logger.d("");
     Get.find<SharedPreferenceController>().writeLocal();
     update([AppPageIdConstants.login, AppPageIdConstants.home]);
   }
 
   @override
   Future<void> getProfiles() async {
-    logger.d("User looked up by ${user!.id}");
+    AppUtilities.logger.d("User looked up by ${user!.id}");
 
     try {
       user!.profiles = await ProfileFirestore().retrieveProfiles(user!.id);
@@ -383,15 +380,15 @@ class UserController extends GetxController implements UserService {
     try {
       AppUser userFromFirestore = await UserFirestore().getById(userId, getProfileFeatures: false);
       if(userFromFirestore.id.isNotEmpty){
-        logger.t("User $userId exists!!");
+        AppUtilities.logger.t("User $userId exists!!");
         user = userFromFirestore;
         profile = user!.profiles.first;
       } else {
-        logger.i("User $userId not exists!!");
+        AppUtilities.logger.i("User $userId not exists!!");
         isNewUser = true;
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
   }
 
@@ -412,14 +409,14 @@ class UserController extends GetxController implements UserService {
   }
 
   Future<void> changeProfile(AppProfile selectedProfile) async {
-    logger.i("Changing profile to ${selectedProfile.id}");
+    AppUtilities.logger.i("Changing profile to ${selectedProfile.id}");
 
     try {
       profile = selectedProfile;
       Get.toNamed(AppRouteConstants.splashScreen, arguments: [AppRouteConstants.refresh]);
       profile = await UserFirestore().updateCurrentProfile(user!.id, selectedProfile.id);
     } catch(e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     update();
@@ -427,7 +424,7 @@ class UserController extends GetxController implements UserService {
 
   @override
   Future<void> removeProfile() async {
-    logger.d("removeProfile method Started");
+    AppUtilities.logger.d("removeProfile method Started");
     try {
 
       if(await ProfileFirestore().remove(userId: user!.id, profileId: profile.id)) {
@@ -447,7 +444,7 @@ class UserController extends GetxController implements UserService {
       Get.toNamed(AppRouteConstants.logout);
     }
 
-    logger.i("removeProfile method Finished");
+    AppUtilities.logger.i("removeProfile method Finished");
     update();
   }
 
@@ -493,6 +490,28 @@ class UserController extends GetxController implements UserService {
     }
 
     update([]);
+  }
+
+  @override
+  void stopGoingToEvent(String eventId) {
+    profile.goingEvents?.remove(eventId);
+    try {
+      //Get.find<EventDetailsController>().stopGoingToEvent();
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+    update([AppPageIdConstants.timeline]);
+  }
+
+  @override
+  void goingToEvent(String eventId) {
+    profile.goingEvents?.add(eventId);
+    try {
+      //Get.find<EventDetailsController>().stopGoingToEvent();
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+    update([AppPageIdConstants.timeline]);
   }
 
 }

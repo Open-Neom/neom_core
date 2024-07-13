@@ -6,4 +6,11 @@ class UrlConstants {
   static const String whatsAppURL = 'whatsapp://send?phone=+<phoneNumber>&text=<message>';
   static const String firebaseURL = 'firebasestorage.googleapis.com';
 
+  static const List<String> externalDomains = [
+    'meet.google.com',
+    'zoom.us',
+    'teams.microsoft.com',
+    // Agrega más dominios según sea necesario
+  ];
+
 }

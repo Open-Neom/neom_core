@@ -1,12 +1,6 @@
 import 'package:get/get.dart';
 import 'ui/analytics/analytics_page.dart';
 import 'ui/media/media_fullscreen_page.dart';
-import 'ui/settings/about_page.dart';
-import 'ui/settings/account_settings_page.dart';
-import 'ui/settings/blocked_profiles_page.dart';
-import 'ui/settings/content_preferences.dart';
-import 'ui/settings/privacy_and_terms_page.dart';
-import 'ui/settings/settings_and_privacy_page.dart';
 import 'ui/static/previous_version_page.dart';
 import 'ui/static/splash_page.dart';
 import 'ui/static/under_construction_page.dart';
@@ -53,30 +47,6 @@ class CoreRoutes {
       name: AppRouteConstants.analytics,
       page: () => const AnalyticsPage(),
       transition: Transition.zoom,
-    ),
-    GetPage(
-      name: AppRouteConstants.settingsPrivacy,
-      page: () => const SettingsPrivacyPage(),
-    ),
-    GetPage(
-      name: AppRouteConstants.privacyAndTerms,
-      page: () => const PrivacyAndTermsPage(),
-    ),
-    GetPage(
-      name: AppRouteConstants.settingsAccount,
-      page: () => const AccountSettingsPage(),
-    ),
-    GetPage(
-      name: AppRouteConstants.contentPreferences,
-      page: () => const ContentPreferencePage(),
-    ),
-    GetPage(
-      name: AppRouteConstants.about,
-      page: () => const AboutPage(),
-    ),
-    GetPage(
-      name: AppRouteConstants.blockedProfiles,
-      page: () => const BlockedProfilesPage(),
     ),
   ];
 

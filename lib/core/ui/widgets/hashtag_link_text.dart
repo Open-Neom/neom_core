@@ -30,7 +30,7 @@ class HashtagLinkText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     bool containsURL = text.contains("http") || text.contains("https");
-    return !onlyHashtag && containsURL?
+    return !onlyHashtag && containsURL ?
     Linkify(
       text: text,
       onOpen: (link)  {

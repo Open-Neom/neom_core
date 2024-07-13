@@ -12,7 +12,6 @@ import 'forgot_password_controller.dart';
 class ForgotPasswordPage extends StatelessWidget {
   const ForgotPasswordPage({super.key});
 
-
   @override
   Widget build(BuildContext context) {
     return GetBuilder<ForgotPasswordController>(

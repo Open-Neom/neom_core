@@ -59,7 +59,7 @@ class TitleSubtitleRow extends StatelessWidget {
           title: title.isNotEmpty ? UrlText(
             text: title,
             style: TextStyle(fontSize: titleFontSize, color: textColor, ),
-          ) : Container(),
+          ) : const SizedBox.shrink(),
           subtitle: Text(subtitle,
             style: TextStyle(
               color: Colors.white70,

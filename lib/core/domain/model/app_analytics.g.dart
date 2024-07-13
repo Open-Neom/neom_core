@@ -6,15 +6,13 @@ part of 'app_analytics.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-// ignore: non_constant_identifier_names
-_$_AppAnalytics _$$_AppAnalyticsFromJson(Map<String, dynamic> json) =>
-    _$_AppAnalytics(
+_$AppAnalyticsImpl _$$AppAnalyticsImplFromJson(Map<String, dynamic> json) =>
+    _$AppAnalyticsImpl(
       location: json['location'] as String,
-      qty: json['qty'] as int,
+      qty: (json['qty'] as num).toInt(),
     );
 
-// ignore: non_constant_identifier_names
-Map<String, dynamic> _$$_AppAnalyticsToJson(_$_AppAnalytics instance) =>
+Map<String, dynamic> _$$AppAnalyticsImplToJson(_$AppAnalyticsImpl instance) =>
     <String, dynamic>{
       'location': instance.location,
       'qty': instance.qty,

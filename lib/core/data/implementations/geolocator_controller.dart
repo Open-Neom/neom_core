@@ -12,12 +12,10 @@ import '../firestore/profile_firestore.dart';
 
 class GeoLocatorController implements GeoLocatorService {
 
-  var logger = AppUtilities.logger;
-
   @override
   Future<Placemark> getPlaceMark(Position currentPos) async {
 
-    Placemark placeMark = Placemark();
+    Placemark placeMark = const Placemark();
     List<Placemark> placeMarks = [];
     try {
       if(currentPos.latitude != 0 && currentPos.longitude != 0) {
@@ -27,7 +25,7 @@ class GeoLocatorController implements GeoLocatorService {
         }
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     return placeMark;
@@ -35,7 +33,7 @@ class GeoLocatorController implements GeoLocatorService {
 
   @override
   Future<String> getAddressSimple(Position currentPos) async {
-    logger.t(currentPos.toString());
+    AppUtilities.logger.t(currentPos.toString());
     String address = "";
     List<Placemark> placeMarks = [];
 
@@ -54,11 +52,11 @@ class GeoLocatorController implements GeoLocatorService {
         }
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
 
-    logger.t(address);
+    AppUtilities.logger.t(address);
     return address;
   }
 
@@ -78,13 +76,13 @@ class GeoLocatorController implements GeoLocatorService {
       }
 
       permission = await Geolocator.checkPermission();
-      logger.d('Current LocationPermission is: ${permission.name}');
+      AppUtilities.logger.d('Current LocationPermission is: ${permission.name}');
 
       permission = await Geolocator.requestPermission();
-      logger.d('New LocationPermission is: ${permission.name}');
+      AppUtilities.logger.d('New LocationPermission is: ${permission.name}');
 
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     return permission;
@@ -128,9 +126,9 @@ class GeoLocatorController implements GeoLocatorService {
       }
 
       position = await Geolocator.getCurrentPosition();
-      logger.t("Position: ${position.toString()}");
+      AppUtilities.logger.t("Position: ${position.toString()}");
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     return position;
@@ -139,7 +137,7 @@ class GeoLocatorController implements GeoLocatorService {
 
   @override
   Future<Position> updateLocation(String profileId, Position? currentPosition) async {
-    logger.t("Updating Location for ProfileId $profileId");
+    AppUtilities.logger.t("Updating Location for ProfileId $profileId");
 
     Position newPosition = Position(longitude: 0, latitude: 0, timestamp: DateTime.now(),
         accuracy: 0, altitude: 0, heading: 0, speed: 0, speedAccuracy: 0, altitudeAccuracy: 1, headingAccuracy: 1);
@@ -149,24 +147,24 @@ class GeoLocatorController implements GeoLocatorService {
       if(currentPosition != null) {
         int distance = AppUtilities.distanceBetweenPositionsRounded(currentPosition, newPosition);
         if(distance > AppConstants.significantDistanceKM){
-          logger.t("GpsLocation would be updated as distance difference is significant");
+          AppUtilities.logger.t("GpsLocation would be updated as distance difference is significant");
           if(await ProfileFirestore().updatePosition(profileId, newPosition)){
-            logger.i("GpsLocation was updated as distance was significant ${distance}Kms");
+            AppUtilities.logger.i("GpsLocation was updated as distance was significant ${distance}Kms");
           }
         } else {
           return currentPosition;
         }
       } else {
         if(await ProfileFirestore().updatePosition(profileId, newPosition)){
-          logger.i("GpsLocation was updated as there was no data for it");
+          AppUtilities.logger.i("GpsLocation was updated as there was no data for it");
         }
       }
 
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
-    logger.d("updateLocation method Exit");
+    AppUtilities.logger.d("updateLocation method Exit");
     return newPosition;
   }
 

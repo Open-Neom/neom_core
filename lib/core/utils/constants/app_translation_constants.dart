@@ -691,6 +691,7 @@ class AppTranslationConstants {
   static const String startReading = 'startReading';
   static const String readOn = 'readOn';
   static const String suggestedReading = 'suggestedReading';
+  static const String releaseShelfSuggestion = 'releaseShelfSuggestion';
   static const String digitalLibrary = 'digitalLibrary';
   static const String music = 'music';
   static const String player = 'player';

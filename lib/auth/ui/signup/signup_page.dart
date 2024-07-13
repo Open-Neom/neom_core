@@ -68,7 +68,7 @@ class SignupPage extends StatelessWidget {
                         ),
                       ],
                     ),
-                    !_.agreeTerms.value ? Container() : Container(
+                    !_.agreeTerms.value ? const SizedBox.shrink() : Container(
                       margin: const EdgeInsets.symmetric(vertical: 15),
                       width: MediaQuery.of(context).size.width/2,
                       child: TextButton(

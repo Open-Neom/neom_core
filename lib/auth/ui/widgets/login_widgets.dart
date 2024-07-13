@@ -81,7 +81,7 @@ import '../login/login_controller.dart';
   }
 
   Widget buildForgotPasswordBtn(LoginController _) {
-    return Container(
+    return Align(
       alignment: Alignment.centerRight,
       child: TextButton(
         onPressed: () => Get.toNamed(AppRouteConstants.forgotPassword),
@@ -177,7 +177,7 @@ import '../login/login_controller.dart';
   }
 
   Widget buildSocialBtnRow(LoginController _) {
-    return Container(
+    return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10.0),
       child: Row(
         mainAxisAlignment: (_.isIOS13OrHigher && _.appInfo.value.googleLoginEnabled)
@@ -209,7 +209,7 @@ import '../login/login_controller.dart';
                   ),
                 ),
               )
-          ) : Container(),
+          ) : const SizedBox.shrink(),
           (_.appInfo.value.googleLoginEnabled || kDebugMode)
               ? TextButton(
             onPressed: () async => {
@@ -235,7 +235,7 @@ import '../login/login_controller.dart';
                 ),
               ),
             ),
-          ) : Container(),
+          ) : const SizedBox.shrink(),
         ],
       ),
     );

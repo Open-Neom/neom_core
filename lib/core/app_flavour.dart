@@ -451,16 +451,17 @@ class AppFlavour {
     }
   }
 
-  static List<Widget> getHomePages() {
-    switch (appInUse) {
-      case AppInUse.c:
-        return AppRouteConstants.cHomePages;
-      case AppInUse.g:
-        return AppRouteConstants.gHomePages;
-      case AppInUse.e:
-        return AppRouteConstants.eHomePages;
-    }
-  }
+  ///DEPRECATED
+  // static List<Widget> getHomePages() {
+  //   switch (appInUse) {
+  //     case AppInUse.c:
+  //       return AppRouteConstants.cHomePages;
+  //     case AppInUse.g:
+  //       return AppRouteConstants.gHomePages;
+  //     case AppInUse.e:
+  //       return AppRouteConstants.eHomePages;
+  //   }
+  // }
 
   static IconData getSecondTabIcon() {
     switch (appInUse) {
@@ -538,17 +539,6 @@ class AppFlavour {
         return CupertinoIcons.add;
       case AppInUse.c:
         return FontAwesomeIcons.om;
-    }
-  }
-
-  static List<Widget> getMusicPlayerPages() {
-    switch (appInUse) {
-      case AppInUse.c:
-        return AppRouteConstants.cMusicPlayerPages;
-      case AppInUse.g:
-        return AppRouteConstants.gMusicPlayerPages;
-      case AppInUse.e:
-        return AppRouteConstants.eMusicPlayerPages;
     }
   }
 

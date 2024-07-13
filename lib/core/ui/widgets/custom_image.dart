@@ -14,7 +14,7 @@ import 'video_play_button.dart';
 
 Widget customCachedNetworkHeroImage(mediaUrl) {
   AppUtilities.logger.t("Building hero widget for image url: $mediaUrl");
-  return mediaUrl == AppFlavour.getNoImageUrl() ? Container(): Hero(
+  return mediaUrl == AppFlavour.getNoImageUrl() ? const SizedBox.shrink(): Hero(
     //TODO Improve removing random int to get real hero functionality
     tag: 'img_${mediaUrl}_${Random().nextInt(1000)}',
     child: CachedNetworkImage(
