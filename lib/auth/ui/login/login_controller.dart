@@ -134,7 +134,7 @@ class LoginController extends GetxController implements LoginService {
 
         if (userController.isNewUser && userController.user!.id.isNotEmpty) {
           authStatus.value = AuthStatus.loggedIn;
-          Get.offAndToNamed(AppRouteConstants.introRequiredPermissions);
+          Get.toNamed(AppRouteConstants.introRequiredPermissions);
         } else {
           sharedPreferenceController.setFirstTime(false);
           Get.offAllNamed(AppRouteConstants.root);

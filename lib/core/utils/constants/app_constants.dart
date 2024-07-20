@@ -38,6 +38,7 @@ class AppConstants {
   static const int maxAppItemNameLength = 16;
   static const int maxGenreNameLength = 15;
   static const int maxArtistNameLength = 15;
+  static const int maxAuthorNameLength = 30;
   static const int maxBandNameLength = 15;
   static const int maxBandDescLength = 30;
   static const int maxItemlistNameLength = 22;

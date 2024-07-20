@@ -468,7 +468,7 @@ class AppFlavour {
       case AppInUse.g:
         return FontAwesomeIcons.building;
       case AppInUse.e:
-        return FontAwesomeIcons.building;
+        return FontAwesomeIcons.calendar;
       case AppInUse.c:
         return Icons.surround_sound_outlined;
     }
@@ -479,7 +479,7 @@ class AppFlavour {
       case AppInUse.g:
         return AppTranslationConstants.directory;
       case AppInUse.e:
-        return AppTranslationConstants.directory;
+        return AppTranslationConstants.events;
       case AppInUse.c:
         return AppTranslationConstants.presets;
     }
@@ -490,7 +490,7 @@ class AppFlavour {
       case AppInUse.g:
         return FontAwesomeIcons.calendar;
       case AppInUse.e:
-        return FontAwesomeIcons.calendar;
+        return FontAwesomeIcons.shop;
       case AppInUse.c:
         return FontAwesomeIcons.calendar;
     }
@@ -501,7 +501,7 @@ class AppFlavour {
       case AppInUse.g:
         return AppTranslationConstants.events;
       case AppInUse.e:
-        return AppTranslationConstants.events;
+        return AppTranslationConstants.bookShop;
       case AppInUse.c:
         return AppTranslationConstants.events;
     }
@@ -512,7 +512,7 @@ class AppFlavour {
       case AppInUse.g:
         return Icons.play_circle_fill;
       case AppInUse.e:
-        return FontAwesomeIcons.shop;
+        return FontAwesomeIcons.headphones;
       case AppInUse.c:
       ///CHANGE TO MUSIC IN NEXT VERSION
         return LucideIcons.audioWaveform;
@@ -524,10 +524,10 @@ class AppFlavour {
       case AppInUse.g:
         return AppTranslationConstants.music;
       case AppInUse.e:
-        return AppTranslationConstants.library;
+        return AppTranslationConstants.audioLibrary;
       case AppInUse.c:
         ///CHANGE TO MUSIC IN NEXT VERSION
-        return AppTranslationConstants.library;
+        return AppTranslationConstants.audioLibrary;
     }
   }
 

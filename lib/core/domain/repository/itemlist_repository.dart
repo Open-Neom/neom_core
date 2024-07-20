@@ -1,4 +1,6 @@
 import 'dart:async';
+import '../../utils/enums/itemlist_type.dart';
+import '../../utils/enums/owner_type.dart';
 import '../model/app_media_item.dart';
 import '../model/app_release_item.dart';
 import '../model/item_list.dart';
@@ -17,7 +19,9 @@ abstract class ItemlistRepository {
 
   Future<bool> update(Itemlist itemlist);
 
-  Future<Map<String, Itemlist>> fetchAll({bool onlyPublic = false, bool excludeMyFavorites = true, int minItems = 0, int maxLength = 100, String ownerId = ''});
+  Future<Map<String, Itemlist>> fetchAll({bool onlyPublic = false, bool excludeMyFavorites = true,
+    int minItems = 0, int maxLength = 100, String ownerId = '', String excludeFromProfileId = '',
+    OwnerType ownerType = OwnerType.profile, ItemlistType? itemlistType});
 
   Future<bool> addReleaseItem(String itemlistId, AppReleaseItem releaseItem);
   Future<bool> deleteReleaseItem(String itemlistId, AppReleaseItem releaseItem);

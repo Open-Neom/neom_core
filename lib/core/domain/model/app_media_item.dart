@@ -346,13 +346,11 @@ class AppMediaItem {
         state = chamberPreset.state,
         genres = [],
         mediaSource = AppMediaSource.internal,
-  releaseDate = 0,
-  is320Kbps = true,
-  likes = 0,
-  lyrics = '',
-  permaUrl = chamberPreset.imgUrl,
-  publishedYear = 0,
-  type = MediaItemType.neomPreset
-
-  ;
+        releaseDate = 0,
+        is320Kbps = true,
+        likes = 0,
+        lyrics = '',
+        permaUrl = chamberPreset.imgUrl,
+        publishedYear = 0,
+        type = MediaItemType.neomPreset;
 }

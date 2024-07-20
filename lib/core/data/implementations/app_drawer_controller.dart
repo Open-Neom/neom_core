@@ -8,29 +8,23 @@ import '../../../neom_commons.dart';
 //TODO IS MISSING INTERFACE AS SERVICE
 class AppDrawerController extends GetxController {
 
-  var logger = AppUtilities.logger;
   final userController = Get.find<UserController>();
 
   AppUser user = AppUser();
 
-  final Rx<AppProfile> _profile = AppProfile().obs;
-  AppProfile get appProfile => _profile.value;
-  set appProfile(AppProfile profile) => _profile.value = profile;
-
-  final RxBool _isButtonDisabled = false.obs;
-  bool get isButtonDisabled => _isButtonDisabled.value;
-  set isButtonDisabled(bool isButtonDisabled) => _isButtonDisabled.value = isButtonDisabled;
+  final Rx<AppProfile> appProfile = AppProfile().obs;
+  final RxBool isButtonDisabled = false.obs;
 
   @override
   void onInit() async {
     super.onInit();
-    logger.t("SideBar Controller Init");
+    AppUtilities.logger.t("SideBar Controller Init");
     user = userController.user!;
-    appProfile = userController.profile;
+    appProfile.value = userController.profile;
   }
 
   void updateProfile(AppProfile profile) {
-    appProfile = profile;
+    appProfile.value = profile;
     update([AppPageIdConstants.appDrawer]);
   }
 
@@ -73,13 +67,13 @@ class AppDrawerController extends GetxController {
                             ),
                             onPressed: () async {
                               Navigator.pop(context);
-                              if(appProfile.id != profile.id) {
+                              if(appProfile.value.id != profile.id) {
                                 Navigator.pop(treeContext);
                                 await userController.changeProfile(profile);
                               }
                             },
                           ),
-                          trailing: Icon(appProfile.id == profile.id
+                          trailing: Icon(appProfile.value.id == profile.id
                                   ? FontAwesomeIcons.circleDot : Icons.circle_outlined,
                               size: 30
                           ),
@@ -89,7 +83,7 @@ class AppDrawerController extends GetxController {
                           subtitle: Text("${profile.type.name.tr.capitalize} - ${profile.mainFeature.tr.capitalize}"),
                           onTap: () async {
                             Navigator.pop(context);
-                            if(appProfile.id != profile.id) {
+                            if(appProfile.value.id != profile.id) {
                               Navigator.pop(treeContext);
                               await userController.changeProfile(profile);
                             }
@@ -124,9 +118,9 @@ class AppDrawerController extends GetxController {
             ));
           });
 
-      isButtonDisabled = false;
+      isButtonDisabled.value = false;
     } catch(e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     update();

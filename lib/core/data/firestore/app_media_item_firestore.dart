@@ -37,7 +37,7 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
 
   @override
   Future<Map<String, AppMediaItem>> fetchAll() async {
-    AppUtilities.logger.d("Getting appMediaItems from list");
+    AppUtilities.logger.t("Getting appMediaItems from list");
 
     Map<String, AppMediaItem> appMediaItems = {};
 
@@ -45,7 +45,7 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
       QuerySnapshot querySnapshot = await appMediaItemReference.get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        AppUtilities.logger.d("QuerySnapshot is not empty");
+        AppUtilities.logger.t("QuerySnapshot is not empty");
         for (var documentSnapshot in querySnapshot.docs) {
           AppMediaItem appMediaItem = AppMediaItem.fromJSON(documentSnapshot.data());
           if(appMediaItem.name.toLowerCase() == 'no se vaya a confundir - en vivo') {

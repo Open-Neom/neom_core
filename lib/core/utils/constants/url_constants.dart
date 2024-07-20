@@ -10,6 +10,8 @@ class UrlConstants {
     'meet.google.com',
     'zoom.us',
     'teams.microsoft.com',
+    'youtube.com',
+    'youtu.be'
     // Agrega más dominios según sea necesario
   ];
 

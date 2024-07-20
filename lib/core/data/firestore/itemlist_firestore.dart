@@ -9,6 +9,7 @@ import '../../domain/model/neom/chamber_preset.dart';
 import '../../domain/repository/itemlist_repository.dart';
 import '../../utils/app_utilities.dart';
 import '../../utils/constants/app_constants.dart';
+import '../../utils/enums/itemlist_type.dart';
 import '../../utils/enums/owner_type.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
@@ -110,8 +111,9 @@ class ItemlistFirestore implements ItemlistRepository {
   }
 
   @override
-  Future<Map<String, Itemlist>> fetchAll({bool onlyPublic = false, bool excludeMyFavorites = true, int minItems = 0,
-    int maxLength = 100, String ownerId = '', String excludeFromProfileId = '', OwnerType ownerType = OwnerType.profile}) async {
+  Future<Map<String, Itemlist>> fetchAll({bool onlyPublic = false, bool excludeMyFavorites = true,
+    int minItems = 0, int maxLength = 100, String ownerId = '', String excludeFromProfileId = '',
+    OwnerType ownerType = OwnerType.profile, ItemlistType? itemlistType}) async {
     AppUtilities.logger.t("Retrieving Itemlists from firestore");
     Map<String, Itemlist> itemlists = {};
 
@@ -125,6 +127,7 @@ class ItemlistFirestore implements ItemlistRepository {
               && (ownerId.isEmpty || itemlist.ownerId == ownerId)
               && (excludeFromProfileId.isEmpty || itemlist.ownerId != excludeFromProfileId)
               && (itemlist.ownerType == ownerType)
+              && (itemlistType == null || itemlist.type == itemlistType)
           ) {
             itemlists[itemlist.id] = itemlist;
           }

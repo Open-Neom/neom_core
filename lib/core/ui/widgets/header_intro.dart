@@ -27,7 +27,7 @@ class HeaderIntro extends StatelessWidget{
           ) : const SizedBox.shrink(),
           AppTheme.heightSpace10,
           showLogo ? Image.asset(AppFlavour.getAppLogoPath(),
-            width: AppTheme.fullWidth(context)*0.75,
+            width: AppTheme.fullWidth(context)*(AppFlavour.appInUse != AppInUse.e ? 0.75 : 0.25),
             fit: BoxFit.fitWidth,
           ) : const SizedBox.shrink(),
           title.isEmpty ? const SizedBox.shrink() : Column(

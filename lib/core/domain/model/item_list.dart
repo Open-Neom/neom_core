@@ -90,8 +90,25 @@ class Itemlist {
     type = EnumToString.fromString(ItemlistType.values, data["type"] ?? ItemlistType.playlist.name) ?? ItemlistType.playlist,
     ownerType = EnumToString.fromString(OwnerType.values, data["ownerType"] ?? OwnerType.profile.name) ?? OwnerType.profile;
 
-  Map<String, dynamic>  toJSON()=>{
+  Map<String, dynamic> toJSON()=>{
     //'id': id, generated in firebase
+    'name': name,
+    'description': description,
+    'href': href,
+    'imgUrl': imgUrl,
+    'ownerId': ownerId,
+    'public': public,
+    'uri': uri,
+    'appMediaItems': appMediaItems?.map((appMediaItem) => appMediaItem.toJSON()).toList() ?? [],
+    'appReleaseItems': appReleaseItems?.map((appReleaseItem) => appReleaseItem.toJSON()).toList() ?? [],
+    'position': jsonEncode(position),
+    'type': type.name,
+    'ownerType': ownerType.name,
+    'isModifiable': isModifiable
+  };
+
+  Map<String, dynamic> toJSONWithID()=>{
+    'id': id,
     'name': name,
     'description': description,
     'href': href,

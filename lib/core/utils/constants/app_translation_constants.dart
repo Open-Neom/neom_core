@@ -44,6 +44,8 @@ class AppTranslationConstants {
   static const String login = 'login';
   static const String introLocale = "introLocale";
   static const String introProfileType = "introProfileType";
+  static const String introFacilitatorType = "introFacilitatorType";
+  static const String introEventPlannerType = "introEventPlannerType";
   static const String instrumentSelection = "instrumentSelection";
   static const String frequencySelection = "frequencySelection";
 
@@ -285,6 +287,7 @@ class AppTranslationConstants {
   static const String defaultInstrumentLevel = "defaultInstrumentLevel";
   static const String notDetermined = "notDetermined";
   static const String instrumentPreferences = "instrumentPreferences";
+  static const String instrumentsPreferences = "instrumentsPreferences";
   static const String selectedAsMainInstrument = "selectedAsMainInstrument";
 
   static const String createEventHeader = 'createEventHeader';
@@ -693,6 +696,7 @@ class AppTranslationConstants {
   static const String suggestedReading = 'suggestedReading';
   static const String releaseShelfSuggestion = 'releaseShelfSuggestion';
   static const String digitalLibrary = 'digitalLibrary';
+  static const String audioLibrary = 'audioLibrary';
   static const String music = 'music';
   static const String player = 'player';
   static const String library = 'library';
@@ -949,5 +953,11 @@ class AppTranslationConstants {
   static const String chamberPresetAdded = 'chamberPresetAdded';
   static const String maxVideosPerWeekReachedMsg = 'maxVideosPerWeekReachedMsg';
   static const String freeSingleReleaseUploadMsg = 'freeSingleReleaseUploadMsg';
+  static const String freeTrialReached = 'freeTrialReached';
+
+  static const String professionalTools = 'professionalTools';
+  static const String professionals = 'professionals';
+  static const String podcastUpload = 'podcastUpload';
+  static const String audiobookUpload = 'audiobookUpload';
 
 }

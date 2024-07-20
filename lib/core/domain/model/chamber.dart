@@ -73,8 +73,22 @@ class Chamber {
     return 'Chamber{id: $id, name: $name, description: $description, ownerId: $ownerId, ownerName: $ownerName, ownerType: $ownerType, href: $href, imgUrl: $imgUrl, public: $public, chamberPresets: $chamberPresets, position: $position, isModifiable: $isModifiable}';
   }
 
-  Map<String, dynamic>  toJSON()=>{
+  Map<String, dynamic> toJSON()=>{
     //'id': id, generated in firebase
+    'name': name,
+    'description': description,
+    'href': href,
+    'imgUrl': imgUrl,
+    'ownerId': ownerId,
+    'public': public,
+    'chamberPresets': chamberPresets?.map((appReleaseItem) => appReleaseItem.toJSON()).toList() ?? [],
+    'position': jsonEncode(position),
+    'ownerType': ownerType.name,
+    'isModifiable': isModifiable
+  };
+
+  Map<String, dynamic> toJSONWithID()=>{
+    'id': id,
     'name': name,
     'description': description,
     'href': href,
