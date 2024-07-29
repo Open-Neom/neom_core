@@ -7,8 +7,9 @@ import '../../utils/app_theme.dart';
 
 class AppCircularProgressIndicator extends StatelessWidget {
 
+  final bool showLogo;
   final String subtitle;
-  const AppCircularProgressIndicator({this.subtitle = '', super.key});
+  const AppCircularProgressIndicator({this.subtitle = '', this.showLogo = true, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -16,12 +17,12 @@ class AppCircularProgressIndicator extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(AppFlavour.getIconPath(),
+            if(showLogo)
+              Image.asset(AppFlavour.getIconPath(),
               height: AppTheme.fullWidth(context)/6,
               width: AppTheme.fullWidth(context)/6,
-              fit: BoxFit.fitWidth,
-            ),
-            AppTheme.heightSpace20,
+              fit: BoxFit.fitWidth,),
+            if(showLogo) AppTheme.heightSpace20,
             const CircularProgressIndicator(),
             if(subtitle.isNotEmpty) Column(
               children: [

@@ -134,6 +134,7 @@ class UserFirestore implements UserRepository {
           AppUtilities.logger.i("${userQuerySnapshot.docs.length} users found");
 
           user = AppUser.fromJSON(userQuerySnapshot.docs.first.data());
+          user.id = userId;
         }
       }
     } catch (e) {

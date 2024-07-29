@@ -46,8 +46,9 @@ class AppConstants {
   static const int maxProfileNameLength = 20;
   static const int maxProfileNameSideBarLength = 15;
   static const int maxAppBarTitleLength = 22;
-  static const int timelineLimit = 6;
-  static const int activityFeedLimit = 20;
+  static const int timelineLimit = 30;
+  static const int diverseTimelineLimit = 4;
+  static const int activityFeedLimit = 30;
   static const int sponsorsLimit = 20;
   static const int sponsorsTime = 4;
   static const int eventsLimit = 30;
@@ -110,6 +111,7 @@ class AppConstants {
   static const String digitalLibrary = "digitalLibrary";
   static const String quotation = "quotation";
   static const String appItemQuotation = "appItemQuotation";
+  static const String currentArtwork = 'currentArtwork';
 
   static final List<String> appItemSize = ['Tamaño Carta - 21x29.7 - 8.5x11 ', 'Medía carta - 14x21.6cm - 6x9in', 'french', 'deutsch'];
   static const int maxVideoFileSize = 100000000; //100 MB
@@ -120,6 +122,5 @@ class AppConstants {
   static const String yyyyMMddHHmm = "yyyy-MM-dd HH:mm";
   static const String dev = "Dev";
   static const int maxVideosPerWeek = 2;
-
 
 }

@@ -389,6 +389,8 @@ class AppTranslationConstants {
   static const String editPostMsg = 'editPostMsg';
   static const String removeProfile = 'removeProfile';
   static const String removeProfileMsg = 'removeProfileMsg';
+  static const String removeProfileMsg2 = 'removeProfileMsg2';
+  static const String removedProfileMsg = 'removedProfileMsg';
   static const String reportProfile = 'reportProfile';
 
   static const String reportComment = 'reportComment';
@@ -959,5 +961,12 @@ class AppTranslationConstants {
   static const String professionals = 'professionals';
   static const String podcastUpload = 'podcastUpload';
   static const String audiobookUpload = 'audiobookUpload';
+
+  static const String changeVerificationLevel = 'changeVerificationLevel';
+  static const String changeVerificationLevelMsg = 'changeVerificationLevelMsg';
+  static const String changeVerificationLevelMsg2 = 'changeVerificationLevelMsg2';
+  static const String changeUserRole = 'changeUserRole';
+  static const String changeUserRoleMsg = 'changeUserRoleMsg';
+  static const String changeUserRoleMsg2 = 'changeUserRoleMsg2';
 
 }

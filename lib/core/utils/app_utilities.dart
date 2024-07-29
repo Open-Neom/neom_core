@@ -16,6 +16,9 @@ import '../../neom_commons.dart';
 
 class AppUtilities {
 
+  static final _stopwatch = Stopwatch();
+  static String _stopWatchReference = '';
+
   static final logger = Logger(
     printer: PrettyPrinter(
       methodCount: 5,
@@ -183,7 +186,7 @@ class AppUtilities {
   }
 
   static Future<File> getPdfFromUrl(String pdfUrl) async {
-    logger.d("Start download file from internet!");
+    logger.d("getPdfFromUrl $pdfUrl");
     File file = File("");
     String filename = "";
     try {
@@ -192,7 +195,7 @@ class AppUtilities {
       var response = await request.close();
       var bytes = await consolidateHttpClientResponseBytes(response);
       var dir = await getApplicationDocumentsDirectory();
-      logger.d("Download files");
+      logger.d("File loaded and buffered");
       logger.i("PDF Path: ${dir.path}/$filename");
       file = File("${dir.path}/$filename");
       await file.writeAsBytes(bytes, flush: true);
@@ -358,6 +361,30 @@ class AppUtilities {
     DateTime now = DateTime.now();
     Duration difference = now.difference(dateTime);
     return difference.inDays < 7;
+  }
+
+  /// Starts the stopwatch
+  static void startStopwatch({String reference = ''}) {
+    if(!_stopwatch.isRunning) {
+      _stopwatch.start();
+      _stopWatchReference = reference;
+    } else {
+      logger.i('The instance of stopwatch is running.');
+    }
+  }
+
+  /// Stops the stopwatch, logs the execution time, and resets the stopwatch
+  static void stopStopwatch() {
+    _stopwatch.stop();
+    if(_stopWatchReference.isNotEmpty) {
+      logger.i('Execution Time: ${_stopwatch.elapsedMilliseconds} ms for $_stopWatchReference');
+      _stopWatchReference = '';
+    } else {
+      logger.i('Execution Time: ${_stopwatch.elapsedMilliseconds} ms');
+    }
+
+    _stopwatch.reset();
+
   }
 
 }

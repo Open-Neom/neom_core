@@ -69,7 +69,7 @@ class TitleSubtitleRow extends StatelessWidget {
             textAlign: TextAlign.justify,
           ),
         ),
-        !showDivider ? const SizedBox() : const Divider(height: 0)
+        !showDivider ? const SizedBox.shrink() : const Divider(height: 0)
       ],
     );
   }

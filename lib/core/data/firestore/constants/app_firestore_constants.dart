@@ -114,4 +114,6 @@ class AppFirestoreConstants {
   static const String releaseItemsFolder = "releaseItems";
   static const String verificationLevel = "verificationLevel";
 
+  static const String lastInteraction = "lastInteraction";
+
 }

@@ -683,6 +683,17 @@ class AppFlavour {
     }
   }
 
+  static String getMusicPlayerHomeTitle() {
+    switch (appInUse) {
+      case AppInUse.g:
+        return AppTranslationConstants.music.tr;
+      case AppInUse.e:
+        return AppTranslationConstants.audioLibrary.tr;
+      case AppInUse.c:
+        return AppTranslationConstants.audioLibrary.tr;
+    }
+  }
+
   static String getSubscriptionPlansUrl() {
     return appProperties['subscriptionPlansUrl'];
   }
