@@ -16,6 +16,7 @@ import '../../utils/enums/facilitator_type.dart';
 import '../../utils/enums/place_type.dart';
 import '../../utils/enums/profile_type.dart';
 import '../../utils/enums/usage_reason.dart';
+import '../../utils/enums/user_role.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
 import 'facility_firestore.dart';
@@ -590,6 +591,20 @@ class UserFirestore implements UserRepository {
     }
 
     return false;
+  }
+
+  @override
+  Future<bool> updateUserRole(String userId, UserRole userRole) async {
+    AppUtilities.logger.d("Updating UserRole to ${userRole.name} for User $userId");
+
+    try {
+      await userReference.doc(userId).update({AppFirestoreConstants.userRole: userRole.name});
+      AppUtilities.logger.d("UserRole for $userId updated successfully.");
+      return true;
+    } catch (e) {
+      AppUtilities.logger.e(e);
+      return false;
+    }
   }
 
 }

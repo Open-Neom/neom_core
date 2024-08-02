@@ -3,6 +3,7 @@ import 'package:geolocator/geolocator.dart';
 import '../../utils/enums/app_currency.dart';
 import '../../utils/enums/facilitator_type.dart';
 import '../../utils/enums/profile_type.dart';
+import '../../utils/enums/user_role.dart';
 import '../model/app_user.dart';
 
 abstract class UserRepository {
@@ -30,4 +31,6 @@ abstract class UserRepository {
 
   Future<List<String>> getFCMTokens();
   Future<bool> addReleaseItem({required String userId, required String releaseItemId});
+  Future<bool> updateUserRole(String userId, UserRole userRole);
+
 }

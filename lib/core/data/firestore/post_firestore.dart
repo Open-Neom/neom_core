@@ -14,6 +14,7 @@ class PostFirestore implements PostRepository {
   final postsReference = FirebaseFirestore.instance.collection(
       AppFirestoreCollectionConstants.posts);
 
+  final List<QueryDocumentSnapshot> _profileDocPosts = [];
   final List<QueryDocumentSnapshot> _recentDocTimeline = [];
   final List<QueryDocumentSnapshot> _moreCommentsDocTimeline = [];
   final List<QueryDocumentSnapshot> _moreLikedDocTimeline = [];
@@ -125,24 +126,37 @@ class PostFirestore implements PostRepository {
 
   @override
   Future<List<Post>> getProfilePosts(String profileId) async {
+    AppUtilities.startStopwatch(reference: 'getProfilePosts: $profileId');
     AppUtilities.logger.t("getProfilePosts from Firestore");
 
     List<Post> posts = [];
 
-    QuerySnapshot querySnapshot = await postsReference.where(
-        AppFirestoreConstants.ownerId, isEqualTo: profileId).get();
+    try {
+      Query query = postsReference
+          .where(AppFirestoreConstants.ownerId, isEqualTo: profileId)
+          .orderBy(AppFirestoreConstants.createdTime, descending: true);
+          // .limit(AppConstants.profilePostsLimit); //TODO Implement to improve performance on profile tab
+      if (_profileDocPosts.isNotEmpty) {
+        query = query.startAfterDocument(_profileDocPosts.last);
+      }
+      QuerySnapshot querySnapshot  = await query.get();
 
-    if (querySnapshot.docs.isNotEmpty) {
-      for (int queryIndex = 0; queryIndex <
-          querySnapshot.docs.length; queryIndex++) {
-        Post post = Post.fromJSON(querySnapshot.docs.elementAt(queryIndex).data());
-        post.id = querySnapshot.docs.elementAt(queryIndex).id;
-        AppUtilities.logger.t('Post ${post.id} of type ${post.type.name} at ${post.location}');
-        if (post.type != PostType.event && post.type != PostType.releaseItem) {
-          posts.add(post);
+      if (querySnapshot.docs.isNotEmpty) {
+        for(var doc in querySnapshot.docs) {
+          Post post = Post.fromJSON(doc.data());
+          post.id = doc.id;
+          AppUtilities.logger.t('Post ${post.id} of type ${post.type.name} at ${post.location}');
+          if (post.type != PostType.event && post.type != PostType.releaseItem) {
+            posts.add(post);
+          }
         }
       }
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
     }
+
+    AppUtilities.logger.d("Retrieveing ${posts.length} Posts");
+    AppUtilities.stopStopwatch();
     return posts;
   }
 

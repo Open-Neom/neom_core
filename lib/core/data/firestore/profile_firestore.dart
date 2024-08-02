@@ -677,11 +677,9 @@ class ProfileFirestore implements ProfileRepository {
         for (var document in querySnapshot.docs) {
           if(document.id == profileId) {
             await document.reference
-              .update(
-                {
+              .update({
                   AppFirestoreConstants.hiddenPosts: FieldValue.arrayUnion([postId])
-                }
-              );
+              });
           }
         }
       });
@@ -2009,4 +2007,5 @@ class ProfileFirestore implements ProfileRepository {
     }
     return false;
   }
+
 }

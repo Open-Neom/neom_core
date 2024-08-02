@@ -173,6 +173,7 @@ class AppTranslationConstants {
 
   static const String noProfileDesc = 'noProfileDesc';
   static const String noPostsYet = 'noPostsYet';
+  static const String noItemsYet = 'noItemsYet';
   static const String done = 'done';
   static const String cancel = 'cancel';
   static const String photoFromGallery = 'photoFromGallery';
@@ -392,6 +393,8 @@ class AppTranslationConstants {
   static const String removeProfileMsg2 = 'removeProfileMsg2';
   static const String removedProfileMsg = 'removedProfileMsg';
   static const String reportProfile = 'reportProfile';
+  static const String toChange = 'toChange';
+  static const String toUpdate = 'toUpdate';
 
   static const String reportComment = 'reportComment';
   static const String reportCommentMsg = 'reportCommentMsg';
@@ -962,11 +965,13 @@ class AppTranslationConstants {
   static const String podcastUpload = 'podcastUpload';
   static const String audiobookUpload = 'audiobookUpload';
 
-  static const String changeVerificationLevel = 'changeVerificationLevel';
-  static const String changeVerificationLevelMsg = 'changeVerificationLevelMsg';
-  static const String changeVerificationLevelMsg2 = 'changeVerificationLevelMsg2';
-  static const String changeUserRole = 'changeUserRole';
-  static const String changeUserRoleMsg = 'changeUserRoleMsg';
-  static const String changeUserRoleMsg2 = 'changeUserRoleMsg2';
+  static const String verificationLevel = 'verificationLevel';
+  static const String updateVerificationLevel = 'updateVerificationLevel';
+  static const String updateVerificationLevelMsg = 'updateVerificationLevelMsg';
+  static const String updateVerificationLevelSame = 'updateVerificationLevelSame';
+  static const String updateUserRole = 'updateUserRole';
+  static const String updateUserRoleMsg = 'updateUserRoleMsg';
+  static const String updateUserRoleSame = 'updateUserRoleSame';
+  static const String updateUserRoleSuccess = 'updateUserRoleSuccess';
 
 }

@@ -38,6 +38,9 @@ class AppAssets {
   static const String noPosts = 'assets/elements/no_posts.png';
   static const String noPostsMate = 'assets/elements/no_posts_mate.png';
 
+  //TODO Create a PNG nor noItems to avoid using no_posts_mate.png
+  static const String noItems = 'assets/elements/no_posts_mate.png';
+
   static const String intro02 = 'assets/elements/intro-02.png';
   static const String intro03 = 'assets/elements/intro-03.png';
   static const String uploadVector = 'assets/elements/upload_vector.png';
