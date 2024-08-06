@@ -114,6 +114,27 @@ class UserFirestore implements UserRepository {
   }
 
   @override
+  Future<AppUser?> getByEmail(String email) async {
+    AppUtilities.logger.d("Get User by Email: $email");
+
+    try {
+      QuerySnapshot querySnapshot = await userReference.where(AppFirestoreConstants.email, isEqualTo: email).limit(1).get();
+      if (querySnapshot.docs.isNotEmpty) {
+        var queryDocumentSnapshot = querySnapshot.docs.first;
+        if (queryDocumentSnapshot.exists) {
+          AppUser user = AppUser.fromJSON(queryDocumentSnapshot.data());
+          user.id = queryDocumentSnapshot.id;
+          return user;
+        }
+      }
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+
+    return null;
+  }
+
+  @override
   Future<AppUser> getByProfileId(String profileId) async {
     AppUtilities.logger.d("Getting user for ProfileId: $profileId");
     AppUser user = AppUser();

@@ -10,6 +10,7 @@ abstract class UserRepository {
 
   Future<bool> insert(AppUser user);
   Future<AppUser> getById(String userId);
+  Future<AppUser?> getByEmail(String email);
   Future<AppUser> getByProfileId(String userId);
   Future<List<AppUser>> getAll();
   Future<bool> remove(String userId);

@@ -1,8 +1,8 @@
 enum ReleaseType {
-  single("single"), 
-  ep("ep"),
-  album("album"),
-  demo("demo"),
+  single("single"), ///BOOK | SONG | ARTICLE
+  ep("ep"), ///G
+  album("album"), ///G
+  demo("demo"), ///G
   episode("episode"), ///PODCAST
   chapter("chapter"); ///AUDIOBOOK
 

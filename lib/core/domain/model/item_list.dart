@@ -200,8 +200,8 @@ class Itemlist {
       for (var element in appReleaseItems!) {
         if(element.imgUrl.isNotEmpty) {
           imgUrls.add(element.imgUrl);
-        } else if(element.ownerImgUrl.isNotEmpty) {
-          imgUrls.add(element.ownerImgUrl);
+        } else if(element.galleryUrls?.isNotEmpty ?? false) {
+          imgUrls.add(element.galleryUrls!.first);
         }
       }
 

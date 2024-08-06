@@ -21,22 +21,6 @@ class AppBarChild extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
 
     color ??= AppColor.appBar;
-
-    ///DEPRECATED
-    // Widget defaultLeading = IconButton(
-    //     padding: EdgeInsets.zero,
-    //     icon: const Icon(Icons.arrow_back,
-    //       color: Colors.white70,
-    //     ),
-    //     onPressed: () {
-    //       Navigator.pop(context);
-    //     Navigator.pop(context);
-    //
-    //     }
-    // );
-    //
-    // leadingWidget ??= defaultLeading;
-
     return AppBar(
       leading: leadingWidget,
       title: Row(

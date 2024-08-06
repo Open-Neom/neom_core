@@ -116,5 +116,7 @@ class AppFirestoreConstants {
   static const String userRole = "userRole";
 
   static const String lastInteraction = "lastInteraction";
+  static const String amount = "amount";
+  static const String transactions = "transactions";
 
 }

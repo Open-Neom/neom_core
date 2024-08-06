@@ -698,4 +698,16 @@ class AppFlavour {
     return appProperties['subscriptionPlansUrl'];
   }
 
+  static String getWooCommerceUrl() {
+    return appProperties['wooCommerceUrl'];
+  }
+
+  static String getWooCommerceClientKey() {
+    return appProperties['wooCommerceClientKey'];
+  }
+
+  static String getWooCommerceClientSecret() {
+    return appProperties['wooCommerceClientSecret'];
+  }
+
 }

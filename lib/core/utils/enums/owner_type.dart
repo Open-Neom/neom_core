@@ -1,4 +1,6 @@
 enum OwnerType {
   profile,
-  band
+  band,
+  external,
+  notDefined
 }

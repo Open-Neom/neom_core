@@ -1,169 +1,210 @@
 import 'package:enum_to_string/enum_to_string.dart';
+
+import '../../../woocommerce/domain/woo_product.dart';
+import '../../utils/enums/app_currency.dart';
 import '../../utils/enums/owner_type.dart';
+import '../../utils/enums/release_status.dart';
 import '../../utils/enums/release_type.dart';
 import 'place.dart';
 import 'price.dart';
 
 class AppReleaseItem {
 
-  String id;
-  String name;
-  String description;
-  
-  String ownerId;
-  String ownerName;
-  String ownerImgUrl;
-  OwnerType ownerType;
-  
-  String lyrics;
-  String language;
-  String metaName; ///itemlistName
-  String metaId; ///itemlistId
-  String metaOwnerId; ///UserId used to upload item
+  String id; ///ID FOR ITEM ON DB OR WC
+  String name; ///NAME OF ITEM
+  String description; ///DESCRIPTION OF ITEM
+  String imgUrl; ///COVER IMAGE
+  List<String>? galleryUrls; ///FIRST IMAGE ON GALLERY MUST BE OwnerImgUrl
+  String previewUrl; ///URL WITH FILE
+  int duration; ///SECONDS - NUMBER OF PAGES - ETC
 
-  String imgUrl; ///Cover image
-  int duration; ///Seconds
-  String previewUrl; ///Url with file
-  
-  List<String> appMediaItemIds;
-  List<String> genres;
-  List<String> instruments;
+  ReleaseType type; ///RELEASE TYPE TO HANDLE FURTHER FEATURES
+  ReleaseStatus status;
 
-  String publisher;
-  int publishedYear;
-  Place? place;
-  ReleaseType type;
+  String? ownerId; ///EMAIL OR INTERNAL ID - INFO TO INTERACT IN THE APP WITH OWNER PROFILE
+  OwnerType ownerType; ///TO KNOW IF RELEASE WAS UPLOADED FROM USER OR BAND TO FLOW
+  String? ownerName; ///NAME OF PROFILE ON APP
 
-  Price? digitalPrice;
-  Price? physicalPrice;
-  List<String>? watchingProfiles;
-  List<String>? boughtUsers;
-  // List<BandFulfillment> bandsFulfillment;
+  List<String> categories; ///CATEGORIES OR GENRES FOR BOOKS | SONGS | PODCASTS | CATEGORIES RETRIEVED FROM WC
 
-  int createdTime;
-  bool isAvailable;
-  bool isPhysical;
-  bool isTest;
-  int state;
+  String? metaId; ///ID OF ITEMLIST CREATED TO INCLUDE ITEMS IN CASE OF INCLUDING MORE ON SAME
+  String? metaName; ///ITEMLIST NAME
+  String? metaOwnerId; ///EMAIL USED TO UPLOAD ITEM FROM APP OR WC
+
+  List<String>? appMediaItemIds; ///FOR CASES WHEN RELEASETYPE IS EP | ALBUM | DEMO
+  List<String>? instruments; ///INSTRUMENTS USED ON RELEASE - IT DEPENDS OF THE APP
+
+  String? lyrics; ///LYRICS FOR SONGS
+  String? language; ///SPANISH - ENGLISH - ETC
+
+  Price? digitalPrice; ///PRICE FOR DIGITAL ITEM  - IF NOT NULL ITEM IS AVAILABLE AS DIGITAL
+  Price? physicalPrice; ///PRICE IN CASE ITEM HAS A PHYSICAL VERSION AS WELL - IF NOT NULL ITEM IS AVAILABLE AS PHYSICAL
+  double? discount; ///DISCOUNT TO PRICE
+
+  int? publishedYear; ///YEAR OF PUBLISHIN FOR ITEMS PUBLISHED PREVIOUSLY OUTSIDE THE PLATFORM.
+  String? publisher; ///IN CASE OF A FORMAL PUBLISHER BESIDES AUTOPUBLISHING
+  Place? place; ///YEAR OF PUBLISHIN FOR ITEMS PUBLISHED PREVIOUSLY OUTSIDE THE PLATFORM.
+
+  List<String>? boughtUsers; ///PROFILEID OR EMAIL OF USERS WHO BOUGHT THIS ITEM - IT ALSO IS USEFUL TO KNOW TOTAL SALES WITH LIST.LENGHT
+
+  ///DEPRECATED
+  /// List<String>? followingProfiles;
+  /// List<BandFulfillment> bandsFulfillment;
+
+  int createdTime; ///CREATED TIME ON PLATFORM
+  int? modifiedTime; ///TIME OF LAST MODIFICATION
+
+  int state; ///STATE FOR USERS WHEN THE SAVE ITEM ON ITEMLISTS - FROM O to 5
 
   List<String>? externalArtists; ///Out of the app
   Map<String, String>? featInternalArtists; ///key: artistId - value: name
-  int likes;
+  List<String>? likedProfiles; ///LIST OF PROFILEIDS IN CASE OF MORE DETAILS. ALSO TO KNOW NUMBER OF LIKES WITH LIST.LENGHT
 
+  AppReleaseItem({
+    this.id = '',
+    this.name = '',
+    this.description = '',
+    this.imgUrl = '',
+    this.galleryUrls,
+    this.previewUrl = '',
+    this.duration = 0,
+    this.type = ReleaseType.single,
+    this.status = ReleaseStatus.draft,
+    this.ownerId,
+    this.ownerType = OwnerType.notDefined,
+    this.ownerName,
+    this.categories = const [],
+    this.metaId,
+    this.metaName,
+    this.metaOwnerId,
+    this.appMediaItemIds,
+    this.instruments,
+    this.lyrics,
+    this.language,
+    this.digitalPrice,
+    this.physicalPrice,
+    this.discount,
+    this.publishedYear,
+    this.publisher,
+    this.place,
+    this.boughtUsers,
+    this.createdTime = 0,
+    this.modifiedTime,
+    this.state = 0,
+    this.externalArtists,
+    this.featInternalArtists,
+    this.likedProfiles,
+  });
 
   @override
   String toString() {
-    return 'AppReleaseItem{id: $id, name: $name, description: $description, ownerId: $ownerId, ownerName: $ownerName, ownerImgUrl: $ownerImgUrl, ownerType: $ownerType, lyrics: $lyrics, language: $language, metaName: $metaName, metaId: $metaId, metaOwnerId: $metaOwnerId, imgUrl: $imgUrl, duration: $duration, previewUrl: $previewUrl, appMediaItemIds: $appMediaItemIds, genres: $genres, instruments: $instruments, publisher: $publisher, publishedYear: $publishedYear, place: $place, type: $type, digitalPrice: $digitalPrice, physicalPrice: $physicalPrice, watchingProfiles: $watchingProfiles, boughtUsers: $boughtUsers, createdTime: $createdTime, isAvailable: $isAvailable, isPhysical: $isPhysical, isTest: $isTest, state: $state, externalArtists: $externalArtists, featInternalArtists: $featInternalArtists, likes: $likes}';
+    return 'AppReleaseItem{id: $id, name: $name, description: $description, imgUrl: $imgUrl, galleryUrl: $galleryUrls, previewUrl: $previewUrl, duration: $duration, type: $type, status: $status, ownerId: $ownerId, ownerType: $ownerType, ownerName: $ownerName, categories: $categories, metaId: $metaId, metaName: $metaName, metaOwnerId: $metaOwnerId, appMediaItemIds: $appMediaItemIds, instruments: $instruments, lyrics: $lyrics, language: $language, digitalPrice: $digitalPrice, physicalPrice: $physicalPrice, discount: $discount, publishedYear: $publishedYear, publisher: $publisher, place: $place, boughtUsers: $boughtUsers, createdTime: $createdTime, modifiedTime: $modifiedTime, state: $state, externalArtists: $externalArtists, featInternalArtists: $featInternalArtists, likedProfiles: $likedProfiles}';
   }
 
-
-  AppReleaseItem({
-      this.id = '',
-      this.name = '',
-      this.lyrics = '',
-      this.language = '',
-      this.ownerName = '',
-      this.ownerId = '',
-      this.ownerImgUrl = '',
-      this.ownerType = OwnerType.profile,
-      this.metaName = '',
-      this.metaId = '',
-      this.metaOwnerId = '',
-      this.publisher = '',
-      this.imgUrl = '',
-      this.duration = 0,
-      this.previewUrl = '',
-      this.appMediaItemIds = const [],
-      this.genres = const [],
-      this.instruments = const [],
-      this.description = '',
-      this.publishedYear = 0,
-      this.digitalPrice,
-      this.physicalPrice,
-      this.place,
-      this.isPhysical = false,
-      this.isAvailable = false,
-      this.isTest = false,
-      this.state = 0,
-      this.createdTime = 0,
-      this.externalArtists,
-      this.featInternalArtists,
-      this.likes = 0,
-      this.type = ReleaseType.single,
-      this.boughtUsers,
-      this.watchingProfiles,
-  });
-
   AppReleaseItem.fromJSON(data) :
-    id = data["id"] ?? '',
-    name = data["name"] ?? '',
-    description = data["description"] ?? '',
-    imgUrl = data["imgUrl"] ?? '',
-    duration = data["duration"] ?? 0,
-    previewUrl = data["previewUrl"] ?? '',
-    language = data["language"] ?? '',
-    lyrics = data["lyrics"] ?? '',
-    ownerName = data["ownerName"] ?? '',
-    ownerId = data["ownerId"] ?? '',
-    ownerImgUrl = data["ownerImgUrl"] ?? '',
-    ownerType = EnumToString.fromString(OwnerType.values, data["ownerType"] ?? OwnerType.profile.name) ?? OwnerType.profile,
-    metaName = data["metaName"] ?? '',
-    metaId = data["metaId"] ?? '',
-    metaOwnerId = data["metaOwnerId"] ?? '',
-    appMediaItemIds = List.from(data["appMediaItemIds"]?.cast<String>() ?? []),
-    genres = List.from(data["genres"]?.cast<String>() ?? []),
-    instruments = List.from(data["instruments"]?.cast<String>() ?? []),
-    publisher = data["publisher"] ?? '',
-    publishedYear = data["publishedYear"] ?? 0,
-    type = EnumToString.fromString(ReleaseType.values, data["type"] ?? ReleaseType.single.name) ?? ReleaseType.single,
-    watchingProfiles = List.from(data["watchingProfiles"]?.cast<String>() ?? []),
-    boughtUsers = List.from(data["boughtUsers"]?.cast<String>() ?? []),
-    digitalPrice = Price.fromJSON(data["digitalPrice"] ?? {}),
-    physicalPrice = Price.fromJSON(data["physicalPrice"] ?? {}),
-    place =  Place.fromJSON(data["place"] ?? {}),
-    isAvailable = data["isAvailable"] ?? false,
-    isPhysical = data["isPhysical"] ?? false,
-    isTest = data["isTest"] ?? false,
-    state = data["state"] ?? 1,
-    createdTime = data["createdTime"] ?? 0,
-    externalArtists = List.from(data["externalArtists"]?.cast<String>() ?? []),
-    featInternalArtists = data["featInternalArtists"] as Map<String,String>?,
-    likes = data["likes"] ?? 0;
+        id = data["id"] ?? '',
+        name = data["name"] ?? '',
+        description = data["description"] ?? '',
+        imgUrl = data["imgUrl"] ?? '',
+        galleryUrls = List.from(data["galleryUrls"]?.cast<String>() ?? []),
+        previewUrl = data["previewUrl"] ?? '',
+        duration = data["duration"] ?? 0,
+        type = EnumToString.fromString(ReleaseType.values, data["type"] ?? ReleaseType.single.name) ?? ReleaseType.single,
+        status = EnumToString.fromString(ReleaseStatus.values, data["status"] ?? ReleaseStatus.draft.name) ?? ReleaseStatus.draft,
+        ownerId = data["ownerId"] ?? '',
+        ownerType = EnumToString.fromString(OwnerType.values, data["ownerType"] ?? OwnerType.notDefined.name) ?? OwnerType.notDefined,
+        ownerName = data["ownerName"] ?? '',
+        categories = List.from(data["categories"]?.cast<String>() ?? []),
+        metaId = data["metaId"] ?? '',
+        metaName = data["metaName"] ?? '',
+        metaOwnerId = data["metaOwnerId"] ?? '',
+        appMediaItemIds = List.from(data["appMediaItemIds"]?.cast<String>() ?? []),
+        instruments = List.from(data["instruments"]?.cast<String>() ?? []),
+        lyrics = data["lyrics"] ?? '',
+        language = data["language"] ?? '',
+        digitalPrice = Price.fromJSON(data["digitalPrice"] ?? {}),
+        physicalPrice = Price.fromJSON(data["physicalPrice"] ?? {}),
+        discount = data["discount"] ?? 0,
+        publishedYear = data["publishedYear"] ?? 0,
+        publisher = data["publisher"] ?? '',
+        place =  Place.fromJSON(data["place"] ?? {}),
+        boughtUsers = List.from(data["boughtUsers"]?.cast<String>() ?? []),
+        createdTime = data["createdTime"] ?? 0,
+        modifiedTime = data["modifiedTime"] ?? 0,
+        state = data["state"] ?? 0,
+        externalArtists = List.from(data["externalArtists"]?.cast<String>() ?? []),
+        featInternalArtists = data["featInternalArtists"] as Map<String,String>?,
+        likedProfiles = List.from(data["likedProfiles"]?.cast<String>() ?? []);
   
   Map<String, dynamic>  toJSON() => {
     'id': id,
     'name': name,
     'description': description,
     'imgUrl': imgUrl,
-    'duration': duration,
+    'galleryUrls': galleryUrls,
     'previewUrl': previewUrl,
-    'lyrics': lyrics,
-    'language': language,
-    'ownerName': ownerName,
+    'duration': duration,
+    'type': type.name,
+    'status': status.name,
     'ownerId': ownerId,
-    'ownerImgUrl': ownerImgUrl,
     'ownerType': ownerType.name,
-    'metaName': metaName,
+    'ownerName': ownerName,
+    'categories': categories,
     'metaId': metaId,
+    'metaName': metaName,
     'metaOwnerId': metaOwnerId,
     'appMediaItemIds': appMediaItemIds,
-    'genres': genres,
     'instruments': instruments,
-    'publisher': publisher,
+    'lyrics': lyrics,
+    'language': language,
+    'digitalPrice': digitalPrice?.toJSON(),
+    'physicalPrice': physicalPrice?.toJSON(),
+    'discount': discount,
     'publishedYear': publishedYear,
-    'type': type.name,
-    'watchingProfiles': watchingProfiles,
+    'publisher': publisher,
+    'place': place?.toJSON(),
     'boughtUsers': boughtUsers,
-    'digitalPrice': digitalPrice?.toJSON() ?? Price().toJSON(),
-    'physicalPrice': physicalPrice?.toJSON() ?? Price().toJSON(),
-    'place': place?.toJSON() ?? Place().toJSON(),
-    'isAvailable': isAvailable,
-    'isPhysical': isPhysical,
-    'isTest': isTest,
+    'createdTime': createdTime,
+    'modifiedTime': modifiedTime,
+    'state': state,
     'externalArtists': externalArtists,
     'featInternalArtists': featInternalArtists,
-    'state': state,
-    'likes': likes,
+    'likedProfiles': likedProfiles,
   };
+
+  AppReleaseItem.fromWooProduct(WooProduct product) :
+        id = product.id,
+        name = product.name,
+        description = product.description,
+        imgUrl = product.images.isNotEmpty ? product.images.first.src : '',
+        galleryUrls = product.images.map<String>((img)=> img.src).toList(),
+        previewUrl = (product.attributes?.containsKey('previewUrl') ?? false) ? product.attributes!['previewUrl']!.options.first : '',
+        duration = (product.attributes?.containsKey('duration') ?? false) ? int.tryParse(product.attributes!['duration']!.options.first) ?? 0 : 0,
+        type = (product.attributes?.containsKey('type') ?? false) ? EnumToString.fromString(ReleaseType.values, product.attributes!['type']!.options.first) ?? ReleaseType.single : ReleaseType.single,
+        status = EnumToString.fromString(ReleaseStatus.values, product.status.name) ?? ReleaseStatus.draft,
+        ownerId = (product.attributes?.containsKey('ownerId') ?? false) ? product.attributes!['ownerId']!.options.first : null,
+        ownerType = OwnerType.external,
+        ownerName = (product.attributes?.containsKey('ownerName') ?? false) ? product.attributes!['ownerName']!.options.first : '',
+        categories = List.from(product.categories.map((c) => c.name).toList()),
+        // metaName = null,
+        // metaId = null,
+        // metaOwnerId = null,
+        // appMediaItemIds = null,
+        // instruments = null,
+        lyrics = product.shortDescription,
+        language = (product.attributes?.containsKey('language') ?? false) ? product.attributes!['language']!.options.first : '',
+        digitalPrice = product.virtual ? Price(amount: product.regularPrice, currency: AppCurrency.mxn) : null,
+        physicalPrice = !product.virtual ? Price(amount: product.regularPrice, currency: AppCurrency.mxn) : null,
+        discount = product.regularPrice <= product.salePrice ? 0 : ((product.regularPrice - product.salePrice) / product.regularPrice),
+        publishedYear = (product.attributes?.containsKey('publishedYear') ?? false) ? int.tryParse(product.attributes!['publishedYear']!.options.first) : null,
+        publisher = (product.attributes?.containsKey('publisher') ?? false) ? product.attributes!['publisher']!.options.first : null,
+        // place =  null,
+        // boughtUsers = null,
+        createdTime = product.dateCreated?.millisecondsSinceEpoch ?? 0,
+        modifiedTime = product.dateModified?.millisecondsSinceEpoch,
+        state = 0;
+        // externalArtists = null,
+        // featInternalArtists = null,
+        // likedProfiles = null
 
 }

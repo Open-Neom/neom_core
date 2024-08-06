@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/model/app_release_item.dart';
 import '../../domain/repository/app_release_item_repository.dart';
 import '../../utils/app_utilities.dart';
+import '../../utils/enums/release_status.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
 
@@ -44,7 +45,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
           AppReleaseItem releaseItem = AppReleaseItem.fromJSON(queryDocumentSnapshot.data());
           releaseItem.id = queryDocumentSnapshot.id;
 
-          if(releaseItem.isAvailable || DateTime.fromMillisecondsSinceEpoch(releaseItem.createdTime).add(const Duration(days: 28)).millisecondsSinceEpoch < DateTime.now().millisecondsSinceEpoch) {
+          if(releaseItem.status == ReleaseStatus.publish || DateTime.fromMillisecondsSinceEpoch(releaseItem.createdTime).add(const Duration(days: 28)).millisecondsSinceEpoch < DateTime.now().millisecondsSinceEpoch) {
             releaseItems[releaseItem.id] = releaseItem;
           }
         }

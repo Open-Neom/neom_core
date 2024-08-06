@@ -45,4 +45,6 @@ class AppFirestoreCollectionConstants {
   static const String posts = "posts";
   static const String sponsors = "sponsors";
 
+  static const String bank = "bank";
+
 }

@@ -4,8 +4,8 @@ enum AppMediaSource {
   youtube('youtube'),
   spotify('spotify'),
   apple('apple'),
-  jiosaavn('jiosaavn'),
   deezer('deezer'),
+  jiosaavn('jiosaavn'),
   other('other');
 
   final String value;

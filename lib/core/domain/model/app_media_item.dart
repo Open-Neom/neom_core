@@ -7,6 +7,7 @@ import '../../utils/enums/app_media_source.dart';
 import '../../utils/enums/media_item_type.dart';
 import 'app_release_item.dart';
 import 'genre.dart';
+import 'google_book.dart';
 import 'item_list.dart';
 import 'neom/chamber_preset.dart';
 
@@ -32,26 +33,27 @@ class AppMediaItem {
   String imgUrl;
   List<String>? allImgs;
 
-  String publisher = "";
-  int publishedYear; ///YEAR RELEASE TO PUBLIC
+  String? publisher;
+  int? publishedYear; ///YEAR RELEASE TO PUBLIC
   int releaseDate; ///RELEASED AT GIGMEOUT INTERNAL PURPOSES
 
   String url; ///URL FOR STREAMING PURPOSE
-  List<String>? allUrls; ///ADDITIONAL URLS FOR QUALITIES
-  String permaUrl; ///URL FOR EXTERNAL USE
   String? path; ///IN CASE IS OFFLINE
-  
+
+  String permaUrl; ///URL FOR EXTERNAL USE
+  List<String>? allUrls; ///ADDITIONAL URLS FOR QUALITIES
+
   int? trackNumber;
   int? discNumber;
 
   int? quality; ///TO DEFINE QUALITY 0-1-2-3-4-5 ...
   bool is320Kbps;
   int likes;
-  int state;
+  int state; ///STATE FOR USERS WHEN THE SAVE ITEM ON ITEMLISTS - FROM O to 5
   MediaItemType type;
   AppMediaSource mediaSource;
-  int? expireAt; //TIME WHEN EXPIRES IF APPLY
 
+  int? expireAt; ///TIME WHEN EXPIRES IF APPLY
 
   AppMediaItem({
     this.id = '',
@@ -71,7 +73,8 @@ class AppMediaItem {
     this.name = '',
     this.url = '',
     this.allUrls,
-    this.publishedYear = 0, ///YEAR
+    this.publisher,
+    this.publishedYear, ///YEAR
     this.quality,
     this.permaUrl = '',
     this.releaseDate = 0,
@@ -85,6 +88,11 @@ class AppMediaItem {
     this.type = MediaItemType.song,
     this.state = 0,
   });
+
+  @override
+  String toString() {
+    return 'AppMediaItem{id: $id, name: $name, description: $description, artist: $artist, artistId: $artistId, album: $album, albumId: $albumId, duration: $duration, featInternalArtists: $featInternalArtists, externalArtists: $externalArtists, genre: $genre, genres: $genres, lyrics: $lyrics, language: $language, imgUrl: $imgUrl, allImgs: $allImgs, publisher: $publisher, publishedYear: $publishedYear, releaseDate: $releaseDate, url: $url, path: $path, permaUrl: $permaUrl, allUrls: $allUrls, trackNumber: $trackNumber, discNumber: $discNumber, quality: $quality, is320Kbps: $is320Kbps, likes: $likes, state: $state, type: $type, mediaSource: $mediaSource, expireAt: $expireAt}';
+  }
 
   factory AppMediaItem.fromJSON(map) {
     try {
@@ -225,22 +233,24 @@ class AppMediaItem {
         id: releaseItem.id,
         name: releaseItem.name,
         description: releaseItem.description,
-        lyrics: releaseItem.lyrics,
+        lyrics: releaseItem.lyrics ?? '',
         language: releaseItem.language,
-        album: releaseItem.metaName,
+        album: releaseItem.metaName ?? '',
         albumId: releaseItem.metaId,
         externalArtists: releaseItem.featInternalArtists?.values.toList(),
         duration: releaseItem.duration,
-        genre: releaseItem.genres.join(', '),
+        genre: releaseItem.categories.join(', '),
         imgUrl: releaseItem.imgUrl,
-        allImgs: [releaseItem.ownerImgUrl],
+        allImgs: releaseItem.galleryUrls,
         url: releaseItem.previewUrl,
-        publishedYear: releaseItem.createdTime,
+        publisher: releaseItem.publisher,
+        publishedYear: releaseItem.publishedYear,
+        releaseDate: releaseItem.createdTime,
         permaUrl: releaseItem.previewUrl,
         featInternalArtists: releaseItem.featInternalArtists,
-        artist: releaseItem.ownerName,
+        artist: releaseItem.ownerName ?? '',
         artistId: releaseItem.ownerId,
-        likes: releaseItem.likes,
+        likes: releaseItem.likedProfiles?.length ?? 0,
         state: releaseItem.state,
         mediaSource: AppMediaSource.internal,
       );
@@ -353,4 +363,55 @@ class AppMediaItem {
         permaUrl = chamberPreset.imgUrl,
         publishedYear = 0,
         type = MediaItemType.neomPreset;
+
+  static AppMediaItem fromGoogleBook(GoogleBook googleBook) {
+
+    AppMediaItem appItem = AppMediaItem();
+    List<Genre> genres = [];
+
+    try {
+      String authors = "";
+
+      if(googleBook.volumeInfo?.authors?.isNotEmpty ?? false) {
+        googleBook.volumeInfo?.authors?.forEach((element) {
+          if(authors.isNotEmpty) {
+            authors = "$authors, ";
+          }
+
+          if(authors.isEmpty) {
+            authors = element;
+          } else {
+            authors = "$authors$element";
+          }
+        });
+      }
+
+      if(googleBook.volumeInfo?.categories?.isNotEmpty ?? false) {
+        googleBook.volumeInfo?.categories?.forEach((element) {
+          genres.add(Genre(id: element, name: element));
+        });
+      }
+
+      appItem =  AppMediaItem(
+        id: googleBook.id ?? "",
+        name: googleBook.volumeInfo?.title ?? "",
+        album: googleBook.volumeInfo?.publisher ?? "",
+        artist: authors,
+        allImgs: [googleBook.volumeInfo?.imageLinks?.smallThumbnail ?? ""],
+        duration: googleBook.volumeInfo?.pageCount ?? 0, ///NUMBER OF PAGES
+        imgUrl: googleBook.volumeInfo?.imageLinks?.thumbnail ?? "",
+        permaUrl: googleBook.volumeInfo?.infoLink ?? "",
+        url: googleBook.volumeInfo?.previewLink ?? "",
+        state: 0,
+        genres: genres.map((e) => e.name).toList(),
+        description: googleBook.volumeInfo?.description ?? "",
+        publishedYear: 0, ///VERIFY HOW TO HANDLE THIS DATE TO SINCEEPOCH googleBook.volumeInfo?.publishedDate ?? ""
+      );
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+
+    return appItem;
+  }
+
 }
