@@ -19,7 +19,7 @@ class WooLineItem {
   // Create a LineItem object from a JSON map
   factory WooLineItem.fromJSON(Map<String, dynamic> json) {
     return WooLineItem(
-      productId: json['product_id'],
+      productId: json['product_id'].toString(),
       quantity: json['quantity'],
     );
   }

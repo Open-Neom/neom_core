@@ -5,17 +5,12 @@ import 'package:http/http.dart' as http;
 
 import '../../../core/app_flavour.dart';
 import '../../../core/utils/app_utilities.dart';
-import '../../domain/woo_line_item.dart';
-import '../../domain/woo_order.dart';
 import '../../domain/woo_product.dart';
 import '../../domain/woo_product_attribute.dart';
-import '../../domain/woo_shipping_address.dart';
 import '../../utils/constants/woocommerce_constants.dart';
-import '../../utils/enums/woo_order_status.dart';
-import '../../utils/enums/woo_payment_method.dart';
 import '../../utils/enums/woo_product_status.dart';
 
-class WooCommerceApi {
+class WooProductsApi {
 
   static Future<List<WooProduct>> getProducts({perPage = 25, page = 1, WooProductStatus status = WooProductStatus.publish}) async {
     AppUtilities.startStopwatch(reference: 'getProducts');
@@ -155,41 +150,6 @@ class WooCommerceApi {
     }
 
     return product;
-  }
-
-  static Future<void> createOrder(String email, List<WooLineItem> lineItems,
-      {String? customerId, ShippingAddress? billingAddress, ShippingAddress? shippingAddress}) async {
-
-    String url = '${AppFlavour.getWooCommerceUrl()}/orders';
-    String credentials = base64Encode(utf8.encode('${AppFlavour.getWooCommerceClientKey()}:${AppFlavour.getWooCommerceClientSecret()}'));
-
-
-    WooOrder newOrder = WooOrder(
-      customerId: customerId,
-      customerEmail: email,
-      paymentMethod: WooPaymentMethod.bacs,
-      paymentMethodTitle: WooPaymentMethod.bacs,
-      status: WooOrderStatus.refunded,
-      lineItems: lineItems,
-      billingAddress: billingAddress,
-      shippingAddress: shippingAddress,
-    );
-
-    final response = await http.post(
-      Uri.parse(url),
-      headers: {
-        'Authorization': 'Basic $credentials',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode(newOrder.toJSON()),
-    );
-
-    if (response.statusCode == 201) {
-      AppUtilities.logger.i('Order created successfully!');
-    } else {
-      AppUtilities.logger.i('Failed to create order: ${response.statusCode}');
-      AppUtilities.logger.i('Response: ${response.body}');
-    }
   }
 
 }

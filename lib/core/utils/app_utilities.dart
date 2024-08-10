@@ -16,19 +16,9 @@ import '../../neom_commons.dart';
 
 class AppUtilities {
 
-  static final _stopwatch = Stopwatch();
-  static String _stopWatchReference = '';
-
-  static final logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 5,
-      errorMethodCount: 5,
-      lineLength: 50,
-      colors: true,
-      printEmojis: true,
-      printTime: false,
-    )
-  );
+  ///Logger to log different types of events within the app.
+  ///i - info | d - debug | w - warning - | e - error | t - trace
+  static final logger = Logger();
 
   static void showAlert(BuildContext context, {String title = '',  String message = ''}) {
     if(title.isEmpty) title = AppFlavour.getAppName();
@@ -363,13 +353,17 @@ class AppUtilities {
     return difference.inDays < 7;
   }
 
+  ///Stopwatch to measure execution time of tasks
+  static final _stopwatch = Stopwatch();
+  static String _stopWatchReference = '';
+
   /// Starts the stopwatch
   static void startStopwatch({String reference = ''}) {
     if(!_stopwatch.isRunning) {
       _stopwatch.start();
       _stopWatchReference = reference;
     } else {
-      logger.i('The instance of stopwatch is running.');
+      logger.i('Instance of stopwatch is running for $_stopWatchReference.');
     }
   }
 

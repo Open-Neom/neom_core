@@ -37,10 +37,9 @@ class UserFirestore implements UserRepository {
     Map<String,dynamic> userJSON = user.toJSON();
     AppUtilities.logger.d(userJSON.toString());
 
-    DocumentReference documentReferencer = userReference.doc(userId);
-
     try {
-      await documentReferencer.set(userJSON)
+
+      await userReference.doc(userId).set(userJSON)
           .whenComplete(() => AppUtilities.logger.i('User added to the database'))
           .catchError((e) => AppUtilities.logger.e(e));
 
@@ -256,7 +255,6 @@ class UserFirestore implements UserRepository {
       DocumentSnapshot documentSnapshot = await userReference.doc(userId).get();
       if (documentSnapshot.exists) {
         user = AppUser.fromJSON(documentSnapshot.data());
-        user.id = documentSnapshot.id;
         user.wallet.amount = user.wallet.amount + amount;
 
         await documentSnapshot.reference.update({
@@ -283,7 +281,6 @@ class UserFirestore implements UserRepository {
       DocumentSnapshot documentSnapshot = await userReference.doc(userId).get();
       if (documentSnapshot.exists) {
         user = AppUser.fromJSON(documentSnapshot.data());
-        user.id = documentSnapshot.id;
         user.wallet.amount = user.wallet.amount - amount;
 
         await documentSnapshot.reference.update({
