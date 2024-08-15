@@ -246,7 +246,7 @@ class AppMediaItem {
         publisher: releaseItem.publisher,
         publishedYear: releaseItem.publishedYear,
         releaseDate: releaseItem.createdTime,
-        permaUrl: releaseItem.previewUrl,
+        permaUrl: releaseItem.externalUrl ?? '',
         featInternalArtists: releaseItem.featInternalArtists,
         artist: releaseItem.ownerName ?? '',
         artistId: releaseItem.ownerId,

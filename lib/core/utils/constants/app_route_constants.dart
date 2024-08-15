@@ -185,4 +185,6 @@ class AppRouteConstants {
   static const String musicPlayerDownloads = '/musicPlayer//downloads';
   static const String musicPlayerStats  = '/musicPlayer/stats';
 
+  static const String wooWebView  = '/woo/webView';
+
 }

@@ -1,10 +1,10 @@
 import 'package:enum_to_string/enum_to_string.dart';
 
-import '../utils/enums/woo_back_order_status.dart';
-import '../utils/enums/woo_catalog_visibility.dart';
-import '../utils/enums/woo_product_status.dart';
-import '../utils/enums/woo_product_type.dart';
-import '../utils/enums/woo_tax_status.dart';
+import '../../utils/enums/woo_back_order_status.dart';
+import '../../utils/enums/woo_catalog_visibility.dart';
+import '../../utils/enums/woo_product_status.dart';
+import '../../utils/enums/woo_product_type.dart';
+import '../../utils/enums/woo_tax_status.dart';
 import 'woo_product_attribute.dart';
 import 'woo_product_category.dart';
 import 'woo_product_dimensions.dart';
@@ -63,14 +63,15 @@ class WooProduct {
   bool reviewsAllowed;
   double averageRating;
   int ratingCount;
-  List<int>? upsellIds;
-  List<int>? crossSellIds;
+  List<String>? upsellIds;
+  List<String>? crossSellIds;
   int parentId;
   String purchaseNote;
   List<WooProductCategory> categories;
   List<WooProductTag> tags;
   List<WooProductImage> images;
   Map<String, WooProductAttribute>? attributes;
+  List<String>? variations;
 
   WooProduct({
     this.id = '',
@@ -130,7 +131,8 @@ class WooProduct {
     this.categories = const [],
     this.tags = const [],
     this.images = const [],
-    this.attributes
+    this.attributes,
+    this.variations
   });
 
   @override
@@ -191,14 +193,15 @@ class WooProduct {
       reviewsAllowed = json['reviews_allowed'] ?? true,
       averageRating = double.tryParse(json['average_rating'] ?? '0.0') ?? 0.0,
       ratingCount = json['rating_count'] ?? 0,
-      upsellIds = List<int>.from(json['upsell_ids'] ?? []),
-      crossSellIds = List<int>.from(json['cross_sell_ids'] ?? []),
+      upsellIds = List.from((json['upsell_ids'] ?? []).map((id) => id.toString())),
+      crossSellIds = List.from((json['cross_sell_ids'] ?? []).map((id) => id.toString())),
       parentId = json['parent_id'] ?? 0,
       purchaseNote = json['purchase_note'] ?? '',
       categories = (json['categories'] ?? []).map<WooProductCategory>((json)=> WooProductCategory.fromJSON(json)).toList(),
       tags = (json['tags'] ?? []).map<WooProductTag>((json)=> WooProductTag.fromJSON(json)).toList(),
       images = (json['images'] ?? []).map<WooProductImage>((json)=> WooProductImage.fromJSON(json)).toList(),
-      attributes = {for (var attribute in json['attributes'] ?? []) WooProductAttribute.fromJSON(attribute).name.toString(): WooProductAttribute.fromJSON(attribute)};
+      attributes = {for (var attribute in json['attributes'] ?? []) WooProductAttribute.fromJSON(attribute).name.toString(): WooProductAttribute.fromJSON(attribute)},
+      variations = List.from((json['variations'] ?? []).map((id) => id.toString()));
 
   Map<String, dynamic> toJSON() {
     return {
@@ -260,6 +263,7 @@ class WooProduct {
       'tags': tags.map((tag) => tag.toJSON()).toList(),
       'images': images.map((image) => image.toJSON()).toList(),
       'attributes': attributes?.values.map((attribute) => attribute.toJSON()).toList() ?? [],
+      'variations': variations,
     };
   }
 

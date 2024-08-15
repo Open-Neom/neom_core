@@ -12,6 +12,7 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 import '../../neom_commons.dart';
 import '../domain/model/app_media_item.dart';
@@ -267,7 +268,93 @@ class CoreUtilities {
   //       : print("[EVENT]: $event");
   // }
 
-  static void launchURL(String url, {bool openInApp = true}) async {
+  static Future<void> clearWebViewCache() async {
+    WebViewController webViewController = WebViewController();
+    await webViewController.clearCache();
+  }
+
+  static Future<void> clearWebViewCookies() async {
+    WebViewCookieManager cookieManager = WebViewCookieManager();
+    await cookieManager.clearCookies();
+  }
+
+  static void launchInWebView(BuildContext context, String url, {
+    List<String> allowedUrls = const [], bool clearCache = false, bool clearCookies = false}) async {
+
+    WebViewController webViewController = WebViewController();
+
+    if (clearCache) webViewController.clearCache();
+    if (clearCookies) await clearWebViewCookies();
+
+    bool canPopWebView = false;
+    webViewController.loadRequest(Uri.parse(url));
+    webViewController.setJavaScriptMode(JavaScriptMode.unrestricted);
+    webViewController.setNavigationDelegate(
+      NavigationDelegate(
+        onProgress: (int progress) {
+          // Update loading bar.
+        },
+        onPageStarted: (String url) {},
+        onPageFinished: (String url) async {
+          await webViewController.runJavaScript(
+              "document.getElementById('masthead').style.display = 'none';"+
+              "document.querySelector('.cross-sells').style.display = 'none';"+
+              "document.querySelector('.actions').style.display = 'none';"+
+              "document.querySelector('.product-quantity').style.display = 'none';"
+          );
+
+        },
+        onHttpError: (HttpResponseError error) {
+          AppUtilities.logger.e(error.toString());
+        },
+        onWebResourceError: (WebResourceError error) {
+          AppUtilities.logger.e(error.toString());
+        },
+        onNavigationRequest: (NavigationRequest request) async {
+          AppUtilities.logger.d('Navigation Request for URL: ${request.url}');
+          if (request.url == url || allowedUrls.any((allowedUrl) => request.url.contains(allowedUrl))) {
+            canPopWebView = false;
+
+            if(request.url.contains('orden-recibida')) {
+              Navigator.pop(context);
+              return NavigationDecision.prevent;
+            } else {
+              return NavigationDecision.navigate;
+            }
+
+          } else {
+            Navigator.pop(context);
+            return NavigationDecision.prevent;
+          }
+        },
+      ),
+    );
+
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: PopScope(
+            canPop: canPopWebView,
+            onPopInvoked: (didPop) async {
+              if (await webViewController.canGoBack()) {
+                await webViewController.goBack();
+              } else {
+                canPopWebView = true;
+              }
+            },
+            child: WebViewWidget(
+              controller: webViewController,
+            ),
+          ),
+        );
+      }
+    ));
+  }
+
+
+  static void launchURL(String url, {bool openInApp = true, bool clearCache = false, bool clearCookies = false}) async {
+    AppUtilities.logger.d('Launching: $url - openInApp: $openInApp');
+
     try {
       if (await canLaunchUrl(Uri.parse(url))) {
 
@@ -275,8 +362,11 @@ class CoreUtilities {
           openInApp = false;
         }
 
+        if(clearCache) await clearWebViewCache();
+        if(clearCookies) await clearWebViewCookies();
+
         await launchUrl(Uri.parse(url),
-            mode: openInApp ? LaunchMode.inAppWebView : LaunchMode.externalApplication
+          mode: openInApp ? LaunchMode.inAppWebView : LaunchMode.externalApplication,
         );
       } else {
         AppUtilities.logger.i('Could not launch $url');

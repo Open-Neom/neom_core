@@ -698,6 +698,11 @@ class AppFlavour {
     return appProperties['subscriptionPlansUrl'];
   }
 
+  static String getSiteUrl() {
+    return appProperties['siteUrl'];
+  }
+
+
   static String getWooCommerceUrl() {
     return appProperties['wooCommerceUrl'];
   }

@@ -5,17 +5,21 @@ import 'package:http/http.dart' as http;
 
 import '../../../core/app_flavour.dart';
 import '../../../core/utils/app_utilities.dart';
-import '../../domain/woo_product.dart';
-import '../../domain/woo_product_attribute.dart';
-import '../../utils/constants/woocommerce_constants.dart';
+import '../../domain/model/woo_product.dart';
+import '../../domain/model/woo_product_attribute.dart';
+import '../../utils/constants/woo_category_constants.dart';
+import '../../utils/constants/woo_constants.dart';
 import '../../utils/enums/woo_product_status.dart';
 
 class WooProductsApi {
 
-  static Future<List<WooProduct>> getProducts({perPage = 25, page = 1, WooProductStatus status = WooProductStatus.publish}) async {
+  static Future<List<WooProduct>> getProducts({int perPage = 25, int page = 1,
+    WooProductStatus status = WooProductStatus.publish, String categoryId = ''}) async {
     AppUtilities.startStopwatch(reference: 'getProducts');
 
     String url = '${AppFlavour.getWooCommerceUrl()}/products?page=$page&per_page=$perPage&status=${status.name}';
+    if(categoryId.isNotEmpty) url = url + '&category=$categoryId';
+
     String credentials = base64Encode(utf8.encode('${AppFlavour.getWooCommerceClientKey()}:${AppFlavour.getWooCommerceClientSecret()}'));
     List<WooProduct> products = [];
 
@@ -31,7 +35,7 @@ class WooProductsApi {
         List<dynamic> data = jsonDecode(response.body);
         for(var item in data.asMap().values) {
           WooProduct product = WooProduct.fromJSON(item);
-          AppUtilities.logger.i('Product ${product.id} with name ${product.name}');
+          AppUtilities.logger.d('Product ${product.id} with name ${product.name}');
           products.add(product);
         }
 
@@ -111,7 +115,7 @@ class WooProductsApi {
           'Authorization': 'Basic $credentials',
         },
         body: jsonEncode({
-          WooCommerceConstants.attributes: totalAttributes.map((attribute) => attribute.toJSON()).toList(),
+          WooConstants.attributes: totalAttributes.map((attribute) => attribute.toJSON()).toList(),
         }),
       );
 

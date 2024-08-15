@@ -1,6 +1,6 @@
 import 'package:enum_to_string/enum_to_string.dart';
 
-import '../../../woocommerce/domain/woo_product.dart';
+import '../../../woocommerce/domain/model/woo_product.dart';
 import '../../utils/enums/app_currency.dart';
 import '../../utils/enums/owner_type.dart';
 import '../../utils/enums/release_status.dart';
@@ -39,6 +39,7 @@ class AppReleaseItem {
 
   Price? digitalPrice; ///PRICE FOR DIGITAL ITEM  - IF NOT NULL ITEM IS AVAILABLE AS DIGITAL
   Price? physicalPrice; ///PRICE IN CASE ITEM HAS A PHYSICAL VERSION AS WELL - IF NOT NULL ITEM IS AVAILABLE AS PHYSICAL
+  List<String>? variations; ///VARIATION IDS FOR CASES WHEN ITEM HAS DIFFERENT SUBITEMS
   double? discount; ///DISCOUNT TO PRICE
 
   int? publishedYear; ///YEAR OF PUBLISHIN FOR ITEMS PUBLISHED PREVIOUSLY OUTSIDE THE PLATFORM.
@@ -59,6 +60,8 @@ class AppReleaseItem {
   List<String>? externalArtists; ///Out of the app
   Map<String, String>? featInternalArtists; ///key: artistId - value: name
   List<String>? likedProfiles; ///LIST OF PROFILEIDS IN CASE OF MORE DETAILS. ALSO TO KNOW NUMBER OF LIKES WITH LIST.LENGHT
+
+  String? externalUrl; ///URL FOR ITEM IN WEB
 
   AppReleaseItem({
     this.id = '',
@@ -83,6 +86,7 @@ class AppReleaseItem {
     this.language,
     this.digitalPrice,
     this.physicalPrice,
+    this.variations,
     this.discount,
     this.publishedYear,
     this.publisher,
@@ -94,11 +98,13 @@ class AppReleaseItem {
     this.externalArtists,
     this.featInternalArtists,
     this.likedProfiles,
+    this.externalUrl,
   });
+
 
   @override
   String toString() {
-    return 'AppReleaseItem{id: $id, name: $name, description: $description, imgUrl: $imgUrl, galleryUrl: $galleryUrls, previewUrl: $previewUrl, duration: $duration, type: $type, status: $status, ownerId: $ownerId, ownerType: $ownerType, ownerName: $ownerName, categories: $categories, metaId: $metaId, metaName: $metaName, metaOwnerId: $metaOwnerId, appMediaItemIds: $appMediaItemIds, instruments: $instruments, lyrics: $lyrics, language: $language, digitalPrice: $digitalPrice, physicalPrice: $physicalPrice, discount: $discount, publishedYear: $publishedYear, publisher: $publisher, place: $place, boughtUsers: $boughtUsers, createdTime: $createdTime, modifiedTime: $modifiedTime, state: $state, externalArtists: $externalArtists, featInternalArtists: $featInternalArtists, likedProfiles: $likedProfiles}';
+    return 'AppReleaseItem{id: $id, name: $name, description: $description, imgUrl: $imgUrl, galleryUrls: $galleryUrls, previewUrl: $previewUrl, duration: $duration, type: $type, status: $status, ownerId: $ownerId, ownerType: $ownerType, ownerName: $ownerName, categories: $categories, metaId: $metaId, metaName: $metaName, metaOwnerId: $metaOwnerId, appMediaItemIds: $appMediaItemIds, instruments: $instruments, lyrics: $lyrics, language: $language, digitalPrice: $digitalPrice, physicalPrice: $physicalPrice, discount: $discount, publishedYear: $publishedYear, publisher: $publisher, place: $place, boughtUsers: $boughtUsers, createdTime: $createdTime, modifiedTime: $modifiedTime, state: $state, externalArtists: $externalArtists, featInternalArtists: $featInternalArtists, likedProfiles: $likedProfiles, externalUrl: $externalUrl}';
   }
 
   AppReleaseItem.fromJSON(data) :
@@ -124,6 +130,7 @@ class AppReleaseItem {
         language = data["language"] ?? '',
         digitalPrice = Price.fromJSON(data["digitalPrice"] ?? {}),
         physicalPrice = Price.fromJSON(data["physicalPrice"] ?? {}),
+        variations = List.from(data["variations"]?.cast<String>() ?? []),
         discount = data["discount"] ?? 0,
         publishedYear = data["publishedYear"] ?? 0,
         publisher = data["publisher"] ?? '',
@@ -134,7 +141,8 @@ class AppReleaseItem {
         state = data["state"] ?? 0,
         externalArtists = List.from(data["externalArtists"]?.cast<String>() ?? []),
         featInternalArtists = data["featInternalArtists"] as Map<String,String>?,
-        likedProfiles = List.from(data["likedProfiles"]?.cast<String>() ?? []);
+        likedProfiles = List.from(data["likedProfiles"]?.cast<String>() ?? []),
+        externalUrl = data["externalUrl"]?.cast<String>();
   
   Map<String, dynamic>  toJSON() => {
     'id': id,
@@ -170,6 +178,7 @@ class AppReleaseItem {
     'externalArtists': externalArtists,
     'featInternalArtists': featInternalArtists,
     'likedProfiles': likedProfiles,
+    'externalUrl': externalUrl
   };
 
   AppReleaseItem.fromWooProduct(WooProduct product) :
@@ -195,6 +204,7 @@ class AppReleaseItem {
         language = (product.attributes?.containsKey('language') ?? false) ? product.attributes!['language']!.options.first : '',
         digitalPrice = product.virtual ? Price(amount: product.regularPrice, currency: AppCurrency.mxn) : null,
         physicalPrice = !product.virtual ? Price(amount: product.regularPrice, currency: AppCurrency.mxn) : null,
+        variations = product.variations,
         discount = product.regularPrice <= product.salePrice ? 0 : ((product.regularPrice - product.salePrice) / product.regularPrice),
         publishedYear = (product.attributes?.containsKey('publishedYear') ?? false) ? int.tryParse(product.attributes!['publishedYear']!.options.first) : null,
         publisher = (product.attributes?.containsKey('publisher') ?? false) ? product.attributes!['publisher']!.options.first : null,
@@ -202,9 +212,10 @@ class AppReleaseItem {
         // boughtUsers = null,
         createdTime = product.dateCreated?.millisecondsSinceEpoch ?? 0,
         modifiedTime = product.dateModified?.millisecondsSinceEpoch,
-        state = 0;
+        state = 0,
         // externalArtists = null,
         // featInternalArtists = null,
         // likedProfiles = null
+        externalUrl = product.permalink;
 
 }

@@ -5,10 +5,10 @@ import 'package:http/http.dart' as http;
 
 import '../../../core/app_flavour.dart';
 import '../../../core/utils/app_utilities.dart';
-import '../../domain/order/woo_billing.dart';
-import '../../domain/order/woo_order.dart';
-import '../../domain/order/woo_order_line_item.dart';
-import '../../domain/order/woo_shipping.dart';
+import '../../domain/model/order/woo_billing.dart';
+import '../../domain/model/order/woo_order.dart';
+import '../../domain/model/order/woo_order_line_item.dart';
+import '../../domain/model/order/woo_shipping.dart';
 import '../../utils/enums/woo_order_status.dart';
 import '../../utils/enums/woo_payment_method.dart';
 
@@ -56,6 +56,8 @@ class WooOrdersApi {
     if(status != null) url = '$url&status=${status.name}';
     String credentials = base64Encode(utf8.encode('${AppFlavour.getWooCommerceClientKey()}:${AppFlavour.getWooCommerceClientSecret()}'));
 
+    List<WooOrder> wooOrders = [];
+
     final response = await http.get(
       Uri.parse(url),
       headers: {
@@ -68,10 +70,12 @@ class WooOrdersApi {
       List<dynamic> ordersJson = jsonDecode(response.body);
       AppUtilities.logger.i(ordersJson.toString());
       for (var json in ordersJson) {
+        WooOrder wooOrder = WooOrder.fromJson(json);
         if(json['id'].toString() == '6364') {
           AppUtilities.logger.i("");
         }
         AppUtilities.logger.i(json.toString());
+        wooOrders.add(wooOrder);
       }
       // return ordersJson.map((orderJson) => WooOrder.fromJSON(orderJson)).toList();
     } else {
@@ -79,7 +83,7 @@ class WooOrdersApi {
       AppUtilities.logger.e('Response: ${response.body}');
     }
 
-    return [];
+    return wooOrders;
   }
 
 }

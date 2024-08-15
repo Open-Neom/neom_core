@@ -1,5 +1,5 @@
 
-class WooCommerceConstants {
+class WooConstants {
 
   static const String attributes = 'attributes';
 
