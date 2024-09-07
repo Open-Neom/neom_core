@@ -6,6 +6,8 @@ enum AppMediaSource {
   apple('apple'),
   deezer('deezer'),
   jiosaavn('jiosaavn'),
+  google('google'),
+  amazon('amazon'),
   other('other');
 
   final String value;

@@ -16,6 +16,7 @@ import 'review.dart';
 class Band {
 
   String id;
+  String email;
   String name;
   String description;
   String photoUrl;
@@ -62,6 +63,7 @@ class Band {
 
   Band({
     this.id = "",
+    this.email = '',
     this.name = "",
     this.description = "",
     this.photoUrl = "",
@@ -101,6 +103,7 @@ class Band {
     Get.log("Band toJSON");
     return <String, dynamic> {
       'id': id,
+      'email': email,
       'name': name,
       'description': description,
       'photoUrl': photoUrl,
@@ -136,11 +139,12 @@ class Band {
 
   Band.fromJSON(data) :
         id = data["id"],
+        email = data["email"],
         name = data["name"],
         description = data["description"] ?? "",
         photoUrl = data["photoUrl"],
         coverImgUrl = data["coverImgUrl"] ?? "",
-        reason = EnumToString.fromString(UsageReason.values, data["reason"]) ?? UsageReason.fun,
+        reason = EnumToString.fromString(UsageReason.values, data["reason"]) ?? UsageReason.casual,
         pricePerHour = Price.fromJSON(data["pricePerHour"]),
         reviewStars = data["reviewStars"],
         isActive = data["isActive"] ?? true,

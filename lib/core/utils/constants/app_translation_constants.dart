@@ -204,6 +204,7 @@ class AppTranslationConstants {
   static const String linkedin = "LinkedIn" ;
   static const String twitter = "Twitter";
   static const String blog = "Blog";
+  static const String checkMyBlog = "checkMyBlog";
   static const String prevVersion1 = "prevVersion1";
   static const String prevVersion2 = "prevVersion2";
   static const String prevVersion3 = "prevVersion3";
@@ -358,6 +359,7 @@ class AppTranslationConstants {
   static const String phoneNumber = 'phoneNumber';
 
   static const String searchPostProfileItemmates = 'searchPostProfileItemmates';
+  static const String searchProfileItemmates = 'searchProfileItemmates';
   static const String chooseYourLanguage = 'chooseYourLanguage';
 
   static const String profileType = 'profileType';
@@ -718,7 +720,8 @@ class AppTranslationConstants {
   static const String readMore = 'readMore';
   static const String less = 'less';
   static const String toBuy = 'toBuy';
-  static const String toAdquire = 'toAdquire';
+  static const String toBuyPhysical = 'toBuyPhysical';
+  static const String toAcquire = 'toAcquire';
   static const String page = 'page';
   static const String pages = 'pages';
   static const String details = 'details';
@@ -831,6 +834,7 @@ class AppTranslationConstants {
   static const String releaseUploadPostCaptionMsg1 = 'releaseUploadPostCaptionMsg1';
   static const String releaseUploadPostCaptionMsg2 = 'releaseUploadPostCaptionMsg2';
   static const String buyReleaseItemMsg = 'buyReleaseItemMsg';
+  static const String buySuscriptionMsg = 'buySuscriptionMsg';
 
   static const String analytics = 'analytics';
   static const String seeAnalytics = 'seeAnalytics';
@@ -958,7 +962,8 @@ class AppTranslationConstants {
   static const String chamberPresetAdded = 'chamberPresetAdded';
   static const String maxVideosPerWeekReachedMsg = 'maxVideosPerWeekReachedMsg';
   static const String freeSingleReleaseUploadMsg = 'freeSingleReleaseUploadMsg';
-  static const String freeTrialReached = 'freeTrialReached';
+  static const String membershipFreeTrialReached = 'membershipFreeTrialReached';
+  static const String productFreeTrialReached = 'productFreeTrialReached';
 
   static const String professionalTools = 'professionalTools';
   static const String professionals = 'professionals';

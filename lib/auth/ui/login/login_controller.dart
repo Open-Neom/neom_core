@@ -103,7 +103,7 @@ class LoginController extends GetxController implements LoginService {
           await userController.getUserById(_userId);
         }
 
-        if (userController.user!.id.isEmpty) {
+        if (userController.user.id.isEmpty) {
           switch(signedInWith) {
             case(SignedInWith.email):
               userController.getUserFromFirebase(user);
@@ -125,14 +125,14 @@ class LoginController extends GetxController implements LoginService {
               authStatus.value = AuthStatus.notDetermined;
               break;
           }
-        } else if(!userController.isNewUser && userController.user!.profiles.isEmpty) {
+        } else if(!userController.isNewUser && userController.user.profiles.isEmpty) {
           AppUtilities.logger.i("No Profiles found for $_userId. Please Login Again");
           authStatus.value = AuthStatus.notLoggedIn;
         } else {
           authStatus.value = AuthStatus.loggedIn;
         }
 
-        if (userController.isNewUser && userController.user!.id.isNotEmpty) {
+        if (userController.isNewUser && userController.user.id.isNotEmpty) {
           authStatus.value = AuthStatus.loggedIn;
           Get.toNamed(AppRouteConstants.introRequiredPermissions);
         } else {
@@ -484,9 +484,9 @@ class LoginController extends GetxController implements LoginService {
     } else if(authStatus.value == AuthStatus.loggingIn) {
       rootPage = const SplashPage();
     } else if (authStatus.value == AuthStatus.loggedIn
-      && (userController.user?.id.isNotEmpty ?? false)
-      && ((userController.user?.profiles.isNotEmpty ?? false)
-            && (userController.user?.profiles.first.id.isNotEmpty ?? false)
+      && (userController.user.id.isNotEmpty)
+      && ((userController.user.profiles.isNotEmpty)
+            && (userController.user.profiles.first.id.isNotEmpty)
         )
     ) {
       rootPage = homePage;

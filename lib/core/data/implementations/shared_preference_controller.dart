@@ -34,7 +34,7 @@ class SharedPreferenceController extends GetxController implements SharedPrefere
 
     try {
       prefs = await SharedPreferences.getInstance();
-      userController.user!.name = prefs.getString(AppSharedPreferenceConstants.username) ?? '';
+      userController.user.name = prefs.getString(AppSharedPreferenceConstants.username) ?? '';
       userController.profile.id = prefs.getString(AppSharedPreferenceConstants.profileId) ?? '';
       userController.profile.aboutMe = prefs.getString(AppSharedPreferenceConstants.aboutMe) ?? '';
       userController.profile.photoUrl = prefs.getString(AppSharedPreferenceConstants.photoUrl) ?? '';
@@ -69,7 +69,7 @@ class SharedPreferenceController extends GetxController implements SharedPrefere
 
   @override
   Future<void> writeLocal() async {
-    AppUser currentUser = userController.user!;
+    AppUser currentUser = userController.user;
     await prefs.setString(AppSharedPreferenceConstants.userId, currentUser.id);
     await prefs.setString(AppSharedPreferenceConstants.profileId, userController.profile.id);
     await prefs.setString(AppSharedPreferenceConstants.username, currentUser.name);

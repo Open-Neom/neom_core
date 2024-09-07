@@ -703,16 +703,16 @@ class AppFlavour {
   }
 
 
-  static String getWooCommerceUrl() {
-    return appProperties['wooCommerceUrl'];
+  static String getWooUrl() {
+    return appProperties['wooUrl'];
   }
 
-  static String getWooCommerceClientKey() {
-    return appProperties['wooCommerceClientKey'];
+  static String getWooClientKey() {
+    return appProperties['wooClientKey'];
   }
 
-  static String getWooCommerceClientSecret() {
-    return appProperties['wooCommerceClientSecret'];
+  static String getWooClientSecret() {
+    return appProperties['wooClientSecret'];
   }
 
 }

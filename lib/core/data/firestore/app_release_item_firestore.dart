@@ -118,22 +118,19 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
 
   @override
   Future<bool> addBoughtUser({required String releaseItemId, required String userId}) async {
-    logger.t("$releaseItemId would add User $userId");
+    logger.t("$releaseItemId would add user $userId");
 
     try {
       await appReleaseItemReference.get()
           .then((querySnapshot) async {
         for (var document in querySnapshot.docs) {
           if(document.id == releaseItemId) {
-            await document.reference
-                .update({AppFirestoreConstants.boughtUsers: FieldValue.arrayUnion([userId])});
-
+            await document.reference.update({AppFirestoreConstants.boughtUsers: FieldValue.arrayUnion([userId])});
+            logger.d("$releaseItemId has added user $userId");
+            return true;
           }
         }
       });
-
-      logger.d("$releaseItemId has added boughtItem $userId");
-      return true;
     } catch (e) {
       logger.e(e.toString());
     }

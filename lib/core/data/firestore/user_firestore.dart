@@ -625,4 +625,37 @@ class UserFirestore implements UserRepository {
     }
   }
 
+  @override
+  Future<bool> addBoughtItem({required String userId, required String itemId}) async {
+    AppUtilities.logger.d("$userId would add $itemId");
+
+    try {
+      await userReference.doc(userId).update({
+        AppFirestoreConstants.boughtItems: FieldValue.arrayUnion([itemId])
+      });
+      AppUtilities.logger.d("$userId has added boughtItem $itemId");
+      return true;
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+    return false;
+  }
+
+
+  @override
+  Future<bool> removeBoughtItem(String userId, String itemId) async {
+    AppUtilities.logger.d("$userId would remove $itemId");
+
+    try {
+      await userReference.doc(userId).update({
+        AppFirestoreConstants.boughtItems: FieldValue.arrayRemove([itemId])
+      });
+      AppUtilities.logger.d("$userId has removed boughtItem $itemId");
+      return true;
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+    return false;
+  }
+
 }

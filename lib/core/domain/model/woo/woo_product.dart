@@ -1,10 +1,10 @@
 import 'package:enum_to_string/enum_to_string.dart';
 
-import '../../utils/enums/woo_back_order_status.dart';
-import '../../utils/enums/woo_catalog_visibility.dart';
-import '../../utils/enums/woo_product_status.dart';
-import '../../utils/enums/woo_product_type.dart';
-import '../../utils/enums/woo_tax_status.dart';
+import '../../../utils/enums/woo/woo_back_order_status.dart';
+import '../../../utils/enums/woo/woo_catalog_visibility.dart';
+import '../../../utils/enums/woo/woo_product_status.dart';
+import '../../../utils/enums/woo/woo_product_type.dart';
+import '../../../utils/enums/woo/woo_tax_status.dart';
 import 'woo_product_attribute.dart';
 import 'woo_product_category.dart';
 import 'woo_product_dimensions.dart';
@@ -13,7 +13,7 @@ import 'woo_product_tag.dart';
 
 class WooProduct {
 
-  String id;
+  int id;
   String name;
   String slug;
   String permalink;
@@ -74,7 +74,7 @@ class WooProduct {
   List<String>? variations;
 
   WooProduct({
-    this.id = '',
+    this.id = 0,
     this.name = '',
     this.slug = '',
     this.permalink = '',
@@ -141,7 +141,7 @@ class WooProduct {
   }
 
   WooProduct.fromJSON(json) :
-      id = json['id'].toString(),
+      id = json['id'],
       name = json['name'] ?? '',
       slug = json['slug'] ?? '',
       permalink = json['permalink'] ?? '',

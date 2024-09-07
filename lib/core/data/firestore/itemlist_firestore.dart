@@ -71,7 +71,6 @@ class ItemlistFirestore implements ItemlistRepository {
     AppUtilities.logger.d("Removing item from itemlist $itemlistId");
 
     try {
-
       DocumentReference documentReference = itemlistReference.doc(itemlistId);
       if(documentReference.id.isNotEmpty) {
         await documentReference.update({
@@ -133,6 +132,39 @@ class ItemlistFirestore implements ItemlistRepository {
           }
         }
       });
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+
+    AppUtilities.logger.d("${itemlists .length} itemlists found in total.");
+    return itemlists;
+  }
+
+  @override
+  Future<Map<String, Itemlist>> getByOwnerId(String ownerId, {bool onlyPublic = false, bool excludeMyFavorites = true,
+    int minItems = 0, int maxLength = 100, OwnerType ownerType = OwnerType.profile, ItemlistType? itemlistType}) async {
+    AppUtilities.logger.t("Retrieving Itemlists from firestore");
+    Map<String, Itemlist> itemlists = {};
+
+    try {
+      if (ownerId.isNotEmpty) {
+        Query query = itemlistReference.limit(maxLength);
+        query = query.where('ownerId', isEqualTo: ownerId);
+        query = query.where('ownerType', isEqualTo: ownerType.name);
+        if(itemlistType != null) query = query.where('type', isEqualTo: itemlistType.name);
+
+        await query.get().then((querySnapshot) {
+          for (var document in querySnapshot.docs) {
+            Itemlist itemlist = Itemlist.fromJSON(document.data());
+            itemlist.id = document.id;
+            if(itemlist.getTotalItems() >= minItems && (!onlyPublic || itemlist.public)
+                && (!excludeMyFavorites || itemlist.id != AppConstants.myFavorites)
+            ) {
+              itemlists[itemlist.id] = itemlist;
+            }
+          }
+        });
+      }
     } catch (e) {
       AppUtilities.logger.e(e.toString());
     }
@@ -223,6 +255,7 @@ class ItemlistFirestore implements ItemlistRepository {
   @override
   Future<bool> deleteReleaseItem(String itemlistId, AppReleaseItem releaseItem) async {
       try {
+        if(releaseItem.id.isEmpty || itemlistId.isEmpty) return false;
         DocumentReference documentReference = itemlistReference.doc(itemlistId);
         DocumentSnapshot snapshot = await documentReference.get();
 

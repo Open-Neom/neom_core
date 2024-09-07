@@ -1,6 +1,6 @@
 enum CouponType {
-  percentageDiscount,
-  cartDiscount,
+  coinAddition,
   productDiscount,
-  coinAddition
+  cartDiscount,
+  freeShipping,
 }

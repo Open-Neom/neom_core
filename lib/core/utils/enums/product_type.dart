@@ -1,10 +1,12 @@
 enum ProductType {
-  coins,
+  coin,
   digital,
   physical,
   service,
-  external,
   subscription,
   crowdfunding,
+  external,
+  event,
+  booking,
   notDefined
 }

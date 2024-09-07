@@ -196,7 +196,6 @@ export 'core/utils/enums/push_notification_type.dart';
 export 'core/utils/enums/reference_type.dart';
 export 'core/utils/enums/report_type.dart';
 export 'core/utils/enums/request_decision.dart';
-export 'core/utils/enums/sale_type.dart';
 export 'core/utils/enums/search_type.dart';
 export 'core/utils/enums/sort_user.dart';
 export 'core/utils/enums/sponsor_type.dart';

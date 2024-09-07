@@ -101,6 +101,7 @@ class AppPageIdConstants {
   static const String miniPlayer = 'miniPlayer';
 
   static const String wooWebView = 'wooWebView';
-  
+
+  static const String offeredServices = 'offeredServices';
 
 }

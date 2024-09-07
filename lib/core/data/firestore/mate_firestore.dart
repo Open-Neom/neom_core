@@ -148,7 +148,7 @@ class MateFirestore implements MateRepository {
   Future<AppProfile> getDetailedProfile(AppProfile profile) async {
     try {
       switch(profile.type) {
-        case(ProfileType.instrumentist):
+        case(ProfileType.artist):
           profile.instruments = await InstrumentFirestore().retrieveInstruments(profile.id);
           break;
         case(ProfileType.facilitator):
@@ -157,13 +157,11 @@ class MateFirestore implements MateRepository {
         case(ProfileType.host):
           profile.places = await PlaceFirestore().retrievePlaces(profile.id);
           break;
-        case(ProfileType.researcher):
+        case(ProfileType.casual):
+          profile.genres = await GenreFirestore().retrieveGenres(profile.id);
           profile.genres = await GenreFirestore().retrieveGenres(profile.id);
           break;
-        case(ProfileType.fan):
-          profile.genres = await GenreFirestore().retrieveGenres(profile.id);
-          break;
-        case(ProfileType.band):
+        default:
           break;
       }
     } catch (e) {

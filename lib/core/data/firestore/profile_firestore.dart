@@ -34,9 +34,11 @@ class ProfileFirestore implements ProfileRepository {
 
   final usersReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.users);
   final profileReference = FirebaseFirestore.instance.collectionGroup(AppFirestoreCollectionConstants.profiles);
+
   List<QueryDocumentSnapshot> _profileDocuments = [];
   Map<dynamic, AppProfile> sortedProfiles = {};
   List<String> currentProfileIds = [];
+
   @override
   Future<String> insert(String userId, AppProfile profile) async {
 
@@ -393,7 +395,7 @@ class ProfileFirestore implements ProfileRepository {
         for (var document in querySnapshot.docs) {
           AppProfile profile = AppProfile.fromJSON(document.data());
           profile.id = document.id;
-          if(profile.id != selfProfileId && profile.type == ProfileType.instrumentist
+          if(profile.id != selfProfileId && profile.type == ProfileType.artist
               && mainInstrumentProfiles.length < maxProfiles
           ) {
 
@@ -1240,9 +1242,11 @@ class ProfileFirestore implements ProfileRepository {
           .limit(AppConstants.profilesLimit)
           .get().then((querySnapshot) {
             for (var document in querySnapshot.docs) {
-              AppProfile profile = AppProfile.fromJSON(document.data());
-              profile.id = document.id;
-              profiles[profile.id] = profile;
+              if(document.data()['name'] != null) {
+                AppProfile profile = AppProfile.fromJSON(document.data());
+                profile.id = document.id;
+                profiles[profile.id] = profile;
+              }
             }
           });
     } catch (e) {
@@ -1683,7 +1687,7 @@ class ProfileFirestore implements ProfileRepository {
   Future<AppProfile> getProfileFeatures(AppProfile profile) async {
 
     try {
-      if(profile.type == ProfileType.instrumentist) {
+      if(profile.type == ProfileType.artist) {
         profile.instruments = await InstrumentFirestore().retrieveInstruments(profile.id);
         if(profile.instruments!.isEmpty) {
           AppUtilities.logger.w("Instruments not found");
@@ -1705,7 +1709,7 @@ class ProfileFirestore implements ProfileRepository {
       }
 
       profile.genres = await GenreFirestore().retrieveGenres(profile.id);
-      profile.itemlists = await ItemlistFirestore().fetchAll(ownerId: profile.id);
+      profile.itemlists = await ItemlistFirestore().getByOwnerId(profile.id);
       if(profile.genres!.isEmpty) AppUtilities.logger.t("Genres not found");
       if(profile.itemlists!.isEmpty) AppUtilities.logger.t("Itemlists not found");
 
@@ -1966,46 +1970,6 @@ class ProfileFirestore implements ProfileRepository {
 
     AppUtilities.logger.d("${hostProfiles.length} Profiles found");
     return hostProfiles;
-  }
-
-  @override
-  Future<bool> addBoughtItem({required String userId, required String boughtItem}) async {
-    AppUtilities.logger.d("$userId would add $boughtItem");
-
-    try {
-      await usersReference.doc(userId)
-          .update({AppFirestoreConstants.boughtItems: FieldValue.arrayUnion([boughtItem])});
-      AppUtilities.logger.d("$userId has added boughtItem $boughtItem");
-      return true;
-    } catch (e) {
-      AppUtilities.logger.e(e.toString());
-    }
-    return false;
-  }
-
-
-  @override
-  Future<bool> removeBoughtItem(String profileId, String boughtItem) async {
-    AppUtilities.logger.d("$profileId would remove $boughtItem");
-
-    try {
-      await profileReference.get()
-          .then((querySnapshot) async {
-        for (var document in querySnapshot.docs) {
-          if(document.id == profileId) {
-            await document.reference
-                .update({AppFirestoreConstants.boughtItems: FieldValue.arrayUnion([boughtItem])});
-
-          }
-        }
-      });
-
-      AppUtilities.logger.d("$profileId has removed boughtItems $boughtItem");
-      return true;
-    } catch (e) {
-      AppUtilities.logger.e(e.toString());
-    }
-    return false;
   }
 
 }

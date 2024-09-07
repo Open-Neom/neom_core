@@ -381,4 +381,26 @@ class AppUtilities {
 
   }
 
+  static List<DropdownMenuItem<String>> buildDropDownMenuItemlists(List<Itemlist> itemlists) {
+
+    List<DropdownMenuItem<String>> menuItems = [];
+
+    for (Itemlist list in itemlists) {
+      menuItems.add(
+          DropdownMenuItem<String>(
+            value: list.id,
+            child: Center(
+                child: Text(
+                    list.name.length > AppConstants.maxItemlistNameLength
+                        ? "${list.name
+                        .substring(0,AppConstants.maxItemlistNameLength).capitalizeFirst}..."
+                        : list.name.capitalizeFirst)
+            ),
+          )
+      );
+    }
+
+    return menuItems;
+  }
+
 }

@@ -7,7 +7,6 @@ import 'push_notification_controller.dart';
 
 class PushNotificationService {
 
-  var logger = AppUtilities.logger;
   static FirebaseMessaging messaging = FirebaseMessaging.instance;
   static String? token;
   static String referenceId = "referenceId";

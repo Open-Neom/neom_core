@@ -34,4 +34,7 @@ abstract class UserRepository {
   Future<bool> addReleaseItem({required String userId, required String releaseItemId});
   Future<bool> updateUserRole(String userId, UserRole userRole);
 
+  Future<bool> addBoughtItem({required String userId, required String itemId});
+  Future<bool> removeBoughtItem(String userId, String itemId);
+
 }

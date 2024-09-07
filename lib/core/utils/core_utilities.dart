@@ -278,78 +278,63 @@ class CoreUtilities {
     await cookieManager.clearCookies();
   }
 
-  static void launchInWebView(BuildContext context, String url, {
-    List<String> allowedUrls = const [], bool clearCache = false, bool clearCookies = false}) async {
-
-    WebViewController webViewController = WebViewController();
-
-    if (clearCache) webViewController.clearCache();
-    if (clearCookies) await clearWebViewCookies();
-
-    bool canPopWebView = false;
-    webViewController.loadRequest(Uri.parse(url));
-    webViewController.setJavaScriptMode(JavaScriptMode.unrestricted);
-    webViewController.setNavigationDelegate(
-      NavigationDelegate(
-        onProgress: (int progress) {
-          // Update loading bar.
-        },
-        onPageStarted: (String url) {},
-        onPageFinished: (String url) async {
-          await webViewController.runJavaScript(
-              "document.getElementById('masthead').style.display = 'none';"+
-              "document.querySelector('.cross-sells').style.display = 'none';"+
-              "document.querySelector('.actions').style.display = 'none';"+
-              "document.querySelector('.product-quantity').style.display = 'none';"
-          );
-
-        },
-        onHttpError: (HttpResponseError error) {
-          AppUtilities.logger.e(error.toString());
-        },
-        onWebResourceError: (WebResourceError error) {
-          AppUtilities.logger.e(error.toString());
-        },
-        onNavigationRequest: (NavigationRequest request) async {
-          AppUtilities.logger.d('Navigation Request for URL: ${request.url}');
-          if (request.url == url || allowedUrls.any((allowedUrl) => request.url.contains(allowedUrl))) {
-            canPopWebView = false;
-
-            if(request.url.contains('orden-recibida')) {
-              Navigator.pop(context);
-              return NavigationDecision.prevent;
-            } else {
-              return NavigationDecision.navigate;
-            }
-
-          } else {
-            Navigator.pop(context);
-            return NavigationDecision.prevent;
-          }
-        },
-      ),
-    );
-
-    Navigator.of(context).push(MaterialPageRoute(
-      builder: (BuildContext context) {
-        return SafeArea(
-          child: PopScope(
-            canPop: canPopWebView,
-            onPopInvoked: (didPop) async {
-              if (await webViewController.canGoBack()) {
-                await webViewController.goBack();
-              } else {
-                canPopWebView = true;
-              }
-            },
-            child: WebViewWidget(
-              controller: webViewController,
-            ),
-          ),
-        );
-      }
-    ));
-  }
+  ///DEPRECATED
+  // static void launchInWebView(BuildContext context, String url, {
+  //   List<String> allowedUrls = const [], bool clearCache = false, bool clearCookies = false}) async {
+  //
+  //   WebViewController webViewController = WebViewController();
+  //
+  //   if (clearCache) webViewController.clearCache();
+  //   if (clearCookies) await clearWebViewCookies();
+  //
+  //   bool canPopWebView = false;
+  //   webViewController.loadRequest(Uri.parse(url));
+  //   webViewController.setJavaScriptMode(JavaScriptMode.unrestricted);
+  //   webViewController.setNavigationDelegate(
+  //     NavigationDelegate(
+  //       onProgress: (int progress) {
+  //         // Update loading bar.
+  //       },
+  //       onPageStarted: (String url) {},
+  //       onPageFinished: (String url) {},
+  //       onHttpError: (HttpResponseError error) {
+  //         AppUtilities.logger.e(error.toString());
+  //       },
+  //       onWebResourceError: (WebResourceError error) {
+  //         AppUtilities.logger.e(error.toString());
+  //       },
+  //       onNavigationRequest: (NavigationRequest request) async {
+  //         AppUtilities.logger.d('Navigation Request for URL: ${request.url}');
+  //         if(allowedUrls.isEmpty || allowedUrls.any((allowedUrl) => request.url.contains(allowedUrl))) {
+  //           return NavigationDecision.navigate;
+  //         } else {
+  //           Navigator.pop(context);
+  //           return NavigationDecision.prevent;
+  //         }
+  //       },
+  //     ),
+  //   );
+  //
+  //   Navigator.of(context).push(MaterialPageRoute(
+  //     builder: (BuildContext context) {
+  //       return SafeArea(
+  //         child: PopScope(
+  //           canPop: canPopWebView,
+  //           onPopInvoked: (didPop) async {
+  //             if (await webViewController.canGoBack()) {
+  //               await webViewController.goBack();
+  //             } else {
+  //               canPopWebView = true;
+  //             }
+  //           },
+  //           child: WebViewWidget(
+  //             controller: webViewController,
+  //           ),
+  //         ),
+  //       );
+  //     }
+  //   ));
+  // }
 
 
   static void launchURL(String url, {bool openInApp = true, bool clearCache = false, bool clearCookies = false}) async {
@@ -445,7 +430,7 @@ class CoreUtilities {
     String profileMainFeature = "";
 
     switch(profile.type) {
-      case(ProfileType.instrumentist):
+      case(ProfileType.artist):
         profileMainFeature = getMainInstrument(profile.instruments ?? <String, Instrument>{});
         break;
       case(ProfileType.facilitator):
@@ -455,12 +440,10 @@ class CoreUtilities {
         profileMainFeature = getMainPlace(profile.places ?? <String, Place>{});
         break;
       case(ProfileType.researcher):
+      case(ProfileType.casual):
         profileMainFeature = CoreUtilities.getMainGenre(profile.genres ?? <String, Genre>{});
         break;
-      case(ProfileType.fan):
-        profileMainFeature = CoreUtilities.getMainGenre(profile.genres ?? <String, Genre>{});
-        break;
-      case(ProfileType.band):
+      default:
         break;
     }
 
@@ -567,7 +550,7 @@ class CoreUtilities {
     Map<String, Instrument> matchedInstruments = <String, Instrument>{};
 
     try {
-      for (var instrumentFulfillment in event.instrumentsFulfillment) {
+      for (var instrumentFulfillment in event.instrumentsFulfillment ?? []) {
         if(profileInstruments.containsKey(instrumentFulfillment.instrument.id)
             && !instrumentFulfillment.isFulfilled) {
           matchedInstruments[instrumentFulfillment.instrument.id] = instrumentFulfillment.instrument;

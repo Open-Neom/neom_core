@@ -101,9 +101,6 @@ abstract class ProfileRepository {
   Future<bool> removeBlogEntry(String profileId, String blogEntryId);
   Future<bool> removeAllFavoriteItems(String profileId);
 
-  Future<bool> addBoughtItem({required String userId, required String boughtItem});
-  Future<bool> removeBoughtItem(String profileId, String boughtItem);
-
   Future<bool> addChamberPreset({required String profileId, required String chamberPresetId});
   Future<bool> updateAddress(String profileId, String address);
   Future<bool> updatePhoneNumber(String profileId, String phoneNumber);

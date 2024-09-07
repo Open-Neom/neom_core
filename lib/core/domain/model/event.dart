@@ -1,10 +1,13 @@
-import 'package:enum_to_string/enum_to_string.dart';
+import 'dart:convert';
 
+import 'package:enum_to_string/enum_to_string.dart';
+import 'package:geolocator/geolocator.dart';
+
+import '../../utils/core_utilities.dart';
 import '../../utils/enums/event_status.dart';
 import '../../utils/enums/event_type.dart';
 import '../../utils/enums/usage_reason.dart';
 import 'app_media_item.dart';
-import 'app_profile.dart';
 import 'band_fulfillment.dart';
 import 'instrument_fulfillment.dart';
 import 'place.dart';
@@ -12,28 +15,42 @@ import 'price.dart';
 
 class Event {
 
-  String id = "";
+  String id;
   String name;
   String description;
-  AppProfile? owner;
   String imgUrl;
   String coverImgUrl;
+
+  String ownerId;
+  String ownerName;
+  String ownerEmail;
+
   bool public;
+
   int createdTime;
   int eventDate;
+
   UsageReason reason;
+
   List<String>? genres;
-  double itemPercentageCoverage;
-  int distanceKm;
-  Price? paymentPrice;
-  Price? coverPrice;
+
+  double itemPercentageCoverage; ///MINIMUM % COVERAGE TO ALLOW SEND REQUEST
+  int distanceKm; ///MAXIMUM DISTANCE TO ALLOW SENDING REQUEST
+
+
+  Price? paymentPrice; ///PAYMENT FOR ARTISTS
+  Price? coverPrice; ///COVER PRICE FOR CASUALS
+
   EventType type;
   EventStatus status;
-  Place? place;
   bool isFulfilled = false;
+
+  Place? place;
+  Position? position; //Event position from profile.position
+
   List<AppMediaItem>? appMediaItems;
-  List<InstrumentFulfillment> instrumentsFulfillment;
-  List<BandFulfillment> bandsFulfillment;
+  List<InstrumentFulfillment>? instrumentsFulfillment;
+  List<BandFulfillment>? bandsFulfillment;
   List<String>? watchingProfiles;
   List<String>? goingProfiles;
   int participantsLimit;
@@ -46,6 +63,9 @@ class Event {
       this.description = "",
       this.imgUrl = "",
       this.coverImgUrl = "",
+      this.ownerId = '',
+      this.ownerName = '',
+      this.ownerEmail = '',
       this.public = true,
       this.createdTime = 0,
       this.eventDate = 0,
@@ -58,18 +78,18 @@ class Event {
       this.type = EventType.rehearsal,
       this.status = EventStatus.draft,
       this.place,
+      this.position,
       this.isFulfilled = false,
-      this.instrumentsFulfillment = const [],
-      this.bandsFulfillment = const [],
+      this.instrumentsFulfillment,
+      this.bandsFulfillment,
       this.isOnline = false,
       this.isTest = false,
       this.participantsLimit = 0
   });
 
-
   @override
   String toString() {
-    return 'Event{id: $id, name: $name, description: $description, owner: $owner, imgUrl: $imgUrl, coverImgUrl: $coverImgUrl, public: $public, createdTime: $createdTime, eventDate: $eventDate, reason: $reason, appMediaItems: $appMediaItems, genres: $genres, itemPercentageCoverage: $itemPercentageCoverage, distanceKm: $distanceKm, paymentPrice: $paymentPrice, coverPrice: $coverPrice, type: $type, status: $status, place: $place, isFulfilled: $isFulfilled, instrumentsFulfillment: $instrumentsFulfillment, bandsFulfillment: $bandsFulfillment, watchingProfiles: $watchingProfiles, goingProfiles: $goingProfiles, isTest: $isTest}';
+    return 'Event{id: $id, name: $name, description: $description, imgUrl: $imgUrl, coverImgUrl: $coverImgUrl, ownerId: $ownerId, ownerName: $ownerName, ownerEmail: $ownerEmail, public: $public, createdTime: $createdTime, eventDate: $eventDate, reason: $reason, genres: $genres, itemPercentageCoverage: $itemPercentageCoverage, distanceKm: $distanceKm, paymentPrice: $paymentPrice, coverPrice: $coverPrice, type: $type, status: $status, isFulfilled: $isFulfilled, place: $place, position: $position, appMediaItems: $appMediaItems, instrumentsFulfillment: $instrumentsFulfillment, bandsFulfillment: $bandsFulfillment, watchingProfiles: $watchingProfiles, goingProfiles: $goingProfiles, participantsLimit: $participantsLimit, isOnline: $isOnline, isTest: $isTest}';
   }
 
   Event.createBasic(this.name, desc):
@@ -77,22 +97,17 @@ class Event {
     description = desc,
     imgUrl = "",
     coverImgUrl = "",
+    ownerId = '',
+    ownerName = '',
+    ownerEmail = '',
     public = true,
-    appMediaItems = [],
-    genres = [],
     eventDate =  0,
     reason = UsageReason.any,
     itemPercentageCoverage = 0,
     distanceKm = 0,
     createdTime = 0,
-    paymentPrice = Price(),
-    coverPrice = Price(),
     type = EventType.rehearsal,
     status = EventStatus.draft,
-    instrumentsFulfillment = [],
-    bandsFulfillment = [],
-    watchingProfiles = [],
-    goingProfiles = [],
     isOnline = false,
     isTest = false,
     participantsLimit = 0;
@@ -101,9 +116,11 @@ class Event {
       id = data["id"] ?? "",
       name = data["name"] ?? "",
       description = data["description"] ?? "",
-      owner = AppProfile.fromJSON(data["owner"] ?? {}),
       imgUrl = data["imgUrl"] ?? "",
       coverImgUrl = data['coverImgUrl'] ?? "",
+      ownerId = data["ownerId"] ?? "",
+      ownerName = data["ownerName"] ?? "",
+      ownerEmail = data['ownerEmail'] ?? "",
       public = data["public"] ?? true,
       createdTime = data["createdTime"] ?? 0,
       eventDate = data["eventDate"] ?? 0,
@@ -118,6 +135,7 @@ class Event {
       coverPrice = Price.fromJSON(data["coverPrice"] ?? {}),
       type = EnumToString.fromString(EventType.values, data["type"] ?? EventType.rehearsal.name) ?? EventType.rehearsal,
       status = EnumToString.fromString(EventStatus.values, data["status"] ?? EventStatus.draft.name) ?? EventStatus.draft,
+      position =  CoreUtilities.JSONtoPosition(data["position"]),
       place =  Place.fromJSON(data["place"] ?? {}),
       isFulfilled = data["isFulfilled"] ?? false,
       instrumentsFulfillment = data["instrumentsFulfillment"]?.map<InstrumentFulfillment>((item) {
@@ -132,12 +150,13 @@ class Event {
       isTest = data["isTest"] ?? false,
       participantsLimit = data["participantsLimit"] ?? 0;
 
-
-  Map<String, dynamic> toJSON()=>{
+  Map<String, dynamic> toJSON() => {
     'id': id,
     'name': name,
     'description': description,
-    'owner': owner!.toJSON(),
+    'ownerId': ownerId,
+    'ownerName': ownerName,
+    'ownerEmail': ownerEmail,
     'imgUrl': imgUrl,
     'coverImgUrl': coverImgUrl,
     'public': public,
@@ -152,10 +171,11 @@ class Event {
     'coverPrice': coverPrice?.toJSON() ?? Price().toJSON(),
     'type': type.name,
     'status': status.name,
+    'position': jsonEncode(position),
     'place': place?.toJSON() ?? Place().toJSON(),
     'isFulfilled': isFulfilled,
-    'instrumentsFulfillment': instrumentsFulfillment.map((instrumentFulfillment) => instrumentFulfillment.toJSON()).toList(),
-    'bandsFulfillment': bandsFulfillment.map((bandFulfillment) => bandFulfillment.toJSON()).toList(),
+    'instrumentsFulfillment': instrumentsFulfillment?.map((instrumentFulfillment) => instrumentFulfillment.toJSON()).toList(),
+    'bandsFulfillment': bandsFulfillment?.map((bandFulfillment) => bandFulfillment.toJSON()).toList(),
     'watchingProfiles': [],
     'goingProfiles': [],
     'isOnline': isOnline,

@@ -27,7 +27,7 @@ class AppProfile {
   String mainFeature;
   int lastTimeOn = 0;
   int lastSpotifySync = 0;
-  double reviewStars =  10.0;
+
   bool isActive;
   Position? position;
   String address;
@@ -35,9 +35,9 @@ class AppProfile {
   ProfileType type;
   UsageReason reason;
 
+  double reviewStars =  10.0;
   Review? lastReview;
 
-  List<String>? bannedGenres;
   List<String>? itemmates;
   List<String>? eventmates;
   List<String>? followers;
@@ -45,22 +45,26 @@ class AppProfile {
   List<String>? unfollowing;
   List<String>? blockTo;
   List<String>? blockedBy;
+
   List<String>? posts;
   List<String>? blogEntries;
+
   List<String>? comments;
   List<String>? hiddenPosts;
   List<String>? hiddenComments;
+  List<String>? bannedGenres;
   List<String>? reports;
+
   List<String>? bands;
   List<String>? events;
   List<String>? reviews;
 
-  List<String>? favoriteItems; ///EACH LIKED APPMEDIAITEM ID GOES HERE TO FETCH FROM GLOBAL DB
+  List<String>? favoriteItems; ///EACH LIKED APPMEDIAITEM OR APPRELEASEITEM ID GOES HERE TO FETCH FROM GLOBAL DB
   // List<String>? appMediaItems; //TODOVERIFY IF NEEDED TO ANOTHER TYPE OF SORT
-  List<String>? chamberPresets;
-  List<String>? watchingEvents;
-  List<String>? goingEvents;
-  List<String>? playingEvents;
+  List<String>? chamberPresets; ///NEOM USAGE
+  List<String>? watchingEvents; ///EVENT THE USER IS FOLLOWING TO VERIFY IF GOING OR TO GET FEED
+  List<String>? goingEvents; //////EVENT WHERE USER IS GOING
+  List<String>? playingEvents; ///EVENT WHERE USER IS PARTICIPATING
 
   List<String>? requests;
   List<String>? sentRequests;
@@ -93,7 +97,7 @@ class AppProfile {
     this.lastSpotifySync = 0,
     this.reviewStars = 10.0,
     this.isActive = false,
-    this.type = ProfileType.instrumentist,
+    this.type = ProfileType.artist,
     this.showInDirectory = false,
     this.verificationLevel = VerificationLevel.none,
     this.lastNameUpdate = 0,
@@ -159,8 +163,8 @@ class AppProfile {
         name = data["name"] ?? "",
         photoUrl = data["photoUrl"] ?? "",
         coverImgUrl = data["coverImgUrl"] ?? "",
-        type = EnumToString.fromString(ProfileType.values, data["type"] ?? ProfileType.instrumentist.name) ?? ProfileType.instrumentist,
-        reason = EnumToString.fromString(UsageReason.values, data["reason"] ?? UsageReason.fun.name) ?? UsageReason.fun,
+        type = EnumToString.fromString(ProfileType.values, data["type"] ?? ProfileType.artist.name) ?? ProfileType.artist,
+        reason = EnumToString.fromString(UsageReason.values, data["reason"] ?? UsageReason.casual.name) ?? UsageReason.casual,
         aboutMe = data["aboutMe"] ?? "",
         lastSpotifySync = data["lastSpotifySync"] ?? 0,
         reviewStars = data["reviewStars"] ?? 10,
@@ -203,17 +207,17 @@ class AppProfile {
         id = data["id"] ?? "",
         name = data["name"] ?? "",
         photoUrl = data["photoUrl"] ?? "",
-        reason = EnumToString.fromString(UsageReason.values, data["reason"] ?? UsageReason.fun.name) ?? UsageReason.fun,
+        reason = EnumToString.fromString(UsageReason.values, data["reason"] ?? UsageReason.casual.name) ?? UsageReason.casual,
         aboutMe = data["aboutMe"] ?? "",
         mainFeature = data["mainFeature"] ?? "",
-        position = CoreUtilities.JSONtoPosition(data["position"]),
+        position = Position.fromMap(data["position"]),
         address = data["address"] ?? '',
         phoneNumber = data["phoneNumber"] ?? '',
         favoriteItems = data["favoriteItems"]?.cast<String>() ?? [],
         chamberPresets = data["chamberPresets"]?.cast<String>() ?? [],
         instruments = { for (var e in data["instruments"]?.cast<String>() ?? []) e : Instrument() },
         frequencies = { for (var e in data["frequencies"]?.cast<String>() ?? []) e : NeomFrequency() },
-        type = ProfileType.instrumentist, coverImgUrl = "",
+        type = ProfileType.artist, coverImgUrl = "",
         isActive = true,
         showInDirectory = false,
         verificationLevel = EnumToString.fromString(VerificationLevel.values, data["verificationLevel"] ?? VerificationLevel.none.name) ?? VerificationLevel.none;
@@ -224,7 +228,7 @@ class AppProfile {
     return <String, dynamic>{
       'id': id,
       'name': name,
-      'position': jsonEncode(position),
+      'position': position?.toJson(),
       'photoUrl': photoUrl,
       'aboutMe': aboutMe,
       'reason': reason.name,

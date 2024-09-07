@@ -9,26 +9,39 @@ import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
 
 class CouponFirestore implements CouponRepository {
-
-  var logger = AppUtilities.logger;
-  final couponsReference = FirebaseFirestore.instance
-      .collection(AppFirestoreCollectionConstants.coupons);
+  
+  final couponsReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.coupons);
 
 
   @override
+  Future<String> insert(AppCoupon coupon) async {
+    AppUtilities.logger.d("insert cupon: ${coupon.description}");
+    String couponId = "";
+    try {
+      DocumentReference documentReference = await couponsReference
+          .add(coupon.toJSON());
+      couponId = documentReference.id;
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+
+    return couponId;
+  }
+  
+  @override
   Future<Map<String, AppCoupon>> getCoupons() async {
-    logger.d("");
+    AppUtilities.logger.d("getCoupons");
     Map<String, AppCoupon> coupons = {};
 
     try {
       QuerySnapshot snapshot = await couponsReference.get();
 
-      for (int i = 0; i < snapshot.docs.length; i++) {
-        AppCoupon coupon = AppCoupon.fromDocumentSnapshot(snapshot.docs.elementAt(i));
+      for(var document in snapshot.docs) {
+        AppCoupon coupon = AppCoupon.fromJSON(document.data());
         coupons[coupon.id] = coupon;
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     return coupons;
@@ -37,69 +50,43 @@ class CouponFirestore implements CouponRepository {
 
   @override
   Future<AppCoupon> getCouponByCode(String couponCode) async {
-    logger.d("Getting Coupon By Code");
+    AppUtilities.logger.d("Getting Coupon By Code");
 
     AppCoupon coupon = AppCoupon();
 
     try {
       QuerySnapshot snapshot = await couponsReference.get();
 
-      for (int i = 0; i < snapshot.docs.length; i++) {
-        AppCoupon coupon = AppCoupon.fromDocumentSnapshot(snapshot.docs.elementAt(i));
+      for(var document in snapshot.docs) {
+        AppCoupon coupon = AppCoupon.fromJSON(document.data());
         if(coupon.code == couponCode) coupon = coupon;
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     return coupon;
   }
 
   @override
-  Future<bool> incrementUsageCount(String couponId) async {
+  Future<bool> addUsedBy(String couponId, String email) async {
 
-      logger.d("Incrementing usage count for coupon $couponId");
+      AppUtilities.logger.d("Incrementing usage count for coupon $couponId");
 
       try {
-
-        await couponsReference.get()
-            .then((querySnapshot) async {
-          for (var document in querySnapshot.docs) {
-            if(document.id == couponId) {
-              AppCoupon coupon = AppCoupon.fromDocumentSnapshot(document);
-              coupon.usageCount = coupon.usageCount + 1;
-              await document.reference.update({
-                AppFirestoreConstants.usageCount: coupon.usageCount
-              });
-
-              logger.d("Coupon $couponId was updated to usageCount ${coupon.usageCount}");
-            }
-          }
+        DocumentSnapshot documentSnapshot = await couponsReference.doc(couponId).get();
+        await documentSnapshot.reference.update({
+          AppFirestoreConstants.orderIds: FieldValue.arrayUnion([email])
         });
 
+        AppUtilities.logger.d("Coupon $couponId was updated to include usedBy $email");
         return true;
       } catch (e) {
-        logger.e(e.toString());
+        AppUtilities.logger.e(e.toString());
       }
 
-      logger.d("Coupon $couponId was not updated");
+      AppUtilities.logger.d("Coupon $couponId was not updated");
       return false;
-  }
-
-
-  @override
-  Future<String> insert(AppCoupon coupon) async {
-    logger.d("");
-    String couponId = "";
-    try {
-      DocumentReference documentReference = await couponsReference
-          .add(coupon.toJSON());
-      couponId = documentReference.id;
-    } catch (e) {
-      logger.e(e.toString());
-    }
-
-    return couponId;
   }
 
 }

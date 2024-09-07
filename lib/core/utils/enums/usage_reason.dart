@@ -1,7 +1,8 @@
+///VERIFY IF NEEDED
 enum UsageReason {
-  fun,
+  casual,
   professional,
-  job,
-  composition,
+  ///DEPRECATED job,
+  ///DEPRECATED creator,
   any
 }

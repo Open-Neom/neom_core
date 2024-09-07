@@ -75,7 +75,7 @@ class ActivityFeed {
   ActivityFeed.fromEvent({required Event event, required AppProfile fromProfile,
     required ActivityFeedType type, String msg = ''}) :
         id = '',
-        ownerId = event.owner!.id,
+        ownerId = event.ownerId,
         activityReferenceId = event.id,
         mediaUrl = event.imgUrl,
         profileId = fromProfile.id,

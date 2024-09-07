@@ -35,7 +35,7 @@ class ReportController extends GetxController implements ReportService {
     logger.i("Report Controller Init");
 
     try {
-      profile = userController.user!.profiles.first;
+      profile = userController.user.profiles.first;
 
     } catch (e) {
       logger.e(e.toString());

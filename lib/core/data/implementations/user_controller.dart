@@ -20,6 +20,7 @@ import '../../utils/constants/message_translation_constants.dart';
 import '../../utils/core_utilities.dart';
 import '../../utils/enums/owner_type.dart';
 import '../../utils/enums/user_role.dart';
+import '../firestore/app_release_item_firestore.dart';
 import '../firestore/chamber_firestore.dart';
 import '../firestore/coupon_firestore.dart';
 import '../firestore/itemlist_firestore.dart';
@@ -29,26 +30,14 @@ import 'shared_preference_controller.dart';
 
 class UserController extends GetxController implements UserService {
 
-  final Rxn<AppUser> _user = Rxn<AppUser>();
-  AppUser? get user => _user.value;
-  set user(AppUser? user) => _user.value = user;
+  AppUser user = AppUser();
+  AppProfile profile = AppProfile();
+  AppProfile newProfile = AppProfile();
+  Band band = Band();
 
   bool isNewUser = false;
 
-  final Rxn<AppProfile> _profile = Rxn<AppProfile>();
-  AppProfile get profile => _profile.value ?? AppProfile();
-  set profile(AppProfile? profile) => _profile.value = profile;
-
-  final Rxn<AppProfile> _newProfile = Rxn<AppProfile>();
-  AppProfile get newProfile => _newProfile.value ?? AppProfile();
-  set newProfile(AppProfile? newProfile) => _newProfile.value = newProfile;
-
-  final Rxn<Band> _band = Rxn<Band>();
-  Band get band => _band.value ?? Band();
-  set band(Band? band) => _band.value = band;
-
   OwnerType itemlistOwner  = OwnerType.profile;
-
   bool appliedCoupon= false;
   AppCoupon coupon = AppCoupon();
 
@@ -58,10 +47,6 @@ class UserController extends GetxController implements UserService {
   void onInit() async {
 
     super.onInit();
-    user = AppUser();
-    profile = AppProfile();
-    newProfile = AppProfile();
-    band = Band();
 
   }
 
@@ -91,11 +76,11 @@ class UserController extends GetxController implements UserService {
       }
 
       if(authCredential != null) {
-        for (var prof in user!.profiles) {
-          await ProfileFirestore().remove(userId: user!.id, profileId: prof.id);
+        for (var prof in user.profiles) {
+          await ProfileFirestore().remove(userId: user.id, profileId: prof.id);
         }
 
-        if(await UserFirestore().remove(user!.id)) {
+        if(await UserFirestore().remove(user.id)) {
           await loginController.fbaUser.value?.reauthenticateWithCredential(authCredential);
           await loginController.fbaUser.value?.delete();
           await loginController.signOut();
@@ -181,8 +166,8 @@ class UserController extends GetxController implements UserService {
   @override
   Future<void> createUser() async {
 
-    AppUtilities.logger.d("User to create ${user!.name}");
-    AppUser newUser = user!;
+    AppUtilities.logger.d("User to create ${user.name}");
+    AppUser newUser = user;
 
     newProfile.photoUrl = newUser.photoUrl;
     newProfile.coverImgUrl = newUser.photoUrl;
@@ -209,18 +194,6 @@ class UserController extends GetxController implements UserService {
     newProfile.itemlists = {};
     newProfile.favoriteItems = [];
 
-    ///DEPRECATED
-    // (newProfile.type == ProfileType.instrumentist) ?
-    // newProfile.itemlists![AppConstants.myFavorites] = Itemlist.myFirstItemlist()
-    // : newProfile.itemlists![AppConstants.myFavorites] = Itemlist.myFirstItemlistFan();
-
-    // if(AppFlavour.appInUse == AppInUse.cyberneom) {
-    //   // newProfile.itemlists![AppConstants.myFavorites] = Itemlist()..chamberPresets = [];
-    //   // newProfile.itemlists![AppConstants.myFavorites]!.chamberPresets!.add(ChamberPreset.myFirstNeomChamberPreset());
-    //   // newProfile.chamberPresets = [AppConstants.firstChamberPreset];
-    // } else {
-    //   // newProfile.appItems = [AppFlavour.getFirstAppItemId()];
-    // }
 
     newUser.profiles = [newProfile];
     newUser.userRole = UserRole.subscriber;
@@ -242,15 +215,15 @@ class UserController extends GetxController implements UserService {
         isNewUser = false;
         user = newUser;
 
-        String profileId = await ProfileFirestore().insert(user!.id, user!.profiles.first);
+        String profileId = await ProfileFirestore().insert(user.id, user.profiles.first);
 
         if(profileId.isNotEmpty) {
-          user!.profiles.first.id = profileId;
-          user!.currentProfileId = profileId;
-          UserFirestore().updateCurrentProfile(user!.id, profileId);
-          profile = user!.profiles.first;
-          profile.itemlists = await ItemlistFirestore().fetchAll(ownerId: profile.id);
-          if(appliedCoupon) await CouponFirestore().incrementUsageCount(coupon.id);
+          user.profiles.first.id = profileId;
+          user.currentProfileId = profileId;
+          UserFirestore().updateCurrentProfile(user.id, profileId);
+          profile = user.profiles.first;
+          profile.itemlists = await ItemlistFirestore().getByOwnerId(profile.id);
+          if(appliedCoupon) await CouponFirestore().addUsedBy(coupon.id, user.email);
           Get.offAllNamed(AppRouteConstants.home);
         } else {
           await UserFirestore().remove(newUser.id);
@@ -280,8 +253,8 @@ class UserController extends GetxController implements UserService {
     AppUtilities.logger.d("Profile to create ${newProfile.name}");
 
     if(newProfile.photoUrl.isEmpty) {
-      newProfile.photoUrl = user!.photoUrl;
-      newProfile.coverImgUrl = user!.photoUrl;
+      newProfile.photoUrl = user.photoUrl;
+      newProfile.coverImgUrl = user.photoUrl;
     } else {
       newProfile.coverImgUrl = newProfile.photoUrl;
     }
@@ -325,15 +298,15 @@ class UserController extends GetxController implements UserService {
 
     try {
 
-      String profileId = await ProfileFirestore().insert(user!.id, newProfile);
+      String profileId = await ProfileFirestore().insert(user.id, newProfile);
 
       if(profileId.isNotEmpty) {
         newProfile.id = profileId;
-        user!.profiles.add(newProfile);
+        user.profiles.add(newProfile);
         profile = newProfile;
 
         if(profileId.isNotEmpty) {
-          await UserFirestore().updateCurrentProfile(user!.id, profileId);
+          await UserFirestore().updateCurrentProfile(user.id, profileId);
           AppUtilities.logger.i("Additional profile created successfully.");
           Get.offAllNamed(AppRouteConstants.home);
         } else {
@@ -359,10 +332,10 @@ class UserController extends GetxController implements UserService {
 
   @override
   Future<void> getProfiles() async {
-    AppUtilities.logger.d("User looked up by ${user!.id}");
+    AppUtilities.logger.d("User looked up by ${user.id}");
 
     try {
-      user!.profiles = await ProfileFirestore().retrieveProfiles(user!.id);
+      user.profiles = await ProfileFirestore().retrieveProfiles(user.id);
     } catch (e) {
       Get.snackbar(
         MessageTranslationConstants.errorRetrievingProfiles.tr,
@@ -382,7 +355,7 @@ class UserController extends GetxController implements UserService {
       if(userFromFirestore.id.isNotEmpty){
         AppUtilities.logger.d("User $userId exists!!");
         user = userFromFirestore;
-        profile = user!.profiles.first;
+        profile = user.profiles.first;
         isNewUser = false;
       } else {
         AppUtilities.logger.i("User $userId not exists!!");
@@ -395,17 +368,13 @@ class UserController extends GetxController implements UserService {
 
 
   void addToWallet(amount) {
-    if(user != null) {
-      user!.wallet.amount = user!.wallet.amount + amount;
-    }
+    user.wallet.amount = user.wallet.amount + amount;
     update([]);
   }
 
 
-  void subtractFromWallet(amount) {
-    if(user != null) {
-      user!.wallet.amount = user!.wallet.amount - amount;
-    }
+  void subtractFromWallet(double amount) {
+    user.wallet.amount = user.wallet.amount - amount;
     update([]);
   }
 
@@ -415,7 +384,7 @@ class UserController extends GetxController implements UserService {
     try {
       profile = selectedProfile;
       Get.toNamed(AppRouteConstants.splashScreen, arguments: [AppRouteConstants.refresh]);
-      profile = await UserFirestore().updateCurrentProfile(user!.id, selectedProfile.id);
+      profile = await UserFirestore().updateCurrentProfile(user.id, selectedProfile.id);
     } catch(e) {
       AppUtilities.logger.e(e.toString());
     }
@@ -428,10 +397,10 @@ class UserController extends GetxController implements UserService {
     AppUtilities.logger.d("removeProfile method Started");
     try {
 
-      if(await ProfileFirestore().remove(userId: user!.id, profileId: profile.id)) {
-        user!.profiles.removeWhere((element) => element.id == profile.id);
-        if(user?.profiles.isNotEmpty ?? false) {
-          profile = await UserFirestore().updateCurrentProfile(user!.id, user!.profiles.first.id);
+      if(await ProfileFirestore().remove(userId: user.id, profileId: profile.id)) {
+        user.profiles.removeWhere((element) => element.id == profile.id);
+        if(user.profiles.isNotEmpty) {
+          profile = await UserFirestore().updateCurrentProfile(user.id, user.profiles.first.id);
         }
 
       }
@@ -453,7 +422,7 @@ class UserController extends GetxController implements UserService {
   Future<void> reloadProfileItemlists() async {
 
     try {
-      profile.itemlists = await ItemlistFirestore().fetchAll(ownerId: profile.id);
+      profile.itemlists = await ItemlistFirestore().getByOwnerId(profile.id);
       profile.favoriteItems?.clear();
       profile.chamberPresets?.clear();
 
@@ -513,6 +482,39 @@ class UserController extends GetxController implements UserService {
       AppUtilities.logger.e(e.toString());
     }
     update([AppPageIdConstants.timeline]);
+  }
+
+  @override
+  Future<void> addOrderId(String orderId) async {
+    AppUtilities.logger.d("addOrderId $orderId");
+    try {
+      if(await UserFirestore().addOrderId(userId: user.id, orderId: orderId)) {
+        user.orderIds.add(orderId);
+      } else {
+        AppUtilities.logger.w("Something occurred while adding order to User ${user.id}");
+      }
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+    update();
+  }
+
+  @override
+  Future<void> addBoughtItem(String itemId) async {
+    AppUtilities.logger.d("addBoughtItem $itemId");
+    try {
+      if(itemId.isNotEmpty) {
+        if(await UserFirestore().addBoughtItem(userId: user.id, itemId: itemId)) {
+          user.boughtItems ??= [];
+          user.boughtItems!.add(itemId);
+        }
+
+        AppReleaseItemFirestore().addBoughtUser(releaseItemId: itemId, userId: user.id);
+      }
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+    update();
   }
 
 }

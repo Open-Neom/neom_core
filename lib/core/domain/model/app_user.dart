@@ -123,8 +123,6 @@ class AppUser {
     androidNotificationToken = "",
     profiles = [],
     orderIds = [],
-    releaseItemIds = [],
-    boughtItems = [],
     referralCode = "",
     fcmToken = "",
     spotifyToken = "",

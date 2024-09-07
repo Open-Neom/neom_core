@@ -47,4 +47,6 @@ class AppFirestoreCollectionConstants {
 
   static const String bank = "bank";
 
+  static const String nupaleSessions = "nupaleSessions";
+
 }

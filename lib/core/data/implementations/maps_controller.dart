@@ -12,7 +12,6 @@ import '../../../neom_commons.dart';
 
 class MapsController extends GetxController implements MapsService {
 
-  var logger = AppUtilities.logger;
   final userController = Get.find<UserController>();
 
   final Completer<GoogleMapController> _controller = Completer();
@@ -25,17 +24,17 @@ class MapsController extends GetxController implements MapsService {
   @override
   void onInit() async {
     super.onInit();
-    logger.t("Maps Controller Init");
+    AppUtilities.logger.t("Maps Controller Init");
 
     profile = userController.profile;
     location = Location(lat: profile.position!.latitude, lng: profile.position!.longitude);
-    
+
     await goToHomePosition();
   }
 
   @override
   Future<void> goToPosition(Position placePosition) async {
-    logger.d("Go to position on Maps Controller");
+    AppUtilities.logger.d("Go to position on Maps Controller");
 
     try {
       final GoogleMapController controller = await _controller.future;
@@ -44,7 +43,7 @@ class MapsController extends GetxController implements MapsService {
           zoom: AppConstants.cameraPositionZoom
       )));
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     update([AppPageIdConstants.event]);
@@ -52,7 +51,7 @@ class MapsController extends GetxController implements MapsService {
 
   @override
   Future<void> goToHomePosition() async {
-    logger.t("goToHomePosition");
+    AppUtilities.logger.t("goToHomePosition");
 
     try {
       GoogleMapController controller = await _controller.future;
@@ -67,22 +66,22 @@ class MapsController extends GetxController implements MapsService {
           )
       );
     } catch (e) {
-      logger.d(e.toString());
+      AppUtilities.logger.d(e.toString());
     }
   }
 
   @override
   void onError(PlacesAutocompleteResponse response) {
     try {
-      logger.d(response.toString());
+      AppUtilities.logger.d(response.toString());
     } catch (e) {
-      logger.d(e.toString());
+      AppUtilities.logger.d(e.toString());
     }
   }
 
   @override
   Future<Prediction> placeAutoComplete(BuildContext context, String startText) async {
-    logger.d("Entering placeAutocomplate method");
+    AppUtilities.logger.d("Entering placeAutocomplate method");
 
     Prediction prediction = Prediction();
 
@@ -110,7 +109,7 @@ class MapsController extends GetxController implements MapsService {
       if(retrievedPrediction != null) prediction = retrievedPrediction;
 
     } catch (e) {
-      logger.d(e.toString());
+      AppUtilities.logger.d(e.toString());
     }
 
     return prediction;

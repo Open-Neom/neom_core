@@ -31,7 +31,7 @@ class ReadMoreContainer extends StatelessWidget {
         trimLines: trimLines,
         colorClickableText: Colors.grey.shade500,
         trimMode: TrimMode.Line,
-        trimCollapsedText: '... ${AppTranslationConstants.readMore.tr.capitalizeFirst}',
+        trimCollapsedText: ' ${AppTranslationConstants.readMore.tr.capitalizeFirst}',
         textAlign: TextAlign.justify,
         style: TextStyle(
           letterSpacing: letterSpacing,

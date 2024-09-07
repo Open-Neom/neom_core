@@ -14,5 +14,7 @@ abstract class UserService {
   Future<void> reloadProfileChambers();
   void stopGoingToEvent(String eventId);
   void goingToEvent(String eventId);
+  Future<void> addOrderId(String orderId);
+  Future<void> addBoughtItem(String itemId);
 
 }

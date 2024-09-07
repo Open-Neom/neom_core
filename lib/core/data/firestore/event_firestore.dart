@@ -18,26 +18,25 @@ import 'profile_firestore.dart';
 import 'request_firestore.dart';
 
 class EventFirestore implements EventRepository {
-
-  var logger = AppUtilities.logger;
+  
   final eventsReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.events);
 
 
   @override
   Future<Event> retrieve(String eventId) async {
-    logger.t("Retrieving Event by ID: $eventId");
+    AppUtilities.logger.t("Retrieving Event by ID: $eventId");
     Event event = Event();
 
     try {
       DocumentSnapshot documentSnapshot = await eventsReference.doc(eventId).get();
       if (documentSnapshot.exists) {
-        logger.t("Snapshot is not empty");
+        AppUtilities.logger.t("Snapshot is not empty");
         event = Event.fromJSON(documentSnapshot.data());
         event.id = documentSnapshot.id;
-        logger.t(event.toString());
+        AppUtilities.logger.t(event.toString());
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
 
@@ -46,33 +45,33 @@ class EventFirestore implements EventRepository {
 
   @override
   Future<List<Event>> retrieveEvents() async {
-    logger.d("Retrieving Events");
+    AppUtilities.logger.d("Retrieving Events");
     List<Event> events = [];
     QuerySnapshot querySnapshot = await eventsReference.get();
 
     try {
       if (querySnapshot.docs.isNotEmpty) {
-        logger.d("Snapshot is not empty");
+        AppUtilities.logger.d("Snapshot is not empty");
         for (var postSnapshot in querySnapshot.docs) {
           Event event = Event.fromJSON(postSnapshot.data());
           event.id = postSnapshot.id;
-          logger.d(event.toString());
+          AppUtilities.logger.d(event.toString());
           events.add(event);
         }
-        logger.d("${events.length} events found");
+        AppUtilities.logger.d("${events.length} events found");
         return events;
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
-    logger.d("No Events Found");
+    AppUtilities.logger.d("No Events Found");
     return events;
   }
 
   @override
   Future<String> insert(Event event,{String eventId = ""}) async {
-    logger.t("insert");
+    AppUtilities.logger.t("insert");
     try {
       DocumentReference documentReference;
       if(eventId.isEmpty) {
@@ -81,13 +80,12 @@ class EventFirestore implements EventRepository {
       } else {
         await eventsReference.doc(eventId).set(event.toJSON());
       }
-      
 
-      if(await ProfileFirestore().addEvent(event.owner!.id, eventId, EventAction.organize)){
-        logger.d("Event added to Profile");
+      if(await ProfileFirestore().addEvent(event.ownerId, eventId, EventAction.organize)){
+        AppUtilities.logger.d("Event added to Profile");
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     return eventId;
@@ -96,23 +94,23 @@ class EventFirestore implements EventRepository {
 
   @override
   Future<bool> remove(Event event) async {
-    logger.t("Remove from firestore");
+    AppUtilities.logger.t("Remove from firestore");
     bool wasDeleted = false;
     try {
       await eventsReference.doc(event.id).delete();
-      wasDeleted = await ProfileFirestore().removeEvent(event.owner!.id, event.id, EventAction.organize);
-      await PostFirestore().removeEventPost(event.owner!.id, event.id);
+      wasDeleted = await ProfileFirestore().removeEvent(event.ownerId, event.id, EventAction.organize);
+      await PostFirestore().removeEventPost(event.ownerId, event.id);
       await ActivityFeedFirestore().removeEventActivity(event.id);
       await RequestFirestore().removeEventRequests(event.id);
-      if(event.bandsFulfillment.isNotEmpty) {
-        for (var bandFulfillment in event.bandsFulfillment) {
+      if(event.bandsFulfillment?.isNotEmpty ?? false) {
+        for (var bandFulfillment in event.bandsFulfillment!) {
           if(bandFulfillment.hasAccepted) {
             await BandFirestore().removePlayingEvent(bandFulfillment.bandId, event.id);
           }
         }
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     return wasDeleted;
@@ -121,7 +119,7 @@ class EventFirestore implements EventRepository {
 
   @override
   Future<Map<String, Event>> getEvents() async {
-    logger.t("getEvents");
+    AppUtilities.logger.t("getEvents");
     Map<String, Event> events = {};
 
     try {
@@ -137,9 +135,9 @@ class EventFirestore implements EventRepository {
       }
 
 
-      logger.d("${events.length} Events Found");
+      AppUtilities.logger.d("${events.length} Events Found");
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     return events;
@@ -147,7 +145,7 @@ class EventFirestore implements EventRepository {
 
   @override
   Future<Map<String, Event>> getEventsById(List<String> eventIds) async {
-    logger.t("Retrieving ${eventIds.length} events By id from firestore");
+    AppUtilities.logger.t("Retrieving ${eventIds.length} events By id from firestore");
     Map<String, Event> events = {};
 
     try {
@@ -158,31 +156,31 @@ class EventFirestore implements EventRepository {
           if(eventIds.contains(documentSnapshot.id)){
             Event event = Event.fromJSON(documentSnapshot.data());
             event.id = documentSnapshot.id;
-            logger.t('Event ${event.name} retrieved');
+            AppUtilities.logger.t('Event ${event.name} retrieved');
             events[event.id] = event;
           }
         }
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
 
-    logger.t("${events.length} events found");
+    AppUtilities.logger.t("${events.length} events found");
     return events;
   }
 
 
   @override
   Future<bool> fulfillInstrument(AppRequest appRequest, AppProfile mate, Event event) async {
-    logger.d("Fulfilling instrument ${appRequest.instrument?.name ?? ""} for event ${event.id}");
+    AppUtilities.logger.d("Fulfilling instrument ${appRequest.instrument?.name ?? ""} for event ${event.id}");
 
     try {
 
       InstrumentFulfillment previousInstrumentFulfillment = InstrumentFulfillment(
           id: appRequest.positionRequestedId, instrument: appRequest.instrument!
       );
-      for (var fulfillment in event.instrumentsFulfillment) {
+      for (var fulfillment in event.instrumentsFulfillment ?? []) {
         if(appRequest.instrument!.name == fulfillment.instrument.name
             && previousInstrumentFulfillment.id == appRequest.positionRequestedId) {
           previousInstrumentFulfillment = fulfillment;
@@ -213,9 +211,9 @@ class EventFirestore implements EventRepository {
         }
       );
 
-      logger.i("Instrument ${appRequest.instrument?.name ?? ""} has been fulfilled");
+      AppUtilities.logger.i("Instrument ${appRequest.instrument?.name ?? ""} has been fulfilled");
     } catch (e) {
-      logger.e.toString();
+      AppUtilities.logger.e.toString();
       return false;
     }
 
@@ -225,7 +223,7 @@ class EventFirestore implements EventRepository {
 
   @override
   Future<bool> unfulfillInstrument(AppRequest appRequest, AppProfile mate, Event event) async {
-    logger.d("Unfulfilling instrument ${appRequest.instrument?.name ?? ""} for event ${event.id}");
+    AppUtilities.logger.d("Unfulfilling instrument ${appRequest.instrument?.name ?? ""} for event ${event.id}");
 
     try {
 
@@ -233,7 +231,7 @@ class EventFirestore implements EventRepository {
           id: appRequest.positionRequestedId,
           instrument: appRequest.instrument!
       );
-      for (var fulfillment in event.instrumentsFulfillment) {
+      for (var fulfillment in event.instrumentsFulfillment ?? []) {
         if(appRequest.instrument!.name == fulfillment.instrument.name) {
           alreadyFulfilledInstrument = fulfillment;
         }
@@ -264,9 +262,9 @@ class EventFirestore implements EventRepository {
       }
       );
 
-      logger.i("Instrument ${appRequest.instrument?.name ?? ""} has been unfulfilled");
+      AppUtilities.logger.i("Instrument ${appRequest.instrument?.name ?? ""} has been unfulfilled");
     } catch (e) {
-      logger.e.toString();
+      AppUtilities.logger.e.toString();
       return false;
     }
 
@@ -276,7 +274,7 @@ class EventFirestore implements EventRepository {
 
   @override
   Future<List<Event>> retrievePlayingEvents(String profileId) async {
-    logger.d("Retrieving PlayingEvents");
+    AppUtilities.logger.d("Retrieving PlayingEvents");
 
     List<Event> events = <Event>[];
     bool isPlaying = false;
@@ -285,17 +283,17 @@ class EventFirestore implements EventRepository {
       QuerySnapshot querySnapshot = await eventsReference.get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        logger.d("Snapshot is not empty");
+        AppUtilities.logger.d("Snapshot is not empty");
         for (var documentSnapshot in querySnapshot.docs) {
           Event event = Event.fromJSON(documentSnapshot.data());
           event.id = documentSnapshot.id;
-          logger.d(event.toString());
+          AppUtilities.logger.d(event.toString());
 
-          if(event.owner!.id == profileId) {
+          if(event.ownerId == profileId) {
             isPlaying = true;
           }
 
-          for (var instrumentFulfillment in event.instrumentsFulfillment) {
+          for (var instrumentFulfillment in event.instrumentsFulfillment ?? []) {
             if(instrumentFulfillment.profileId == profileId) {
               isPlaying = true;
             }
@@ -306,17 +304,17 @@ class EventFirestore implements EventRepository {
         }
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
-    logger.d("${events.length} events found");
+    AppUtilities.logger.d("${events.length} events found");
     return events;
   }
 
 
   @override
   Future<bool> fulfilled(String eventId) async {
-    logger.d("Event $eventId fulfilled");
+    AppUtilities.logger.d("Event $eventId fulfilled");
 
     try {
 
@@ -329,9 +327,9 @@ class EventFirestore implements EventRepository {
       //TODO Create Band Algorithm
       //BandFirestore().insert(band)
 
-      logger.i("Event $eventId has been fulfilled");
+      AppUtilities.logger.i("Event $eventId has been fulfilled");
     } catch (e) {
-      logger.e.toString();
+      AppUtilities.logger.e.toString();
       return false;
     }
 
@@ -341,7 +339,7 @@ class EventFirestore implements EventRepository {
 
   @override
   Future<bool> unFulfilled(String eventId) async {
-    logger.d("Event $eventId unfulfilled");
+    AppUtilities.logger.d("Event $eventId unfulfilled");
 
     try {
 
@@ -352,9 +350,9 @@ class EventFirestore implements EventRepository {
         });
       });
 
-      logger.i("Event $eventId has been unfulfilled");
+      AppUtilities.logger.i("Event $eventId has been unfulfilled");
     } catch (e) {
-      logger.e.toString();
+      AppUtilities.logger.e.toString();
       return false;
     }
 
@@ -364,7 +362,7 @@ class EventFirestore implements EventRepository {
 
   @override
   Future<bool> addGoingProfile({required String eventId, required String profileId}) async {
-    logger.t("$profileId would be added as going to Event $eventId");
+    AppUtilities.logger.t("$profileId would be added as going to Event $eventId");
 
     try {
 
@@ -379,10 +377,10 @@ class EventFirestore implements EventRepository {
         }
       });
 
-      logger.d("Profile $profileId has been added as going to event $eventId");
+      AppUtilities.logger.d("Profile $profileId has been added as going to event $eventId");
       return true;
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
     return false;
   }
@@ -390,7 +388,7 @@ class EventFirestore implements EventRepository {
 
   @override
   Future<bool> removeGoingProfile({required String eventId, required String profileId}) async {
-    logger.d("$profileId would be removed from going to Event $eventId");
+    AppUtilities.logger.d("$profileId would be removed from going to Event $eventId");
 
     try {
 
@@ -405,10 +403,10 @@ class EventFirestore implements EventRepository {
         }
       });
 
-      logger.d("Profile $profileId has been removed from going to event $eventId");
+      AppUtilities.logger.d("Profile $profileId has been removed from going to event $eventId");
       return true;
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
     return false;
   }
@@ -416,12 +414,12 @@ class EventFirestore implements EventRepository {
 
   @override
   Future<bool> fulfillBand(String bandId, AppProfile itemmate, Event event) async {
-  logger.d("Fulfilling band $bandId for event ${event.id}");
+  AppUtilities.logger.d("Fulfilling band $bandId for event ${event.id}");
 
   try {
 
     BandFulfillment previousBandFulfillment = BandFulfillment(bandId: bandId);
-    for (var fulfillment in event.bandsFulfillment) {
+    for (var fulfillment in event.bandsFulfillment ?? []) {
       if(bandId == fulfillment.bandId) {
         previousBandFulfillment = fulfillment;
       }
@@ -450,9 +448,9 @@ class EventFirestore implements EventRepository {
     }
     );
 
-    logger.i("Band ${bandFulfillment.bandName} has been fulfilled");
+    AppUtilities.logger.i("Band ${bandFulfillment.bandName} has been fulfilled");
   } catch (e) {
-    logger.e.toString();
+    AppUtilities.logger.e.toString();
     return false;
   }
 

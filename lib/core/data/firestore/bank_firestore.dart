@@ -11,11 +11,10 @@ class BankFirestore implements BankRepository {
 
   final bankReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.bank);
 
-
   @override
-  Future<bool> addAmount(String profileId, double amount, String orderId, {AppCurrency appCurrency = AppCurrency.appCoin, String reason = ''}) async {
+  Future<bool> addAmount(String fromEmail, double amount, String orderId, {AppCurrency appCurrency = AppCurrency.appCoin, String reason = ''}) async {
 
-    AppUtilities.logger.d("addToWallet BankFirestore from profileID $profileId");
+    AppUtilities.logger.d("addToWallet BankFirestore from profileID $fromEmail");
 
     try {
       DocumentSnapshot coinsDoc = await bankReference.doc("appCoins").get();
@@ -27,7 +26,7 @@ class BankFirestore implements BankRepository {
       await coinsDoc.reference.update({
         AppFirestoreConstants.amount: bankAmount,
         AppFirestoreConstants.transactions: FieldValue.arrayUnion([{
-          'fromId': profileId,
+          'fromEmail': fromEmail,
           'amount': amount,
           'type': 'Addition',
           'orderId': orderId,
@@ -45,9 +44,9 @@ class BankFirestore implements BankRepository {
   }
 
   @override
-  Future<bool> subtractAmount(String profileId, double amount, {AppCurrency appCurrency = AppCurrency.appCoin, String? orderId, String reason = ''}) async {
+  Future<bool> subtractAmount(String fromEmail, double amount, {AppCurrency appCurrency = AppCurrency.appCoin, String? orderId, String reason = ''}) async {
 
-    AppUtilities.logger.d("subtractAmount BankFirestore from profileID $profileId");
+    AppUtilities.logger.d("subtractAmount BankFirestore from profileID $fromEmail");
 
     try {
       DocumentSnapshot coinsDoc = await bankReference.doc("appCoins").get();
@@ -59,7 +58,7 @@ class BankFirestore implements BankRepository {
       await coinsDoc.reference.update({
         AppFirestoreConstants.amount: bankAmount,
         AppFirestoreConstants.transactions: FieldValue.arrayUnion([{
-          'fromId': profileId,
+          'fromEmail': fromEmail,
           'amount': amount,
           'type': 'Subtraction',
           'orderId': orderId,

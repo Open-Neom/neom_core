@@ -13,13 +13,13 @@ class Price {
 
   Map<String, dynamic> toJSON() {
     return <String, dynamic>{
-      'currency': currency.name,
       'amount': amount,
+      'currency': currency.name,
     };
   }
 
   Price.fromJSON(data) :
-        currency = (data["currency"] == null) ? AppCurrency.appCoin : EnumToString.fromString(AppCurrency.values, data["currency"])!,
-        amount = (data["amount"] == null) ? 0.0 : double.parse(data["amount"].toString());
+        amount = (data["amount"] == null) ? 0.0 : double.parse(data["amount"].toString()),
+        currency = (data["currency"] == null) ? AppCurrency.appCoin : EnumToString.fromString(AppCurrency.values, data["currency"])!;
 
 }

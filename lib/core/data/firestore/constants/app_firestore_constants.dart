@@ -7,10 +7,18 @@ class AppFirestoreConstants {
   static const String chamberPresets = 'chamberPresets';
   static const String appReleaseItems = 'appReleaseItems';
 
-  static const String productSales = "productSales";
+  ///DEPRECATED
+  /// static const String productSales = "productSales";
+
+  static const String coinSales = "coinSales";
+  static const String digitalSales = "digitalSales";
+  static const String physicalSales = "physicalSales";
+  static const String serviceSales = "serviceSales";
+  static const String subscriptionSales = "subscriptionSales";
+  static const String crowdfundingSales = "crowdfundingSales";
+  static const String externalSales = "externalSales";
   static const String eventSales = "eventSales";
   static const String bookingSales = "bookingSales";
-  static const String releaseItemSales = "releaseItemSales";
 
   static const String posts = "posts";
   static const String hiddenPosts = "hiddenPosts";
