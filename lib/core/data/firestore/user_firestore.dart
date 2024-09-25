@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
@@ -103,7 +102,7 @@ class UserFirestore implements UserRepository {
             }
           }
         } else {
-          AppUtilities.logger.i("No user found");
+          AppUtilities.logger.w("No user found");
         }
     } catch (e) {
       AppUtilities.logger.e(e.toString());
@@ -258,7 +257,7 @@ class UserFirestore implements UserRepository {
         user.wallet.amount = user.wallet.amount + amount;
 
         await documentSnapshot.reference.update({
-          AppFirestoreConstants.wallet: jsonEncode(user.wallet)
+          AppFirestoreConstants.wallet: user.wallet.toJSON()
         });
 
         AppUtilities.logger.d("User Wallet updated");
@@ -656,6 +655,39 @@ class UserFirestore implements UserRepository {
       AppUtilities.logger.e(e.toString());
     }
     return false;
+  }
+
+  @override
+  Future<void> updateCustomerId(String userId, String customerId) async {
+    AppUtilities.logger.d("Updating subscriptionId for User $userId");
+
+    try {
+      if(customerId.isEmpty) {
+        AppUtilities.logger.e('customerId is empty');
+        return;
+      }
+
+      await userReference.doc(userId).update({
+        AppFirestoreConstants.customerId: customerId,
+      });
+      AppUtilities.logger.d("User $userId customerId value successfully updated to: $customerId");
+    } catch (e) {
+      AppUtilities.logger.e(e);
+    }
+  }
+
+  @override
+  Future<void> updateSubscriptionId(String userId, String subscriptionId) async {
+    AppUtilities.logger.d("Updating subscriptionId for User $subscriptionId");
+
+    try {
+      await userReference.doc(userId).update({
+        AppFirestoreConstants.subscriptionId: subscriptionId,
+      });
+      AppUtilities.logger.d("User $userId subscriptionId value successfully updated to: $subscriptionId");
+    } catch (e) {
+      AppUtilities.logger.e(e);
+    }
   }
 
 }

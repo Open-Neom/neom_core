@@ -67,14 +67,21 @@ class ItemlistFirestore implements ItemlistRepository {
 
 
   @override
-  Future<bool> deleteItem(AppMediaItem appMediaItem, String itemlistId) async {
+  Future<bool> deleteItem({required String itemlistId, required String appMediaItemId}) async {
     AppUtilities.logger.d("Removing item from itemlist $itemlistId");
 
     try {
       DocumentReference documentReference = itemlistReference.doc(itemlistId);
-      if(documentReference.id.isNotEmpty) {
+
+      if (documentReference.id.isNotEmpty) {
+        AppUtilities.logger.t("Snapshot is not empty");
+        DocumentSnapshot snapshot = await documentReference.get();
+        Itemlist itemlist = Itemlist.fromJSON(snapshot.data());
+
+        itemlist.appMediaItems?.removeWhere((item) => item.id == appMediaItemId);
+
         await documentReference.update({
-          AppFirestoreConstants.appMediaItems: FieldValue.arrayRemove([appMediaItem.toJSON()])
+          AppFirestoreConstants.appMediaItems: itemlist.appMediaItems
         });
       }
 

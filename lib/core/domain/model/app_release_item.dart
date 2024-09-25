@@ -39,8 +39,8 @@ class AppReleaseItem {
 
   Price? digitalPrice; ///PRICE FOR DIGITAL ITEM  - IF NOT NULL ITEM IS AVAILABLE AS DIGITAL
   Price? physicalPrice; ///PRICE IN CASE ITEM HAS A PHYSICAL VERSION AS WELL - IF NOT NULL ITEM IS AVAILABLE AS PHYSICAL
+  Price? salePrice; ///SALE PRICE FOR ITEM AFTER ANY DISCOUNT
   List<String>? variations; ///VARIATION IDS FOR CASES WHEN ITEM HAS DIFFERENT SUBITEMS
-  double? discount; ///DISCOUNT TO PRICE
   bool isRental; ///Verify if item is elegible for unlimited access for members
 
   int? publishedYear; ///YEAR OF PUBLISHIN FOR ITEMS PUBLISHED PREVIOUSLY OUTSIDE THE PLATFORM.
@@ -87,8 +87,8 @@ class AppReleaseItem {
     this.language,
     this.digitalPrice,
     this.physicalPrice,
+    this.salePrice,
     this.variations,
-    this.discount,
     this.isRental = false,
     this.publishedYear,
     this.publisher,
@@ -105,7 +105,7 @@ class AppReleaseItem {
 
   @override
   String toString() {
-    return 'AppReleaseItem{id: $id, name: $name, description: $description, imgUrl: $imgUrl, galleryUrls: $galleryUrls, previewUrl: $previewUrl, duration: $duration, type: $type, status: $status, ownerEmail: $ownerEmail, ownerName: $ownerName, ownerType: $ownerType, categories: $categories, metaId: $metaId, metaName: $metaName, metaOwnerId: $metaOwnerId, appMediaItemIds: $appMediaItemIds, instruments: $instruments, lyrics: $lyrics, language: $language, digitalPrice: $digitalPrice, physicalPrice: $physicalPrice, variations: $variations, discount: $discount, publishedYear: $publishedYear, publisher: $publisher, place: $place, boughtUsers: $boughtUsers, createdTime: $createdTime, modifiedTime: $modifiedTime, state: $state, externalArtists: $externalArtists, featInternalArtists: $featInternalArtists, likedProfiles: $likedProfiles, externalUrl: $externalUrl}';
+    return 'AppReleaseItem{id: $id, name: $name, description: $description, imgUrl: $imgUrl, galleryUrls: $galleryUrls, previewUrl: $previewUrl, duration: $duration, type: $type, status: $status, ownerEmail: $ownerEmail, ownerName: $ownerName, ownerType: $ownerType, categories: $categories, metaId: $metaId, metaName: $metaName, metaOwnerId: $metaOwnerId, appMediaItemIds: $appMediaItemIds, instruments: $instruments, lyrics: $lyrics, language: $language, digitalPrice: $digitalPrice, physicalPrice: $physicalPrice, variations: $variations, publishedYear: $publishedYear, publisher: $publisher, place: $place, boughtUsers: $boughtUsers, createdTime: $createdTime, modifiedTime: $modifiedTime, state: $state, externalArtists: $externalArtists, featInternalArtists: $featInternalArtists, likedProfiles: $likedProfiles, externalUrl: $externalUrl}';
   }
 
   AppReleaseItem.fromJSON(data) :
@@ -132,7 +132,6 @@ class AppReleaseItem {
         digitalPrice = Price.fromJSON(data["digitalPrice"] ?? {}),
         physicalPrice = Price.fromJSON(data["physicalPrice"] ?? {}),
         variations = List.from(data["variations"]?.cast<String>() ?? []),
-        discount = data["discount"] ?? 0,
         isRental = data["isRental"] ?? false,
         publishedYear = data["publishedYear"] ?? 0,
         publisher = data["publisher"] ?? '',
@@ -169,7 +168,7 @@ class AppReleaseItem {
     'language': language,
     'digitalPrice': digitalPrice?.toJSON(),
     'physicalPrice': physicalPrice?.toJSON(),
-    'discount': discount,
+    'salePrice': salePrice?.toJSON(),
     'isRental': isRental,
     'publishedYear': publishedYear,
     'publisher': publisher,
@@ -207,8 +206,8 @@ class AppReleaseItem {
         language = (product.attributes?.containsKey('language') ?? false) ? product.attributes!['language']!.options.first : '',
         digitalPrice = product.virtual ? Price(amount: product.regularPrice, currency: AppCurrency.mxn) : null,
         physicalPrice = !product.virtual ? Price(amount: product.regularPrice, currency: AppCurrency.mxn) : null,
+        salePrice = Price(amount: product.salePrice, currency: AppCurrency.mxn),
         variations = product.variations,
-        discount = product.regularPrice <= product.salePrice ? 0 : ((product.regularPrice - product.salePrice) / product.regularPrice),
         isRental = (product.attributes?.containsKey('isRental') ?? false) ? bool.parse(product.attributes!['isRental']!.options.first) : false,
         publishedYear = (product.attributes?.containsKey('publishedYear') ?? false) ? int.tryParse(product.attributes!['publishedYear']!.options.first) : null,
         publisher = (product.attributes?.containsKey('publisher') ?? false) ? product.attributes!['publisher']!.options.first : null,

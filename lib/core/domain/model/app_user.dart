@@ -19,7 +19,6 @@ class AppUser {
   String email;
   String photoUrl;
   UserRole userRole;
-  bool isPremium;
   bool isVerified;
   bool isBanned;
 
@@ -31,7 +30,6 @@ class AppUser {
   List<String>? releaseItemIds;
   List<String>? boughtItems;
 
-
   //TODO
   //Add read of this values from documentSnapshot
   String referralCode = "";
@@ -42,37 +40,40 @@ class AppUser {
   String spotifyToken;
   String currentProfileId;
 
-  AppUser({
-      this.id = "",
-      this.name = "",
-      this.firstName = "",
-      this.lastName = "",
-      this.dateOfBirth = "",
-      this.homeTown = "",
-      this.phoneNumber = "",
-      this.countryCode = "",
-      this.password = "",
-      this.email = "",
-      this.photoUrl = "",
-      this.userRole = UserRole.subscriber,
-      this.isPremium = false,
-      this.isVerified = false,
-      this.isBanned = false,
-      this.androidNotificationToken = "",
-      this.profiles = const [],
-      this.orderIds = const [],
-      this.referralCode = "",
-      this.createdDate = 0,
-      this.lastTimeOn = 0,
-      this.fcmToken = "",
-      this.spotifyToken = "",
-      this.currentProfileId = "",
-  });
+  String customerId; ///Customer Stripe Id for future references
+  String subscriptionId; ///If is not empty, user has subscription and is premium
 
+  AppUser({
+    this.id = "",
+    this.name = "",
+    this.firstName = "",
+    this.lastName = "",
+    this.dateOfBirth = "",
+    this.homeTown = "",
+    this.phoneNumber = "",
+    this.countryCode = "",
+    this.password = "",
+    this.email = "",
+    this.photoUrl = "",
+    this.userRole = UserRole.subscriber,
+    this.isVerified = false,
+    this.isBanned = false,
+    this.androidNotificationToken = "",
+    this.profiles = const [],
+    this.orderIds = const [],
+    this.referralCode = "",
+    this.createdDate = 0,
+    this.lastTimeOn = 0,
+    this.fcmToken = "",
+    this.spotifyToken = "",
+    this.currentProfileId = "",
+    this.customerId = '',
+    this.subscriptionId = '',
+  });
 
   @override
   String toString() {
-    return 'AppUser{id: $id, name: $name, firstName: $firstName, lastName: $lastName, dateOfBirth: $dateOfBirth, homeTown: $homeTown, phoneNumber: $phoneNumber, countryCode: $countryCode, password: $password, email: $email, photoUrl: $photoUrl, userRole: $userRole, isPremium: $isPremium, isVerified: $isVerified, isBanned: $isBanned, androidNotificationToken: $androidNotificationToken, profiles: $profiles, wallet: $wallet, orderIds: $orderIds, referralCode: $referralCode, createdDate: $createdDate, lastTimeOn: $lastTimeOn, fcmToken: $fcmToken, spotifyToken: $spotifyToken, currentProfileId: $currentProfileId}';
+    return 'AppUser{id: $id, name: $name, firstName: $firstName, lastName: $lastName, dateOfBirth: $dateOfBirth, homeTown: $homeTown, phoneNumber: $phoneNumber, countryCode: $countryCode, password: $password, email: $email, photoUrl: $photoUrl, userRole: $userRole, isVerified: $isVerified, isBanned: $isBanned, androidNotificationToken: $androidNotificationToken, profiles: $profiles, wallet: $wallet, orderIds: $orderIds, releaseItemIds: $releaseItemIds, boughtItems: $boughtItems, referralCode: $referralCode, createdDate: $createdDate, lastTimeOn: $lastTimeOn, fcmToken: $fcmToken, spotifyToken: $spotifyToken, currentProfileId: $currentProfileId, customerId: $customerId, subscriptionId: $subscriptionId}';
   }
 
   AppUser.fromJSON(data) :
@@ -88,7 +89,7 @@ class AppUser {
         email = data["email"] ?? "",
         photoUrl = data["photoUrl"] ?? "",
         userRole =  EnumToString.fromString(UserRole.values, data["userRole"] ?? UserRole.subscriber.name) ?? UserRole.subscriber,
-        isPremium = data["isPremium"] ?? false,
+
         isVerified = data["isVerified"] ?? true,
         isBanned = data["isBanned"] ?? true,
         androidNotificationToken = data["androidNotificationToken"] ?? "",
@@ -102,7 +103,9 @@ class AppUser {
         lastTimeOn = data["lastTimeOn"] ?? 0,
         fcmToken = data["fcmToken"] ?? "",
         spotifyToken = data["spotifyToken"] ?? "",
-        currentProfileId = data["currentProfileId"] ?? "";
+        currentProfileId = data["currentProfileId"] ?? "",
+        customerId = data["customerId"] ?? "",
+        subscriptionId = data["subscriptionId"] ?? "";
 
   AppUser.fromFbProfile(profile) :
     id = profile["id"],
@@ -118,7 +121,6 @@ class AppUser {
     phoneNumber = "",
     countryCode = "",
     isBanned = false,
-    isPremium = false,
     isVerified = false,
     androidNotificationToken = "",
     profiles = [],
@@ -126,7 +128,9 @@ class AppUser {
     referralCode = "",
     fcmToken = "",
     spotifyToken = "",
-    currentProfileId = "";
+    currentProfileId = "",
+    customerId = '',
+    subscriptionId = '';
 
 
   Map<String, dynamic> toJSON() {
@@ -143,7 +147,6 @@ class AppUser {
       'countryCode': countryCode,
       'photoUrl': photoUrl,
       'userRole': userRole.name,
-      'isPremium': isPremium,
       'isVerified': isVerified,
       'isBanned': isBanned,
       'androidNotificationToken': androidNotificationToken,
@@ -156,6 +159,8 @@ class AppUser {
       'lastTimeOn': lastTimeOn,
       'fcmToken': fcmToken,
       'spotifyToken': spotifyToken,
+      'customerId': customerId,
+      'subscriptionId': subscriptionId,
     };
   }
 

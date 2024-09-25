@@ -16,5 +16,7 @@ abstract class UserService {
   void goingToEvent(String eventId);
   Future<void> addOrderId(String orderId);
   Future<void> addBoughtItem(String itemId);
+  Future<void> updateCustomerId(String customerId);
+  Future<void> updateSubscriptionId(String subscriptionId);
 
 }

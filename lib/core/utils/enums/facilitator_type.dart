@@ -11,7 +11,8 @@ enum FacilityType {
   radio('radio'),
   recordStudio('recordStudio'),
   equipmentRental('equipmentRental'),
-  rehearsalRoom('rehearsalRoom');
+  rehearsalRoom('rehearsalRoom'),
+  other('other');
 
   final String value;
   const FacilityType(this.value);

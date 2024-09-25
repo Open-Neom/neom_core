@@ -308,6 +308,40 @@ class AppFlavour {
     }
   }
 
+  static String getStripeSecretTestKey() {
+    switch (appInUse) {
+      case AppInUse.g:
+        return appProperties['stripeSecretTestKey'];
+      case AppInUse.e:
+        return appProperties['stripeSecretTestKey'];
+      case AppInUse.c:
+        return "";
+    }
+  }
+
+  static String getStripeSuscriptionPriceId() {
+    switch (appInUse) {
+      case AppInUse.g:
+        return '';
+      case AppInUse.e:
+        return appProperties['stripePriceId'];
+      case AppInUse.c:
+        return "";
+    }
+  }
+
+  static String getStripeTestSuscriptionPriceId() {
+    switch (appInUse) {
+      case AppInUse.g:
+        return '';
+      case AppInUse.e:
+        return 'price_1Pzs2PHpVUHkmiYFt4zchILB';
+      case AppInUse.c:
+        return "";
+    }
+  }
+
+
   static String getECommerceUrl() {
     switch (appInUse) {
       case AppInUse.g:
@@ -512,7 +546,8 @@ class AppFlavour {
       case AppInUse.g:
         return Icons.play_circle_fill;
       case AppInUse.e:
-        return FontAwesomeIcons.headphones;
+        // return FontAwesomeIcons.headphones;
+        return FontAwesomeIcons.comments;
       case AppInUse.c:
       ///CHANGE TO MUSIC IN NEXT VERSION
         return LucideIcons.audioWaveform;
@@ -524,7 +559,8 @@ class AppFlavour {
       case AppInUse.g:
         return AppTranslationConstants.music;
       case AppInUse.e:
-        return AppTranslationConstants.audioLibrary;
+        // return AppTranslationConstants.audioLibrary;
+        return AppTranslationConstants.messages;
       case AppInUse.c:
         ///CHANGE TO MUSIC IN NEXT VERSION
         return AppTranslationConstants.audioLibrary;
@@ -713,6 +749,17 @@ class AppFlavour {
 
   static String getWooClientSecret() {
     return appProperties['wooClientSecret'];
+  }
+
+  static Price getSubscriptionPrice() {
+    switch (appInUse) {
+      case AppInUse.g:
+        return Price(amount: 50, currency: AppCurrency.mxn);
+      case AppInUse.e:
+        return Price(amount: 79, currency: AppCurrency.mxn);
+      case AppInUse.c:
+        return Price(amount: 30, currency: AppCurrency.mxn);
+    }
   }
 
 }

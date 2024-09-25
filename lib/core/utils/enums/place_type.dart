@@ -7,7 +7,8 @@ enum PlaceType {
   manager("manager"),
   privateSpace("privateSpace"),
   publicSpace("publicSpace"),
-  restaurant("restaurant");
+  restaurant("restaurant"),
+  other('other');
 
   final String value;
   const PlaceType(this.value);

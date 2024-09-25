@@ -62,6 +62,7 @@ class AppRouteConstants {
   static const String inbox = '/inbox';
   static const String inboxRoom = '/inbox/room';
   static const String postDetails = '/post/details';
+  static const String postDetailsFullScreen = '/post/details/fullscreen';
   static const String post = '/post';
   static const String postComments = '/post/comments';
   static const String postUpload = '/post/upload';
@@ -135,7 +136,7 @@ class AppRouteConstants {
 
   static const String readlists  = '/readlists';
   // ignore: constant_identifier_names
-  static const String PDFViewer  = '/PDFViewer';
+  static const String pdfViewer  = '/PDFViewer';
   // ignore: constant_identifier_names
   static const String EPUBViewer  = '/EPUBViewer';
   static const String digitalLibrary  = '/digitalLibrary';
@@ -186,5 +187,6 @@ class AppRouteConstants {
   static const String musicPlayerStats  = '/musicPlayer/stats';
 
   static const String wooWebView  = '/woo/webView';
+  static const String stripeWebView  = '/stripe/webview';
 
 }

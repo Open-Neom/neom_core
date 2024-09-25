@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../core/ui/widgets/app_circular_progress_indicator.dart';
 import '../../../core/ui/widgets/header_intro.dart';
 import '../../../core/utils/app_color.dart';
 import '../../../core/utils/app_theme.dart';
@@ -29,20 +30,12 @@ class LoginPage extends StatelessWidget {
               width: AppTheme.fullWidth(context),
               height: AppTheme.fullHeight(context),
               decoration: AppTheme.appBoxDecoration,
-              child: _.isLoading.value ? Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const CircularProgressIndicator(),
-                    AppTheme.heightSpace20,
-                    Text(AppTranslationConstants.loadingAccount.tr,
-                        style: const TextStyle(fontSize: 20)
-                    )
-                  ])
+              child: _.isLoading.value ? AppCircularProgressIndicator(
+                subtitle:AppTranslationConstants.loadingAccount.tr,
+                fontSize: 20,
               ) : Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  AppTheme.heightSpace50,
                   HeaderIntro(title: kDebugMode && Platform.isAndroid ? AppConstants.dev : "",),
                   AppTheme.heightSpace20,
                   Text(AppTranslationConstants.signIn.tr,
@@ -68,7 +61,6 @@ class LoginPage extends StatelessWidget {
                     ],
                   ),
                   buildSignupBtn(_),
-                  AppTheme.heightSpace10,
                 ],
               ),
             ),

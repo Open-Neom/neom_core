@@ -127,4 +127,9 @@ class AppFirestoreConstants {
   static const String amount = "amount";
   static const String transactions = "transactions";
 
+  static const String isPremium = "isPremium";
+  static const String customerId = "customerId";
+  static const String subscriptionId = "subscriptionId";
+  static const String subscriptionExpiration = "subscriptionExpiration";
+
 }

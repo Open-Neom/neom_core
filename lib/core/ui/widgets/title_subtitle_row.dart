@@ -9,7 +9,7 @@ import 'custom_url_text.dart';
 
 class TitleSubtitleRow extends StatelessWidget {
 
-  final bool visibleSwitch, showDivider;
+  final bool showDivider;
   final String navigateTo;
   final String url;
   final String subtitle, title;
@@ -31,7 +31,6 @@ class TitleSubtitleRow extends StatelessWidget {
     this.vPadding = 0,
     this.hPadding = 10,
     this.showDivider = true,
-    this.visibleSwitch = true,
     this.navigateArguments,
   });
 

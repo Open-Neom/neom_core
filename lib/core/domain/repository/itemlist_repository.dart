@@ -10,7 +10,7 @@ import '../model/neom/chamber_preset.dart';
 abstract class ItemlistRepository {
 
   Future<bool> addAppMediaItem(AppMediaItem appMediaItem, String itemlistId);
-  Future<bool> deleteItem(AppMediaItem appMediaItem, String itemlistId);
+  Future<bool> deleteItem({required String itemlistId, required String appMediaItemId});
   Future<bool> updateItem(String itemlistId, AppMediaItem appMediaItem);
 
   Future<Itemlist> retrieve(String itemlistId);

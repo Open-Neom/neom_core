@@ -834,7 +834,7 @@ class AppTranslationConstants {
   static const String releaseUploadPostCaptionMsg1 = 'releaseUploadPostCaptionMsg1';
   static const String releaseUploadPostCaptionMsg2 = 'releaseUploadPostCaptionMsg2';
   static const String buyReleaseItemMsg = 'buyReleaseItemMsg';
-  static const String buySuscriptionMsg = 'buySuscriptionMsg';
+  static const String buySubscriptionMsg = 'buySubscriptionMsg';
 
   static const String analytics = 'analytics';
   static const String seeAnalytics = 'seeAnalytics';
@@ -963,6 +963,7 @@ class AppTranslationConstants {
   static const String maxVideosPerWeekReachedMsg = 'maxVideosPerWeekReachedMsg';
   static const String freeSingleReleaseUploadMsg = 'freeSingleReleaseUploadMsg';
   static const String membershipFreeTrialReached = 'membershipFreeTrialReached';
+  static const String membershipFreeTrialTimeReached = 'membershipFreeTrialTimeReached';
   static const String productFreeTrialReached = 'productFreeTrialReached';
 
   static const String professionalTools = 'professionalTools';
@@ -978,5 +979,33 @@ class AppTranslationConstants {
   static const String updateUserRoleMsg = 'updateUserRoleMsg';
   static const String updateUserRoleSame = 'updateUserRoleSame';
   static const String updateUserRoleSuccess = 'updateUserRoleSuccess';
+  static const String checkInvoice = 'checkInvoice';
+
+  static const String publicDomainReadings = 'publicDomainReadings';
+  static const String freeDomain = 'freeDomain';
+  static const String toSubscribe = 'toSubscribe';
+  static const String subscription = 'subscription';
+  static const String activateSubscription = 'activateSubscription';
+  static const String cancelSubscription = 'cancelSubscription';
+  static const String cancelThisSubscription = 'cancelThisSubscription';
+  static const String activeSubscription = 'activeSubscription';
+  static const String active = 'active';
+  static const String activate = 'activate';
+  static const String comingSoon = 'comingSoon';
+
+  static const String verifyPhone = 'verifyPhone';
+  static const String tryAgain = 'tryAgain';
+  static const String sendCodeAgain = 'sendCodeAgain';
+
+  static const String printing = 'printing';
+  static const String paperType = 'paperType';
+  static const String coverType = 'coverType';
+  static const String flapRequired = 'flapRequired';
+
+  static const String subscriptionMainName = 'subscriptionMainName';
+  static const String subscriptionMainDesc = 'subscriptionMainDesc';
+
+  static const String thanksForFinishingItem = 'thanksForFinishingItem';
+  static const String startItem = 'startItem';
 
 }

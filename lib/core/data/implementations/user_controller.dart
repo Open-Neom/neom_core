@@ -18,6 +18,7 @@ import '../../utils/constants/app_route_constants.dart';
 import '../../utils/constants/app_translation_constants.dart';
 import '../../utils/constants/message_translation_constants.dart';
 import '../../utils/core_utilities.dart';
+import '../../utils/enums/itemlist_type.dart';
 import '../../utils/enums/owner_type.dart';
 import '../../utils/enums/user_role.dart';
 import '../firestore/app_release_item_firestore.dart';
@@ -38,6 +39,7 @@ class UserController extends GetxController implements UserService {
   bool isNewUser = false;
 
   OwnerType itemlistOwner  = OwnerType.profile;
+  ItemlistType defaultItemlistType  = ItemlistType.playlist;
   bool appliedCoupon= false;
   AppCoupon coupon = AppCoupon();
 
@@ -149,7 +151,6 @@ class UserController extends GetxController implements UserService {
       email: fbaUser.email ?? "",
       id: fbaUser.providerData.first.uid ?? "",
       phoneNumber: fbaUser.phoneNumber ?? "",
-      isPremium: false,
       isVerified: false,
       password: "",
       );
@@ -353,12 +354,12 @@ class UserController extends GetxController implements UserService {
     try {
       AppUser userFromFirestore = await UserFirestore().getById(userId, getProfileFeatures: false);
       if(userFromFirestore.id.isNotEmpty){
-        AppUtilities.logger.d("User $userId exists!!");
+        AppUtilities.logger.i("User $userId exists!!");
         user = userFromFirestore;
         profile = user.profiles.first;
         isNewUser = false;
       } else {
-        AppUtilities.logger.i("User $userId not exists!!");
+        AppUtilities.logger.w("User $userId not exists!!");
         isNewUser = true;
       }
     } catch (e) {
@@ -514,6 +515,34 @@ class UserController extends GetxController implements UserService {
     } catch (e) {
       AppUtilities.logger.e(e.toString());
     }
+    update();
+  }
+
+  @override
+  Future<void> updateCustomerId(String customerId) async {
+    AppUtilities.logger.d("updateCustomerId $customerId");
+
+    try {
+      user.customerId = customerId;
+      UserFirestore().updateCustomerId(user.id, customerId);
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+
+    update();
+  }
+
+  @override
+  Future<void> updateSubscriptionId(String subscriptionId) async {
+    AppUtilities.logger.d("updateSubscriptionId $subscriptionId");
+
+    try {
+      user.subscriptionId = subscriptionId;
+      UserFirestore().updateSubscriptionId(user.id, subscriptionId);
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+
     update();
   }
 

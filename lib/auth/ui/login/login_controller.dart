@@ -41,6 +41,7 @@ class LoginController extends GetxController implements LoginService {
 
   final Rx<AuthStatus> authStatus = AuthStatus.notDetermined.obs;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
+
   //TODO Verify if its not needed
   //final SignInWithApple _appleSignIn = SignInWithApple();
 
@@ -57,6 +58,9 @@ class LoginController extends GetxController implements LoginService {
   final RxBool isLoading = true.obs;
   final RxBool isButtonDisabled = false.obs;
   final Rx<AppInfo> appInfo = AppInfo().obs;
+
+  bool isPhoneAuth = false;
+  String phoneVerificationId = '';
 
   bool isIOS13OrHigher = false;
 
@@ -87,8 +91,10 @@ class LoginController extends GetxController implements LoginService {
 
   @override
   Future<void> handleAuthChanged(user) async {
-    AppUtilities.logger.t("");
+    AppUtilities.logger.d("handleAuthChanged");
     authStatus.value = AuthStatus.waiting;
+
+    if(isPhoneAuth) return;
 
     try {
       if(auth.currentUser == null) {
@@ -496,11 +502,54 @@ class LoginController extends GetxController implements LoginService {
     return rootPage;
   }
 
-
   @override
   void setIsLoading(bool loading) {
     isLoading.value = loading;
     update([AppPageIdConstants.login]);
   }
+
+  Future<void> verifyPhoneNumber(String phoneNumber) async {
+    await auth.verifyPhoneNumber(
+      phoneNumber: phoneNumber,
+      timeout: const Duration(seconds: 60),
+      verificationCompleted: (fba.PhoneAuthCredential credential) async {
+        // Si el número es automáticamente verificado
+        await auth.signInWithCredential(credential);
+      },
+      verificationFailed: (fba.FirebaseAuthException e) {
+        // Manejar errores, por ejemplo si el formato del número es incorrecto
+        if (e.code == 'invalid-phone-number') {
+          AppUtilities.logger.d('El número de teléfono no es válido.');
+        }
+      },
+      codeSent: (String verificationId, int? resendToken) {
+        phoneVerificationId = verificationId;
+        // Guardar el `verificationId` y pedir al usuario que ingrese el código enviado por SMS
+        AppUtilities.logger.d('Código de verificación enviado with verificationId $verificationId');
+      },
+      codeAutoRetrievalTimeout: (String verificationId) {
+        // Manejar el tiempo de espera si no se recibe el código automáticamente
+        AppUtilities.logger.d('Tiempo de espera para la verificación agotado');
+      },
+    );
+  }
+
+  Future<bool> validateSmsCode(String smsCode) async {
+    fba.PhoneAuthCredential credential = fba.PhoneAuthProvider.credential(
+      verificationId: phoneVerificationId,
+      smsCode: smsCode,
+    );
+
+    try {
+      // Autenticación con las credenciales del código SMS
+      await auth.signInWithCredential(credential);
+      isPhoneAuth = true;
+      return true;
+    } catch(e) {
+      AppUtilities.logger.e(e.toString());
+    }
+    return false;
+  }
+
 
 }

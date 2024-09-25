@@ -12,7 +12,7 @@ class AppDrawerController extends GetxController {
 
   AppUser user = AppUser();
 
-  final Rx<AppProfile> appProfile = AppProfile().obs;
+  AppProfile appProfile = AppProfile();
   final RxBool isButtonDisabled = false.obs;
 
   @override
@@ -20,11 +20,11 @@ class AppDrawerController extends GetxController {
     super.onInit();
     AppUtilities.logger.t("SideBar Controller Init");
     user = userController.user;
-    appProfile.value = userController.profile;
+    appProfile = userController.profile;
   }
 
   void updateProfile(AppProfile profile) {
-    appProfile.value = profile;
+    appProfile = profile;
     update([AppPageIdConstants.appDrawer]);
   }
 
@@ -67,13 +67,13 @@ class AppDrawerController extends GetxController {
                             ),
                             onPressed: () async {
                               Navigator.pop(context);
-                              if(appProfile.value.id != profile.id) {
+                              if(appProfile.id != profile.id) {
                                 Navigator.pop(treeContext);
                                 await userController.changeProfile(profile);
                               }
                             },
                           ),
-                          trailing: Icon(appProfile.value.id == profile.id
+                          trailing: Icon(appProfile.id == profile.id
                                   ? FontAwesomeIcons.circleDot : Icons.circle_outlined,
                               size: 30
                           ),
@@ -83,7 +83,7 @@ class AppDrawerController extends GetxController {
                           subtitle: Text("${profile.type.name.tr.capitalize} - ${profile.mainFeature.tr.capitalize}"),
                           onTap: () async {
                             Navigator.pop(context);
-                            if(appProfile.value.id != profile.id) {
+                            if(appProfile.id != profile.id) {
                               Navigator.pop(treeContext);
                               await userController.changeProfile(profile);
                             }

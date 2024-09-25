@@ -35,6 +35,7 @@ class AppPageIdConstants {
   static const String frequencies = "frequencies";
   static const String appDrawer = "appDrawer";
   static const String settingsPrivacy = "settingsPrivacy";
+  static const String accountSettings = "accountSettings";
 
   static const String itemlistItem = "itemlistItem";
   static const String appItem = "appItem";
@@ -81,6 +82,7 @@ class AppPageIdConstants {
   static const String readlist = "readlist";
   static const String bookDetails = "bookDetails";
   static const String pdfViewer = "pdfView";
+  static const String epubViewer = "epubViewer";
 
   static const String blog = "blog";
   static const String blogEntry = "blogEntry";
@@ -101,6 +103,7 @@ class AppPageIdConstants {
   static const String miniPlayer = 'miniPlayer';
 
   static const String wooWebView = 'wooWebView';
+  static const String stripeWebView = 'stripeWebView';
 
   static const String offeredServices = 'offeredServices';
 

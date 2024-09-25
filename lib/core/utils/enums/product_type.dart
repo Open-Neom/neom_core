@@ -1,5 +1,5 @@
 enum ProductType {
-  coin,
+  appCoin,
   digital,
   physical,
   service,

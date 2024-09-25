@@ -133,7 +133,6 @@ class SharedPreferenceController extends GetxController implements SharedPrefere
 
   }
 
-
   Future<void> setLastNotificationCheckDate(int lastNotificationCheckDate) async {
     logger.d("Setting last time notification were checked");
 

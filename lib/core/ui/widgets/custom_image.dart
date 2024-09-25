@@ -43,20 +43,37 @@ Widget cachedNetworkProfileImage(String profileId, String mediaUrl) {
 
 Widget fileImage(mediaUrl) {
   return GestureDetector(
-    child: Hero(
-      tag: 'img_file_hero_$mediaUrl',
-      child: Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: FileImage(File(mediaUrl)),
+      child: Hero(
+        tag: 'img_file_hero_$mediaUrl',
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: Image.file(
+            File(mediaUrl),
             fit: BoxFit.fitHeight,
           ),
         ),
       ),
-    ),
-    onTap: () => Get.toNamed(AppRouteConstants.mediaFullScreen, arguments: [mediaUrl, false])
+      onTap: () => Get.toNamed(AppRouteConstants.mediaFullScreen, arguments: [mediaUrl, false])
   );
 }
+
+// Widget fileImage(mediaUrl) {
+//   return GestureDetector(
+//     child: Hero(
+//       tag: 'img_file_hero_$mediaUrl',
+//       child: Container(
+//         decoration: BoxDecoration(
+//           borderRadius: BorderRadius.circular(10), // Adjust the radius as needed
+//           image: DecorationImage(
+//             image: FileImage(File(mediaUrl)),
+//             fit: BoxFit.fitHeight,
+//           ),
+//         ),
+//       ),
+//     ),
+//     onTap: () => Get.toNamed(AppRouteConstants.mediaFullScreen, arguments: [mediaUrl, false])
+//   );
+// }
 
 Widget cachedNetworkThumbnail({required String thumbnailUrl, required String mediaUrl}) {
   return GestureDetector(

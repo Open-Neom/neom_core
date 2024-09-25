@@ -10,8 +10,9 @@ class HeaderIntro extends StatelessWidget{
   final String subtitle;
   final bool showLogo;
   final bool showPreLogo;
+  final int sizeRelation;
 
-  const HeaderIntro({this.title = "", this.subtitle = "", this.showLogo = true, this.showPreLogo = true, super.key});
+  const HeaderIntro({this.title = "", this.subtitle = "", this.showLogo = true, this.showPreLogo = true, this.sizeRelation = 3, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -22,8 +23,8 @@ class HeaderIntro extends StatelessWidget{
         children: <Widget>[
           (AppFlavour.appInUse == AppInUse.e && showPreLogo)
               ? Image.asset(AppAssets.logoAppWhite,
-            height: AppTheme.fullWidth(context)/3,
-            width: AppTheme.fullWidth(context)/3,
+            height: AppTheme.fullWidth(context)/sizeRelation,
+            width: AppTheme.fullWidth(context)/sizeRelation,
           ) : const SizedBox.shrink(),
           AppTheme.heightSpace10,
           showLogo ? Image.asset(AppFlavour.getAppLogoPath(),

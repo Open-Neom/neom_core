@@ -9,7 +9,9 @@ class AppCircularProgressIndicator extends StatelessWidget {
 
   final bool showLogo;
   final String subtitle;
-  const AppCircularProgressIndicator({this.subtitle = '', this.showLogo = true, super.key});
+  final int fontSize;
+
+  const AppCircularProgressIndicator({this.subtitle = '', this.showLogo = true, this.fontSize = 12, super.key});
 
   @override
   Widget build(BuildContext context) {
