@@ -24,6 +24,7 @@ import '../../../core/utils/constants/app_route_constants.dart';
 import '../../../core/utils/constants/message_translation_constants.dart';
 import '../../../core/utils/core_utilities.dart';
 import '../../../core/utils/enums/auth_status.dart';
+import '../../../core/utils/validator.dart';
 import '../../domain/use_cases/login_service.dart';
 import '../../utils/enums/login_method.dart';
 import '../../utils/enums/signed_in_with.dart';
@@ -106,7 +107,12 @@ class LoginController extends GetxController implements LoginService {
       } else {
         if(user.providerData.isNotEmpty){
           _userId = user.providerData.first.uid!;
-          await userController.getUserById(_userId);
+          if(Validator.isEmail(_userId)) {
+            await userController.getUserByEmail(_userId);
+          } else {
+            await userController.getUserById(_userId);
+          }
+
         }
 
         if (userController.user.id.isEmpty) {
@@ -294,7 +300,8 @@ class LoginController extends GetxController implements LoginService {
        oauthCredential = await getAuthCredentials();
 
       if(oauthCredential != null) {
-        fbaUser.value = (await auth.signInWithCredential(oauthCredential)).user;
+        fba.UserCredential userCredential = await auth.signInWithCredential(oauthCredential);
+        fbaUser.value = userCredential.user;
         authStatus.value = AuthStatus.loggedIn;
         signedInWith = SignedInWith.apple;
       }
@@ -323,9 +330,11 @@ class LoginController extends GetxController implements LoginService {
       );
     } finally {
       isButtonDisabled.value = false;
-      if(oauthCredential == null) {
-        isLoading.value = false;
-      }
+      isLoading.value = false;
+      ///DEPRECATED
+      // if(oauthCredential == null) {
+      //   isLoading.value = false;
+      // }
     }
 
     update([AppPageIdConstants.login]);
@@ -426,10 +435,6 @@ class LoginController extends GetxController implements LoginService {
           credentials = fba.FacebookAuthProvider.credential(_fbAccessToken);
           break;
         case(LoginMethod.apple):
-        // To prevent replay attacks with the credential returned from Apple, we
-        // include a nonce in the credential request. When signing in with
-        // Firebase, the nonce in the id token returned by Apple, is expected to
-        // match the sha256 hash of `rawNonce`.
           final rawNonce = generateNonce();
           final nonce = sha256ofString(rawNonce);
 
@@ -438,12 +443,20 @@ class LoginController extends GetxController implements LoginService {
               AppleIDAuthorizationScopes.email,
               AppleIDAuthorizationScopes.fullName,
             ],
-            nonce: nonce,
+            nonce: nonce, // Pass hashed nonce to Apple
           );
+
+          AppUtilities.logger.d('Apple idToken: ${appleCredential.identityToken}');
+          AppUtilities.logger.d('Apple nonce: $nonce');
+          AppUtilities.logger.d('Apple rawNonce: $rawNonce');
+
+
           credentials = fba.OAuthProvider("apple.com").credential(
             idToken: appleCredential.identityToken,
-            rawNonce: rawNonce,
+            accessToken: appleCredential.authorizationCode,
+            rawNonce: rawNonce, // Pass raw nonce to Firebase
           );
+
           break;
         case(LoginMethod.google):
           final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();

@@ -7,6 +7,7 @@ abstract class UserService {
   Future<void> getUserFromFacebook(String fbAccessToken);
   void getUserFromFirebase(User fbaUser);
   Future<void> getUserById(String userId);
+  Future<void> getUserByEmail(String userEmail);
   Future<void> createProfile();
   Future<void> getProfiles();
   Future<void> removeProfile();

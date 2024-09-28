@@ -23,12 +23,12 @@ class HeaderIntro extends StatelessWidget{
         children: <Widget>[
           (AppFlavour.appInUse == AppInUse.e && showPreLogo)
               ? Image.asset(AppAssets.logoAppWhite,
-            height: AppTheme.fullWidth(context)/sizeRelation,
-            width: AppTheme.fullWidth(context)/sizeRelation,
+            height: AppTheme.fullWidth(context)/(MediaQuery.of(context).orientation == Orientation.portrait ? sizeRelation:5),
+            width: AppTheme.fullWidth(context)/(MediaQuery.of(context).orientation == Orientation.portrait ? sizeRelation:5),
           ) : const SizedBox.shrink(),
           AppTheme.heightSpace10,
           showLogo ? Image.asset(AppFlavour.getAppLogoPath(),
-            width: AppTheme.fullWidth(context)*(AppFlavour.appInUse != AppInUse.e ? 0.75 : 0.25),
+            width: AppTheme.fullWidth(context)*(AppFlavour.appInUse != AppInUse.e ? 0.75 : (MediaQuery.of(context).orientation == Orientation.portrait ? 0.25:0.15)),
             fit: BoxFit.fitWidth,
           ) : const SizedBox.shrink(),
           title.isEmpty ? const SizedBox.shrink() : Column(

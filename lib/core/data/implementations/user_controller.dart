@@ -367,6 +367,25 @@ class UserController extends GetxController implements UserService {
     }
   }
 
+  @override
+  Future<void> getUserByEmail(String userEmail) async {
+
+    try {
+      AppUser userFromFirestore = await UserFirestore().getByEmail(userEmail) ?? AppUser();
+      if(userFromFirestore.id.isNotEmpty){
+        AppUtilities.logger.i("User $userEmail exists!!");
+        user = userFromFirestore;
+        profile = user.profiles.first;
+        isNewUser = false;
+      } else {
+        AppUtilities.logger.w("User $userEmail not exists!!");
+        isNewUser = true;
+      }
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+  }
+
 
   void addToWallet(amount) {
     user.wallet.amount = user.wallet.amount + amount;

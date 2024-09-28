@@ -26,7 +26,7 @@ class PostTile extends StatelessWidget {
       onTap:()=> {
         //TODO VERIFY ITS WORKING
         //Get.delete<PostDetailsController>(),
-        Get.toNamed(AppRouteConstants.postDetails, arguments: [post])
+        Get.toNamed(AppRouteConstants.postDetailsFullScreen, arguments: [post])
       }
     );
   }

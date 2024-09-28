@@ -74,8 +74,8 @@ class SlideTiles extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
            Image.asset(imagePath,
-               height: AppTheme.fullWidth(context)/2,
-               width: AppTheme.fullWidth(context)/2,
+               height: AppTheme.fullWidth(context)/3,
+               width: AppTheme.fullWidth(context)/3,
                fit: BoxFit.fitWidth),
             AppTheme.heightSpace20,
             Row(

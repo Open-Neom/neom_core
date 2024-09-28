@@ -33,7 +33,7 @@ class LoginPage extends StatelessWidget {
               child: _.isLoading.value ? AppCircularProgressIndicator(
                 subtitle:AppTranslationConstants.loadingAccount.tr,
                 fontSize: 20,
-              ) : Column(
+              ) : SingleChildScrollView(child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   HeaderIntro(title: kDebugMode && Platform.isAndroid ? AppConstants.dev : "",),
@@ -61,8 +61,9 @@ class LoginPage extends StatelessWidget {
                     ],
                   ),
                   buildSignupBtn(_),
+                  if(MediaQuery.of(context).orientation == Orientation.landscape) AppTheme.heightSpace50,
                 ],
-              ),
+              ),),
             ),
           ),
         ),
