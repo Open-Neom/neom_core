@@ -4,11 +4,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
 import 'package:spotify/spotify.dart' as spotify;
-import 'package:spotify_sdk/spotify_sdk.dart';
+// import 'package:spotify_sdk/spotify_sdk.dart';
 
 import '../../../app_flavour.dart';
 import '../../../utils/app_utilities.dart';
-import '../../../utils/constants/app_spotify_constants.dart';
 
 class SpotifyApiCalls {
 
@@ -33,24 +32,25 @@ class SpotifyApiCalls {
 
   ///DEPRECATED String requestAuthorization() => 'https://accounts.spotify.com/authorize?client_id=${AppFlavour.getSpotifyClientId()}&response_type=code&redirect_uri=$redirectUrl&scope=${_scopes.join('%20')}';
 
-  static Future<String> getSpotifyToken() async {
-    AppUtilities.logger.d('Getting access and Spotify Token');
-    String spotifyToken = '';
-
-    if(await SpotifySdk.connectToSpotifyRemote(
-      clientId: AppFlavour.getSpotifyClientId(),
-      redirectUrl: AppSpotifyConstants.redirectUrl,)
-    ) {
-      spotifyToken = await SpotifySdk.getAccessToken(
-          clientId: AppFlavour.getSpotifyClientId(),
-          redirectUrl: AppSpotifyConstants.redirectUrl,
-          scope: AppSpotifyConstants.scope,
-      );
-    }
-
-    AppUtilities.logger.i('Spotify Token Retrieved $spotifyToken');
-    return spotifyToken;
-  }
+  ///DEPRECATED
+  // static Future<String> getSpotifyToken() async {
+  //   AppUtilities.logger.d('Getting access and Spotify Token');
+  //   String spotifyToken = '';
+  //
+  //   if(await SpotifySdk.connectToSpotifyRemote(
+  //     clientId: AppFlavour.getSpotifyClientId(),
+  //     redirectUrl: AppSpotifyConstants.redirectUrl,)
+  //   ) {
+  //     spotifyToken = await SpotifySdk.getAccessToken(
+  //         clientId: AppFlavour.getSpotifyClientId(),
+  //         redirectUrl: AppSpotifyConstants.redirectUrl,
+  //         scope: AppSpotifyConstants.scope,
+  //     );
+  //   }
+  //
+  //   AppUtilities.logger.i('Spotify Token Retrieved $spotifyToken');
+  //   return spotifyToken;
+  // }
 
 
   static Future<spotify.User> getUserProfile({required String spotifyToken,}) async {

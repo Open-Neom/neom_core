@@ -157,7 +157,7 @@ class MateFirestore implements MateRepository {
         case(ProfileType.host):
           profile.places = await PlaceFirestore().retrievePlaces(profile.id);
           break;
-        case(ProfileType.casual):
+        case(ProfileType.commonTarget):
           profile.genres = await GenreFirestore().retrieveGenres(profile.id);
           profile.genres = await GenreFirestore().retrieveGenres(profile.id);
           break;

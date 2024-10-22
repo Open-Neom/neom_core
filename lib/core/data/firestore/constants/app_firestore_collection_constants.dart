@@ -42,11 +42,15 @@ class AppFirestoreCollectionConstants {
   static const String payments = "payments";
   static const String invoices = "invoices";
   static const String products = "products";
+  static const String quotations = "quotations";
   static const String posts = "posts";
   static const String sponsors = "sponsors";
 
   static const String bank = "bank";
 
   static const String nupaleSessions = "nupaleSessions";
+  static const String authorsNupaleSessions = "authorsNupaleSessions";
+  static const String userSubscriptions = "userSubscriptions";
+
 
 }

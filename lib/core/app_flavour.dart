@@ -187,7 +187,7 @@ class AppFlavour {
   static String getItemDetailsRoute() {
     switch (appInUse) {
       case AppInUse.g:
-        return AppRouteConstants.musicPlayerMedia;
+        return AppRouteConstants.audioPlayerMedia;
       case AppInUse.e:
         return AppRouteConstants.bookDetails;
       case AppInUse.c:
@@ -719,7 +719,7 @@ class AppFlavour {
     }
   }
 
-  static String getMusicPlayerHomeTitle() {
+  static String getAudioPlayerHomeTitle() {
     switch (appInUse) {
       case AppInUse.g:
         return AppTranslationConstants.music.tr;
@@ -753,12 +753,12 @@ class AppFlavour {
 
   static Price getSubscriptionPrice() {
     switch (appInUse) {
-      case AppInUse.g:
-        return Price(amount: 50, currency: AppCurrency.mxn);
       case AppInUse.e:
-        return Price(amount: 79, currency: AppCurrency.mxn);
+        return Price(amount: 59, currency: AppCurrency.mxn);
+      case AppInUse.g:
+        return Price(amount: 39, currency: AppCurrency.mxn);
       case AppInUse.c:
-        return Price(amount: 30, currency: AppCurrency.mxn);
+        return Price(amount: 29, currency: AppCurrency.mxn);
     }
   }
 

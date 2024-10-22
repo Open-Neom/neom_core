@@ -31,7 +31,6 @@ import '../../utils/enums/signed_in_with.dart';
 import '../on_going.dart';
 import 'login_page.dart';
 
-
 class LoginController extends GetxController implements LoginService {
 
   final userController = Get.find<UserController>();
@@ -52,7 +51,7 @@ class LoginController extends GetxController implements LoginService {
 
   fba.FirebaseAuth auth = fba.FirebaseAuth.instance;
   final Rxn<fba.User> fbaUser = Rxn<fba.User>();
-  
+
   SignedInWith signedInWith = SignedInWith.notDetermined;
   LoginMethod loginMethod = LoginMethod.notDetermined;
   
@@ -71,7 +70,7 @@ class LoginController extends GetxController implements LoginService {
     AppUtilities.logger.t("onInit Login Controller");
     appInfo.value = AppInfo();
     fbaUser.value = auth.currentUser;
-    ever(fbaUser, handleAuthChanged);
+    ever<fba.User?>(fbaUser, handleAuthChanged);
     fbaUser.bindStream(auth.authStateChanges());
 
     if(Platform.isIOS) {
@@ -91,7 +90,7 @@ class LoginController extends GetxController implements LoginService {
   }
 
   @override
-  Future<void> handleAuthChanged(user) async {
+  Future<void> handleAuthChanged(fba.User? user) async {
     AppUtilities.logger.d("handleAuthChanged");
     authStatus.value = AuthStatus.waiting;
 
@@ -101,14 +100,15 @@ class LoginController extends GetxController implements LoginService {
       if(auth.currentUser == null) {
         authStatus.value = AuthStatus.notLoggedIn;
         auth = fba.FirebaseAuth.instance;
-      } else if (user == null) {
+      } else if (user == null && auth.currentUser != null) {
         authStatus.value = AuthStatus.notLoggedIn;
-        user = auth.currentUser;
-      } else {
+        user = auth.currentUser!;
+      } else if(user != null) {
         if(user.providerData.isNotEmpty){
           _userId = user.providerData.first.uid!;
-          if(Validator.isEmail(_userId)) {
-            await userController.getUserByEmail(_userId);
+          if(Validator.isEmail(_userId) || (user.providerData.first.email?.isNotEmpty ?? false)) {
+            String email = Validator.isEmail(_userId) ? _userId : user.providerData.first.email ?? '';
+            await userController.getUserByEmail(email);
           } else {
             await userController.getUserById(_userId);
           }

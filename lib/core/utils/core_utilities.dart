@@ -440,7 +440,7 @@ class CoreUtilities {
         profileMainFeature = getMainPlace(profile.places ?? <String, Place>{});
         break;
       case(ProfileType.researcher):
-      case(ProfileType.casual):
+      case(ProfileType.commonTarget):
         profileMainFeature = CoreUtilities.getMainGenre(profile.genres ?? <String, Genre>{});
         break;
       default:
@@ -946,6 +946,11 @@ class CoreUtilities {
     }
 
     return true;
+  }
+
+  static bool isTablet(BuildContext context) {
+    var shortestSide = MediaQuery.of(context).size.shortestSide;
+    return shortestSide >= 600;  // Typically, tablets have a minimum width of 600dp
   }
 
 }

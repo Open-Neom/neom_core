@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../../core/utils/enums/auth_status.dart';
 import '../../utils/enums/login_method.dart';
@@ -5,7 +6,7 @@ import '../../utils/enums/login_method.dart';
 abstract class LoginService {
 
   Future<void> getAppInfo();
-  Future<void> handleAuthChanged(user);
+  Future<void> handleAuthChanged(User user);
   void setAuthStatus(AuthStatus status);
   void setIsLoading(bool loading);
 

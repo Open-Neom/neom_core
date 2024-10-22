@@ -169,7 +169,7 @@ class PostFirestore implements PostRepository {
 
     try {
       Query query = postsReference
-          .orderBy(AppFirestoreConstants.lastInteraction, descending: true)
+
           .limit(AppConstants.timelineLimit);
       if (_recentDocTimeline.isNotEmpty) {
         query = query.startAfterDocument(_recentDocTimeline.last);
@@ -224,7 +224,6 @@ class PostFirestore implements PostRepository {
   //   return posts;
   // }
 
-
   Future<Map<String, Post>> getDrafts({String profileId = ""}) async {
     AppUtilities.logger.d("");
     List<Post> sortedDrafts = [];
@@ -268,7 +267,6 @@ class PostFirestore implements PostRepository {
     bool wasDeleted = false;
 
     try {
-
       QuerySnapshot querySnapshot = await postsReference.get();
       if (querySnapshot.docs.isNotEmpty) {
         for (var postSnapshot in querySnapshot.docs) {

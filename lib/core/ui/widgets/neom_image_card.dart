@@ -26,7 +26,7 @@ class NeomImageCard extends StatelessWidget {
     this.margin = EdgeInsets.zero,
     this.borderRadius = 7.0,
     this.boxDimension = 55.0,
-    this.placeholderImage = const AssetImage(AppAssets.musicPlayerCover,),
+    this.placeholderImage = const AssetImage(AppAssets.audioPlayerCover,),
     this.selected = false,
     this.imageQuality = ImageQuality.high,
     this.localErrorFunction,

@@ -24,7 +24,7 @@ class LoginPage extends StatelessWidget {
         init: LoginController(),
         builder: (_) => Scaffold(
           backgroundColor: AppColor.main50,
-          body: SingleChildScrollView(
+          body: SafeArea(child: SingleChildScrollView(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 40.0),
               width: AppTheme.fullWidth(context),
@@ -36,6 +36,7 @@ class LoginPage extends StatelessWidget {
               ) : SingleChildScrollView(child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
+                  AppTheme.heightSpace20,
                   HeaderIntro(title: kDebugMode && Platform.isAndroid ? AppConstants.dev : "",),
                   AppTheme.heightSpace20,
                   Text(AppTranslationConstants.signIn.tr,
@@ -65,7 +66,7 @@ class LoginPage extends StatelessWidget {
                 ],
               ),),
             ),
-          ),
+          ),),
         ),
     );
   }

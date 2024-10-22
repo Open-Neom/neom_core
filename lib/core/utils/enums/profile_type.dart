@@ -1,5 +1,5 @@
 enum ProfileType {
-  casual('casual'), ///COMMON PROFILE TYPE WITH REGULAR PRIVILEGES
+  commonTarget('commonTarget'), ///COMMON TARGET PROFILE TYPE WITH REGULAR PRIVILEGES
   artist('artist'), ///ARTIST PROFILE
   facilitator('facilitator'), ///FACILITATOR OF SERVICES FOR ARTISTS
   host('host'), ///HOST OF EVENTS OR OWNER OF VENUES

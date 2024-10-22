@@ -73,7 +73,7 @@ class UserFirestore implements UserRepository {
   }
 
   @override
-  Future<AppUser> getById(String userId, {getProfileFeatures = true}) async {
+  Future<AppUser> getById(String userId, {getProfileFeatures = false}) async {
     AppUtilities.logger.t("Get User by ID: $userId");
     AppUser user = AppUser();
     try {
@@ -112,7 +112,7 @@ class UserFirestore implements UserRepository {
   }
 
   @override
-  Future<AppUser?> getByEmail(String email) async {
+  Future<AppUser?> getByEmail(String email,  {getProfileFeatures = false}) async {
     AppUtilities.logger.d("Get User by Email: $email");
 
     try {
@@ -122,7 +122,30 @@ class UserFirestore implements UserRepository {
         if (queryDocumentSnapshot.exists) {
           AppUser user = AppUser.fromJSON(queryDocumentSnapshot.data());
           user.id = queryDocumentSnapshot.id;
+
+          AppProfile profile = AppProfile();
+
+          if(user.currentProfileId.isNotEmpty) {
+            profile = await ProfileFirestore().retrieve(user.currentProfileId);
+            if(profile.id.isNotEmpty) {
+              user.profiles = [profile];
+            } else {
+              AppUtilities.logger.d("Profile for userId ${user.id} not found");
+            }
+          } else {
+            user.profiles = await ProfileFirestore().retrieveProfiles(user.id);
+
+          }
+
+          if(getProfileFeatures) {
+            if(user.profiles.isNotEmpty && user.profiles.first.id.isNotEmpty) {
+              user.profiles.first = await ProfileFirestore().getProfileFeatures(user.profiles.first);
+            }
+          }
+
           return user;
+        } else {
+          AppUtilities.logger.w("No user found");
         }
       }
     } catch (e) {

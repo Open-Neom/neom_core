@@ -793,6 +793,7 @@ class AppTranslationConstants {
   static const String adminQuotationWhatsappMsg = 'adminQuotationWhatsappMsg';
   static const String thanksForYourAttention = 'thanksForYourAttention';
   static const String whatsappQuotation = 'whatsappQuotation';
+  static const String downloadAppMsg = 'downloadAppMsg';
 
   static const String releaseItem = 'releaseItem';
   static const String releaseUploadIntro = 'releaseUploadIntro';
@@ -998,8 +999,11 @@ class AppTranslationConstants {
   static const String sendCodeAgain = 'sendCodeAgain';
 
   static const String printing = 'printing';
+  static const String paper = 'paper';
   static const String paperType = 'paperType';
   static const String coverType = 'coverType';
+  static const String coverLamination = 'coverLamination';
+  static const String flap = 'flap';
   static const String flapRequired = 'flapRequired';
 
   static const String subscriptionMainName = 'subscriptionMainName';
@@ -1007,5 +1011,11 @@ class AppTranslationConstants {
 
   static const String thanksForFinishingItem = 'thanksForFinishingItem';
   static const String startItem = 'startItem';
+
+  static const String onlyPrinting = 'onlyPrinting';
+  static const String onlyDigital = 'onlyDigital';
+  static const String subtotal = "subtotal";
+  static const String and = "and";
+
 
 }

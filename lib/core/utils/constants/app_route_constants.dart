@@ -1,14 +1,5 @@
 class AppRouteConstants {
 
-  ///DEPRECATED
-  // static final eHomePages = [const TimelinePage(), const DirectoryPage(), const EventsPage(), const InboxPage()];
-  // static final gHomePages = [const TimelinePage(), const BookingHomePage(), const EventsPage(), const InboxPage()];
-  // static final cHomePages = [const TimelinePage(), const ChamberPage(), const EventsPage(), const InboxPage()];
-  ///DEPRECATED
-  // static final eMusicPlayerPages = [const MusicPlayerHomePage(), const ItemlistPage()];
-  // static final gMusicPlayerPages = [const MusicPlayerHomePage(), const ItemlistPage()];
-  // static final cMusicPlayerPages = [const MusicPlayerHomePage(), const ItemlistPage()];
-
   static const String root = "/";
   static const String login = "/login";
   static const String forgotPassword = "/forgot_password";
@@ -174,17 +165,17 @@ class AppRouteConstants {
   static const String generator  = '/generator';
   static const String chamberPresets  = '/chamber/presets';
 
-  static const String musicPlayer  = '/musicPlayer';
-  static const String musicPlayerHome  = '/musicPlayer/home';
-  static const String musicPlayerMedia  = '/musicPlayer/media';
-  static const String musicPlayerMini  = '/musicPlayer/mini';
-  static const String musicPlayerRecent  = '/musicPlayer/recent';
-  static const String musicPlayerPref = '/musicPlayer//pref';
-  static const String musicPlayerSetting = '/musicPlayer//setting';
-  static const String musicPlayerPlaylists = '/musicPlayer//playlists';
-  static const String musicPlayerNowPlaying = '/musicPlayer//nowPlaying';
-  static const String musicPlayerDownloads = '/musicPlayer//downloads';
-  static const String musicPlayerStats  = '/musicPlayer/stats';
+  static const String audioPlayer  = '/audioPlayer';
+  static const String audioPlayerHome  = '/audioPlayer/home';
+  static const String audioPlayerMedia  = '/audioPlayer/media';
+  static const String audioPlayerMini  = '/audioPlayer/mini';
+  static const String audioPlayerRecent  = '/audioPlayer/recent';
+  static const String audioPlayerPref = '/audioPlayer/pref';
+  static const String audioPlayerSetting = '/audioPlayer/setting';
+  static const String audioPlayerPlaylists = '/audioPlayer/playlists';
+  static const String audioPlayerNowPlaying = '/audioPlayer/nowPlaying';
+  static const String audioPlayerDownloads = '/audioPlayer/downloads';
+  static const String audioPlayerStats  = '/audioPlayer/stats';
 
   static const String wooWebView  = '/woo/webView';
   static const String stripeWebView  = '/stripe/webview';

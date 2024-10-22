@@ -10,6 +10,7 @@ import '../../domain/model/app_coupon.dart';
 import '../../domain/model/app_profile.dart';
 import '../../domain/model/app_user.dart';
 import '../../domain/model/band.dart';
+import '../../domain/model/user_subscription.dart';
 import '../../domain/use_cases/user_service.dart';
 import '../../utils/app_utilities.dart';
 import '../../utils/constants/app_facebook_constants.dart';
@@ -27,6 +28,7 @@ import '../firestore/coupon_firestore.dart';
 import '../firestore/itemlist_firestore.dart';
 import '../firestore/profile_firestore.dart';
 import '../firestore/user_firestore.dart';
+import '../firestore/user_subscription_firestore.dart';
 import 'shared_preference_controller.dart';
 
 class UserController extends GetxController implements UserService {
@@ -40,16 +42,16 @@ class UserController extends GetxController implements UserService {
 
   OwnerType itemlistOwner  = OwnerType.profile;
   ItemlistType defaultItemlistType  = ItemlistType.playlist;
-  bool appliedCoupon= false;
-  AppCoupon coupon = AppCoupon();
 
   String fcmToken = "";
 
+  UserSubscription? userSubscription;
+  AppCoupon? coupon;
+  bool appliedCoupon = false;
+
   @override
   void onInit() async {
-
     super.onInit();
-
   }
 
   @override
@@ -224,7 +226,7 @@ class UserController extends GetxController implements UserService {
           UserFirestore().updateCurrentProfile(user.id, profileId);
           profile = user.profiles.first;
           profile.itemlists = await ItemlistFirestore().getByOwnerId(profile.id);
-          if(appliedCoupon) await CouponFirestore().addUsedBy(coupon.id, user.email);
+          if(appliedCoupon) await CouponFirestore().addUsedBy(coupon?.id ?? '', user.email);
           Get.offAllNamed(AppRouteConstants.home);
         } else {
           await UserFirestore().remove(newUser.id);
@@ -352,7 +354,7 @@ class UserController extends GetxController implements UserService {
   Future<void> getUserById(String userId) async {
 
     try {
-      AppUser userFromFirestore = await UserFirestore().getById(userId, getProfileFeatures: false);
+      AppUser userFromFirestore = await UserFirestore().getById(userId);
       if(userFromFirestore.id.isNotEmpty){
         AppUtilities.logger.i("User $userId exists!!");
         user = userFromFirestore;
@@ -371,10 +373,10 @@ class UserController extends GetxController implements UserService {
   Future<void> getUserByEmail(String userEmail) async {
 
     try {
-      AppUser userFromFirestore = await UserFirestore().getByEmail(userEmail) ?? AppUser();
-      if(userFromFirestore.id.isNotEmpty){
+      AppUser userFromEmail = await UserFirestore().getByEmail(userEmail) ?? AppUser();
+      if(userFromEmail.id.isNotEmpty){
         AppUtilities.logger.i("User $userEmail exists!!");
-        user = userFromFirestore;
+        user = userFromEmail;
         profile = user.profiles.first;
         isNewUser = false;
       } else {
@@ -558,6 +560,20 @@ class UserController extends GetxController implements UserService {
     try {
       user.subscriptionId = subscriptionId;
       UserFirestore().updateSubscriptionId(user.id, subscriptionId);
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+
+    update();
+  }
+
+  @override
+  Future<void> getUserSubscription(String subscriptionId) async {
+    AppUtilities.logger.d("updateSubscriptionId $subscriptionId");
+
+    try {
+      user.subscriptionId = subscriptionId;
+      userSubscription = await UserSubscriptionFirestore().getById(subscriptionId);
     } catch (e) {
       AppUtilities.logger.e(e.toString());
     }
