@@ -5,15 +5,28 @@ import 'price.dart';
 
 class SubscriptionPlan {
 
+  String id;
+  String name;
+  String imgUrl;
+  String href;
+
   String productId; ///Stripe Product Id
+  String priceId; ///Stripe Price Id
+
   SubscriptionLevel? level;
-  Price? price;
   bool isActive;
+
+  Price? price;
   double? discount;
   DateTime? lastUpdated;  // Tracks when the plan was last updated
 
   SubscriptionPlan({
+    this.id = '',
+    this.name = '',
+    this.imgUrl = '',
+    this.href = '',
     this.productId = '',
+    this.priceId = '',
     this.level,
     this.price,
     this.isActive = true,
@@ -22,8 +35,13 @@ class SubscriptionPlan {
   });
 
   Map<String, dynamic> toJSON() {
-    return <String, dynamic>{
+    return <String, dynamic> {
+      'id': id,
+      'name': name,
+      'imgUrl': imgUrl,
+      'href': href,
       'productId': productId,
+      'priceId': priceId,
       'level': level?.name,
       'price': price?.toJSON(),
       'isActive': isActive,
@@ -32,10 +50,15 @@ class SubscriptionPlan {
     };
   }
 
-  SubscriptionPlan.fromJSON(Map<String, dynamic> data)
-      : productId = data['productId'] ?? '',
+  SubscriptionPlan.fromJSON(data)
+      : id = data['id'] ?? '',
+        name = data['name'] ?? '',
+        imgUrl = data['imgUrl'] ?? '',
+        href = data['href'] ?? '',
+        productId = data['productId'] ?? '',
+        priceId = data['priceId'] ?? '',
         level = EnumToString.fromString(SubscriptionLevel.values, data['level'])!,
-        price = Price.fromJSON(data['price']),
+        price = data['price'] != null ? Price.fromJSON(data['price']) : null,
         isActive = data['isActive'] ?? true,
         discount = data['discount'] ?? 0.0,
         lastUpdated = data['lastUpdated'] != null ? DateTime.parse(data['lastUpdated']) : null;

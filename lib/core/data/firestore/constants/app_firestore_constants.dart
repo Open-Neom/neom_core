@@ -75,6 +75,7 @@ class AppFirestoreConstants {
 
   static const String coverImgUrl = 'coverImgUrl';
   static const String photoUrl = 'photoUrl';
+  static const String countryCode = 'countryCode';
   static const String phoneNumber = 'phoneNumber';
   static const String email = 'email';
   static const String lastMessage = 'lastMessage';
@@ -128,8 +129,12 @@ class AppFirestoreConstants {
   static const String transactions = "transactions";
 
   static const String isPremium = "isPremium";
+  static const String isVerified = "isVerified";
   static const String customerId = "customerId";
   static const String subscriptionId = "subscriptionId";
   static const String subscriptionExpiration = "subscriptionExpiration";
-
+  static const String level = "level";
+  static const String endReason = "endReason";
+  static const String userId = "userId";
+  
 }

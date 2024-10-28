@@ -8,54 +8,61 @@ import 'price.dart';
 class UserSubscription {
 
   String subscriptionId;
+  String userId;
   SubscriptionLevel? level;
+
   Price? price;
   SubscriptionStatus? status;
-  DateTime? startDate;
-  DateTime? renewalDate;   // Optional renewal date
-  bool autoRenew;          // Indicates if the subscription auto-renews
-  String? userId;          // Optional user identifier
-  String? paymentMethodId; // Optional payment method identifier
-  DateTime? endDate;       //End date or CancellationDate
+  int startDate;
+  int endDate;
   CancellationReason? endReason; // Reason for cancellation, if applicable
+  // bool autoRenew;          // Indicates if the subscription auto-renews
+  // DateTime? renewalDate;   // Optional renewal date
+  // String? paymentMethodId; // Optional payment method identifier
+
+
 
   UserSubscription({
     this.subscriptionId = '',
+    this.userId = '',
     this.level,
     this.price,
     this.status,
-    this.startDate,
-    this.endDate,
-    this.renewalDate,
-    this.autoRenew = true,
-    this.userId,
-    this.paymentMethodId,
+    this.startDate = 0,
+    this.endDate = 0,
+    this.endReason
+    // this.renewalDate,
+    // this.autoRenew = true,
+    // this.paymentMethodId,
+
   });
 
   Map<String, dynamic> toJSON() {
     return <String, dynamic>{
       'subscriptionId': subscriptionId,
+      'userId': userId,
       'level': level?.name,
       'price': price?.toJSON(),
       'status': status?.name,
-      'startDate': startDate?.toIso8601String(),
-      'endDate': endDate?.toIso8601String(),
-      'renewalDate': renewalDate?.toIso8601String(),
-      'autoRenew': autoRenew,
-      'userId': userId,
-      'paymentMethodId': paymentMethodId,
+      'startDate': startDate,
+      'endDate': endDate,
+      'endReason': endReason,
+      // 'renewalDate': renewalDate?.toIso8601String(),
+      // 'autoRenew': autoRenew,
+      // 'paymentMethodId': paymentMethodId,
     };
   }
 
   UserSubscription.fromJSON(Map<String, dynamic> data)
-      : subscriptionId = data['subscriptionId'],
-        level = EnumToString.fromString(SubscriptionLevel.values, data['level'])!,
-        price = Price.fromJSON(data['price']),
-        status = EnumToString.fromString(SubscriptionStatus.values, data['status'])!,
-        startDate = DateTime.parse(data['startDate']),
-        endDate = data['endDate'] != null ? DateTime.parse(data['endDate']) : null,
-        renewalDate = data['renewalDate'] != null ? DateTime.parse(data['renewalDate']) : null,
-        autoRenew = data['autoRenew'] ?? true,
-        userId = data['userId'],
-        paymentMethodId = data['paymentMethodId'];
+      : subscriptionId = data['subscriptionId'] ?? '',
+        userId = data['userId'] ?? '',
+        level = data['level'] != null ? EnumToString.fromString(SubscriptionLevel.values, data['level']) : null,
+        price = data['price'] != null ? Price.fromJSON(data['price']) : null,
+        status = data['status'] != null ? EnumToString.fromString(SubscriptionStatus.values, data['status']) : null,
+        startDate = data['startDate'] ?? 0,
+        endDate = data['endDate'] ?? 0,
+        endReason = data['endReason'] != null ? EnumToString.fromString(CancellationReason.values, data['endReason']) : null;
+        // renewalDate = data['renewalDate'] != null ? DateTime.parse(data['renewalDate']) : null,
+        // autoRenew = data['autoRenew'] ?? true,
+        // paymentMethodId = data['paymentMethodId'];
 }

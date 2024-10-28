@@ -41,6 +41,42 @@ class InstrumentFirestore implements InstrumentRepository {
     return instruments;
   }
 
+  Future<Map<String, List<Instrument>>> retrieveAllInstruments() async {
+    logger.t("Retrieving all Instruments for all Profiles");
+
+    Map<String, List<Instrument>> profileInstruments = {};
+
+    try {
+      // Obtener todos los documentos de perfiles
+      QuerySnapshot profileSnapshot = await profileReference.get();
+
+      // Para cada perfil, obtener su colección de instrumentos
+      for (var profileDoc in profileSnapshot.docs) {
+        String profileId = profileDoc.id;
+        List<Instrument> instruments = [];
+
+        QuerySnapshot instrumentSnapshot = await profileDoc.reference
+            .collection(AppFirestoreCollectionConstants.instruments)
+            .get();
+
+        for (var instrumentDoc in instrumentSnapshot.docs) {
+          Instrument instr = Instrument.fromJSON(instrumentDoc.data());
+          instruments.add(instr);
+        }
+
+        // Asociar los instrumentos con el ID del perfil
+        if (instruments.isNotEmpty) {
+          profileInstruments[profileId] = instruments;
+        }
+      }
+    } catch (e) {
+      logger.e("Error retrieving instruments: $e");
+    }
+
+    logger.d("${profileInstruments.length} profiles with instruments found");
+    return profileInstruments;
+  }
+
   @override
   Future<bool> removeInstrument({required String profileId, required String instrumentId}) async {
     logger.d("Removing $instrumentId for by $profileId");

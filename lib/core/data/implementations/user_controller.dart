@@ -21,6 +21,7 @@ import '../../utils/constants/message_translation_constants.dart';
 import '../../utils/core_utilities.dart';
 import '../../utils/enums/itemlist_type.dart';
 import '../../utils/enums/owner_type.dart';
+import '../../utils/enums/subscription_status.dart';
 import '../../utils/enums/user_role.dart';
 import '../firestore/app_release_item_firestore.dart';
 import '../firestore/chamber_firestore.dart';
@@ -360,6 +361,7 @@ class UserController extends GetxController implements UserService {
         user = userFromFirestore;
         profile = user.profiles.first;
         isNewUser = false;
+        await getUserSubscription();
       } else {
         AppUtilities.logger.w("User $userId not exists!!");
         isNewUser = true;
@@ -374,11 +376,12 @@ class UserController extends GetxController implements UserService {
 
     try {
       AppUser userFromEmail = await UserFirestore().getByEmail(userEmail) ?? AppUser();
-      if(userFromEmail.id.isNotEmpty){
+      if(userFromEmail.id.isNotEmpty) {
         AppUtilities.logger.i("User $userEmail exists!!");
         user = userFromEmail;
         profile = user.profiles.first;
         isNewUser = false;
+        await getUserSubscription();
       } else {
         AppUtilities.logger.w("User $userEmail not exists!!");
         isNewUser = true;
@@ -568,12 +571,78 @@ class UserController extends GetxController implements UserService {
   }
 
   @override
-  Future<void> getUserSubscription(String subscriptionId) async {
-    AppUtilities.logger.d("updateSubscriptionId $subscriptionId");
+  Future<bool> updatePhoneNumber(String phone, String countryCode) async {
+    AppUtilities.logger.d("updatePhoneNumber Phone: $phone & countryCode $countryCode");
+    bool wasUpdated = false;
+    try {
+      if(user.phoneNumber != phone) {
+        if(await UserFirestore().isAvailablePhone(phone)) {
+          user.phoneNumber = phone;
+          UserFirestore().updatePhoneNumber(user.id, phone);
+          wasUpdated = true;
+        } else {
+          AppUtilities.logger.e("Phone number is not available");
+          Get.snackbar(AppTranslationConstants.updatePhone.tr,
+            MessageTranslationConstants.phoneNotAvailable.tr,
+            snackPosition: SnackPosition.bottom,
+          );
+        }
+      } else {
+        AppUtilities.logger.d("Same Phone number");
+      }
+
+      if(user.countryCode != countryCode) {
+        user.countryCode = countryCode;
+        UserFirestore().updateCountryCode(user.id, countryCode);
+        wasUpdated = true;
+      } else {
+        AppUtilities.logger.d("Same Country Code");
+      }
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+
+    update();
+
+    return wasUpdated;
+  }
+
+  @override
+  Future<void> getUserSubscription() async {
+    AppUtilities.logger.d('getUserSubscription');
 
     try {
-      user.subscriptionId = subscriptionId;
-      userSubscription = await UserSubscriptionFirestore().getById(subscriptionId);
+      List<UserSubscription> subscriptions = await UserSubscriptionFirestore().getByUserId(user.id);
+      if(subscriptions.isNotEmpty) {
+        userSubscription = subscriptions.firstWhere((subscription) => subscription.status == SubscriptionStatus.active);
+      }
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+
+    update();
+  }
+
+  @override
+  Future<void> setUserSubscription(UserSubscription subscription) async {
+    AppUtilities.logger.d('Setting userSubscription with subscriptionId: ${subscription.subscriptionId}');
+
+    try {
+      userSubscription = subscription;
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+
+    update();
+  }
+
+  @override
+  Future<void> setIsVerified(bool isVerified) async {
+    AppUtilities.logger.d('Setting isVerified value $isVerified for: ${user.id}');
+
+    try {
+      await UserFirestore().setIsVerified(user.id, isVerified);
+      user.isVerified = isVerified;
     } catch (e) {
       AppUtilities.logger.e(e.toString());
     }

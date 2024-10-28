@@ -9,6 +9,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../neom_commons.dart';
 import 'domain/model/app_media_item.dart';
+import 'utils/enums/verification_level.dart';
 
 class AppFlavour {
 
@@ -319,27 +320,28 @@ class AppFlavour {
     }
   }
 
-  static String getStripeSuscriptionPriceId() {
-    switch (appInUse) {
-      case AppInUse.g:
-        return '';
-      case AppInUse.e:
-        return appProperties['stripePriceId'];
-      case AppInUse.c:
-        return "";
-    }
-  }
-
-  static String getStripeTestSuscriptionPriceId() {
-    switch (appInUse) {
-      case AppInUse.g:
-        return '';
-      case AppInUse.e:
-        return 'price_1Pzs2PHpVUHkmiYFt4zchILB';
-      case AppInUse.c:
-        return "";
-    }
-  }
+  ///NOT NEEDED ANYMORE
+  // static String getStripeSuscriptionPriceId() {
+  //   switch (appInUse) {
+  //     case AppInUse.g:
+  //       return '';
+  //     case AppInUse.e:
+  //       return appProperties['stripePriceId'];
+  //     case AppInUse.c:
+  //       return "";
+  //   }
+  // }
+  //
+  // static String getStripeTestSuscriptionPriceId() {
+  //   switch (appInUse) {
+  //     case AppInUse.g:
+  //       return '';
+  //     case AppInUse.e:
+  //       return 'price_1Pzs2PHpVUHkmiYFt4zchILB';
+  //     case AppInUse.c:
+  //       return "";
+  //   }
+  // }
 
 
   static String getECommerceUrl() {
@@ -416,6 +418,17 @@ class AppFlavour {
         return "";
       case AppInUse.e:
         return appProperties['copyrightUrl'];
+    }
+  }
+
+  static String getIsbnProcedureUrl() {
+    switch (appInUse) {
+      case AppInUse.c:
+        return "";
+      case AppInUse.g:
+        return "";
+      case AppInUse.e:
+        return appProperties['isbnProcedureUrl'];
     }
   }
 
@@ -761,5 +774,27 @@ class AppFlavour {
         return Price(amount: 29, currency: AppCurrency.mxn);
     }
   }
+
+  static Widget getVerificationIcon(VerificationLevel level, {double? size}) {
+    switch (appInUse) {
+      case AppInUse.e:
+        switch(level) {
+          case VerificationLevel.artist:
+            return Icon(Icons.verified, size: size); // Publicado o verificado completo
+          case VerificationLevel.professional:
+            return Icon(Icons.handshake, size: size); // Verificado como Profesional
+          case VerificationLevel.premium:
+            return Icon(Icons.auto_awesome, size: size); // Verificación Premium
+          case VerificationLevel.published:
+            return Icon(Icons.workspace_premium, size: size); // Publicado o verificado completo
+          default:
+            return Icon(Icons.verified, size: size); // Icono predeterminado
+        }
+      case AppInUse.g:
+      case AppInUse.c:
+        return Icon(Icons.verified, size: size); // Publicado o verificado completo
+    }
+  }
+
 
 }

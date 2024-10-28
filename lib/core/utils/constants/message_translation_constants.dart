@@ -222,4 +222,7 @@ class MessageTranslationConstants {
   static const String profileNameUpdated = 'profileNameUpdated';
   static const String profileAboutMeUpdated = 'profileAboutMeUpdated';
 
+  static const String sameNumber = "sameNumber";
+  static const String phoneNotAvailable = "phoneNotAvailable";
+  static const String updatedPhoneMsg = "updatedPhoneMsg";
 }

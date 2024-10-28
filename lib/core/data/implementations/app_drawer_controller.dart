@@ -2,13 +2,14 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
-
 import '../../../neom_commons.dart';
+import 'subscription_controller.dart';
 
 //TODO IS MISSING INTERFACE AS SERVICE
 class AppDrawerController extends GetxController {
 
   final userController = Get.find<UserController>();
+  late SubscriptionController subscriptionController;
 
   AppUser user = AppUser();
 
@@ -21,6 +22,7 @@ class AppDrawerController extends GetxController {
     AppUtilities.logger.t("SideBar Controller Init");
     user = userController.user;
     appProfile = userController.profile;
+    subscriptionController = Get.put(SubscriptionController());
   }
 
   void updateProfile(AppProfile profile) {

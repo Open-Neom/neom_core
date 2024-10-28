@@ -167,7 +167,7 @@ class AppProfile {
         reason = EnumToString.fromString(UsageReason.values, data["reason"] ?? UsageReason.casual.name) ?? UsageReason.casual,
         aboutMe = data["aboutMe"] ?? "",
         lastSpotifySync = data["lastSpotifySync"] ?? 0,
-        reviewStars = data["reviewStars"] ?? 10,
+        reviewStars = double.tryParse(data["reviewStars"].toString()) ?? 10,
         mainFeature = data["mainFeature"] ?? "",
         isActive = data["isActive"] ?? true,
         position = CoreUtilities.JSONtoPosition(data["position"]),

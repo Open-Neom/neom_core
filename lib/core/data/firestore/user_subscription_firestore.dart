@@ -1,7 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/model/user_subscription.dart';
 import '../../utils/app_utilities.dart';
+import '../../utils/enums/cancellation_reason.dart';
+import '../../utils/enums/subscription_status.dart';
 import 'constants/app_firestore_collection_constants.dart';
+import 'constants/app_firestore_constants.dart';
 
 class UserSubscriptionFirestore {
   
@@ -33,6 +36,27 @@ class UserSubscriptionFirestore {
     }
     return null;
   }
+
+  // Get all subscriptions by User ID
+  Future<List<UserSubscription>> getByUserId(String userId) async {
+    try {
+      QuerySnapshot querySnapshot = await _firestore
+          .collection(AppFirestoreCollectionConstants.userSubscriptions)
+          .where(AppFirestoreConstants.userId, isEqualTo: userId)
+          .get();
+
+      List<UserSubscription> subscriptions = querySnapshot.docs.map((doc) {
+        return UserSubscription.fromJSON(doc.data() as Map<String, dynamic>);
+      }).toList();
+
+      AppUtilities.logger.d("Subscriptions retrieved for user: $userId");
+      return subscriptions;
+    } catch (e) {
+      AppUtilities.logger.d("Error getting subscriptions for user: $e");
+      return [];
+    }
+  }
+
 
   // Get all subscriptions
   Future<List<UserSubscription>> getAll() async {
@@ -66,6 +90,20 @@ class UserSubscriptionFirestore {
       AppUtilities.logger.d("Subscription removed successfully: $subscriptionId");
     } catch (e) {
       AppUtilities.logger.d("Error removing subscription: $e");
+    }
+  }
+
+  // Update a subscription by its ID
+  Future<void> cancel(String subscriptionId) async {
+    try {
+      await _firestore.collection(AppFirestoreCollectionConstants.userSubscriptions).doc(subscriptionId).update({
+        AppFirestoreConstants.status: SubscriptionStatus.cancelled.name,
+        AppFirestoreConstants.endReason: CancellationReason.userCancelled.name,
+
+      });
+      AppUtilities.logger.d("Subscription cancelled successfully: $subscriptionId");
+    } catch (e) {
+      AppUtilities.logger.d("Error cancelling subscription: $e");
     }
   }
 }

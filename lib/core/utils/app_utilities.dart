@@ -105,6 +105,30 @@ class AppUtilities {
     return address;
   }
 
+  static Future<List<String>> getAddressesFromPositions(List<Position> positions) async {
+    logger.d("Getting Addresses from ${positions.length} positions");
+
+    List<String> addresses = [];
+    List<Placemark> placemarks = await GeoLocatorController().getMultiplePlacemarks(positions);
+
+    for(Placemark placemark in placemarks) {
+      String country = placemark.country ?? "";
+      String locality = placemark.locality ?? "";
+      String address = "";
+
+      if(locality.isNotEmpty && country.isNotEmpty) {
+        address = "$locality, $country";
+      } else if(locality.isNotEmpty) {
+        address = locality;
+      } else if (country.isNotEmpty) {
+        address = country;
+      }
+      if(address.isNotEmpty) addresses.add(address);
+    }
+
+    return addresses;
+  }
+
   static List<DateTime> getDaysFromNow({days = 28}){
 
     List<DateTime> dates = [];
@@ -197,7 +221,7 @@ class AppUtilities {
   }
 
   static Future<File> getFileFromPath(String filePath) async {
-    logger.d("Getting File From Path");
+    logger.d("Getting File From Path: $filePath");
     File file = File("");
 
     try {

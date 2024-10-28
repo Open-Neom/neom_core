@@ -1,11 +1,9 @@
 enum VerificationLevel {
   none(0),
-  initial(1),
-  artist(2),
-  professional(3),
+  artist(1),
+  professional(2),
   premium(3),
-  published(4),
-  platinum(5);
+  published(4);
 
   final int value;
   const VerificationLevel(this.value);

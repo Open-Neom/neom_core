@@ -31,6 +31,13 @@ class GeoLocatorController implements GeoLocatorService {
     return placeMark;
   }
 
+  Future<List<Placemark>> getMultiplePlacemarks(List<Position> positions) async {
+    List<Future<Placemark>> placemarkFutures = positions.map((pos) {
+      return getPlaceMark(pos);
+    }).toList();
+    return await Future.wait(placemarkFutures);
+  }
+
   @override
   Future<String> getAddressSimple(Position currentPos) async {
     AppUtilities.logger.t(currentPos.toString());

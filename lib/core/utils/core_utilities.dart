@@ -1,9 +1,11 @@
 import 'dart:collection';
 import 'dart:convert';
+// import 'dart:html' as html;
 import 'dart:io';
 import 'dart:math';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
@@ -21,6 +23,7 @@ import '../domain/model/chamber.dart';
 import '../domain/model/neom/chamber_preset.dart';
 import 'enums/media_item_type.dart';
 
+
 class CoreUtilities {
 
   // ignore: non_constant_identifier_names
@@ -35,14 +38,14 @@ class CoreUtilities {
     try {
       if(positionSnapshot != null && positionSnapshot != "null") {
         dynamic positionJSON = jsonDecode(positionSnapshot);
-        double longitude = positionJSON['longitude'];
-        double latitude = positionJSON['latitude'];
+        double longitude = double.tryParse(positionJSON['longitude'].toString()) ?? 0;
+        double latitude = double.tryParse(positionJSON['latitude'].toString()) ?? 0;
         DateTime timestamp = DateTime.now();
-        double accuracy = positionJSON['accuracy'];
-        double altitude = positionJSON['altitude'];
-        double heading = positionJSON['heading'];
-        double speed = positionJSON['speed'];
-        double speedAccuracy = positionJSON['speed_accuracy'];
+        double accuracy = double.tryParse(positionJSON['accuracy'].toString()) ?? 0;
+        double altitude = double.tryParse(positionJSON['altitude'].toString()) ?? 0;
+        double heading = double.tryParse(positionJSON['heading'].toString()) ?? 0;
+        double speed = double.tryParse(positionJSON['speed'].toString()) ?? 0;
+        double speedAccuracy = double.tryParse(positionJSON['speed_accuracy'].toString()) ?? 0;
         bool isMocked = positionJSON['is_mocked'];
 
         position = Position(longitude: longitude,
@@ -337,7 +340,7 @@ class CoreUtilities {
   // }
 
 
-  static void launchURL(String url, {bool openInApp = true, bool clearCache = false, bool clearCookies = false}) async {
+  static void launchURL(String url, {bool openInApp = true, bool clearCache = false, bool clearCookies = false, bool sameTab = false}) async {
     AppUtilities.logger.d('Launching: $url - openInApp: $openInApp');
 
     try {
@@ -347,12 +350,18 @@ class CoreUtilities {
           openInApp = false;
         }
 
-        if(clearCache) await clearWebViewCache();
-        if(clearCookies) await clearWebViewCookies();
+        if (kIsWeb && sameTab) {
+          // Si estás en la web, abre en la misma pestaña o en una nueva
+          // html.window.location.href = url; // Esto abrirá en la misma pestaña
+        } else {
+          if(clearCache) await clearWebViewCache();
+          if(clearCookies) await clearWebViewCookies();
 
-        await launchUrl(Uri.parse(url),
-          mode: openInApp ? LaunchMode.inAppWebView : LaunchMode.externalApplication,
-        );
+          await launchUrl(Uri.parse(url),
+            mode: openInApp ? LaunchMode.inAppWebView : LaunchMode.externalApplication,
+          );
+        }
+
       } else {
         AppUtilities.logger.i('Could not launch $url');
       }

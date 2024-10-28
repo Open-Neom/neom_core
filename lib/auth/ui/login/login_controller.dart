@@ -5,6 +5,7 @@ import 'dart:math';
 
 import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fba;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -40,7 +41,7 @@ class LoginController extends GetxController implements LoginService {
   final TextEditingController passwordController = TextEditingController();
 
   final Rx<AuthStatus> authStatus = AuthStatus.notDetermined.obs;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final GoogleSignIn _googleSignIn = GoogleSignIn(clientId: kIsWeb ? '444807211272-qlk8fl7dp6lg5d5o7hq6dkv2rj80m8kt.apps.googleusercontent.com' : null);
 
   //TODO Verify if its not needed
   //final SignInWithApple _appleSignIn = SignInWithApple();
@@ -73,7 +74,7 @@ class LoginController extends GetxController implements LoginService {
     ever<fba.User?>(fbaUser, handleAuthChanged);
     fbaUser.bindStream(auth.authStateChanges());
 
-    if(Platform.isIOS) {
+    if(!kIsWeb && Platform.isIOS) {
       isIOS13OrHigher = AppUtilities.isDeviceSupportedVersion(isIOS: Platform.isIOS);
     } else if (Platform.isAndroid) {
       AppUtilities.logger.t(Platform.version);

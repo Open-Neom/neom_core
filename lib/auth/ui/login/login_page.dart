@@ -37,7 +37,7 @@ class LoginPage extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   AppTheme.heightSpace20,
-                  HeaderIntro(title: kDebugMode && Platform.isAndroid ? AppConstants.dev : "",),
+                  HeaderIntro(title: kDebugMode && !kIsWeb && Platform.isAndroid ? AppConstants.dev : "",),
                   AppTheme.heightSpace20,
                   Text(AppTranslationConstants.signIn.tr,
                     style: const TextStyle(
@@ -53,7 +53,7 @@ class LoginPage extends StatelessWidget {
                   buildPasswordTF(_),
                   buildForgotPasswordBtn(_),
                   buildLoginBtn(_),
-                  ((Platform.isIOS && !_.isIOS13OrHigher) || (!_.appInfo.value.googleLoginEnabled && !kDebugMode))
+                  (!kIsWeb && ((Platform.isIOS && !_.isIOS13OrHigher) || (!_.appInfo.value.googleLoginEnabled && !kDebugMode)))
                       ? const SizedBox.shrink() :
                   Column(
                     children: [

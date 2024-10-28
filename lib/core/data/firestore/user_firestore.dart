@@ -713,4 +713,46 @@ class UserFirestore implements UserRepository {
     }
   }
 
+  @override
+  Future<void> updatePhoneNumber(String userId, String phoneNumber) async {
+    AppUtilities.logger.d("Updating phoneNumber for User $phoneNumber");
+
+    try {
+      await userReference.doc(userId).update({
+        AppFirestoreConstants.phoneNumber: phoneNumber,
+      });
+      AppUtilities.logger.d("User $userId phoneNumber value successfully updated to: $phoneNumber");
+    } catch (e) {
+      AppUtilities.logger.e(e);
+    }
+  }
+
+  @override
+  Future<void> updateCountryCode(String userId, String countryCode) async {
+    AppUtilities.logger.d("Updating countryCode for User $countryCode");
+
+    try {
+      await userReference.doc(userId).update({
+        AppFirestoreConstants.countryCode: countryCode,
+      });
+      AppUtilities.logger.d("User $userId countryCode value successfully updated to: $countryCode");
+    } catch (e) {
+      AppUtilities.logger.e(e);
+    }
+  }
+
+  @override
+  Future<void> setIsVerified(String userId, bool isVerified) async {
+    AppUtilities.logger.d("Updating isVerified as $isVerified for User $userId");
+
+    try {
+      await userReference.doc(userId).update({
+        AppFirestoreConstants.isVerified: isVerified,
+      });
+      AppUtilities.logger.d("User $userId isVerified value successfully updated to: $isVerified");
+    } catch (e) {
+      AppUtilities.logger.e(e);
+    }
+  }
+
 }

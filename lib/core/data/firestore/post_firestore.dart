@@ -169,7 +169,7 @@ class PostFirestore implements PostRepository {
 
     try {
       Query query = postsReference
-
+          .orderBy(AppFirestoreConstants.lastInteraction, descending: true)
           .limit(AppConstants.timelineLimit);
       if (_recentDocTimeline.isNotEmpty) {
         query = query.startAfterDocument(_recentDocTimeline.last);

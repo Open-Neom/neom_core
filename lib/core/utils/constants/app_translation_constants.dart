@@ -501,6 +501,7 @@ class AppTranslationConstants {
   static const String bookNow = "bookNow";
   static const String confirmAndPay = "confirmAndPay";
   static const String confirmAndProceed = "confirmAndProceed";
+  static const String confirmAndUpdate = "confirmAndUpdate";
   static const String proceedToOrder = "proceedToOrder";
   static const String confirmOrder = "confirmOrder";
   static const String orderDate = "orderDate";
@@ -750,6 +751,8 @@ class AppTranslationConstants {
   static const String offeredServices = 'offeredServices';
   static const String offeredServicesMsg = 'offeredServicesMsg';
 
+  static const String memberships = 'memberships';
+  static const String subscriptionPlans = 'subscriptionPlans';
   static const String promotion = 'promotion';
   static const String presskit = 'presskit';
   static const String mediatour = 'mediatour';
@@ -757,6 +760,7 @@ class AppTranslationConstants {
   static const String publishingHouse = 'publishingHouse';
   static const String digitalPositioning = 'digitalPositioning';
   static const String copyright = 'copyright';
+  static const String isbnProcedure = 'isbnProcedure';
   static const String onlineClinics = 'onlineClinics';
   static const String onlineInterview = 'onlineInterview';
   static const String education = 'education';
@@ -1016,6 +1020,6 @@ class AppTranslationConstants {
   static const String onlyDigital = 'onlyDigital';
   static const String subtotal = "subtotal";
   static const String and = "and";
-
+  static const String updatePhone = "updatePhone";  
 
 }

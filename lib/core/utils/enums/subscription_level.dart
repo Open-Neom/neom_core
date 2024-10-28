@@ -1,10 +1,10 @@
 enum SubscriptionLevel {
-  basicPlan(1),
-  creatorPlan(2),
-  artistPlan(3),
-  professionalPlan(4),
-  premiumPlan(5),
-  publishPlan(6);
+  basic(1),
+  creator(2),
+  artist(3),
+  professional(4),
+  premium(5),
+  publish(6);
 
   final int value;
   const SubscriptionLevel(this.value);

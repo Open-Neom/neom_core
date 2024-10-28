@@ -63,6 +63,7 @@ class AppReleaseItem {
   List<String>? likedProfiles; ///LIST OF PROFILEIDS IN CASE OF MORE DETAILS. ALSO TO KNOW NUMBER OF LIKES WITH LIST.LENGHT
 
   String? externalUrl; ///URL FOR ITEM IN WEB
+  String? webPreviewUrl; ///URL FOR Preview IN WEB
 
   AppReleaseItem({
     this.id = '',
@@ -101,6 +102,7 @@ class AppReleaseItem {
     this.featInternalArtists,
     this.likedProfiles,
     this.externalUrl,
+    this.webPreviewUrl
   });
 
   @override
@@ -143,7 +145,8 @@ class AppReleaseItem {
         externalArtists = List.from(data["externalArtists"]?.cast<String>() ?? []),
         featInternalArtists = data["featInternalArtists"] as Map<String,String>?,
         likedProfiles = List.from(data["likedProfiles"]?.cast<String>() ?? []),
-        externalUrl = data["externalUrl"].toString();
+        externalUrl = data["externalUrl"].toString(),
+        webPreviewUrl = data["webPreviewUrl"].toString();
   
   Map<String, dynamic>  toJSON() => {
     'id': id,
@@ -180,7 +183,8 @@ class AppReleaseItem {
     'externalArtists': externalArtists,
     'featInternalArtists': featInternalArtists,
     'likedProfiles': likedProfiles,
-    'externalUrl': externalUrl
+    'externalUrl': externalUrl,
+    'webPreviewUrl': webPreviewUrl,
   };
 
   AppReleaseItem.fromWooProduct(WooProduct product) :
@@ -219,6 +223,7 @@ class AppReleaseItem {
         // externalArtists = null,
         // featInternalArtists = null,
         // likedProfiles = null
-        externalUrl = product.permalink;
+        externalUrl = product.permalink,
+        webPreviewUrl = (product.attributes?.containsKey('webPreviewUrl') ?? false) ? product.attributes!['webPreviewUrl']!.options.first : null;
 
 }
