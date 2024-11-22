@@ -563,34 +563,34 @@ class PostFirestore implements PostRepository {
   }
 
   ///NOT NEEDED
-  // Future<void> updateAllPostsLastInteraction() async {
-  //   AppUtilities.logger.d("Updating lastInteraction for all posts");
-  //
-  //   try {
-  //     // Fetch all posts
-  //     QuerySnapshot querySnapshot = await postsReference.get();
-  //
-  //     // Create a batch
-  //     WriteBatch batch = FirebaseFirestore.instance.batch();
-  //
-  //     // Iterate through all documents and add them to the batch
-  //     for (QueryDocumentSnapshot doc in querySnapshot.docs) {
-  //       Post post = Post.fromJSON(doc.data());
-  //       post.id = doc.id;
-  //
-  //       batch.update(doc.reference, {
-  //         AppFirestoreConstants.lastInteraction: post.createdTime,
-  //       });
-  //     }
-  //
-  //     // Commit the batch
-  //     await batch.commit();
-  //
-  //     AppUtilities.logger.d("All ${querySnapshot.docs.length} posts updated successfully.");
-  //   } catch (e) {
-  //     AppUtilities.logger.e(e.toString());
-  //   }
-  // }
+  Future<void> updateAllPostsLastInteraction() async {
+    AppUtilities.logger.i("Updating lastInteraction for all posts");
+
+    try {
+      // Fetch all posts
+      QuerySnapshot querySnapshot = await postsReference.get();
+
+      // Create a batch
+      WriteBatch batch = FirebaseFirestore.instance.batch();
+
+      // Iterate through all documents and add them to the batch
+      for (QueryDocumentSnapshot doc in querySnapshot.docs) {
+        Post post = Post.fromJSON(doc.data());
+        post.id = doc.id;
+
+        batch.update(doc.reference, {
+          AppFirestoreConstants.lastInteraction: post.createdTime,
+        });
+      }
+
+      // Commit the batch
+      await batch.commit();
+
+      AppUtilities.logger.d("All ${querySnapshot.docs.length} posts updated successfully.");
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+  }
 
 
 }

@@ -115,7 +115,7 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
         if(appMediaItem.url.contains("spotify") || appMediaItem.url.contains("p.scdn.co")) {
           appMediaItem.mediaSource = AppMediaSource.spotify;
         } else if(appMediaItem.url.contains("youtube")) {
-          appMediaItem.mediaSource = AppMediaSource.spotify;
+          appMediaItem.mediaSource = AppMediaSource.youtube;
         } else {
           appMediaItem.mediaSource = AppMediaSource.other;
         }

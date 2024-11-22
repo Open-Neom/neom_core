@@ -1020,6 +1020,19 @@ class AppTranslationConstants {
   static const String onlyDigital = 'onlyDigital';
   static const String subtotal = "subtotal";
   static const String and = "and";
-  static const String updatePhone = "updatePhone";  
+  static const String updatePhone = "updatePhone";
+
+  static const String offline = "offline";
+  static const String download = "download";
+  static const String downloads = "downloads";
+  static const String toDownload = "toDownload";
+  static const String inDownloads = "inDownloads";
+  static const String noItemOwnerFound = "noItemOwnerFound";
+
+  static const String phoneVerified = "phoneVerified";
+  static const String phoneVerificationFailed = "phoneVerificationFailed";
+
+  static const String subscriptionConfirmed = "subscriptionConfirmed";
+  static const String subscriptionConfirmedMsg = "subscriptionConfirmedMsg";
 
 }

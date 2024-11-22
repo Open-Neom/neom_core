@@ -1,5 +1,4 @@
 import 'package:enum_to_string/enum_to_string.dart';
-import 'package:on_audio_query/on_audio_query.dart';
 import 'package:spotify/spotify.dart';
 
 import '../../utils/app_utilities.dart';
@@ -202,30 +201,31 @@ class AppMediaItem {
     return items;
   }
 
-  static List<AppMediaItem> listFromSongModel(List<SongModel>? list) {
-    List<AppMediaItem> items = [];
-    try {
-
-
-    } catch (e) {
-      throw Exception('Error parsing song item: $e');
-    }
-
-    return items;
-  }
-
-  static AppMediaItem fromSongModel(SongModel songModel) {
-    return AppMediaItem(
-      id: songModel.id.toString(),
-      album: songModel.album ?? '',
-      artist: songModel.artist ?? '',
-      duration: songModel.duration ?? 0,
-      name: songModel.title,
-      genre: songModel.genre ?? '',
-      description: songModel.composer,
-      url: songModel.uri ?? '',
-    );
-  }
+  ///ON_AUDIO_QUERY Library is obsolete
+  // static List<AppMediaItem> listFromSongModel(List<SongModel>? list) {
+  //   List<AppMediaItem> items = [];
+  //   try {
+  //
+  //
+  //   } catch (e) {
+  //     throw Exception('Error parsing song item: $e');
+  //   }
+  //
+  //   return items;
+  // }
+  //
+  // static AppMediaItem fromSongModel(SongModel songModel) {
+  //   return AppMediaItem(
+  //     id: songModel.id.toString(),
+  //     album: songModel.album ?? '',
+  //     artist: songModel.artist ?? '',
+  //     duration: songModel.duration ?? 0,
+  //     name: songModel.title,
+  //     genre: songModel.genre ?? '',
+  //     description: songModel.composer,
+  //     url: songModel.uri ?? '',
+  //   );
+  // }
 
   static AppMediaItem fromAppReleaseItem(AppReleaseItem releaseItem) {
     try {

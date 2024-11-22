@@ -24,49 +24,52 @@ class LoginPage extends StatelessWidget {
         init: LoginController(),
         builder: (_) => Scaffold(
           backgroundColor: AppColor.main50,
-          body: SafeArea(child: SingleChildScrollView(
+          body: SafeArea(
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 40.0),
+              padding: const EdgeInsets.symmetric(horizontal: 40,),
               width: AppTheme.fullWidth(context),
               height: AppTheme.fullHeight(context),
               decoration: AppTheme.appBoxDecoration,
               child: _.isLoading.value ? AppCircularProgressIndicator(
                 subtitle:AppTranslationConstants.loadingAccount.tr,
                 fontSize: 20,
-              ) : SingleChildScrollView(child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  AppTheme.heightSpace20,
-                  HeaderIntro(title: kDebugMode && !kIsWeb && Platform.isAndroid ? AppConstants.dev : "",),
-                  AppTheme.heightSpace20,
-                  Text(AppTranslationConstants.signIn.tr,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontFamily: AppTheme.fontFamily,
-                      fontSize: 25.0,
-                      fontWeight: FontWeight.bold,
+              ) : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    HeaderIntro(title: kDebugMode && !kIsWeb && Platform.isAndroid ? AppConstants.dev : "",),
+                    AppTheme.heightSpace20,
+                    Text(AppTranslationConstants.signIn.tr,
+                      style: const TextStyle(
+                        color: Colors.white, fontSize: 25.0,
+                        fontFamily: AppTheme.fontFamily,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  AppTheme.heightSpace10,
-                  buildEmailTF(_),
-                  AppTheme.heightSpace10,
-                  buildPasswordTF(_),
-                  buildForgotPasswordBtn(_),
-                  buildLoginBtn(_),
-                  (!kIsWeb && ((Platform.isIOS && !_.isIOS13OrHigher) || (!_.appInfo.value.googleLoginEnabled && !kDebugMode)))
-                      ? const SizedBox.shrink() :
-                  Column(
-                    children: [
-                      buildSignInWithText(),
-                      buildSocialBtnRow(_),
-                    ],
-                  ),
-                  buildSignupBtn(_),
-                  if(MediaQuery.of(context).orientation == Orientation.landscape) AppTheme.heightSpace50,
-                ],
-              ),),
+                    AppTheme.heightSpace10,
+                    buildEmailTF(_),
+                    AppTheme.heightSpace10,
+                    buildPasswordTF(_),
+                    buildForgotPasswordBtn(_),
+                    SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          buildLoginBtn(_),
+                          (!kIsWeb && ((Platform.isIOS && !_.isIOS13OrHigher) || (!_.appInfo.value.googleLoginEnabled && !kDebugMode)))
+                              ? const SizedBox.shrink() : Column(
+                            children: [
+                              buildSignInWithText(),
+                              buildSocialBtnRow(_),
+                            ],
+                          ),
+                          buildSignupBtn(_),
+                        ]
+                      )
+                    ),
+                    if(MediaQuery.of(context).orientation == Orientation.landscape) AppTheme.heightSpace50,
+                  ],
+              ),
             ),
-          ),),
+          ),
         ),
     );
   }

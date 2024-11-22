@@ -182,6 +182,7 @@ class BandFirestore implements BandRepository {
 
       logger.d("${bands.length} Bands Found");
     } catch (e) {
+      logger.d("${bands.length} Bands Found");
       logger.e(e.toString());
     }
 

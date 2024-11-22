@@ -1,5 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../model/user_subscription.dart';
+
 abstract class UserService {
 
   Future<void> createUser();
@@ -19,5 +21,9 @@ abstract class UserService {
   Future<void> addBoughtItem(String itemId);
   Future<void> updateCustomerId(String customerId);
   Future<void> updateSubscriptionId(String subscriptionId);
+  Future<bool> updatePhoneNumber(String phone, String countryCode);
+  Future<void> getUserSubscription();
+  Future<void> setUserSubscription(UserSubscription subscription);
+  Future<void> setIsVerified(bool isVerified);
 
 }

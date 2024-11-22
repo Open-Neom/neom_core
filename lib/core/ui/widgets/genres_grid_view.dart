@@ -41,6 +41,7 @@ class GenresGridView extends StatelessWidget {
       gridHeight = (AppTheme.fullHeight(context)/10) / (crossAxisCount/gridItems).ceil();
     } else if(gridItems>=15) {
       gridHeight = (AppTheme.fullHeight(context)/8) / (crossAxisCount/gridItems).ceil();
+      gridItems = 15;
     } else {
       gridHeight = (AppTheme.fullHeight(context)/8) / (crossAxisCount/gridItems).ceil();
     }

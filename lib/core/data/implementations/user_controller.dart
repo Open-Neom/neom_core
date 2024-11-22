@@ -377,7 +377,7 @@ class UserController extends GetxController implements UserService {
     try {
       AppUser userFromEmail = await UserFirestore().getByEmail(userEmail) ?? AppUser();
       if(userFromEmail.id.isNotEmpty) {
-        AppUtilities.logger.i("User $userEmail exists!!");
+        AppUtilities.logger.t("User $userEmail exists!!");
         user = userFromEmail;
         profile = user.profiles.first;
         isNewUser = false;

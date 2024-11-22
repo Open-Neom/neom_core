@@ -7,14 +7,13 @@ import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
 
 class UserSubscriptionFirestore {
-  
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  final userSubscriptionsReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.userSubscriptions);
 
   // Insert a new subscription
   Future<void> insert(UserSubscription subscription) async {
     try {
-      await _firestore.collection(AppFirestoreCollectionConstants.userSubscriptions)
-          .doc(subscription.subscriptionId).set(subscription.toJSON());
+      await userSubscriptionsReference.doc(subscription.subscriptionId).set(subscription.toJSON());
       AppUtilities.logger.d("Subscription inserted successfully: ${subscription.subscriptionId}");
     } catch (e) {
       AppUtilities.logger.d("Error inserting subscription: $e");
@@ -24,7 +23,7 @@ class UserSubscriptionFirestore {
   // Get a subscription by its ID
   Future<UserSubscription?> getById(String subscriptionId) async {
     try {
-      DocumentSnapshot doc = await _firestore.collection(AppFirestoreCollectionConstants.userSubscriptions).doc(subscriptionId).get();
+      DocumentSnapshot doc = await userSubscriptionsReference.doc(subscriptionId).get();
       if (doc.exists) {
         AppUtilities.logger.d("Subscription retrieved: $subscriptionId");
         return UserSubscription.fromJSON(doc.data() as Map<String, dynamic>);
@@ -40,8 +39,7 @@ class UserSubscriptionFirestore {
   // Get all subscriptions by User ID
   Future<List<UserSubscription>> getByUserId(String userId) async {
     try {
-      QuerySnapshot querySnapshot = await _firestore
-          .collection(AppFirestoreCollectionConstants.userSubscriptions)
+      QuerySnapshot querySnapshot = await userSubscriptionsReference
           .where(AppFirestoreConstants.userId, isEqualTo: userId)
           .get();
 
@@ -61,7 +59,7 @@ class UserSubscriptionFirestore {
   // Get all subscriptions
   Future<List<UserSubscription>> getAll() async {
     try {
-      QuerySnapshot querySnapshot = await _firestore.collection(AppFirestoreCollectionConstants.userSubscriptions).get();
+      QuerySnapshot querySnapshot = await userSubscriptionsReference.get();
       List<UserSubscription> subscriptions = querySnapshot.docs.map((doc) {
         return UserSubscription.fromJSON(doc.data() as Map<String, dynamic>);
       }).toList();
@@ -76,7 +74,7 @@ class UserSubscriptionFirestore {
   // Update a subscription by its ID
   Future<void> update(String subscriptionId, Map<String, dynamic> updates) async {
     try {
-      await _firestore.collection(AppFirestoreCollectionConstants.userSubscriptions).doc(subscriptionId).update(updates);
+      await userSubscriptionsReference.doc(subscriptionId).update(updates);
       AppUtilities.logger.d("Subscription updated successfully: $subscriptionId");
     } catch (e) {
       AppUtilities.logger.d("Error updating subscription: $e");
@@ -86,7 +84,7 @@ class UserSubscriptionFirestore {
   // Remove a subscription by its ID
   Future<void> remove(String subscriptionId) async {
     try {
-      await _firestore.collection(AppFirestoreCollectionConstants.userSubscriptions).doc(subscriptionId).delete();
+      await userSubscriptionsReference.doc(subscriptionId).delete();
       AppUtilities.logger.d("Subscription removed successfully: $subscriptionId");
     } catch (e) {
       AppUtilities.logger.d("Error removing subscription: $e");
@@ -96,10 +94,9 @@ class UserSubscriptionFirestore {
   // Update a subscription by its ID
   Future<void> cancel(String subscriptionId) async {
     try {
-      await _firestore.collection(AppFirestoreCollectionConstants.userSubscriptions).doc(subscriptionId).update({
+      await userSubscriptionsReference.doc(subscriptionId).update({
         AppFirestoreConstants.status: SubscriptionStatus.cancelled.name,
         AppFirestoreConstants.endReason: CancellationReason.userCancelled.name,
-
       });
       AppUtilities.logger.d("Subscription cancelled successfully: $subscriptionId");
     } catch (e) {

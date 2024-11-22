@@ -8,6 +8,7 @@ import '../../../utils/enums/woo/woo_tax_status.dart';
 import 'woo_product_attribute.dart';
 import 'woo_product_category.dart';
 import 'woo_product_dimensions.dart';
+import 'woo_product_downloads.dart';
 import 'woo_product_image.dart';
 import 'woo_product_tag.dart';
 
@@ -40,7 +41,7 @@ class WooProduct {
   int totalSales;
   bool virtual;
   bool downloadable;
-  List<dynamic>? downloads;
+  List<WooProductDownload>? downloads;
   int downloadLimit;
   int downloadExpiry;
   String externalUrl;
@@ -170,7 +171,7 @@ class WooProduct {
       totalSales = json['total_sales'] ?? 0,
       virtual = json['virtual'] ?? false,
       downloadable = json['downloadable'] ?? false,
-      downloads = json['downloads'] ?? [],
+      downloads = (json['downloads'] ?? []).map<WooProductDownload>((json) => WooProductDownload.fromJson(json)).toList(),
       downloadLimit = json['download_limit'] ?? -1,
       downloadExpiry = json['download_expiry'] ?? -1,
       externalUrl = json['external_url'] ?? '',

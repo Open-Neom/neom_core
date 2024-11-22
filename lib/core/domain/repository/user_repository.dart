@@ -38,5 +38,8 @@ abstract class UserRepository {
   Future<bool> removeBoughtItem(String userId, String itemId);
   Future<void> updateCustomerId(String userId, String customerId);
   Future<void> updateSubscriptionId(String userId, String subscriptionId);
+  Future<void> updatePhoneNumber(String userId, String phoneNumber);
+  Future<void> updateCountryCode(String userId, String countryCode);
+  Future<void> setIsVerified(String userId, bool isVerified);
 
 }

@@ -18,7 +18,7 @@ class RightSideCompanyLogo extends StatelessWidget {
           padding: const EdgeInsets.only(right: 20),
           child: Center(child: Image.asset(
             AppAssets.logoCompanyWhite,
-            height: 22.5, ///previous height: 60, width: 150,
+            height: 22.5,
             fit: BoxFit.fitHeight,
           ),),
         ),

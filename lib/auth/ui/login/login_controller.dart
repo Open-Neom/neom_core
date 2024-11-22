@@ -105,15 +105,14 @@ class LoginController extends GetxController implements LoginService {
         authStatus.value = AuthStatus.notLoggedIn;
         user = auth.currentUser!;
       } else if(user != null) {
-        if(user.providerData.isNotEmpty){
+        if(user.providerData.isNotEmpty) {
           _userId = user.providerData.first.uid!;
           if(Validator.isEmail(_userId) || (user.providerData.first.email?.isNotEmpty ?? false)) {
             String email = Validator.isEmail(_userId) ? _userId : user.providerData.first.email ?? '';
             await userController.getUserByEmail(email);
-          } else {
+          } else if(_userId.isNotEmpty) {
             await userController.getUserById(_userId);
           }
-
         }
 
         if (userController.user.id.isEmpty) {
@@ -533,7 +532,7 @@ class LoginController extends GetxController implements LoginService {
       verificationFailed: (fba.FirebaseAuthException e) {
         // Manejar errores, por ejemplo si el formato del número es incorrecto
         if (e.code == 'invalid-phone-number') {
-          AppUtilities.logger.d('El número de teléfono no es válido.');
+          AppUtilities.logger.w('El número de teléfono no es válido.');
         }
       },
       codeSent: (String verificationId, int? resendToken) {
@@ -543,7 +542,7 @@ class LoginController extends GetxController implements LoginService {
       },
       codeAutoRetrievalTimeout: (String verificationId) {
         // Manejar el tiempo de espera si no se recibe el código automáticamente
-        AppUtilities.logger.d('Tiempo de espera para la verificación agotado');
+        AppUtilities.logger.w('Tiempo de espera para la verificación agotado');
       },
     );
   }

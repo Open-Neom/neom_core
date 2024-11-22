@@ -138,9 +138,9 @@ class Band {
   }
 
   Band.fromJSON(data) :
-        id = data["id"],
-        email = data["email"],
-        name = data["name"],
+        id = data["id"] ?? '',
+        email = data["email"] ?? '',
+        name = data["name"] ?? '',
         description = data["description"] ?? "",
         photoUrl = data["photoUrl"],
         coverImgUrl = data["coverImgUrl"] ?? "",

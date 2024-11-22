@@ -26,6 +26,7 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
 
   @override
   void onInit() async {
+    super.onInit();
     // Map<String, List<StripePrice>> recurringPrices = await StripeService.getRecurringPricesFromStripe();
     if(userController.userSubscription?.status != SubscriptionStatus.active) {
       subscriptionPlans = await SubscriptionPlanFirestore().getAll();
@@ -74,7 +75,7 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
     }
 
     isLoading.value = false;
-    // CommerceJobsFirestore().insertSubscriptionPlans();
+    // SubscriptionPlanFirestore().insertSubscriptionPlans();
   }
 
   @override

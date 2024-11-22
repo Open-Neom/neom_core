@@ -1,4 +1,4 @@
-library neom_commons;
+library;
 
 export 'auth/auth_routes.dart';
 //Auth DOMAIN

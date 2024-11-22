@@ -270,9 +270,9 @@ class AppFlavour {
       case AppInUse.g:
         return appProperties['spotifyClientId'];
       case AppInUse.e:
-        return appProperties['spotifyClientId'];
+        return '';
       case AppInUse.c:
-        return appProperties['spotifyClientId'];
+        return '';
     }
   }
 
@@ -762,6 +762,10 @@ class AppFlavour {
 
   static String getWooClientSecret() {
     return appProperties['wooClientSecret'];
+  }
+
+  static String getWooMainCategoryId() {
+    return appProperties['wooMainCategoryId'];
   }
 
   static Price getSubscriptionPrice() {

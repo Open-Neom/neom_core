@@ -13,11 +13,10 @@ import 'user_controller.dart';
 
 
 class SharedPreferenceController extends GetxController implements SharedPreferenceService {
-
-  final logger = AppUtilities.logger;
+  
   final userController = Get.find<UserController>();
 
-  late SharedPreferences prefs;
+  SharedPreferences? prefs;
 
   bool firstTime = false;
   int lastNotificationCheckDate = 0;
@@ -25,7 +24,7 @@ class SharedPreferenceController extends GetxController implements SharedPrefere
   @override
   void onInit() async {
     super.onInit();
-    logger.t("onInit Shared Preferences");
+    AppUtilities.logger.t("onInit Shared Preferences");
     await readLocal();
   }
 
@@ -34,14 +33,14 @@ class SharedPreferenceController extends GetxController implements SharedPrefere
 
     try {
       prefs = await SharedPreferences.getInstance();
-      userController.user.name = prefs.getString(AppSharedPreferenceConstants.username) ?? '';
-      userController.profile.id = prefs.getString(AppSharedPreferenceConstants.profileId) ?? '';
-      userController.profile.aboutMe = prefs.getString(AppSharedPreferenceConstants.aboutMe) ?? '';
-      userController.profile.photoUrl = prefs.getString(AppSharedPreferenceConstants.photoUrl) ?? '';
-      firstTime = prefs.getBool(AppSharedPreferenceConstants.firstTime) ?? true;
-      lastNotificationCheckDate = prefs.getInt(AppSharedPreferenceConstants.lastNotificationCheckDate) ?? 0;
+      userController.user.name = prefs?.getString(AppSharedPreferenceConstants.username) ?? '';
+      userController.profile.id = prefs?.getString(AppSharedPreferenceConstants.profileId) ?? '';
+      userController.profile.aboutMe = prefs?.getString(AppSharedPreferenceConstants.aboutMe) ?? '';
+      userController.profile.photoUrl = prefs?.getString(AppSharedPreferenceConstants.photoUrl) ?? '';
+      firstTime = prefs?.getBool(AppSharedPreferenceConstants.firstTime) ?? true;
+      lastNotificationCheckDate = prefs?.getInt(AppSharedPreferenceConstants.lastNotificationCheckDate) ?? 0;
 
-      String appLocale = prefs.getString(AppSharedPreferenceConstants.appLocale) ?? '';
+      String appLocale = prefs?.getString(AppSharedPreferenceConstants.appLocale) ?? '';
 
       if(appLocale.isNotEmpty) {
         setLocale(EnumToString.fromString(AppLocale.values, appLocale)!);
@@ -63,48 +62,48 @@ class SharedPreferenceController extends GetxController implements SharedPrefere
         updateLocale(appLocale);
       }
     } catch(e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
   }
 
   @override
   Future<void> writeLocal() async {
     AppUser currentUser = userController.user;
-    await prefs.setString(AppSharedPreferenceConstants.userId, currentUser.id);
-    await prefs.setString(AppSharedPreferenceConstants.profileId, userController.profile.id);
-    await prefs.setString(AppSharedPreferenceConstants.username, currentUser.name);
-    await prefs.setString(AppSharedPreferenceConstants.photoUrl, currentUser.photoUrl);
-    await prefs.setBool(AppSharedPreferenceConstants.firstTime, false);
+    await prefs?.setString(AppSharedPreferenceConstants.userId, currentUser.id);
+    await prefs?.setString(AppSharedPreferenceConstants.profileId, userController.profile.id);
+    await prefs?.setString(AppSharedPreferenceConstants.username, currentUser.name);
+    await prefs?.setString(AppSharedPreferenceConstants.photoUrl, currentUser.photoUrl);
+    await prefs?.setBool(AppSharedPreferenceConstants.firstTime, false);
   }
 
   @override
   Future<void> updateFirstTIme(bool isFirstTime) async {
-    await prefs.setBool(AppSharedPreferenceConstants.firstTime, isFirstTime);
+    await prefs?.setBool(AppSharedPreferenceConstants.firstTime, isFirstTime);
   }
 
 
   @override
   Future<void> updateLocale(AppLocale appLocale) async {
-    logger.d("Setting locale preference to ${appLocale.name}");
+    AppUtilities.logger.d("Setting locale preference to ${appLocale.name}");
 
     try {
-      await prefs.setString(AppSharedPreferenceConstants.appLocale, appLocale.name);
+      await prefs?.setString(AppSharedPreferenceConstants.appLocale, appLocale.name);
       setLocale(appLocale);
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
   }
 
   @override
   Future<void> setFirstTime(bool fTime) async {
-    logger.t("Setting firsTime to $firstTime");
+    AppUtilities.logger.t("Setting firsTime to $firstTime");
 
     try {
       firstTime = fTime;
-      await prefs.setBool(AppSharedPreferenceConstants.firstTime, fTime);
+      await prefs?.setBool(AppSharedPreferenceConstants.firstTime, fTime);
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
   }
@@ -134,13 +133,13 @@ class SharedPreferenceController extends GetxController implements SharedPrefere
   }
 
   Future<void> setLastNotificationCheckDate(int lastNotificationCheckDate) async {
-    logger.d("Setting last time notification were checked");
+    AppUtilities.logger.d("Setting last time notification were checked");
 
     try {
       lastNotificationCheckDate = lastNotificationCheckDate;
-      await prefs.setInt(AppSharedPreferenceConstants.lastNotificationCheckDate, lastNotificationCheckDate);
+      await prefs?.setInt(AppSharedPreferenceConstants.lastNotificationCheckDate, lastNotificationCheckDate);
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
   }
