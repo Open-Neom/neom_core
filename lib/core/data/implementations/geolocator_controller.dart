@@ -2,12 +2,10 @@ import 'dart:async';
 
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:get/get.dart';
 
 import '../../domain/use_cases/geolocator_service.dart';
 import '../../utils/app_utilities.dart';
 import '../../utils/constants/app_constants.dart';
-import '../../utils/constants/app_route_constants.dart';
 import '../firestore/profile_firestore.dart';
 
 class GeoLocatorController implements GeoLocatorService {
@@ -98,16 +96,14 @@ class GeoLocatorController implements GeoLocatorService {
 
 
   @override
-  Future<Position> getCurrentPosition() async {
+  Future<Position?> getCurrentPosition() async {
 
     bool serviceEnabled;
     LocationPermission permission;
 
-    Position position = Position(longitude: 0, latitude: 0, timestamp: DateTime.now(),
-        accuracy: 0, altitude: 0, heading: 0, speed: 0, speedAccuracy: 0, altitudeAccuracy: 1, headingAccuracy: 1);
+    Position? position;
 
     try {
-
       serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         return Future.error('Location services are disabled.');
@@ -118,21 +114,24 @@ class GeoLocatorController implements GeoLocatorService {
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          Get.offAndToNamed(AppRouteConstants.introRequiredPermissions);
-          Get.toNamed(AppRouteConstants.logout,
-              arguments: [AppRouteConstants.logout, AppRouteConstants.login]);
-          return Future.error('Location permissions are denied');
+          // Get.offAndToNamed(AppRouteConstants.introRequiredPermissions);
+          // Get.toNamed(AppRouteConstants.logout,
+          //     arguments: [AppRouteConstants.logout, AppRouteConstants.login]);
+          // return Future.error('Location permissions are denied');
         }
       }
 
       if (permission == LocationPermission.deniedForever) {
-        Get.toNamed(AppRouteConstants.logout,
-            arguments: [AppRouteConstants.logout, AppRouteConstants.login]);
-        return Future.error('Location permissions are permanently denied,'
-            ' we cannot request permissions.');
+        // position = null;
+        ///DEPRECATED
+        // Get.toNamed(AppRouteConstants.logout,
+        //     arguments: [AppRouteConstants.logout, AppRouteConstants.login]);
+        // return Future.error('Location permissions are permanently denied,'
+        //     ' we cannot request permissions.');
+      } else {
+        position = await Geolocator.getCurrentPosition();
       }
 
-      position = await Geolocator.getCurrentPosition();
       AppUtilities.logger.t("Position: ${position.toString()}");
     } catch (e) {
       AppUtilities.logger.e(e.toString());
@@ -143,15 +142,15 @@ class GeoLocatorController implements GeoLocatorService {
 
 
   @override
-  Future<Position> updateLocation(String profileId, Position? currentPosition) async {
+  Future<Position?> updateLocation(String profileId, Position? currentPosition) async {
     AppUtilities.logger.t("Updating Location for ProfileId $profileId");
 
-    Position newPosition = Position(longitude: 0, latitude: 0, timestamp: DateTime.now(),
+    Position? newPosition = Position(longitude: 0, latitude: 0, timestamp: DateTime.now(),
         accuracy: 0, altitude: 0, heading: 0, speed: 0, speedAccuracy: 0, altitudeAccuracy: 1, headingAccuracy: 1);
 
     try {
       newPosition =  (await getCurrentPosition());
-      if(currentPosition != null) {
+      if(currentPosition != null && newPosition != null) {
         int distance = AppUtilities.distanceBetweenPositionsRounded(currentPosition, newPosition);
         if(distance > AppConstants.significantDistanceKM){
           AppUtilities.logger.t("GpsLocation would be updated as distance difference is significant");
@@ -161,12 +160,11 @@ class GeoLocatorController implements GeoLocatorService {
         } else {
           return currentPosition;
         }
-      } else {
+      } else if(newPosition != null) {
         if(await ProfileFirestore().updatePosition(profileId, newPosition)){
           AppUtilities.logger.i("GpsLocation was updated as there was no data for it");
         }
       }
-
     } catch (e) {
       AppUtilities.logger.e(e.toString());
     }
