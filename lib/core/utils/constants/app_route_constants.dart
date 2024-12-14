@@ -163,6 +163,7 @@ class AppRouteConstants {
   static const String analytics  = '/analytics';
 
   static const String generator  = '/generator';
+  static const String chamber  = '/chamber';
   static const String chamberPresets  = '/chamber/presets';
 
   static const String audioPlayer  = '/audioPlayer';

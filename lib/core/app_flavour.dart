@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../neom_commons.dart';
 import 'domain/model/app_media_item.dart';
@@ -71,7 +70,7 @@ class AppFlavour {
       case AppInUse.e:
         return appProperties['playStoreUrl'];
       case AppInUse.c:
-        return "";
+        return appProperties['playStoreUrl'];
     }
   }
 
@@ -82,7 +81,7 @@ class AppFlavour {
       case AppInUse.e:
         return appProperties['appStoreUrl'];
       case AppInUse.c:
-        return "";
+        return appProperties['appStoreUrl'];
     }
   }
 
@@ -93,7 +92,7 @@ class AppFlavour {
       case AppInUse.e:
         return appProperties['landingPageUrl'];
       case AppInUse.c:
-        return "";
+        return appProperties['landingPageUrl'];
     }
   }
 
@@ -104,7 +103,7 @@ class AppFlavour {
       case AppInUse.e:
         return appProperties['termsOfServiceUrl'];
       case AppInUse.c:
-        return "";
+        return appProperties['termsOfServiceUrl'];
     }
   }
 
@@ -115,7 +114,7 @@ class AppFlavour {
       case AppInUse.e:
         return appProperties['privacyPolicyUrl'];
       case AppInUse.c:
-        return "";
+        return appProperties['privacyPolicyUrl'];
     }
   }
 
@@ -126,7 +125,7 @@ class AppFlavour {
       case AppInUse.e:
         return appProperties['blogUrl'];
       case AppInUse.c:
-        return "";
+        return appProperties['blogUrl'];
     }
   }
 
@@ -137,7 +136,7 @@ class AppFlavour {
       case AppInUse.e:
         return appProperties['webContact'];
       case AppInUse.c:
-        return "";
+        return appProperties['webContact'];
     }
   }
 
@@ -562,8 +561,9 @@ class AppFlavour {
         // return FontAwesomeIcons.headphones;
         return FontAwesomeIcons.comments;
       case AppInUse.c:
-      ///CHANGE TO MUSIC IN NEXT VERSION
-        return LucideIcons.audioWaveform;
+      ///CHANGE TO WAVEFORM IN NEXT VERSION
+      //   return LucideIcons.audioWaveform;
+        return FontAwesomeIcons.comments;
     }
   }
 
@@ -572,11 +572,13 @@ class AppFlavour {
       case AppInUse.g:
         return AppTranslationConstants.music;
       case AppInUse.e:
+        ///CHANGE TO MUSIC IN NEXT VERSION
         // return AppTranslationConstants.audioLibrary;
         return AppTranslationConstants.messages;
       case AppInUse.c:
         ///CHANGE TO MUSIC IN NEXT VERSION
-        return AppTranslationConstants.audioLibrary;
+        // return AppTranslationConstants.audioLibrary;
+        return AppTranslationConstants.messages;
     }
   }
 

@@ -451,15 +451,15 @@ class UserController extends GetxController implements UserService {
       profile.favoriteItems?.clear();
       profile.chamberPresets?.clear();
 
-      CoreUtilities.getTotalPresets(profile.chambers!).forEach((key, value) {
+      CoreUtilities.getTotalPresets(profile.chambers ?? {}).forEach((key, value) {
         profile.chamberPresets!.add(key);
       });
 
-      CoreUtilities.getTotalMediaItems(profile.itemlists!).forEach((key, value) {
+      CoreUtilities.getTotalMediaItems(profile.itemlists ?? {}).forEach((key, value) {
         profile.favoriteItems!.add(key);
       });
 
-      CoreUtilities.getTotalReleaseItems(profile.itemlists!).forEach((key, value) {
+      CoreUtilities.getTotalReleaseItems(profile.itemlists ?? {}).forEach((key, value) {
         profile.favoriteItems!.add(key);
       });
     } catch (e) {
@@ -470,7 +470,7 @@ class UserController extends GetxController implements UserService {
   }
 
   @override
-  Future<void> reloadProfileChambers() async {
+  Future<void> loadProfileChambers() async {
 
     try {
       profile.chambers = await ChamberFirestore().fetchAll(ownerId: profile.id);

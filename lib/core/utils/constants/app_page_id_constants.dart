@@ -94,7 +94,7 @@ class AppPageIdConstants {
   static const String viewer360 = "viewer360";
 
   static const String chamber = "chamber";
-  static const String chamberPreset = "chamberPreset";
+  static const String chamberPresets = "chamberPresets";
   static const String preset = "preset";
   static const String chamberPresetDetails = "chamberPresetDetails";
 

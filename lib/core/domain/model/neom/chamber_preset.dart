@@ -14,7 +14,7 @@ class ChamberPreset {
   NeomFrequency? neomFrequency;
 
   ChamberPreset({
-    this.id = "",
+    this.id = "432.0_0.5_0.0_0.0_0.0",
     this.name = "",
     this.description = "",
     this.imgUrl = "",

@@ -32,6 +32,7 @@ class AppAssets {
   static const String rehearsal = "assets/images/events/rehearsal.png";
   static const String microphone = "assets/images/events/microphone.png";
   static const String festival = "assets/images/events/festival.png";
+  static const String pray = "assets/images/events/pray.png";
 
   static const String eventVector01 = 'assets/elements/event-01.png';
   static const String underConstruction = 'assets/elements/under_construction.png';
