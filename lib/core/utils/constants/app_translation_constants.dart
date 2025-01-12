@@ -1036,5 +1036,6 @@ class AppTranslationConstants {
   static const String subscriptionConfirmedMsg = "subscriptionConfirmedMsg";
 
   static const String neomChamber = 'neomChamber';
+  static const String findsYourVoiceFrequency = 'findsYourVoiceFrequency';
 
 }
