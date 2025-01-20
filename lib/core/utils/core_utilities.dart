@@ -449,7 +449,7 @@ class CoreUtilities {
         profileMainFeature = getMainPlace(profile.places ?? <String, Place>{});
         break;
       case(ProfileType.researcher):
-      case(ProfileType.commonTarget):
+      case(ProfileType.general):
         profileMainFeature = CoreUtilities.getMainGenre(profile.genres ?? <String, Genre>{});
         break;
       default:

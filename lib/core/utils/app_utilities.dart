@@ -383,9 +383,10 @@ class AppUtilities {
 
   /// Starts the stopwatch
   static void startStopwatch({String reference = ''}) {
+    _stopWatchReference = reference;
     if(!_stopwatch.isRunning) {
+      logger.i('Starting stopwatch for $_stopWatchReference.');
       _stopwatch.start();
-      _stopWatchReference = reference;
     } else {
       logger.i('Instance of stopwatch is running for $_stopWatchReference.');
     }

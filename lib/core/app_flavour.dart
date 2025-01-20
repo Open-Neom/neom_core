@@ -217,18 +217,6 @@ class AppFlavour {
     }
   }
 
-  ///DEPRECATED
-  // static String getFirstAppItemId() {
-  //   switch (appInUse) {
-  //     case AppInUse.gigmeout:
-  //       return "40riOy7x9W7GXjyGp4pjAv";
-  //     case AppInUse.emxi:
-  //       return "2drTDQAAQBAJ";
-  //     case AppInUse.cyberneom:
-  //       return "";
-  //   }
-  // }
-
   static List<AppMediaItem> getFirstAppItem() {
     switch (appInUse) {
       case AppInUse.g:
@@ -318,30 +306,6 @@ class AppFlavour {
         return "";
     }
   }
-
-  ///NOT NEEDED ANYMORE
-  // static String getStripeSuscriptionPriceId() {
-  //   switch (appInUse) {
-  //     case AppInUse.g:
-  //       return '';
-  //     case AppInUse.e:
-  //       return appProperties['stripePriceId'];
-  //     case AppInUse.c:
-  //       return "";
-  //   }
-  // }
-  //
-  // static String getStripeTestSuscriptionPriceId() {
-  //   switch (appInUse) {
-  //     case AppInUse.g:
-  //       return '';
-  //     case AppInUse.e:
-  //       return 'price_1Pzs2PHpVUHkmiYFt4zchILB';
-  //     case AppInUse.c:
-  //       return "";
-  //   }
-  // }
-
 
   static String getECommerceUrl() {
     switch (appInUse) {
@@ -496,18 +460,6 @@ class AppFlavour {
         return "";
     }
   }
-
-  ///DEPRECATED
-  // static List<Widget> getHomePages() {
-  //   switch (appInUse) {
-  //     case AppInUse.c:
-  //       return AppRouteConstants.cHomePages;
-  //     case AppInUse.g:
-  //       return AppRouteConstants.gHomePages;
-  //     case AppInUse.e:
-  //       return AppRouteConstants.eHomePages;
-  //   }
-  // }
 
   static IconData getSecondTabIcon() {
     switch (appInUse) {

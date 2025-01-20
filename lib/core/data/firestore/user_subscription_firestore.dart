@@ -47,7 +47,7 @@ class UserSubscriptionFirestore {
         return UserSubscription.fromJSON(doc.data() as Map<String, dynamic>);
       }).toList();
 
-      AppUtilities.logger.d("Subscriptions retrieved for user: $userId");
+      AppUtilities.logger.d("${subscriptions.length} Subscriptions retrieved for user: $userId");
       return subscriptions;
     } catch (e) {
       AppUtilities.logger.d("Error getting subscriptions for user: $e");

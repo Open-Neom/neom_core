@@ -163,13 +163,12 @@ class PostFirestore implements PostRepository {
 
   @override
   Future<Map<String, Post>> getTimeline() async {
-    AppUtilities.startStopwatch(reference: 'getTimeline');
     AppUtilities.logger.t("getTimeline");
     Map<String, Post> posts = {};
 
     try {
       Query query = postsReference
-          .orderBy(AppFirestoreConstants.lastInteraction, descending: true)
+          .orderBy(AppFirestoreConstants.createdTime, descending: true)
           .limit(AppConstants.timelineLimit);
       if (_recentDocTimeline.isNotEmpty) {
         query = query.startAfterDocument(_recentDocTimeline.last);
@@ -195,10 +194,10 @@ class PostFirestore implements PostRepository {
     }
 
     AppUtilities.logger.d("Retrieveing ${posts.length} Posts");
-    AppUtilities.stopStopwatch();
     return posts;
   }
 
+  ///DEPRECATED
   // @override
   // Future<Map<String, Post>> getNextTimeline() async {
   //   AppUtilities.logger.d("Getting Next Timeline Posts");

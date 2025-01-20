@@ -34,7 +34,7 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
 
     if(subscriptionPlans.isNotEmpty) {
       switch(userController.profile.type) {
-        case ProfileType.commonTarget:
+        case ProfileType.general:
           subscriptionPlans.removeWhere((s, p) =>
           p.level == SubscriptionLevel.creator
               || p.level == SubscriptionLevel.artist

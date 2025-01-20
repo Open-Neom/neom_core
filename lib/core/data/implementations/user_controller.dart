@@ -381,7 +381,7 @@ class UserController extends GetxController implements UserService {
         user = userFromEmail;
         profile = user.profiles.first;
         isNewUser = false;
-        await getUserSubscription();
+        getUserSubscription();
       } else {
         AppUtilities.logger.w("User $userEmail not exists!!");
         isNewUser = true;

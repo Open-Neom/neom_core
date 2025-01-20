@@ -147,8 +147,9 @@ class AppTranslationConstants {
   static const List<String> choices = ["more", "about", "logout"];
   static const String itemSearch = "itemSearch";
   static const String search = "search";
+  static const String searchOnGigmeout = "searchOnGigmeout";
   static const String searchOnSpotify = "searchOnSpotify";
-  static const String searchOnGigmeoutAndSpotify = "searchOnGigmeoutAndSpotify";
+  // static const String searchOnGigmeoutAndSpotify = "searchOnGigmeoutAndSpotify";
   static const String synchronizeSpotifyPlaylists = "synchronizeSpotifyPlaylists";
   static const String synchronizePlaylists = "synchronizePlaylists";
   static const String finishingSpotifySync = "finishingSpotifySync";
