@@ -92,7 +92,7 @@ class MateController extends GetxController implements MateService {
 
 
   Future<void> loadFollowingProfiles() async {
-    logger.d("");
+    logger.d("loadFollowingProfiles");
 
     try {
       if(profile.following?.isNotEmpty ?? false) {
@@ -185,10 +185,37 @@ class MateController extends GetxController implements MateService {
 
   @override
   Future<void> loadProfiles({bool includeAddress = false}) async {
-    logger.d("");
+    logger.t("loadProfiles");
     try {
       profiles.value = await ProfileFirestore().retrieveAllProfiles();
       profiles.remove(profile.id);
+
+      if(profile.followers?.isNotEmpty ?? false && profiles.isNotEmpty) {
+        followerProfiles.value = profiles.entries
+            .where((entry) => profile.followers!.contains(entry.key))
+            .fold(<String, AppProfile>{}, (map, entry) {
+          map[entry.key] = entry.value;
+          return map;
+        });
+      }
+
+      if(profile.following?.isNotEmpty ?? false && profiles.isNotEmpty) {
+        followingProfiles.value = profiles.entries
+            .where((entry) => profile.following!.contains(entry.key))
+            .fold(<String, AppProfile>{}, (map, entry) {
+          map[entry.key] = entry.value;
+          return map;
+        });
+      }
+
+      if(profile.itemmates?.isNotEmpty ?? false && profiles.isNotEmpty) {
+        mates.value = profiles.entries
+            .where((entry) => profile.following!.contains(entry.key))
+            .fold(<String, AppProfile>{}, (map, entry) {
+          map[entry.key] = entry.value;
+          return map;
+        });
+      }
 
       ///VERIFY IF NEEDED
       // if(includeAddress) {

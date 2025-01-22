@@ -4,7 +4,8 @@ enum SubscriptionLevel {
   artist(3),
   professional(4),
   premium(5),
-  publish(6);
+  publish(6),
+  platinum(7);
 
   final int value;
   const SubscriptionLevel(this.value);

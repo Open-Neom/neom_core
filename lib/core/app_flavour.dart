@@ -743,8 +743,8 @@ class AppFlavour {
             return Icon(Icons.handshake, size: size); // Verificado como Profesional
           case VerificationLevel.premium:
             return Icon(Icons.auto_awesome, size: size); // Verificación Premium
-          case VerificationLevel.published:
-            return Icon(Icons.workspace_premium, size: size); // Publicado o verificado completo
+          // case VerificationLevel.platinum:
+          //   return Icon(Icons.workspace_premium, size: size); // Verificación Platino
           default:
             return Icon(Icons.verified, size: size); // Icono predeterminado
         }

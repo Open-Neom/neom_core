@@ -11,7 +11,7 @@ abstract class ItemlistService {
   Future<void> synchronizeItemlists();
   Future<void> getSpotifyToken();
   Future<bool> synchronizeItemlist(Itemlist itemlist);
-  Future<void> synchronizeSpotifyPlaylists();
+  ///DEPRECATED Future<void> synchronizeSpotifyPlaylists();
   void handlePlaylistList(Itemlist spotifyItemlist);
   Future<void> gotoPlaylistSongs(Itemlist itemlist);
   Future<void> setPrivacyOption();

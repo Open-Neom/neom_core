@@ -1233,22 +1233,27 @@ class ProfileFirestore implements ProfileRepository {
 
 
   @override
-  Future<Map<String,AppProfile>> retrieveAllProfiles() async {
+  Future<Map<String,AppProfile>> retrieveAllProfiles({int limit = 0}) async {
     AppUtilities.logger.d("RetrievingProfiles");
     Map<String,AppProfile> profiles = <String, AppProfile>{};
 
     try {
-      await profileReference
-          .limit(AppConstants.profilesLimit)
-          .get().then((querySnapshot) {
-            for (var document in querySnapshot.docs) {
-              if(document.data()['name'] != null) {
-                AppProfile profile = AppProfile.fromJSON(document.data());
-                profile.id = document.id;
-                profiles[profile.id] = profile;
-              }
-            }
-          });
+      if(limit <= 0) limit = AppConstants.profilesLimit;
+      final querySnapshot = await profileReference.limit(limit).get();
+
+      profiles = {
+        for (var document in querySnapshot.docs)
+          if (document.data().containsKey('name')) document.id: AppProfile.fromJSON(document.data())..id = document.id
+      };
+      //
+      // for (var document in querySnapshot.docs) {
+      //   if(document.data()['name'] != null) {
+      //     AppProfile profile = AppProfile.fromJSON(document.data());
+      //     profile.id = document.id;
+      //     profiles[profile.id] = profile;
+      //   }
+      // }
+
     } catch (e) {
       AppUtilities.logger.e(e.toString());
     }

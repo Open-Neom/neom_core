@@ -50,6 +50,12 @@ class SubscriptionPlan {
     };
   }
 
+
+  @override
+  String toString() {
+    return 'SubscriptionPlan{id: $id, name: $name, imgUrl: $imgUrl, href: $href, productId: $productId, priceId: $priceId, level: $level, isActive: $isActive, price: $price, discount: $discount, lastUpdated: $lastUpdated}';
+  }
+
   SubscriptionPlan.fromJSON(data)
       : id = data['id'] ?? '',
         name = data['name'] ?? '',

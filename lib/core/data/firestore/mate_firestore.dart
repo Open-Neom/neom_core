@@ -119,7 +119,7 @@ class MateFirestore implements MateRepository {
 
   @override
   Future<Map<String, AppProfile>> getMatesFromList(List<String> mateIds) async {
-    logger.t("Entering method getMates from List");
+    logger.d("Entering method getMates from List");
 
     Map<String, AppProfile> itemmates = {};
     if(mateIds.isEmpty) return itemmates;
