@@ -48,7 +48,7 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
           );
         case ProfileType.facilitator:
         case ProfileType.host:
-        case ProfileType.researcher:
+        // case ProfileType.researcher:
         case ProfileType.band:
         subscriptionPlans.removeWhere((s, p) =>
         p.level == SubscriptionLevel.creator

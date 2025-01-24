@@ -1039,4 +1039,9 @@ class AppTranslationConstants {
   static const String neomChamber = 'neomChamber';
   static const String findsYourVoiceFrequency = 'findsYourVoiceFrequency';
 
+  static const String updateProfileType = 'updateProfileType';
+  static const String updateProfileTypeMsg = 'updateProfileTypeMsg';
+  static const String updateProfileTypeSuccess = 'updateProfileTypeSuccess';
+  static const String updateProfileTypeSame = 'updateProfileTypeSame';
+
 }

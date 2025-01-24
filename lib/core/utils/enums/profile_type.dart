@@ -4,8 +4,9 @@ enum ProfileType {
   facilitator('facilitator'), ///FACILITATOR OF SERVICES FOR ARTISTS
   host('host'), ///HOST OF EVENTS OR OWNER OF VENUES
   band('band'), ///BAND OR COLLECTIVE FOR ARTISTS
-  broadcaster('broadcaster'), ///PROFILE FOR AUDIO CONTENT CREATORS
-  researcher("researcher"); ///RESEARCHER TO PUBLISH PDFs
+  researcher("researcher"), ///RESEARCHER TO PUBLISH PDFs
+  broadcaster('broadcaster'); ///PROFILE FOR AUDIO CONTENT CREATORS
+
 
   final String value;
   const ProfileType(this.value);

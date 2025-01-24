@@ -207,7 +207,8 @@ class UserController extends GetxController implements UserService {
       newUser.wallet.amount = newUser.wallet.amount + Get.find<LoginController>().appInfo.value.coinAmount;
     }
 
-    await Future.delayed(const Duration(seconds: 1));
+    ///DEPRECATED
+    // await Future.delayed(const Duration(seconds: 1));
 
     try {
 
@@ -287,7 +288,7 @@ class UserController extends GetxController implements UserService {
     newProfile.itemlists = {};
     newProfile.favoriteItems = [];
 
-    ///DEPRECATED
+    ///Verify if useful - 0125
     // (newProfile.type == ProfileType.instrumentist) ?
     // newProfile.itemlists![AppConstants.myFavorites] = Itemlist.myFirstItemlist()
     //     : newProfile.itemlists![AppConstants.myFavorites] = Itemlist.myFirstItemlistFan();

@@ -515,8 +515,8 @@ class UserFirestore implements UserRepository {
                   continue;
                 }
 
-                if(usageReasons != null && (!usageReasons.contains(profile.reason) && profile.reason != UsageReason.any)) {
-                  AppUtilities.logger.t("Profile ${profile.id} ${profile.name} - ${profile.reason.name} has not the usage reason ${usageReasons.toString()} required");
+                if(usageReasons != null && (!usageReasons.contains(profile.usageReason) && profile.usageReason != UsageReason.any)) {
+                  AppUtilities.logger.t("Profile ${profile.id} ${profile.name} - ${profile.usageReason.name} has not the usage reason ${usageReasons.toString()} required");
                   continue;
                 }
 

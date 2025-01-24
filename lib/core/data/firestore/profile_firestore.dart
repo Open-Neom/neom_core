@@ -224,8 +224,8 @@ class ProfileFirestore implements ProfileRepository {
           continue;
         }
 
-        if(usageReasons != null && (!usageReasons.contains(profile.reason) && profile.reason != UsageReason.any)) {
-          AppUtilities.logger.t("Profile ${profile.id} ${profile.name} - ${profile.reason.name} has not the usage reason ${usageReasons.toString()} required");
+        if(usageReasons != null && (!usageReasons.contains(profile.usageReason) && profile.usageReason != UsageReason.any)) {
+          AppUtilities.logger.t("Profile ${profile.id} ${profile.name} - ${profile.usageReason.name} has not the usage reason ${usageReasons.toString()} required");
           continue;
         }
 
@@ -898,6 +898,29 @@ class ProfileFirestore implements ProfileRepository {
           if(document.id == profileId) {
             await document.reference.update({
               AppFirestoreConstants.type: type.value,
+            });
+          }
+        }
+      });
+      return true;
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+
+    return false;
+  }
+
+  @override
+  Future<bool> updateUsageReason(String profileId, UsageReason reason) async {
+    AppUtilities.logger.i("Updating Profile $profileId with new type as ${reason.name}");
+
+    try {
+      await profileReference.get()
+          .then((querySnapshot) async {
+        for (var document in querySnapshot.docs) {
+          if(document.id == profileId) {
+            await document.reference.update({
+              AppFirestoreConstants.usageReason: reason.name,
             });
           }
         }

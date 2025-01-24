@@ -448,11 +448,8 @@ class CoreUtilities {
       case(ProfileType.host):
         profileMainFeature = getMainPlace(profile.places ?? <String, Place>{});
         break;
-      case(ProfileType.researcher):
-      case(ProfileType.general):
-        profileMainFeature = CoreUtilities.getMainGenre(profile.genres ?? <String, Genre>{});
-        break;
       default:
+        profileMainFeature = CoreUtilities.getMainGenre(profile.genres ?? <String, Genre>{});
         break;
     }
 

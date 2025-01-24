@@ -33,7 +33,7 @@ class AppProfile {
   String address;
   String phoneNumber;
   ProfileType type;
-  UsageReason reason;
+  UsageReason usageReason;
 
   double reviewStars =  10.0;
   Review? lastReview;
@@ -92,7 +92,7 @@ class AppProfile {
     this.photoUrl = "",
     this.coverImgUrl = "",
     this.aboutMe = "",
-    this.reason = UsageReason.any,
+    this.usageReason = UsageReason.casual,
     this.mainFeature = "",
     this.lastSpotifySync = 0,
     this.reviewStars = 10.0,
@@ -105,7 +105,7 @@ class AppProfile {
 
   @override
   String toString() {
-    return 'AppProfile{id: $id, name: $name, aboutMe: $aboutMe, photoUrl: $photoUrl, coverImgUrl: $coverImgUrl, mainFeature: $mainFeature, lastTimeOn: $lastTimeOn, lastSpotifySync: $lastSpotifySync, reviewStars: $reviewStars, isActive: $isActive, position: $position, address: $address, phoneNumber: $phoneNumber, type: $type, reason: $reason, lastReview: $lastReview, bannedGenres: $bannedGenres, itemmates: $itemmates, eventmates: $eventmates, followers: $followers, following: $following, unfollowing: $unfollowing, blockTo: $blockTo, blockedBy: $blockedBy, posts: $posts, blogEntries: $blogEntries, comments: $comments, hiddenPosts: $hiddenPosts, hiddenComments: $hiddenComments, reports: $reports, bands: $bands, events: $events, reviews: $reviews, favoriteItems: $favoriteItems, chamberPresets: $chamberPresets, watchingEvents: $watchingEvents, goingEvents: $goingEvents, playingEvents: $playingEvents, requests: $requests, sentRequests: $sentRequests, invitationRequests: $invitationRequests, itemlists: $itemlists, instruments: $instruments, chambers: $chambers, frequencies: $frequencies, genres: $genres, facilities: $facilities, places: $places, showInDirectory: $showInDirectory, verificationLevel: $verificationLevel, lastNameUpdate: $lastNameUpdate}';
+    return 'AppProfile{id: $id, name: $name, aboutMe: $aboutMe, photoUrl: $photoUrl, coverImgUrl: $coverImgUrl, mainFeature: $mainFeature, lastTimeOn: $lastTimeOn, lastSpotifySync: $lastSpotifySync, reviewStars: $reviewStars, isActive: $isActive, position: $position, address: $address, phoneNumber: $phoneNumber, type: $type, usageReason: $usageReason, lastReview: $lastReview, bannedGenres: $bannedGenres, itemmates: $itemmates, eventmates: $eventmates, followers: $followers, following: $following, unfollowing: $unfollowing, blockTo: $blockTo, blockedBy: $blockedBy, posts: $posts, blogEntries: $blogEntries, comments: $comments, hiddenPosts: $hiddenPosts, hiddenComments: $hiddenComments, reports: $reports, bands: $bands, events: $events, reviews: $reviews, favoriteItems: $favoriteItems, chamberPresets: $chamberPresets, watchingEvents: $watchingEvents, goingEvents: $goingEvents, playingEvents: $playingEvents, requests: $requests, sentRequests: $sentRequests, invitationRequests: $invitationRequests, itemlists: $itemlists, instruments: $instruments, chambers: $chambers, frequencies: $frequencies, genres: $genres, facilities: $facilities, places: $places, showInDirectory: $showInDirectory, verificationLevel: $verificationLevel, lastNameUpdate: $lastNameUpdate}';
   }
 
   Map<String, dynamic> toJSON() {
@@ -124,7 +124,7 @@ class AppProfile {
       'reviewStars': reviewStars,
       'isActive': isActive,
       'type': type.name,
-      'reason': reason.name,
+      'usageReason': usageReason.name,
       'lastReview': lastReview?.toJSON() ?? Review().toJSON(),
       'bannedGenres': bannedGenres,
       'itemmates': itemmates,
@@ -164,7 +164,7 @@ class AppProfile {
         photoUrl = data["photoUrl"] ?? "",
         coverImgUrl = data["coverImgUrl"] ?? "",
         type = EnumToString.fromString(ProfileType.values, data["type"] ?? ProfileType.general.name) ?? ProfileType.general,
-        reason = EnumToString.fromString(UsageReason.values, data["reason"] ?? UsageReason.casual.name) ?? UsageReason.casual,
+        usageReason = EnumToString.fromString(UsageReason.values, data["usageReason"] ?? UsageReason.casual.name) ?? UsageReason.casual,
         aboutMe = data["aboutMe"] ?? "",
         lastSpotifySync = data["lastSpotifySync"] ?? 0,
         reviewStars = double.tryParse(data["reviewStars"].toString()) ?? 10,
@@ -207,7 +207,7 @@ class AppProfile {
         id = data["id"] ?? "",
         name = data["name"] ?? "",
         photoUrl = data["photoUrl"] ?? "",
-        reason = EnumToString.fromString(UsageReason.values, data["reason"] ?? UsageReason.casual.name) ?? UsageReason.casual,
+        usageReason = EnumToString.fromString(UsageReason.values, data["usageReason"] ?? UsageReason.casual.name) ?? UsageReason.casual,
         aboutMe = data["aboutMe"] ?? "",
         mainFeature = data["mainFeature"] ?? "",
         position = Position.fromMap(data["position"]),
@@ -231,7 +231,7 @@ class AppProfile {
       'position': position?.toJson(),
       'photoUrl': photoUrl,
       'aboutMe': aboutMe,
-      'reason': reason.name,
+      'usageReason': usageReason.name,
       ///DEPRECATED 'appMediaItems': appMediaItems,
       'chamberPresets': chamberPresets,
       'genres': genres?.values.map((genre) => genre.name).toList(),

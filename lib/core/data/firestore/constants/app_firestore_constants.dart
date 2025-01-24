@@ -136,5 +136,6 @@ class AppFirestoreConstants {
   static const String level = "level";
   static const String endReason = "endReason";
   static const String userId = "userId";
+  static const String usageReason = "usageReason";
   
 }
