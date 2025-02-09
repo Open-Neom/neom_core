@@ -11,9 +11,9 @@ import '../../utils/enums/app_media_source.dart';
 import '../../utils/enums/media_item_type.dart';
 import 'constants/app_firestore_collection_constants.dart';
 
-class AppMediaItemFirestore implements AppMediaItemRepository {
+class AppGoogleBookFirestore {
 
-  final appMediaItemReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.appMediaItems);
+  final appGoogleBookReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.googleBooks);
   final profileReference = FirebaseFirestore.instance.collectionGroup(AppFirestoreCollectionConstants.profiles);
 
   @override
@@ -21,7 +21,7 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
     AppUtilities.logger.d("Getting item $itemId");
     AppMediaItem appMediaItem = AppMediaItem();
     try {
-      await appMediaItemReference.doc(itemId).get().then((doc) {
+      await appGoogleBookReference.doc(itemId).get().then((doc) {
         if (doc.exists) {
           appMediaItem = AppMediaItem.fromJSON(jsonEncode(doc.data()));
           AppUtilities.logger.d("AppMediaItem ${appMediaItem.name} was retrieved with details");
@@ -45,7 +45,7 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
     Map<String, AppMediaItem> appMediaItems = {};
 
     try {
-      QuerySnapshot querySnapshot = await appMediaItemReference.get();
+      QuerySnapshot querySnapshot = await appGoogleBookReference.get();
 
       if (querySnapshot.docs.isNotEmpty) {
         AppUtilities.logger.t("QuerySnapshot is not empty");
@@ -75,7 +75,7 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
     Map<String, AppMediaItem> appMediaItems = {};
 
     try {
-      QuerySnapshot querySnapshot = await appMediaItemReference.get();
+      QuerySnapshot querySnapshot = await appGoogleBookReference.get();
 
       if (querySnapshot.docs.isNotEmpty) {
         for (var documentSnapshot in querySnapshot.docs) {
@@ -98,7 +98,7 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
     AppUtilities.logger.d("Getting appMediaItem $appMediaItemId");
 
     try {
-      await appMediaItemReference.doc(appMediaItemId).get().then((doc) {
+      await appGoogleBookReference.doc(appMediaItemId).get().then((doc) {
         if (doc.exists) {
           AppUtilities.logger.d("AppMediaItem found");
           return true;
@@ -115,11 +115,8 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
   Future<void> insert(AppMediaItem appMediaItem) async {
     AppUtilities.logger.t("Adding appMediaItem to database collection");
     try {
-      if(
-      (!appMediaItem.url.contains("gig-me-out") && !appMediaItem.url.contains("gigmeout") && !appMediaItem.url.contains("firebasestorage.googleapis.com"))
-      && !appMediaItem.url.contains("emxi") && !appMediaItem.url.contains("escritoresmxi") && !appMediaItem.url.contains("cyberneom") && !appMediaItem.url.contains("neom")
-          && appMediaItem.mediaSource == AppMediaSource.internal
-      ) {
+      if((!appMediaItem.url.contains("gig-me-out") && !appMediaItem.url.contains("gigmeout")
+          && !appMediaItem.url.contains("firebasestorage.googleapis.com")) && appMediaItem.mediaSource == AppMediaSource.internal) {
         if(appMediaItem.url.contains("spotify") || appMediaItem.url.contains("p.scdn.co")) {
           appMediaItem.mediaSource = AppMediaSource.spotify;
         } else if(appMediaItem.url.contains("youtube")) {
@@ -129,7 +126,7 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
         }
     }
 
-      await appMediaItemReference.doc(appMediaItem.id).set(appMediaItem.toJSON());
+      await appGoogleBookReference.doc(appMediaItem.id).set(appMediaItem.toJSON());
       AppUtilities.logger.d("AppMediaItem inserted into Firestore");
     } catch (e) {
       AppUtilities.logger.e(e.toString());
@@ -141,7 +138,7 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
   Future<bool> remove(AppMediaItem appMediaItem) async {
     AppUtilities.logger.d("Removing appMediaItem from database collection");
     try {
-      await appMediaItemReference.doc(appMediaItem.id).delete();
+      await appGoogleBookReference.doc(appMediaItem.id).delete();
       return true;
     } catch (e) {
       AppUtilities.logger.d(e.toString());
@@ -186,7 +183,7 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
     AppUtilities.logger.t("existsOrInsert appMediaItem ${appMediaItem.id}");
 
     try {
-      appMediaItemReference.doc(appMediaItem.id).get().then((doc) {
+      appGoogleBookReference.doc(appMediaItem.id).get().then((doc) {
         if (doc.exists) {
           AppUtilities.logger.t("AppMediaItem found");
         } else {

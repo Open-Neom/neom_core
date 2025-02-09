@@ -4,6 +4,7 @@ import 'package:spotify/spotify.dart';
 import '../../utils/app_utilities.dart';
 import '../../utils/enums/app_media_source.dart';
 import '../../utils/enums/media_item_type.dart';
+import '../../utils/enums/release_type.dart';
 import 'app_release_item.dart';
 import 'genre.dart';
 import 'google_book.dart';
@@ -23,8 +24,7 @@ class AppMediaItem {
   
   Map<String, String>? featInternalArtists; //key: artistId - value: artist name
   List<String>? externalArtists; ///
-  
-  String? genre;
+
   List<String>? genres;
   String lyrics;  
   String? language;
@@ -49,10 +49,8 @@ class AppMediaItem {
   bool is320Kbps;
   int likes;
   int state; ///STATE FOR USERS WHEN THE SAVE ITEM ON ITEMLISTS - FROM O to 5
-  MediaItemType type;
+  MediaItemType? type;
   AppMediaSource mediaSource;
-
-  int? expireAt; ///TIME WHEN EXPIRES IF APPLY
 
   AppMediaItem({
     this.id = '',
@@ -63,7 +61,6 @@ class AppMediaItem {
     this.externalArtists,
     this.featInternalArtists,
     this.duration = 0,
-    this.genre = '',
     this.genres,
     this.imgUrl = '',
     this.allImgs,
@@ -84,13 +81,13 @@ class AppMediaItem {
     this.is320Kbps = false,
     this.likes = 0,
     this.path,
-    this.type = MediaItemType.song,
+    this.type,
     this.state = 0,
   });
 
   @override
   String toString() {
-    return 'AppMediaItem{id: $id, name: $name, description: $description, artist: $artist, artistId: $artistId, album: $album, albumId: $albumId, duration: $duration, featInternalArtists: $featInternalArtists, externalArtists: $externalArtists, genre: $genre, genres: $genres, lyrics: $lyrics, language: $language, imgUrl: $imgUrl, allImgs: $allImgs, publisher: $publisher, publishedYear: $publishedYear, releaseDate: $releaseDate, url: $url, path: $path, permaUrl: $permaUrl, allUrls: $allUrls, trackNumber: $trackNumber, discNumber: $discNumber, quality: $quality, is320Kbps: $is320Kbps, likes: $likes, state: $state, type: $type, mediaSource: $mediaSource, expireAt: $expireAt}';
+    return 'AppMediaItem{id: $id, name: $name, description: $description, artist: $artist, artistId: $artistId, album: $album, albumId: $albumId, duration: $duration, featInternalArtists: $featInternalArtists, externalArtists: $externalArtists, genres: $genres, lyrics: $lyrics, language: $language, imgUrl: $imgUrl, allImgs: $allImgs, publisher: $publisher, publishedYear: $publishedYear, releaseDate: $releaseDate, url: $url, path: $path, permaUrl: $permaUrl, allUrls: $allUrls, trackNumber: $trackNumber, discNumber: $discNumber, quality: $quality, is320Kbps: $is320Kbps, likes: $likes, state: $state, type: $type, mediaSource: $mediaSource';
   }
 
   factory AppMediaItem.fromJSON(map) {
@@ -114,7 +111,6 @@ class AppMediaItem {
         publishedYear: map['publishedYear'] ?? 0,
         duration: dur,
         language: map['language'] ?? '',
-        genre: map['genre'] ?? '',
         is320Kbps: map['is320Kbps'] ?? false,
         lyrics: map['lyrics'] ?? '',
         albumId: map['albumId'] ?? '',
@@ -149,7 +145,7 @@ class AppMediaItem {
       'id': id,
       'album': album,
       'duration': duration,
-      'genre': genre,
+      'genres': genres,
       'imgUrl': imgUrl,
       'allImgs': allImgs,
       'language': language,
@@ -174,7 +170,7 @@ class AppMediaItem {
       'likes': likes,
       'path': path,
       'state': state,
-      'type': type.value,
+      'type': type?.value,
     };
   }
 
@@ -201,32 +197,6 @@ class AppMediaItem {
     return items;
   }
 
-  ///ON_AUDIO_QUERY Library is obsolete
-  // static List<AppMediaItem> listFromSongModel(List<SongModel>? list) {
-  //   List<AppMediaItem> items = [];
-  //   try {
-  //
-  //
-  //   } catch (e) {
-  //     throw Exception('Error parsing song item: $e');
-  //   }
-  //
-  //   return items;
-  // }
-  //
-  // static AppMediaItem fromSongModel(SongModel songModel) {
-  //   return AppMediaItem(
-  //     id: songModel.id.toString(),
-  //     album: songModel.album ?? '',
-  //     artist: songModel.artist ?? '',
-  //     duration: songModel.duration ?? 0,
-  //     name: songModel.title,
-  //     genre: songModel.genre ?? '',
-  //     description: songModel.composer,
-  //     url: songModel.uri ?? '',
-  //   );
-  // }
-
   static AppMediaItem fromAppReleaseItem(AppReleaseItem releaseItem) {
     try {
       return AppMediaItem(
@@ -235,11 +205,11 @@ class AppMediaItem {
         description: releaseItem.description,
         lyrics: releaseItem.lyrics ?? '',
         language: releaseItem.language,
-        album: releaseItem.metaName ?? '',
+        album: releaseItem.metaName ?? AppUtilities.getMediaName(releaseItem.ownerName),
         albumId: releaseItem.metaId,
         externalArtists: releaseItem.featInternalArtists?.values.toList(),
         duration: releaseItem.duration,
-        genre: releaseItem.categories.join(', '),
+        genres: releaseItem.tags,
         imgUrl: releaseItem.imgUrl,
         allImgs: releaseItem.galleryUrls,
         url: releaseItem.previewUrl,
@@ -248,11 +218,12 @@ class AppMediaItem {
         releaseDate: releaseItem.createdTime,
         permaUrl: releaseItem.externalUrl ?? '',
         featInternalArtists: releaseItem.featInternalArtists,
-        artist: releaseItem.ownerName,
+        artist: AppUtilities.getArtistName(releaseItem.ownerName),
         artistId: releaseItem.ownerEmail,
         likes: releaseItem.likedProfiles?.length ?? 0,
         state: releaseItem.state,
         mediaSource: AppMediaSource.internal,
+        type: releaseItem.type == ReleaseType.chapter ? MediaItemType.podcast : releaseItem.type == ReleaseType.episode ? MediaItemType.audiobook : MediaItemType.song
       );
     } catch (e) {
       throw Exception('Error parsing song item: $e');
@@ -405,6 +376,7 @@ class AppMediaItem {
         state: 0,
         genres: genres.map((e) => e.name).toList(),
         description: googleBook.volumeInfo?.description ?? "",
+        mediaSource: AppMediaSource.google,
         publishedYear: 0, ///VERIFY HOW TO HANDLE THIS DATE TO SINCEEPOCH googleBook.volumeInfo?.publishedDate ?? ""
       );
     } catch (e) {

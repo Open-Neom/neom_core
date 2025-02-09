@@ -3,6 +3,7 @@ enum AppMediaSource {
   internal('internal'),
   spotify('spotify'),
   youtube('youtube'),
+  google('youtube'),
   other('other');
 
   final String value;

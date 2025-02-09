@@ -428,4 +428,31 @@ class AppUtilities {
     return menuItems;
   }
 
+  static String getArtistName(String artistMediaTitle) {
+
+    String artistName = '';
+    List<String> mediaNameSplitted = artistMediaTitle.split("-");
+
+    if(mediaNameSplitted.isNotEmpty) {
+      artistName = mediaNameSplitted.first.trim();
+    }
+
+    return artistName;
+  }
+
+  static String getMediaName(String artistMediaTitle) {
+
+    String mediaName = '';
+    List<String> mediaNameSplitted = artistMediaTitle.split("-");
+
+    if(mediaNameSplitted.isNotEmpty && mediaNameSplitted.length == 1) {
+      mediaName = mediaNameSplitted.last.trim();
+    } else {
+      List<String> partsAfterFirst = mediaNameSplitted.sublist(1).map((part) => part.trim()).toList();
+      mediaName = partsAfterFirst.join(' - ');
+    }
+
+    return mediaName;
+  }
+
 }

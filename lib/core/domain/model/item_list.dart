@@ -2,14 +2,20 @@ import 'dart:convert';
 
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:get/get.dart';
 import 'package:spotify/spotify.dart';
 
 import '../../utils/app_utilities.dart';
 import '../../utils/core_utilities.dart';
 import '../../utils/enums/itemlist_type.dart';
+import '../../utils/enums/media_item_type.dart';
 import '../../utils/enums/owner_type.dart';
+import '../../utils/enums/release_status.dart';
+import '../../utils/enums/release_type.dart';
 import 'app_media_item.dart';
 import 'app_release_item.dart';
+import 'woo/woo_product.dart';
+import 'woo/woo_product_downloads.dart';
 
 class Itemlist {
 
@@ -30,6 +36,12 @@ class Itemlist {
   String uri; /// A link to the Web API endpoint providing full details of the external list.
   ItemlistType type;
 
+  int? createdTime; ///CREATED TIME ON PLATFORM
+  int? modifiedTime; ///TIME OF LAST MODIFICATION
+  String? language; ///SPANISH - ENGLISH - ETC
+
+  List<String>? categories; ///CATEGORIES FOR BOOKS | SONGS | PODCASTS | CATEGORIES RETRIEVED FROM WC
+  List<String>? tags; ///TAGS OR GENRES FOR BOOKS | SONGS | PODCASTS | TAGS RETRIEVED FROM WC
 
   Itemlist({
     this.id = "",
@@ -47,7 +59,6 @@ class Itemlist {
     this.appMediaItems,
     this.uri = "",
     this.type = ItemlistType.playlist,
-
   });
 
   @override
@@ -88,7 +99,9 @@ class Itemlist {
     }).toList() ?? [],
     position = CoreUtilities.JSONtoPosition(data["position"]),
     type = EnumToString.fromString(ItemlistType.values, data["type"] ?? ItemlistType.playlist.name) ?? ItemlistType.playlist,
-    ownerType = EnumToString.fromString(OwnerType.values, data["ownerType"] ?? OwnerType.profile.name) ?? OwnerType.profile;
+    ownerType = EnumToString.fromString(OwnerType.values, data["ownerType"] ?? OwnerType.profile.name) ?? OwnerType.profile,
+    categories = List.from(data["categories"]?.cast<String>() ?? []),
+    tags = List.from(data["tags"]?.cast<String>() ?? []);
 
   Map<String, dynamic> toJSON()=>{
     //'id': id, generated in firebase
@@ -104,7 +117,9 @@ class Itemlist {
     'position': jsonEncode(position),
     'type': type.name,
     'ownerType': ownerType.name,
-    'isModifiable': isModifiable
+    'isModifiable': isModifiable,
+    'categories': categories,
+    'tags': tags
   };
 
   Map<String, dynamic> toJSONWithID()=>{
@@ -118,7 +133,7 @@ class Itemlist {
     'uri': uri,
     'appMediaItems': appMediaItems?.map((appMediaItem) => appMediaItem.toJSON()).toList() ?? [],
     'appReleaseItems': appReleaseItems?.map((appReleaseItem) => appReleaseItem.toJSON()).toList() ?? [],
-    'position': jsonEncode(position),
+    'position': position != null ? jsonEncode(position) : null,
     'type': type.name,
     'ownerType': ownerType.name,
     'isModifiable': isModifiable
@@ -163,28 +178,18 @@ class Itemlist {
     ownerType = OwnerType.profile;
 
   int getTotalItems() {
-
     int totalItems = 0;
-
-    if(appMediaItems != null) {
-      totalItems = totalItems + (appMediaItems?.length ?? 0);
-    }
-
-    if(appReleaseItems != null) {
-      totalItems = totalItems + (appReleaseItems?.length ?? 0);
-    }
-
+    if(appMediaItems != null) totalItems = totalItems + (appMediaItems?.length ?? 0);
+    if(appReleaseItems != null) totalItems = totalItems + (appReleaseItems?.length ?? 0);
     AppUtilities.logger.t("Retrieving $totalItems Total Items.");
     return totalItems;
   }
 
   List<String> getImgUrls() {
 
-    List<String> imgUrls = [];
+    Set<String> imgUrls = {};
 
-    if(imgUrl.isNotEmpty) {
-      imgUrls.add(imgUrl);
-    }
+    if(imgUrl.isNotEmpty) imgUrls.add(imgUrl);
 
     if(appMediaItems != null) {
       for (var element in appMediaItems!) {
@@ -208,7 +213,40 @@ class Itemlist {
     }
 
     AppUtilities.logger.t("Retrieving ${imgUrls.length} total Images for itemlist $name.");
-    return imgUrls;
+    return imgUrls.toList();
   }
 
+  Itemlist.fromWooProduct(WooProduct product) :
+        id = product.id.toString(),
+        name = product.name,
+        description = product.description.isNotEmpty ? product.description : product.shortDescription.isNotEmpty ? product.shortDescription : '',
+        ownerId = (product.attributes?.containsKey('ownerEmail') ?? false) ? product.attributes!['ownerEmail']!.options.first : '',
+        ownerName = (product.attributes?.containsKey('ownerName') ?? false) ? product.attributes!['ownerName']!.options.first : '',
+        ownerType = OwnerType.woo,
+        href = product.permalink,
+        imgUrl = product.images.isNotEmpty ? product.images.first.src : '',
+        public = (EnumToString.fromString(ReleaseStatus.values, product.status.name) ?? ReleaseStatus.draft) == ReleaseStatus.publish,
+        isModifiable = false,
+        uri = product.permalink,
+        type = (product.attributes?.containsKey('type') ?? false) ? EnumToString.fromString(ItemlistType.values, product.attributes!['type']!.options.first) ?? ItemlistType.single : ItemlistType.single,
+        categories = List.from(product.categories.map((c) => c.name).toList()),
+        tags = List.from(product.tags.map((t) => t.name).toList()),
+        language = (product.attributes?.containsKey('language') ?? false) ? product.attributes!['language']!.options.first : '',
+        createdTime = product.dateCreated?.millisecondsSinceEpoch ?? 0,
+        modifiedTime = product.dateModified?.millisecondsSinceEpoch,
+        appReleaseItems = product.downloads?.asMap().entries.map((entry) {
+          int index = entry.key;
+          WooProductDownload download = entry.value;
+          AppReleaseItem releaseItem = AppReleaseItem.fromWooProduct(product);
+          if(product.categories.firstWhereOrNull((category) => category.name == MediaItemType.podcast.name) != null){
+            releaseItem.type = ReleaseType.episode;
+          } else if(product.categories.firstWhereOrNull((category) => category.name == MediaItemType.audiobook.name.tr) != null){
+            releaseItem.type = ReleaseType.chapter;
+          }
+          releaseItem.name = download.name ?? '';
+          releaseItem.ownerName = product.name;
+          releaseItem.previewUrl = download.file ?? '';
+          releaseItem.id = '${product.id}_${index++}';
+          return releaseItem;
+        },).toList();
 }

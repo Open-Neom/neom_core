@@ -10,24 +10,27 @@ import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
 
 class AppReleaseItemFirestore implements AppReleaseItemRepository {
-
-  var logger = AppUtilities.logger;
+  
   final appReleaseItemReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.appReleaseItems);
   final userReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.users);
   final profileReference = FirebaseFirestore.instance.collectionGroup(AppFirestoreCollectionConstants.profiles);
 
   @override
   Future<String> insert(AppReleaseItem appReleaseItem) async {
-    logger.d("Adding appReleaseItem to database collection");
-    String releaseItemId = "";
+    AppUtilities.logger.d("Adding appReleaseItem to database collection");
+    String releaseItemId = appReleaseItem.id;
     try {
-      DocumentReference documentReference = await appReleaseItemReference.add(
-          appReleaseItem.toJSON());
-      releaseItemId = documentReference.id;
-      logger.d("AppReleaseItem inserted into Firestore with id: $releaseItemId");
+      if(releaseItemId.isNotEmpty) {
+        await appReleaseItemReference.doc(releaseItemId).set(appReleaseItem.toJSON());
+      } else {
+        DocumentReference documentReference = await appReleaseItemReference.add(appReleaseItem.toJSON());
+        releaseItemId = documentReference.id;
+      }
+
+      AppUtilities.logger.d("AppReleaseItem inserted into Firestore with id: $releaseItemId");
     } catch (e) {
-      logger.e(e.toString());
-      logger.i("AppReleaseItem not inserted into Firestore");
+      AppUtilities.logger.e(e.toString());
+      AppUtilities.logger.i("AppReleaseItem not inserted into Firestore");
     }
 
     return releaseItemId;
@@ -35,7 +38,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
 
   @override
   Future<Map<String, AppReleaseItem>> retrieveAll() async {
-    logger.t("Get all AppReleaseItem");
+    AppUtilities.logger.t("Get all AppReleaseItem");
 
     Map<String, AppReleaseItem> releaseItems = {};
     try {
@@ -51,29 +54,29 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
         }
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
-    logger.t("${releaseItems.length} releaseItems found");
+    AppUtilities.logger.t("${releaseItems.length} releaseItems found");
     return releaseItems;
   }
 
   @override
   Future<AppReleaseItem> retrieve(String releaseItemId) async {
-    logger.d("Getting item $releaseItemId");
+    AppUtilities.logger.d("Getting item $releaseItemId");
     AppReleaseItem appReleaseItem = AppReleaseItem();
     try {
       await appReleaseItemReference.doc(releaseItemId).get().then((doc) {
         if (doc.exists) {
           appReleaseItem = AppReleaseItem.fromJSON(doc.data());
           appReleaseItem.id = doc.id;
-          logger.d("AppReleaseItem ${appReleaseItem.name} was retrieved with details");
+          AppUtilities.logger.d("AppReleaseItem ${appReleaseItem.name} was retrieved with details");
         } else {
-          logger.d("AppReleaseItem not found");
+          AppUtilities.logger.d("AppReleaseItem not found");
         }
       });
     } catch (e) {
-      logger.d(e);
+      AppUtilities.logger.d(e);
       rethrow;
     }
     return appReleaseItem;
@@ -81,7 +84,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
 
   @override
   Future<Map<String, AppReleaseItem>> retrieveFromList(List<String> releaseItemIds) async {
-    logger.t("Getting ${releaseItemIds}appReleaseItems from list");
+    AppUtilities.logger.t("Getting ${releaseItemIds}appReleaseItems from list");
 
     Map<String, AppReleaseItem> appItems = {};
 
@@ -92,33 +95,33 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
         for (var documentSnapshot in querySnapshot.docs) {
           if(releaseItemIds.contains(documentSnapshot.id)){
             AppReleaseItem releaseItem = AppReleaseItem.fromJSON(documentSnapshot.data());
-            logger.d("AppReleaseItem ${releaseItem.name} was retrieved with details");
+            AppUtilities.logger.d("AppReleaseItem ${releaseItem.name} was retrieved with details");
             appItems[documentSnapshot.id] = releaseItem;
           }
         }
       }
 
     } catch (e) {
-      logger.d(e);
+      AppUtilities.logger.d(e);
     }
     return appItems;
   }
 
   @override
   Future<bool> remove(AppReleaseItem appReleaseItem) async {
-    logger.d("Removing appReleaseItem ${appReleaseItem.name} with id ${appReleaseItem.id} from database collection");
+    AppUtilities.logger.d("Removing appReleaseItem ${appReleaseItem.name} with id ${appReleaseItem.id} from database collection");
     try {
       await appReleaseItemReference.doc(appReleaseItem.id).delete();
       return true;
     } catch (e) {
-      logger.d(e.toString());
+      AppUtilities.logger.d(e.toString());
       return false;
     }
   }
 
   @override
   Future<bool> addBoughtUser({required String releaseItemId, required String userId}) async {
-    logger.t("$releaseItemId would add user $userId");
+    AppUtilities.logger.t("$releaseItemId would add user $userId");
 
     try {
       await appReleaseItemReference.get()
@@ -126,14 +129,31 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
         for (var document in querySnapshot.docs) {
           if(document.id == releaseItemId) {
             await document.reference.update({AppFirestoreConstants.boughtUsers: FieldValue.arrayUnion([userId])});
-            logger.d("$releaseItemId has added user $userId");
+            AppUtilities.logger.d("$releaseItemId has added user $userId");
             return true;
           }
         }
       });
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
+    return false;
+  }
+  @override
+  Future<bool> exists(String releaseItemId) async {
+    AppUtilities.logger.d("Getting releaseItem $releaseItemId");
+
+    try {
+      await appReleaseItemReference.doc(releaseItemId).get().then((doc) {
+        if (doc.exists) {
+          AppUtilities.logger.d("AppMediaItem found");
+          return true;
+        }
+      });
+    } catch (e) {
+      AppUtilities.logger.e(e);
+    }
+    AppUtilities.logger.d("AppMediaItem not found");
     return false;
   }
 

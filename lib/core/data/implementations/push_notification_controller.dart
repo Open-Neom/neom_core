@@ -49,11 +49,11 @@ class PushNotificationController extends ChangeNotifier {
         Get.toNamed(AppRouteConstants.mateBlog, arguments: [referenceId]);
         break;
       case PushNotificationType.appItemAdded:
-        Get.toNamed(AppFlavour.getItemDetailsRoute(),
+        Get.toNamed(AppFlavour.getMainItemDetailsRoute(),
             arguments: [await AppMediaItemFirestore().retrieve(referenceId)]);
         break;
       case PushNotificationType.releaseAppItemAdded:
-        Get.toNamed(AppFlavour.getItemDetailsRoute(), arguments: [referenceId]);
+        Get.toNamed(AppFlavour.getMainItemDetailsRoute(), arguments: [referenceId]);
         break;
       case PushNotificationType.chamberPresetAdded:
         // TODO: Handle this case.

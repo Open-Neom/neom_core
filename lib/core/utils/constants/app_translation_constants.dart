@@ -147,7 +147,7 @@ class AppTranslationConstants {
   static const List<String> choices = ["more", "about", "logout"];
   static const String itemSearch = "itemSearch";
   static const String search = "search";
-  static const String searchOnGigmeout = "searchOnGigmeout";
+  static const String searchInApp = "searchInApp";
   static const String searchOnSpotify = "searchOnSpotify";
   // static const String searchOnGigmeoutAndSpotify = "searchOnGigmeoutAndSpotify";
   static const String synchronizeSpotifyPlaylists = "synchronizeSpotifyPlaylists";
@@ -1043,5 +1043,8 @@ class AppTranslationConstants {
   static const String updateProfileTypeMsg = 'updateProfileTypeMsg';
   static const String updateProfileTypeSuccess = 'updateProfileTypeSuccess';
   static const String updateProfileTypeSame = 'updateProfileTypeSame';
+
+  static const String secondaryShelfTitle = 'secondaryShelfTitle';
+  static const String secondaryShelfSubtitle = 'secondaryShelfSubtitle';  
 
 }

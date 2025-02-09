@@ -126,7 +126,6 @@ class PostFirestore implements PostRepository {
 
   @override
   Future<List<Post>> getProfilePosts(String profileId) async {
-    AppUtilities.startStopwatch(reference: 'getProfilePosts: $profileId');
     AppUtilities.logger.t("getProfilePosts from Firestore");
 
     List<Post> posts = [];
@@ -156,7 +155,6 @@ class PostFirestore implements PostRepository {
     }
 
     AppUtilities.logger.d("Retrieveing ${posts.length} Posts");
-    AppUtilities.stopStopwatch();
     return posts;
   }
 
@@ -168,7 +166,7 @@ class PostFirestore implements PostRepository {
 
     try {
       Query query = postsReference
-          .orderBy(AppFirestoreConstants.createdTime, descending: true)
+          .orderBy(AppFirestoreConstants.lastInteraction, descending: true)
           .limit(AppConstants.timelineLimit);
       if (_recentDocTimeline.isNotEmpty) {
         query = query.startAfterDocument(_recentDocTimeline.last);

@@ -45,13 +45,12 @@ class AppConstants {
   static const int maxInstrumentsNameLength = 22;
   static const int maxProfileNameLength = 20;
   static const int maxProfileNameSideBarLength = 15;
-  static const int maxAppBarTitleLength = 22;
+  static const int maxAppBarTitleLength = 24;
   static const int profilePostsLimit = 15;
-  static const int timelineLimit = 6;
-  static const int diverseTimelineLimit = 4;
+  static const int timelineLimit = 12;
+  static const int diverseTimelineLimit = 5;
   static const int activityFeedLimit = 30;
   static const int sponsorsLimit = 20;
-  static const int sponsorsTime = 4;
   static const int eventsLimit = 30;
   static const int followingProfilesLimit = 15;
   static const int followerProfilesLimit = 15;
@@ -63,6 +62,10 @@ class AppConstants {
   static const int maxLocationNameLength = 25;
   static const int significantDistanceKM = 5;
   static const int directoryLimit = 20;
+  static const int mainItemFeedTurn = 2;
+  static const int secondaryItemFeedTurn = 2;
+  static const int sponsorsFeedTurn = 5;
+  static const int artilesFeedTurn = 5;
 
   static final profileTabs = ['posts', 'items', 'events'];
   static final eventTabs = ['items', 'going'];

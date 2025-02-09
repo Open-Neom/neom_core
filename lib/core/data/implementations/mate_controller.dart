@@ -190,7 +190,7 @@ class MateController extends GetxController implements MateService {
       profiles.value = await ProfileFirestore().retrieveAllProfiles();
       profiles.remove(profile.id);
 
-      if(profile.followers?.isNotEmpty ?? false && profiles.isNotEmpty) {
+      if((profile.followers?.isNotEmpty ?? false) && profiles.isNotEmpty) {
         followerProfiles.value = profiles.entries
             .where((entry) => profile.followers!.contains(entry.key))
             .fold(<String, AppProfile>{}, (map, entry) {
@@ -199,7 +199,7 @@ class MateController extends GetxController implements MateService {
         });
       }
 
-      if(profile.following?.isNotEmpty ?? false && profiles.isNotEmpty) {
+      if((profile.following?.isNotEmpty ?? false) && profiles.isNotEmpty) {
         followingProfiles.value = profiles.entries
             .where((entry) => profile.following!.contains(entry.key))
             .fold(<String, AppProfile>{}, (map, entry) {
@@ -208,7 +208,7 @@ class MateController extends GetxController implements MateService {
         });
       }
 
-      if(profile.itemmates?.isNotEmpty ?? false && profiles.isNotEmpty) {
+      if((profile.itemmates?.isNotEmpty ?? false )&& profiles.isNotEmpty) {
         mates.value = profiles.entries
             .where((entry) => profile.following!.contains(entry.key))
             .fold(<String, AppProfile>{}, (map, entry) {

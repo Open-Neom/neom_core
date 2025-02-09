@@ -10,6 +10,7 @@ import '../../domain/model/app_coupon.dart';
 import '../../domain/model/app_profile.dart';
 import '../../domain/model/app_user.dart';
 import '../../domain/model/band.dart';
+import '../../domain/model/item_list.dart';
 import '../../domain/model/user_subscription.dart';
 import '../../domain/use_cases/user_service.dart';
 import '../../utils/app_utilities.dart';
@@ -42,13 +43,16 @@ class UserController extends GetxController implements UserService {
   bool isNewUser = false;
 
   OwnerType itemlistOwner  = OwnerType.profile;
-  ItemlistType defaultItemlistType  = ItemlistType.playlist;
 
   String fcmToken = "";
 
   UserSubscription? userSubscription;
   AppCoupon? coupon;
   bool appliedCoupon = false;
+
+  //Move to other global Controller to get ReleaseItemList on AudioPlayerHome
+  ItemlistType defaultItemlistType  = ItemlistType.playlist;
+  Map<String, Itemlist> releaseItemlists = {};
 
   @override
   void onInit() async {

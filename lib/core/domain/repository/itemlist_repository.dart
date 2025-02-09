@@ -20,11 +20,11 @@ abstract class ItemlistRepository {
   Future<bool> update(Itemlist itemlist);
 
   Future<Map<String, Itemlist>> fetchAll({bool onlyPublic = false, bool excludeMyFavorites = true,
-    int minItems = 0, int maxLength = 100, String ownerId = '', String excludeFromProfileId = '',
+    int maxLength = 100, String ownerId = '', String excludeFromProfileId = '',
     OwnerType ownerType = OwnerType.profile, ItemlistType? itemlistType});
 
   Future<Map<String, Itemlist>> getByOwnerId(String ownerId, {bool onlyPublic = false, bool excludeMyFavorites = true,
-    int minItems = 0, int maxLength = 100, OwnerType ownerType = OwnerType.profile, ItemlistType? itemlistType});
+    int maxLength = 100, OwnerType ownerType = OwnerType.profile, ItemlistType? itemlistType});
 
   Future<bool> addReleaseItem(String itemlistId, AppReleaseItem releaseItem);
   Future<bool> deleteReleaseItem(String itemlistId, AppReleaseItem releaseItem);

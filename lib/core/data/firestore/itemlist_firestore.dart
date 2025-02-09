@@ -122,27 +122,26 @@ class ItemlistFirestore implements ItemlistRepository {
 
   @override
   Future<Map<String, Itemlist>> fetchAll({bool onlyPublic = false, bool excludeMyFavorites = true,
-    int minItems = 0, int maxLength = 100, String ownerId = '', String excludeFromProfileId = '',
+    int maxLength = 1000, String ownerId = '', String excludeFromProfileId = '',
     OwnerType ownerType = OwnerType.profile, ItemlistType? itemlistType}) async {
     AppUtilities.logger.t("Retrieving Itemlists from firestore");
     Map<String, Itemlist> itemlists = {};
 
     try {
-      await itemlistReference.limit(maxLength).get().then((querySnapshot) {
-        for (var document in querySnapshot.docs) {
-          Itemlist itemlist = Itemlist.fromJSON(document.data());
-          itemlist.id = document.id;
-          if(itemlist.getTotalItems() >= minItems && (!onlyPublic || itemlist.public)
-              && (!excludeMyFavorites || itemlist.id != AppConstants.myFavorites)
-              && (ownerId.isEmpty || itemlist.ownerId == ownerId)
-              && (excludeFromProfileId.isEmpty || itemlist.ownerId != excludeFromProfileId)
-              && (itemlist.ownerType == ownerType)
-              && (itemlistType == null || itemlist.type == itemlistType)
-          ) {
-            itemlists[itemlist.id] = itemlist;
-          }
+      QuerySnapshot querySnapshot = await itemlistReference.limit(maxLength).get();
+      for (var document in querySnapshot.docs) {
+        Itemlist itemlist = Itemlist.fromJSON(document.data());
+        itemlist.id = document.id;
+        if((!onlyPublic || itemlist.public)
+            && (!excludeMyFavorites || itemlist.id != AppConstants.myFavorites)
+            && (ownerId.isEmpty || itemlist.ownerId == ownerId)
+            && (excludeFromProfileId.isEmpty || itemlist.ownerId != excludeFromProfileId)
+            && (itemlist.ownerType == ownerType)
+            && (itemlistType == null || itemlist.type == itemlistType)
+        ) {
+          itemlists[itemlist.id] = itemlist;
         }
-      });
+      }
     } catch (e) {
       AppUtilities.logger.e(e.toString());
     }
@@ -153,7 +152,7 @@ class ItemlistFirestore implements ItemlistRepository {
 
   @override
   Future<Map<String, Itemlist>> getByOwnerId(String ownerId, {bool onlyPublic = false, bool excludeMyFavorites = true,
-    int minItems = 0, int maxLength = 100, OwnerType ownerType = OwnerType.profile, ItemlistType? itemlistType}) async {
+    int maxLength = 100, OwnerType ownerType = OwnerType.profile, ItemlistType? itemlistType}) async {
     AppUtilities.logger.t("Retrieving Itemlists from firestore");
     Map<String, Itemlist> itemlists = {};
 
@@ -168,7 +167,7 @@ class ItemlistFirestore implements ItemlistRepository {
           for (var document in querySnapshot.docs) {
             Itemlist itemlist = Itemlist.fromJSON(document.data());
             itemlist.id = document.id;
-            if(itemlist.getTotalItems() >= minItems && (!onlyPublic || itemlist.public)
+            if((!onlyPublic || itemlist.public)
                 && (!excludeMyFavorites || itemlist.id != AppConstants.myFavorites)
             ) {
               itemlists[itemlist.id] = itemlist;
@@ -210,6 +209,27 @@ class ItemlistFirestore implements ItemlistRepository {
       await documentReference.update({
         AppFirestoreConstants.name: itemlist.name,
         AppFirestoreConstants.description: itemlist.description,
+      });
+
+      AppUtilities.logger.d("Itemlist ${itemlist.id} was updated");
+      return true;
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+
+    AppUtilities.logger.d("Itemlist ${itemlist.id} was not updated");
+    return false;
+  }
+
+  @override
+  Future<bool> updateType(Itemlist itemlist) async {
+    AppUtilities.logger.d("Updating Itemlist for user ${itemlist.id}");
+
+    try {
+
+      DocumentReference documentReference = itemlistReference.doc(itemlist.id);
+      await documentReference.update({
+        AppFirestoreConstants.type: itemlist.type.name,
       });
 
       AppUtilities.logger.d("Itemlist ${itemlist.id} was updated");

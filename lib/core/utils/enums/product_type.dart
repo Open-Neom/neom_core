@@ -6,6 +6,7 @@ enum ProductType {
   subscription,
   crowdfunding,
   external,
+  streaming,
   event,
   booking,
   notDefined

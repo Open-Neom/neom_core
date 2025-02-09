@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../neom_commons.dart';
 import 'domain/model/app_media_item.dart';
@@ -184,7 +185,7 @@ class AppFlavour {
     }
   }
 
-  static String getItemDetailsRoute() {
+  static String getMainItemDetailsRoute() {
     switch (appInUse) {
       case AppInUse.g:
         return AppRouteConstants.audioPlayerMedia;
@@ -192,6 +193,17 @@ class AppFlavour {
         return AppRouteConstants.bookDetails;
       case AppInUse.c:
         return AppRouteConstants.generator;
+    }
+  }
+
+  static String getSecondaryItemDetailsRoute() {
+    switch (appInUse) {
+      case AppInUse.g:
+        return AppRouteConstants.audioPlayerMedia;
+      case AppInUse.e:
+        return AppRouteConstants.audioPlayerMedia;
+      case AppInUse.c:
+        return AppRouteConstants.audioPlayerMedia;
     }
   }
 
@@ -464,44 +476,44 @@ class AppFlavour {
   static IconData getSecondTabIcon() {
     switch (appInUse) {
       case AppInUse.g:
-        return FontAwesomeIcons.building;
+        return FontAwesomeIcons.calendar;
       case AppInUse.e:
         return FontAwesomeIcons.calendar;
       case AppInUse.c:
-        return Icons.surround_sound_outlined;
+        return FontAwesomeIcons.calendar;
     }
   }
 
   static String getSecondTabTitle() {
     switch (appInUse) {
       case AppInUse.g:
-        return AppTranslationConstants.directory;
+        return AppTranslationConstants.events;
       case AppInUse.e:
         return AppTranslationConstants.events;
       case AppInUse.c:
-        return AppTranslationConstants.presets;
+        return AppTranslationConstants.events;
     }
   }
 
   static IconData getThirdTabIcon() {
     switch (appInUse) {
       case AppInUse.g:
-        return FontAwesomeIcons.calendar;
+        return FontAwesomeIcons.building;
       case AppInUse.e:
         return FontAwesomeIcons.shop;
       case AppInUse.c:
-        return FontAwesomeIcons.calendar;
+        return Icons.surround_sound_outlined;
     }
   }
 
   static String getThirdTabTitle() {
     switch (appInUse) {
       case AppInUse.g:
-        return AppTranslationConstants.events;
+        return AppTranslationConstants.directory;
       case AppInUse.e:
         return AppTranslationConstants.bookShop;
       case AppInUse.c:
-        return AppTranslationConstants.events;
+        return AppTranslationConstants.presets;
     }
   }
 
@@ -510,12 +522,9 @@ class AppFlavour {
       case AppInUse.g:
         return Icons.play_circle_fill;
       case AppInUse.e:
-        // return FontAwesomeIcons.headphones;
-        return FontAwesomeIcons.comments;
+        return FontAwesomeIcons.headphones;
       case AppInUse.c:
-      ///CHANGE TO WAVEFORM IN NEXT VERSION
-      //   return LucideIcons.audioWaveform;
-        return FontAwesomeIcons.comments;
+        return LucideIcons.audioWaveform;
     }
   }
 
@@ -524,13 +533,9 @@ class AppFlavour {
       case AppInUse.g:
         return AppTranslationConstants.music;
       case AppInUse.e:
-        ///CHANGE TO MUSIC IN NEXT VERSION
-        // return AppTranslationConstants.audioLibrary;
-        return AppTranslationConstants.messages;
+        return AppTranslationConstants.audioLibrary;
       case AppInUse.c:
-        ///CHANGE TO MUSIC IN NEXT VERSION
-        // return AppTranslationConstants.audioLibrary;
-        return AppTranslationConstants.messages;
+        return AppTranslationConstants.audioLibrary;
     }
   }
 
@@ -596,57 +601,58 @@ class AppFlavour {
     return appProperties['splashSubText'];    
   }
 
-  static List<BlogArticle> getBlogArticles() {
-    List<BlogArticle> articles = [];
-    switch (appInUse) {
-      case AppInUse.g:
-        articles = [
-          BlogArticle(
-              writerName: appProperties['blogWriterName_0'],
-              writeImgUrl: appProperties['blogWriterImgUrl_0'],
-              articleDescription: appProperties['blogArticleDescription_0'],
-              articleUrl: appProperties['blogArticleUrl_0'],
-          ),
-          BlogArticle(
-            writerName: appProperties['blogWriterName_1'],
-            writeImgUrl: appProperties['blogWriterImgUrl_1'],
-            articleDescription: appProperties['blogArticleDescription_1'],
-            articleUrl: appProperties['blogArticleUrl_1'],
-          ),
-          BlogArticle(
-            writerName: appProperties['blogWriterName_2'],
-            writeImgUrl: appProperties['blogWriterImgUrl_2'],
-            articleDescription: appProperties['blogArticleDescription_2'],
-            articleUrl: appProperties['blogArticleUrl_2'],
-          ),
-        ];
-      case AppInUse.e:
-        articles = [
-          BlogArticle(
-            writerName: appProperties['blogWriterName_0'],
-            writeImgUrl: appProperties['blogWriterImgUrl_0'],
-            articleDescription: appProperties['blogArticleDescription_0'],
-            articleUrl: appProperties['blogArticleUrl_0'],
-          ),
-          BlogArticle(
-            writerName: appProperties['blogWriterName_1'],
-            writeImgUrl: appProperties['blogWriterImgUrl_1'],
-            articleDescription: appProperties['blogArticleDescription_1'],
-            articleUrl: appProperties['blogArticleUrl_1'],
-          ),
-          BlogArticle(
-            writerName: appProperties['blogWriterName_2'],
-            writeImgUrl: appProperties['blogWriterImgUrl_2'],
-            articleDescription: appProperties['blogArticleDescription_2'],
-            articleUrl: appProperties['blogArticleUrl_2'],
-          ),
-        ];
-      case AppInUse.c:
-        break;
-    }
-
-    return articles;
-  }
+  ///DEPRECATED
+  // static List<BlogArticle> getBlogArticles() {
+  //   List<BlogArticle> articles = [];
+  //   switch (appInUse) {
+  //     case AppInUse.g:
+  //       articles = [
+  //         BlogArticle(
+  //             writerName: appProperties['blogWriterName_0'],
+  //             writeImgUrl: appProperties['blogWriterImgUrl_0'],
+  //             articleDescription: appProperties['blogArticleDescription_0'],
+  //             articleUrl: appProperties['blogArticleUrl_0'],
+  //         ),
+  //         BlogArticle(
+  //           writerName: appProperties['blogWriterName_1'],
+  //           writeImgUrl: appProperties['blogWriterImgUrl_1'],
+  //           articleDescription: appProperties['blogArticleDescription_1'],
+  //           articleUrl: appProperties['blogArticleUrl_1'],
+  //         ),
+  //         BlogArticle(
+  //           writerName: appProperties['blogWriterName_2'],
+  //           writeImgUrl: appProperties['blogWriterImgUrl_2'],
+  //           articleDescription: appProperties['blogArticleDescription_2'],
+  //           articleUrl: appProperties['blogArticleUrl_2'],
+  //         ),
+  //       ];
+  //     case AppInUse.e:
+  //       articles = [
+  //         BlogArticle(
+  //           writerName: appProperties['blogWriterName_0'],
+  //           writeImgUrl: appProperties['blogWriterImgUrl_0'],
+  //           articleDescription: appProperties['blogArticleDescription_0'],
+  //           articleUrl: appProperties['blogArticleUrl_0'],
+  //         ),
+  //         BlogArticle(
+  //           writerName: appProperties['blogWriterName_1'],
+  //           writeImgUrl: appProperties['blogWriterImgUrl_1'],
+  //           articleDescription: appProperties['blogArticleDescription_1'],
+  //           articleUrl: appProperties['blogArticleUrl_1'],
+  //         ),
+  //         BlogArticle(
+  //           writerName: appProperties['blogWriterName_2'],
+  //           writeImgUrl: appProperties['blogWriterImgUrl_2'],
+  //           articleDescription: appProperties['blogArticleDescription_2'],
+  //           articleUrl: appProperties['blogArticleUrl_2'],
+  //         ),
+  //       ];
+  //     case AppInUse.c:
+  //       break;
+  //   }
+  //
+  //   return articles;
+  // }
 
   static String getPaymentGatewayBaseURL() {
     return appProperties['paymentGatewayBaseURL'];
@@ -710,6 +716,10 @@ class AppFlavour {
     return appProperties['wooUrl'];
   }
 
+  static String getWordpressUrl() {
+    return appProperties['wpUrl'] ?? '';
+  }
+
   static String getWooClientKey() {
     return appProperties['wooClientKey'];
   }
@@ -720,6 +730,10 @@ class AppFlavour {
 
   static String getWooMainCategoryId() {
     return appProperties['wooMainCategoryId'];
+  }
+
+  static String getWooSecondaryCategoryId() {
+    return appProperties['wooSecondaryCategoryId'];
   }
 
   static Price getSubscriptionPrice() {
