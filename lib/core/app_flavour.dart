@@ -590,7 +590,7 @@ class AppFlavour {
   }
 
   static String getHubName() {
-    return appProperties['audioHubName'];    
+    return appProperties['hubName'];
   }
 
   static String getStorageServerName() {

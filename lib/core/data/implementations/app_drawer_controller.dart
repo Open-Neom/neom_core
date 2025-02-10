@@ -9,7 +9,7 @@ import 'subscription_controller.dart';
 class AppDrawerController extends GetxController {
 
   final userController = Get.find<UserController>();
-  late SubscriptionController subscriptionController;
+  final subscriptionController = Get.put(SubscriptionController());
 
   AppUser user = AppUser();
 
@@ -22,7 +22,6 @@ class AppDrawerController extends GetxController {
     AppUtilities.logger.t("SideBar Controller Init");
     user = userController.user;
     appProfile = userController.profile;
-    subscriptionController = Get.put(SubscriptionController());
   }
 
   void updateProfile(AppProfile profile) {

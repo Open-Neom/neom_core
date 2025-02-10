@@ -197,7 +197,7 @@ class AppMediaItem {
     return items;
   }
 
-  static AppMediaItem fromAppReleaseItem(AppReleaseItem releaseItem) {
+  static AppMediaItem fromAppReleaseItem(AppReleaseItem releaseItem, {MediaItemType itemType = MediaItemType.song}) {
     try {
       return AppMediaItem(
         id: releaseItem.id,
@@ -223,7 +223,7 @@ class AppMediaItem {
         likes: releaseItem.likedProfiles?.length ?? 0,
         state: releaseItem.state,
         mediaSource: AppMediaSource.internal,
-        type: releaseItem.type == ReleaseType.chapter ? MediaItemType.podcast : releaseItem.type == ReleaseType.episode ? MediaItemType.audiobook : MediaItemType.song
+        type: releaseItem.type == ReleaseType.episode ? MediaItemType.podcast : releaseItem.type == ReleaseType.chapter ? MediaItemType.audiobook : itemType
       );
     } catch (e) {
       throw Exception('Error parsing song item: $e');

@@ -3,8 +3,6 @@ import 'package:http/http.dart' as http;
 import 'package:neom_commons/core/app_flavour.dart';
 import 'package:neom_commons/core/utils/app_utilities.dart';
 import '../../../domain/model/wordpress/blog_entry.dart';
-import 'package:html/parser.dart' as html_parser;
-import 'package:html/dom.dart' as dom;
 
 class BlogEntriesApi {
 

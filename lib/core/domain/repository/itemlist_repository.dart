@@ -19,7 +19,7 @@ abstract class ItemlistRepository {
 
   Future<bool> update(Itemlist itemlist);
 
-  Future<Map<String, Itemlist>> fetchAll({bool onlyPublic = false, bool excludeMyFavorites = true,
+  Future<Map<String, Itemlist>> fetchAll({bool onlyPublic = false,
     int maxLength = 100, String ownerId = '', String excludeFromProfileId = '',
     OwnerType ownerType = OwnerType.profile, ItemlistType? itemlistType});
 

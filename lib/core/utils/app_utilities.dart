@@ -13,6 +13,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 import '../../neom_commons.dart';
+import 'enums/itemlist_type.dart';
 
 class AppUtilities {
 
@@ -453,6 +454,23 @@ class AppUtilities {
     }
 
     return mediaName;
+  }
+
+  static List<Itemlist> filterItemlists(List<Itemlist> lists, ItemlistType type) {
+    if(lists.isEmpty) return [];
+
+    switch(type) {
+      case ItemlistType.playlist:
+        lists.removeWhere((list) => list.type == ItemlistType.readlist);
+        lists.removeWhere((list) => list.type == ItemlistType.giglist);
+        break;
+      case ItemlistType.readlist:
+        lists.removeWhere((list) => list.type != ItemlistType.readlist);
+      default:
+        break;
+    }
+
+    return lists;
   }
 
 }

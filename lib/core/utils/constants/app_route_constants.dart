@@ -27,7 +27,7 @@ class AppRouteConstants {
   static const String frequency = "/frequency";
   static const String frequencyFav = '/frequency/fav';
   static const String genresFav = '/genres/fav';
-  static const String lists = '/list';
+  static const String lists = '/lists';
   static const String listItems = '/list/items';
   static const String itemDetails = '/item/details';
   static const String itemSearch = '/item/search';

@@ -101,6 +101,8 @@ class AppTranslationConstants {
   static const String tbc = "TBC";
   static const String title = "title";
   static const String createItemlist = "createItemlist";
+  static const String createReadlist = "createReadlist";
+  static const String createPlaylist = "createPlaylist";
   static const String addItem = "addItem";
   static const String addItems = "addItems";
   static const String update = "update";
@@ -1045,6 +1047,16 @@ class AppTranslationConstants {
   static const String updateProfileTypeSame = 'updateProfileTypeSame';
 
   static const String secondaryShelfTitle = 'secondaryShelfTitle';
-  static const String secondaryShelfSubtitle = 'secondaryShelfSubtitle';  
+  static const String secondaryShelfSubtitle = 'secondaryShelfSubtitle';
+
+  static const String myFirstPlaylist = 'myFirstPlaylist';
+  static const String myFirstPlaylistDesc = 'myFirstPlaylistDesc';
+  static const String myFirstReadlist = 'myFirstReadlist';
+  static const String myFirstReadlistDesc = 'myFirstReadlistDesc';
+
+  static const String catalog = 'catalog';
+  static const String readlists = 'readlists';
+  static const String readings = 'readings';
+  static const String acquireSubscription = 'acquireSubscription';
 
 }

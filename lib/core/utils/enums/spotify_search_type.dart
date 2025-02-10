@@ -1,4 +1,7 @@
-enum SpotifySearchType {
+enum MediaSearchType {
   song,
-  playlist
+  playlist,
+  book,
+  readlist,
+  audiobook
 }

@@ -395,7 +395,7 @@ class ProfileFirestore implements ProfileRepository {
         for (var document in querySnapshot.docs) {
           AppProfile profile = AppProfile.fromJSON(document.data());
           profile.id = document.id;
-          if(profile.id != selfProfileId && profile.type == ProfileType.artist
+          if(profile.id != selfProfileId && profile.type == ProfileType.appArtist
               && mainInstrumentProfiles.length < maxProfiles
           ) {
 
@@ -1715,7 +1715,7 @@ class ProfileFirestore implements ProfileRepository {
   Future<AppProfile> getProfileFeatures(AppProfile profile) async {
 
     try {
-      if(profile.type == ProfileType.artist) {
+      if(profile.type == ProfileType.appArtist) {
         profile.instruments = await InstrumentFirestore().retrieveInstruments(profile.id);
         if(profile.instruments!.isEmpty) {
           AppUtilities.logger.w("Instruments not found");

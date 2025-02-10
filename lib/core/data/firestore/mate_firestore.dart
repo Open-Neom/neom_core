@@ -148,7 +148,7 @@ class MateFirestore implements MateRepository {
   Future<AppProfile> getDetailedProfile(AppProfile profile) async {
     try {
       switch(profile.type) {
-        case(ProfileType.artist):
+        case(ProfileType.appArtist):
           profile.instruments = await InstrumentFirestore().retrieveInstruments(profile.id);
           break;
         case(ProfileType.facilitator):

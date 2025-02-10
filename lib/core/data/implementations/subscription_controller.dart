@@ -28,10 +28,16 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
   void onInit() async {
     super.onInit();
     // Map<String, List<StripePrice>> recurringPrices = await StripeService.getRecurringPricesFromStripe();
-    if(userController.userSubscription?.status != SubscriptionStatus.active) {
-      subscriptionPlans = await SubscriptionPlanFirestore().getAll();
+    if(userController.userSubscription?.status != SubscriptionStatus.active && subscriptionPlans.isNotEmpty) {
+      await initializeSubscriptions();
     }
 
+    isLoading.value = false;
+    // SubscriptionPlanFirestore().insertSubscriptionPlans();
+  }
+
+  Future<void> initializeSubscriptions() async {
+    subscriptionPlans = await SubscriptionPlanFirestore().getAll();
     if(subscriptionPlans.isNotEmpty) {
       switch(userController.profile.type) {
         case ProfileType.general:
@@ -42,7 +48,7 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
               || p.level == SubscriptionLevel.premium
               || p.level == SubscriptionLevel.publish
           );
-        case ProfileType.artist:
+        case ProfileType.appArtist:
           subscriptionPlans.removeWhere((s, p) =>
           p.level == SubscriptionLevel.basic
           );
@@ -73,9 +79,6 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
         selectedPrice.value = selectedPlan.price!;
       }
     }
-
-    isLoading.value = false;
-    // SubscriptionPlanFirestore().insertSubscriptionPlans();
   }
 
   @override
@@ -86,7 +89,9 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
   Future<bool?> getSubscriptionAlert(BuildContext context, String fromRoute, {hideBasic = false}) async {
     AppUtilities.logger.d("getSubscriptionAlert");
     // selectedPrice.value = AppFlavour.getSubscriptionPrice();
-    if(hideBasic) {
+    if(subscriptionPlans.isEmpty) await initializeSubscriptions();
+
+    if(hideBasic && subscriptionPlans.isNotEmpty) {
       subscriptionPlans.removeWhere((s, p) => p.level == SubscriptionLevel.basic);
       selectedPlan = subscriptionPlans.values.first;
       selectedPlanName.value = selectedPlan.name;
@@ -206,7 +211,7 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
           Get.offAllNamed(AppRouteConstants.home);
           AppUtilities.showSnackBar(
             title: 'Suscripción Cancelada Satisfactoriamente',
-            message: 'Tu suscripción a ${('${userController.userSubscription!.level!.name}Plan').tr} fue cancelada.'
+            message: 'Tu suscripción a ${('${userController.userSubscription?.level?.name ?? ''} Plan').tr} fue cancelada.'
                 ' Sigue disfrutando de nuestro contenido de manera gratuita. '
                 '¡Muchas gracias por utilizar EMXI',
             duration: const Duration(seconds: 6),

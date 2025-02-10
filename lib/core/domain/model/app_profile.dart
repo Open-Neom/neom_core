@@ -163,7 +163,7 @@ class AppProfile {
         name = data["name"] ?? "",
         photoUrl = data["photoUrl"] ?? "",
         coverImgUrl = data["coverImgUrl"] ?? "",
-        type = EnumToString.fromString(ProfileType.values, data["type"] ?? ProfileType.general.name) ?? ProfileType.general,
+        type = EnumToString.fromString(ProfileType.values, data["type"] ?? ProfileType.general.value) ?? ProfileType.general,
         usageReason = EnumToString.fromString(UsageReason.values, data["usageReason"] ?? UsageReason.casual.name) ?? UsageReason.casual,
         aboutMe = data["aboutMe"] ?? "",
         lastSpotifySync = data["lastSpotifySync"] ?? 0,
@@ -217,7 +217,7 @@ class AppProfile {
         chamberPresets = data["chamberPresets"]?.cast<String>() ?? [],
         instruments = { for (var e in data["instruments"]?.cast<String>() ?? []) e : Instrument() },
         frequencies = { for (var e in data["frequencies"]?.cast<String>() ?? []) e : NeomFrequency() },
-        type = ProfileType.artist, coverImgUrl = "",
+        type = ProfileType.appArtist, coverImgUrl = "",
         isActive = true,
         showInDirectory = false,
         verificationLevel = EnumToString.fromString(VerificationLevel.values, data["verificationLevel"] ?? VerificationLevel.none.name) ?? VerificationLevel.none;

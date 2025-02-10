@@ -17,7 +17,6 @@ import 'constants/app_firestore_constants.dart';
 class ItemlistFirestore implements ItemlistRepository {
   
   final itemlistReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.itemlists);
-  final profileReference = FirebaseFirestore.instance.collectionGroup(AppFirestoreCollectionConstants.profiles);
 
   @override
   Future<String> insert(Itemlist itemlist) async {
@@ -121,9 +120,9 @@ class ItemlistFirestore implements ItemlistRepository {
   }
 
   @override
-  Future<Map<String, Itemlist>> fetchAll({bool onlyPublic = false, bool excludeMyFavorites = true,
-    int maxLength = 1000, String ownerId = '', String excludeFromProfileId = '',
-    OwnerType ownerType = OwnerType.profile, ItemlistType? itemlistType}) async {
+  Future<Map<String, Itemlist>> fetchAll({bool onlyPublic = false, int maxLength = 1000,
+    String ownerId = '', String excludeFromProfileId = '', OwnerType ownerType = OwnerType.profile,
+    ItemlistType? itemlistType}) async {
     AppUtilities.logger.t("Retrieving Itemlists from firestore");
     Map<String, Itemlist> itemlists = {};
 
@@ -133,7 +132,6 @@ class ItemlistFirestore implements ItemlistRepository {
         Itemlist itemlist = Itemlist.fromJSON(document.data());
         itemlist.id = document.id;
         if((!onlyPublic || itemlist.public)
-            && (!excludeMyFavorites || itemlist.id != AppConstants.myFavorites)
             && (ownerId.isEmpty || itemlist.ownerId == ownerId)
             && (excludeFromProfileId.isEmpty || itemlist.ownerId != excludeFromProfileId)
             && (itemlist.ownerType == ownerType)

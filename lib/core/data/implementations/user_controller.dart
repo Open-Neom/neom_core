@@ -621,7 +621,7 @@ class UserController extends GetxController implements UserService {
     try {
       List<UserSubscription> subscriptions = await UserSubscriptionFirestore().getByUserId(user.id);
       if(subscriptions.isNotEmpty) {
-        userSubscription = subscriptions.firstWhere((subscription) => subscription.status == SubscriptionStatus.active);
+        userSubscription = subscriptions.firstWhereOrNull((subscription) => subscription.status == SubscriptionStatus.active);
       }
     } catch (e) {
       AppUtilities.logger.e(e.toString());

@@ -439,7 +439,7 @@ class CoreUtilities {
     String profileMainFeature = "";
 
     switch(profile.type) {
-      case(ProfileType.artist):
+      case(ProfileType.appArtist):
         profileMainFeature = getMainInstrument(profile.instruments ?? <String, Instrument>{});
         break;
       case(ProfileType.facilitator):

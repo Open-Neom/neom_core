@@ -144,6 +144,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
     AppUtilities.logger.d("Getting releaseItem $releaseItemId");
 
     try {
+      if(releaseItemId.isEmpty) false;
       await appReleaseItemReference.doc(releaseItemId).get().then((doc) {
         if (doc.exists) {
           AppUtilities.logger.d("AppMediaItem found");
