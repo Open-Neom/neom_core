@@ -188,6 +188,9 @@ class ProfileFirestore implements ProfileRepository {
     Map<String,AppProfile> noMainPlaceProfiles = <String, AppProfile>{};
 
     try {
+      List<Post> posts = [];
+      if(needsPosts) posts = await PostFirestore().retrievePosts();
+
       if(isFirstCall) {
         QuerySnapshot profileQuerySnapshot = await profileReference.get();
         _profileDocuments = profileQuerySnapshot.docs;
@@ -241,13 +244,20 @@ class ProfileFirestore implements ProfileRepository {
         }
 
         List<String> postImgUrls = [];
-        if(needsPosts) {
-          List<Post> profilePosts = await PostFirestore().getProfilePosts(profile.id);
-          for (var profilePost in profilePosts) {
-            if(postImgUrls.length < 6 && profilePost.mediaUrl.isNotEmpty) {
-              postImgUrls.add(profilePost.mediaUrl);
-            }
+        if(needsPosts && (profile.posts?.isNotEmpty ?? false)) {
+          for(String postId in profile.posts!) {
+            Post post = posts.firstWhere((p) => p.id == postId);
+            if(post.mediaUrl.isNotEmpty && post.mediaUrl.contains('.jpg')) postImgUrls.add(post.mediaUrl);
           }
+
+
+          ///DEPRECATED
+          // List<Post> profilePosts = await PostFirestore().getProfilePosts(profile.id);
+          // for (var profilePost in profilePosts) {
+          //   if(postImgUrls.length < 6 && profilePost.mediaUrl.isNotEmpty) {
+          //     postImgUrls.add(profilePost.mediaUrl);
+          //   }
+          // }
         }
 
         if(facilityType != null) {

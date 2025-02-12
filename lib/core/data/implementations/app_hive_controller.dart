@@ -23,6 +23,7 @@ class AppHiveController extends GetxController {
   Map<String, AppReleaseItem> secondaryItems = {};
   Map<String, Itemlist> releaseItemlists = {};
   String releaseLastUpdate = '';
+  String directoryLastUpdate = '';
 
   @override
   Future<void> onInit() async {
@@ -85,6 +86,9 @@ class AppHiveController extends GetxController {
 
     final rawReleaseLastUpdate = Hive.box(AppHiveBox.releases.name).get(AppHiveConstants.lastUpdate) as String?;
     releaseLastUpdate = rawReleaseLastUpdate ?? '';
+
+    final rawDirectoryLastUpdate = Hive.box(AppHiveBox.directory.name).get(AppHiveConstants.lastUpdate) as String?;
+    directoryLastUpdate = rawDirectoryLastUpdate ?? '';
   }
 
   void fetchSettingsData() {

@@ -158,6 +158,59 @@ class AppProfile {
     };
   }
 
+  Map<String, dynamic> toJSONWithFacilities() {
+    AppUtilities.logger.t("Profile toJSON");
+    return <String, dynamic> {
+      'id': id,
+      'name': name,
+      'position': jsonEncode(position),
+      'address': address,
+      'phoneNumber': phoneNumber,
+      'photoUrl': photoUrl,
+      'coverImgUrl': coverImgUrl,
+      'aboutMe': aboutMe,
+      'mainFeature': mainFeature,
+      'lastSpotifySync': lastSpotifySync,
+      'reviewStars': reviewStars,
+      'isActive': isActive,
+      'type': type.name,
+      'usageReason': usageReason.name,
+      'lastReview': lastReview?.toJSON() ?? Review().toJSON(),
+      'bannedGenres': bannedGenres,
+      'itemmates': itemmates,
+      'eventmates': eventmates,
+      'following': following,
+      'followers': followers,
+      'unfollowing': unfollowing,
+      'blockTo': blockTo,
+      'blockedBy': blockedBy,
+      'posts': posts,
+      'blogEntries': blogEntries,
+      'comments': comments,
+      'hiddenPosts': hiddenPosts,
+      'hiddenComments': hiddenComments,
+      'reports': reports,
+      'bands': bands,
+      'events': events,
+      'reviews': reviews,
+      'favoriteItems': favoriteItems,
+      // 'appMediaItems': appMediaItems,
+      'chamberPresets': chamberPresets,
+      'watchingEvents': watchingEvents,
+      'goingEvents': goingEvents,
+      'playingEvents': playingEvents,
+      'requests': requests,
+      'sentRequests': sentRequests,
+      'invitationRequests': invitationRequests,
+      'showInDirectory': showInDirectory,
+      'verificationLevel': verificationLevel.name,
+      'lastNameUpdate': lastNameUpdate,
+      'facilities': facilities != null
+          ? facilities!.map((key, facility) => MapEntry(key, facility.toJSON()))
+          : {},
+    };
+  }
+
   AppProfile.fromJSON(data) :
         id = data["id"] ?? "",
         name = data["name"] ?? "",
@@ -201,7 +254,9 @@ class AppProfile {
         invitationRequests = data["invitationRequests"]?.cast<String>() ?? [],
         showInDirectory = data["showInDirectory"] ?? false,
         verificationLevel = EnumToString.fromString(VerificationLevel.values, data["verificationLevel"] ?? VerificationLevel.none.name) ?? VerificationLevel.none,
-        lastNameUpdate = data["lastNameUpdate"] ?? 0;
+        lastNameUpdate = data["lastNameUpdate"] ?? 0,
+        facilities = data["facilities"] != null ? (data["facilities"] as Map<String, dynamic>)
+            .map((key, value) => MapEntry(key, Facility.fromJSON(value)),): {};
 
   AppProfile.fromProfileInstruments(data) :
         id = data["id"] ?? "",

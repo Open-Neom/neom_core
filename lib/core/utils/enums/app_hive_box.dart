@@ -7,7 +7,10 @@ enum AppHiveBox {
   pdfCache(false),
   mp3Cache(false),
   stats(false),
-  favoriteItems(false);
+  favoriteItems(false),
+  directory(false),
+  nupale(false),
+  casete(false);
 
   final bool limit;
   const AppHiveBox(this.limit);

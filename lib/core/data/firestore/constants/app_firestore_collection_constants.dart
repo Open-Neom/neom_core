@@ -50,6 +50,8 @@ class AppFirestoreCollectionConstants {
 
   static const String nupaleSessions = "nupaleSessions";
   static const String authorsNupaleSessions = "authorsNupaleSessions";
+  static const String caseteSessions = "caseteSessions";
+  static const String authorsCaseteSessions = "authorsCaseteSessions";
   static const String subscriptionPlans = "subscriptionPlans";
   static const String userSubscriptions = "userSubscriptions";
 

@@ -52,6 +52,7 @@ class AppHiveConstants {
   static const String releaseItemLists = 'releaseItemLists';
   static const String cacheDate = 'cacheDate';
   static const String lastUpdate = 'lastUpdate';
+  static const String directoryProfiles = 'directoryProfiles';
 
   ///PREFERENCES
 
