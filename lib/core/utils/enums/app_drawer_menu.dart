@@ -1,6 +1,7 @@
 enum AppDrawerMenu {
   profile("profile"),
   frequencies("frequencies"),
+  presets("presets"),
   instruments("instruments"),
   genres("genres"),
   digitalLibrary("digitalLibrary"),

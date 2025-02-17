@@ -2,13 +2,13 @@ import 'package:neom_commons/core/utils/app_utilities.dart';
 
 class NeomStopwatch {
   // Mapa que asocia cada referencia (p. ej. el id del media item) a su Stopwatch
-  static final Map<String, Stopwatch> _stopwatches = {};
+  final Map<String, Stopwatch> _stopwatches = {};
   // Mapa para acumular el tiempo reproducido de cada referencia en segundos
-  static final Map<String, int> _accumulatedTime = {};
-  static String currentReference = '';
+  final Map<String, int> _accumulatedTime = {};
+  String currentReference = '';
 
   /// Inicia (o reanuda) el stopwatch para la referencia [ref]
-  static void start(String ref) {
+  void start(String ref) {
     // Si no existe, se crea un Stopwatch para esta referencia y se inicializa el acumulado
     if (!_stopwatches.containsKey(ref)) {
       _stopwatches[ref] = Stopwatch();
@@ -26,7 +26,7 @@ class NeomStopwatch {
   }
 
   /// Pausa el stopwatch para [ref] y acumula el tiempo transcurrido
-  static void pause(String ref) {
+  void pause(String ref) {
     if (_stopwatches.containsKey(ref) && _stopwatches[ref]!.isRunning) {
       _stopwatches[ref]!.stop();
       // Acumula los segundos transcurridos
@@ -37,7 +37,7 @@ class NeomStopwatch {
   }
 
   /// Retorna el tiempo total reproducido para la referencia [ref]
-  static int elapsed(String ref) {
+  int elapsed(String ref) {
     if (_stopwatches.containsKey(ref)) {
       // Suma el acumulado más el tiempo actual (si está corriendo)
       return _accumulatedTime[ref]! +
@@ -47,7 +47,7 @@ class NeomStopwatch {
   }
 
   /// Detiene el stopwatch para [ref] (pausándolo si está corriendo) y devuelve el tiempo total
-  static int stop({String? ref}) {
+  int stop({String? ref}) {
     if(ref == null) ref = currentReference;
     if (_stopwatches.containsKey(ref)) {
       if (_stopwatches[ref]!.isRunning) {
@@ -60,7 +60,7 @@ class NeomStopwatch {
   }
 
   /// (Opcional) Limpia el stopwatch y el acumulado para [ref]
-  static void reset(String ref) {
+  void reset(String ref) {
     if (_stopwatches.containsKey(ref)) {
       _stopwatches[ref]!.reset();
       _accumulatedTime[ref] = 0;
@@ -69,7 +69,7 @@ class NeomStopwatch {
   }
 
   /// (Opcional) Detiene y remueve el stopwatch para [ref] devolviendo el tiempo total
-  static int stopAndClear(String ref) {
+  int stopAndClear(String ref) {
     int total = stop(ref: ref);
     _stopwatches.remove(ref);
     _accumulatedTime.remove(ref);

@@ -255,8 +255,13 @@ class AppProfile {
         showInDirectory = data["showInDirectory"] ?? false,
         verificationLevel = EnumToString.fromString(VerificationLevel.values, data["verificationLevel"] ?? VerificationLevel.none.name) ?? VerificationLevel.none,
         lastNameUpdate = data["lastNameUpdate"] ?? 0,
-        facilities = data["facilities"] != null ? (data["facilities"] as Map<String, dynamic>)
-            .map((key, value) => MapEntry(key, Facility.fromJSON(value)),): {};
+        facilities = data["facilities"] != null
+            ? (data["facilities"] as Map).map((key, value) {
+          return MapEntry(
+              key.toString(),
+              Facility.fromJSON(Map<String, dynamic>.from(value))
+          );
+        }) : {};
 
   AppProfile.fromProfileInstruments(data) :
         id = data["id"] ?? "",

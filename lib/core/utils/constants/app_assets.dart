@@ -46,7 +46,13 @@ class AppAssets {
   static const String intro03 = 'assets/elements/intro-03.png';
   static const String uploadVector = 'assets/elements/upload_vector.png';
 
-  static const String bookingLanding = "assets/images/booking-landing.jpg";
+  static const String directoryLanding = "assets/images/directory/directory_landing.png";
+  static const String directory01 = "assets/images/directory/1.jpg";
+  static const String directory02 = "assets/images/directory/2.jpg";
+  static const String directory03 = "assets/images/directory/3.jpg";
+  static const String directory04 = "assets/images/directory/4.jpg";
+  static const String directory05 = "assets/images/directory/5.jpg";
+  static const String directory06 = "assets/images/directory/6.jpg";
   static const String appCoin = "assets/images/appCoin.png";
   static const String appCoins4 = "assets/images/appCoins_4.png";
   static const String appCoins13 = "assets/images/appCoins_13.png";

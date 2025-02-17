@@ -473,4 +473,10 @@ class AppUtilities {
     return lists;
   }
 
+  static bool isInternal(String url) {
+    final bool isInternal = url.contains(AppFlavour.getHubName())
+        || url.contains(AppFlavour.getStorageServerName());
+    return isInternal;
+  }
+
 }

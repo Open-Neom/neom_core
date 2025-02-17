@@ -1059,4 +1059,7 @@ class AppTranslationConstants {
   static const String readings = 'readings';
   static const String acquireSubscription = 'acquireSubscription';
 
+  static const String waveLength = 'waveLength';
+  static const String period = 'period';
+
 }

@@ -95,7 +95,7 @@ class AppProperties {
 
   static String getBuyMeACoffeeURL() => appProperties['buyMeACoffeeUrl'];
 
-  static String getHubName() => appProperties['audioHubName'];
+  static String getHubName() => appProperties['hubName'];
 
   static String getStorageServerName() => appProperties['storageServerName'];
 

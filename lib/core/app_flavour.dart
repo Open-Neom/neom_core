@@ -192,7 +192,7 @@ class AppFlavour {
       case AppInUse.e:
         return AppRouteConstants.bookDetails;
       case AppInUse.c:
-        return AppRouteConstants.generator;
+        return AppRouteConstants.audioPlayerMedia;
     }
   }
 
@@ -458,7 +458,7 @@ class AppFlavour {
       case AppInUse.e:
         return appProperties['whatsappBusinessNumber'];
       case AppInUse.c:
-        return "";
+        return appProperties['whatsappBusinessNumber'];
     }
   }
 
@@ -502,7 +502,7 @@ class AppFlavour {
       case AppInUse.e:
         return FontAwesomeIcons.shop;
       case AppInUse.c:
-        return Icons.surround_sound_outlined;
+        return FontAwesomeIcons.building;
     }
   }
 
@@ -513,7 +513,7 @@ class AppFlavour {
       case AppInUse.e:
         return AppTranslationConstants.bookShop;
       case AppInUse.c:
-        return AppTranslationConstants.presets;
+        return AppTranslationConstants.directory;
     }
   }
 
@@ -601,59 +601,6 @@ class AppFlavour {
     return appProperties['splashSubText'];    
   }
 
-  ///DEPRECATED
-  // static List<BlogArticle> getBlogArticles() {
-  //   List<BlogArticle> articles = [];
-  //   switch (appInUse) {
-  //     case AppInUse.g:
-  //       articles = [
-  //         BlogArticle(
-  //             writerName: appProperties['blogWriterName_0'],
-  //             writeImgUrl: appProperties['blogWriterImgUrl_0'],
-  //             articleDescription: appProperties['blogArticleDescription_0'],
-  //             articleUrl: appProperties['blogArticleUrl_0'],
-  //         ),
-  //         BlogArticle(
-  //           writerName: appProperties['blogWriterName_1'],
-  //           writeImgUrl: appProperties['blogWriterImgUrl_1'],
-  //           articleDescription: appProperties['blogArticleDescription_1'],
-  //           articleUrl: appProperties['blogArticleUrl_1'],
-  //         ),
-  //         BlogArticle(
-  //           writerName: appProperties['blogWriterName_2'],
-  //           writeImgUrl: appProperties['blogWriterImgUrl_2'],
-  //           articleDescription: appProperties['blogArticleDescription_2'],
-  //           articleUrl: appProperties['blogArticleUrl_2'],
-  //         ),
-  //       ];
-  //     case AppInUse.e:
-  //       articles = [
-  //         BlogArticle(
-  //           writerName: appProperties['blogWriterName_0'],
-  //           writeImgUrl: appProperties['blogWriterImgUrl_0'],
-  //           articleDescription: appProperties['blogArticleDescription_0'],
-  //           articleUrl: appProperties['blogArticleUrl_0'],
-  //         ),
-  //         BlogArticle(
-  //           writerName: appProperties['blogWriterName_1'],
-  //           writeImgUrl: appProperties['blogWriterImgUrl_1'],
-  //           articleDescription: appProperties['blogArticleDescription_1'],
-  //           articleUrl: appProperties['blogArticleUrl_1'],
-  //         ),
-  //         BlogArticle(
-  //           writerName: appProperties['blogWriterName_2'],
-  //           writeImgUrl: appProperties['blogWriterImgUrl_2'],
-  //           articleDescription: appProperties['blogArticleDescription_2'],
-  //           articleUrl: appProperties['blogArticleUrl_2'],
-  //         ),
-  //       ];
-  //     case AppInUse.c:
-  //       break;
-  //   }
-  //
-  //   return articles;
-  // }
-
   static String getPaymentGatewayBaseURL() {
     return appProperties['paymentGatewayBaseURL'];
   }
@@ -677,7 +624,7 @@ class AppFlavour {
       case AppInUse.e:
         return 'https://instagram.com/escritoresmxi';
       case AppInUse.c:
-        return 'https://instagram.com/cyber.neom';
+        return 'https://www.instagram.com/cyberneomia/';
     }
   }
 
@@ -688,7 +635,7 @@ class AppFlavour {
       case AppInUse.e:
         return 'escritoresmxi@gmail.com';
       case AppInUse.c:
-        return '';
+        return 'cyberneom.om@gmail.com';
     }
   }
 
