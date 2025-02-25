@@ -216,7 +216,7 @@ class AppTranslationConstants {
   static const String privacyAndPolicy = 'privacyAndPolicy';
   static const String account = 'account';
   static const String settingPrivacyMsg = 'settingPrivacyMsg';
-  static const String general = 'General';
+  static const String general = 'general';
   static const String legal = 'Legal';
   static const String websites = 'websites';
 
@@ -1061,5 +1061,6 @@ class AppTranslationConstants {
 
   static const String waveLength = 'waveLength';
   static const String period = 'period';
+  static const String emailNotFound = 'emailNotFound';
 
 }

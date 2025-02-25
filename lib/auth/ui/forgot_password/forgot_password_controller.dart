@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../core/data/firestore/user_firestore.dart';
 import '../../../core/ui/widgets/custom_loader.dart';
 import '../../../core/utils/app_utilities.dart';
 import '../../../core/utils/constants/app_route_constants.dart';
@@ -57,16 +58,28 @@ class ForgotPasswordController extends GetxController implements ForgotPasswordS
 
     String email = emailController.text.trim();
     String validateEmailMsg = Validator.validateEmail(email);
-
-    if(validateEmailMsg.isEmpty) {
-      await auth.sendPasswordResetEmail(email: email);
-    } else {
+    if(await UserFirestore().isAvailableEmail(email)) {
+      validateEmailMsg = AppTranslationConstants.emailNotFound.tr;
+    }
+    try {
+      if(validateEmailMsg.isEmpty) {
+        await auth.sendPasswordResetEmail(email: email);
+      } else {
+        Get.snackbar(AppTranslationConstants.passwordReset.tr,
+          validateEmailMsg.tr,
+          snackPosition: SnackPosition.bottom,
+        );
+        return false;
+      }
+    } catch (e) {
       Get.snackbar(
         AppTranslationConstants.passwordReset.tr,
-        validateEmailMsg.tr,
+        e.toString(),
         snackPosition: SnackPosition.bottom,);
       return false;
     }
+
+
 
     await Get.toNamed(AppRouteConstants.forgotPasswordSending, arguments: [AppRouteConstants.forgotPassword]);
     return true;

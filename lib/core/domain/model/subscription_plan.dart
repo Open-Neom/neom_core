@@ -63,9 +63,9 @@ class SubscriptionPlan {
         href = data['href'] ?? '',
         productId = data['productId'] ?? '',
         priceId = data['priceId'] ?? '',
-        level = EnumToString.fromString(SubscriptionLevel.values, data['level'])!,
+        level = EnumToString.fromString(SubscriptionLevel.values, data['level'] ?? SubscriptionLevel.basic.name) ?? SubscriptionLevel.basic,
         price = data['price'] != null ? Price.fromJSON(data['price']) : null,
         isActive = data['isActive'] ?? true,
-        discount = data['discount'] ?? 0.0,
+        discount = data['discount'] != null ? double.parse(data['discount'].toString()) : 0.0,
         lastUpdated = data['lastUpdated'] != null ? DateTime.parse(data['lastUpdated']) : null;
 }

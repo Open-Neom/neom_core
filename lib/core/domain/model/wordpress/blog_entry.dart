@@ -45,7 +45,7 @@ class BlogEntry {
       title: title,
       content: content,
       excerpt: (json['excerpt']?['rendered'] ?? '') as String,
-      author: (json['author'].toString() ?? '') as String,
+      author: (json['author'].toString()),
       imgUrl: (json['jetpack_featured_media_url'] ?? '') as String,
       url: json['link'] as String,
     );

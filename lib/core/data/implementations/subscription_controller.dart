@@ -6,6 +6,7 @@ import 'package:rflutter_alert/rflutter_alert.dart';
 import '../../../neom_commons.dart';
 import '../../domain/model/stripe/stripe_price.dart';
 import '../../domain/model/subscription_plan.dart';
+import '../../ui/widgets/handled_cached_network_image.dart';
 import '../../utils/enums/subscription_level.dart';
 import '../../utils/enums/subscription_status.dart';
 import '../api_services/stripe/stripe_service.dart';
@@ -15,6 +16,8 @@ import '../firestore/user_subscription_firestore.dart';
 class SubscriptionController extends GetxController with GetTickerProviderStateMixin {
 
   final userController = Get.find<UserController>();
+  // AppProfileController appProfileController = Get.put(AppProfileController());
+  AppProfile profile = AppProfile();
 
   RxBool isLoading = true.obs;
   // Rx<SubscriptionLevel> selectedLevel = SubscriptionLevel.basic.obs;
@@ -23,12 +26,18 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
   Rx<Price> selectedPrice = Price().obs;
   SubscriptionPlan selectedPlan = SubscriptionPlan();
   Map<String, SubscriptionPlan> subscriptionPlans = {};
+  RxMap<String, SubscriptionPlan> profilePlans = <String, SubscriptionPlan>{}.obs;
+
+  Rx<ProfileType>  profileType = ProfileType.general.obs;
+
 
   @override
   void onInit() async {
     super.onInit();
     // Map<String, List<StripePrice>> recurringPrices = await StripeService.getRecurringPricesFromStripe();
-    if(userController.userSubscription?.status != SubscriptionStatus.active && subscriptionPlans.isNotEmpty) {
+    profile = userController.profile;
+    profileType.value = profile.type;
+    if(userController.userSubscription?.status != SubscriptionStatus.active && subscriptionPlans.isEmpty) {
       await initializeSubscriptions();
     }
 
@@ -39,32 +48,6 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
   Future<void> initializeSubscriptions() async {
     subscriptionPlans = await SubscriptionPlanFirestore().getAll();
     if(subscriptionPlans.isNotEmpty) {
-      switch(userController.profile.type) {
-        case ProfileType.general:
-          subscriptionPlans.removeWhere((s, p) =>
-          p.level == SubscriptionLevel.creator
-              || p.level == SubscriptionLevel.artist
-              || p.level == SubscriptionLevel.professional
-              || p.level == SubscriptionLevel.premium
-              || p.level == SubscriptionLevel.publish
-          );
-        case ProfileType.appArtist:
-          subscriptionPlans.removeWhere((s, p) =>
-          p.level == SubscriptionLevel.basic
-          );
-        case ProfileType.facilitator:
-        case ProfileType.host:
-        // case ProfileType.researcher:
-        case ProfileType.band:
-        subscriptionPlans.removeWhere((s, p) =>
-        p.level == SubscriptionLevel.creator
-            || p.level == SubscriptionLevel.artist
-            || p.level == SubscriptionLevel.publish
-        );
-        default:
-          break;
-      }
-
       for(SubscriptionPlan plan in subscriptionPlans.values) {
         StripePrice? stripePrice = await StripeService.getPrice(plan.priceId);
         if(stripePrice != null) {
@@ -72,12 +55,46 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
         }
       }
 
-      selectedPlan = subscriptionPlans.values.first;
-      selectedPlanName.value = selectedPlan.name;
-      selectedPlanImgUrl.value = selectedPlan.imgUrl;
-      if(selectedPlan.price != null) {
-        selectedPrice.value = selectedPlan.price!;
-      }
+      setProfileTypePlans();
+    }
+  }
+
+  void setProfileTypePlans() {
+    profilePlans.clear();
+    profilePlans.addAll(subscriptionPlans);
+    switch(profileType.value) {
+      case ProfileType.general:
+        profilePlans.removeWhere((s, p) =>
+        p.level == SubscriptionLevel.creator
+            || p.level == SubscriptionLevel.connect
+            || p.level == SubscriptionLevel.artist
+            || p.level == SubscriptionLevel.professional
+            || p.level == SubscriptionLevel.premium
+            || p.level == SubscriptionLevel.publish
+        );
+      case ProfileType.appArtist:
+        profilePlans.removeWhere((s, p) =>
+        p.level == SubscriptionLevel.basic
+            || p.level == SubscriptionLevel.connect
+        );
+      case ProfileType.facilitator:
+      case ProfileType.host:
+      // case ProfileType.researcher:
+      case ProfileType.band:
+      profilePlans.removeWhere((s, p) =>
+      p.level == SubscriptionLevel.creator
+          || p.level == SubscriptionLevel.artist
+          || p.level == SubscriptionLevel.publish
+      );
+      default:
+        break;
+    }
+
+    selectedPlan = profilePlans.values.first;
+    selectedPlanName.value = selectedPlan.name;
+    selectedPlanImgUrl.value = selectedPlan.imgUrl;
+    if(selectedPlan.price != null) {
+      selectedPrice.value = selectedPlan.price!;
     }
   }
 
@@ -86,20 +103,24 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
     update([AppPageIdConstants.accountSettings]);
   }
 
-  Future<bool?> getSubscriptionAlert(BuildContext context, String fromRoute, {hideBasic = false}) async {
+  Future<bool?> getSubscriptionAlert(BuildContext context, String fromRoute) async {
     AppUtilities.logger.d("getSubscriptionAlert");
     // selectedPrice.value = AppFlavour.getSubscriptionPrice();
+    List<ProfileType> profileTypes = List.from(ProfileType.values);
+    profileTypes.removeWhere((type) => type == ProfileType.broadcaster);
+    switch(AppFlavour.appInUse) {
+      case AppInUse.g:
+        profileTypes.removeWhere((type) => type == ProfileType.band);
+        profileTypes.removeWhere((type) => type == ProfileType.researcher);
+      case AppInUse.e:
+        profileTypes.removeWhere((type) => type == ProfileType.band);
+        profileTypes.removeWhere((type) => type == ProfileType.researcher);
+      case AppInUse.c:
+        profileTypes.removeWhere((type) => type == ProfileType.band);
+    }
+
     if(subscriptionPlans.isEmpty) await initializeSubscriptions();
 
-    if(hideBasic && subscriptionPlans.isNotEmpty) {
-      subscriptionPlans.removeWhere((s, p) => p.level == SubscriptionLevel.basic);
-      selectedPlan = subscriptionPlans.values.first;
-      selectedPlanName.value = selectedPlan.name;
-      selectedPlanImgUrl.value = selectedPlan.imgUrl;
-      if(selectedPlan.price != null) {
-        selectedPrice.value = selectedPlan.price!;
-      }
-    }
     return Alert(
         context: context,
         style: AlertStyle(
@@ -113,14 +134,39 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
             Text(('${selectedPlanName.value}Msg').tr,
               style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),textAlign: TextAlign.justify,),
             AppTheme.heightSpace20,
-            CachedNetworkImage(
-              imageUrl: selectedPlanImgUrl.value,
-              placeholder: (context, url) => const Center(
-                child: CircularProgressIndicator(),
-              ),
-              errorWidget: (context, url, error) => const Icon(Icons.error),
-            ),
+            HandledCachedNetworkImage(selectedPlanImgUrl.value),
             AppTheme.heightSpace20,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text("${AppTranslationConstants.profileType.tr}: ",
+                  style: const TextStyle(fontSize: 15),
+                ),
+                DropdownButton<ProfileType>(
+                  items: profileTypes.map((ProfileType profileType) {
+                    return DropdownMenuItem<ProfileType>(
+                      value: profileType,
+                      child: Text(profileType.value.tr.capitalize),
+                    );
+                  }).toList(),
+                  onChanged: (ProfileType? selectedType) {
+                    if (selectedType == null) return;
+                    selectProfileType(selectedType);
+                  },
+                  value: profileType.value,
+                  alignment: Alignment.center,
+                  icon: const Icon(Icons.arrow_downward),
+                  iconSize: 20,
+                  elevation: 16,
+                  style: const TextStyle(color: Colors.white),
+                  dropdownColor: AppColor.getMain(),
+                  underline: Container(
+                    height: 1,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -128,7 +174,7 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
                   style: const TextStyle(fontSize: 15),
                 ),
                 DropdownButton<String>(
-                  items: subscriptionPlans.values.map((SubscriptionPlan plan) {
+                  items: profilePlans.values.map((SubscriptionPlan plan) {
                     return DropdownMenuItem<String>(
                       value: plan.id,
                       child: Text(plan.name.tr),
@@ -176,7 +222,7 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
           DialogButton(
             color: AppColor.bondiBlue75,
             onPressed: () async {
-              await paySubscription(fromRoute, selectedPlan);
+              await paySubscription(selectedPlan, fromRoute);
 
             },
             child: Text(AppTranslationConstants.confirmAndProceed.tr,
@@ -187,11 +233,11 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
     ).show();
   }
 
-  Future<void> paySubscription(String fromRoute, SubscriptionPlan subscriptionPlan) async {
+  Future<void> paySubscription(SubscriptionPlan subscriptionPlan, String fromRoute) async {
     AppUtilities.logger.d("Entering paySusbscription Method");
 
     try {
-      Get.toNamed(AppRouteConstants.orderConfirmation, arguments: [selectedPlan, fromRoute]);
+      Get.toNamed(AppRouteConstants.orderConfirmation, arguments: [subscriptionPlan, fromRoute, profileType.value]);
     } catch (e) {
       AppUtilities.logger.e(e.toString());
     }
@@ -240,6 +286,40 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
     update([AppPageIdConstants.accountSettings]);
   }
 
+  @override
+  void selectProfileType(ProfileType type) {
+    try {
+      profileType.value = type;
+      setProfileTypePlans();
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+  }
+
+  @override
+  Future<void> updateProfileType() async {
+    try {
+      if(profileType.value != profile.type && profile.id.isNotEmpty) {
+        if(await ProfileFirestore().updateType(profile.id, profileType.value)) {
+          Get.back();
+          AppUtilities.showSnackBar(
+              title: AppTranslationConstants.updateProfileType.tr,
+              message: AppTranslationConstants.updateProfileTypeSuccess.tr);
+          userController.profile.type = profileType.value;
+          profile.type = profileType.value;
+        }
+
+      } else {
+        AppUtilities.showSnackBar(
+            title: AppTranslationConstants.updateProfileType.tr,
+            message: AppTranslationConstants.updateProfileTypeSame.tr);
+      }
+
+
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+  }
 
 
 }

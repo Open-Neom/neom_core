@@ -5,7 +5,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../domain/model/app_media_item.dart';
 import '../../domain/model/item_list.dart';
-import '../../domain/repository/app_media_item_repository.dart';
 import '../../utils/app_utilities.dart';
 import '../../utils/enums/app_media_source.dart';
 import '../../utils/enums/media_item_type.dart';

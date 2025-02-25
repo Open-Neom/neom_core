@@ -24,8 +24,9 @@ class LoginPage extends StatelessWidget {
         init: LoginController(),
         builder: (_) => Scaffold(
           backgroundColor: AppColor.main50,
+          // resizeToAvoidBottomInset: true,
           body: SafeArea(
-            child: Container(
+            child: SingleChildScrollView(child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 40,),
               width: AppTheme.fullWidth(context),
               height: AppTheme.fullHeight(context),
@@ -68,7 +69,7 @@ class LoginPage extends StatelessWidget {
                     if(MediaQuery.of(context).orientation == Orientation.landscape) AppTheme.heightSpace50,
                   ],
               ),
-            ),
+            ),),
           ),
         ),
     );
