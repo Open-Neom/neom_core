@@ -8,14 +8,17 @@ import '../../utils/app_theme.dart';
 import '../../utils/app_utilities.dart';
 import '../../utils/constants/app_constants.dart';
 import '../../utils/constants/app_translation_constants.dart';
+import 'app_circular_progress_indicator.dart';
 import 'appbar_child.dart';
 import 'video_play_button.dart';
 
 class FullScreenVideo extends StatefulWidget {
-
-  final String? thumbnailUrl;
+  
+  
   final String? mediaUrl;
-  const FullScreenVideo({this.thumbnailUrl, this.mediaUrl, super.key});
+  final VideoPlayerController? controller;
+
+  const FullScreenVideo({this.mediaUrl, this.controller,  super.key});
 
   @override
   FullScreenVideoState createState() => FullScreenVideoState();
@@ -32,18 +35,23 @@ class FullScreenVideoState extends State<FullScreenVideo> {
   
   @override
   void initState() {
-    super.initState();   
-    controller = VideoPlayerController.networkUrl(Uri.parse(widget.mediaUrl ?? ''))
-      ..initialize().then((_) {
-        /// Ensure the first frame is shown after the video is initialized,
-        /// even before the play button has been pressed.
-        setState(() {
-          isLoading = false;
+    super.initState();
+    if(widget.controller != null) {
+      controller = widget.controller!;
+    } else {
+      controller = VideoPlayerController.networkUrl(Uri.parse(widget.mediaUrl ?? ''))
+        ..initialize().then((_) {
+          /// Ensure the first frame is shown after the video is initialized,
+          /// even before the play button has been pressed.
+          // setState(() {
+          //   isLoading = false;
+          // });
         });
-      });
+    }
 
     controller.play().then((_) {
       setState(() {
+        isLoading = false;
         isPlaying = true;
       });
     });
@@ -58,7 +66,7 @@ class FullScreenVideoState extends State<FullScreenVideo> {
   void dispose() {
     super.dispose();
     // Ensure disposing of the VideoPlayerController to free up resources.
-    controller.dispose();
+    if(widget.controller == null) controller.dispose();
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown
@@ -121,17 +129,7 @@ class FullScreenVideoState extends State<FullScreenVideo> {
                   ),
               ],)
             ) : const SizedBox.shrink(),
-          ) : Stack(
-              children: [
-                Center(
-                  child: CachedNetworkImage(
-                    imageUrl: widget.thumbnailUrl!,
-                    width: AppTheme.fullWidth(context),
-                    fit: BoxFit.fitWidth,),
-                ),
-                const Center(child: CircularProgressIndicator(),),
-              ]
-          ),
+          ) : AppCircularProgressIndicator(),
       ),
     );
   }

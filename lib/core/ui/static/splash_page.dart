@@ -41,7 +41,7 @@ class SplashPage extends StatelessWidget {
                 const SizedBox(height: 30,),
                 const CircularProgressIndicator(),
                 const SizedBox(height: 30,),
-                Obx(() => Text(_.subtitle.tr,
+                Obx(() => Text(_.subtitle.value.tr,
                     style: TextStyle(
                       color: Colors.white.withOpacity(1.0),
                       fontFamily: AppTheme.fontFamily,

@@ -4,6 +4,15 @@ class AppHiveConstants {
   //TODO Migrateto ENUM
   static const String userId = 'userId';
   static const String name = 'name';
+  static const String username = 'username';
+  static const String firstTime = 'firstTime';
+  static const String profileId = 'profileId';
+  static const String photoUrl = 'photoUrl';
+  static const String aboutMe = 'aboutMe';
+  static const String appLocale = 'appLocale';
+
+  static const String lastNotificationCheckDate = 'lastNotificationCheckDate';
+
   static const String region = 'region';
   static const String preferredLanguage = 'preferredLanguage';
   static const String useProxy = 'useProxy';
@@ -54,6 +63,8 @@ class AppHiveConstants {
   static const String lastUpdate = 'lastUpdate';
   static const String directoryProfiles = 'directoryProfiles';
 
+  static const String getLyricsOnline = 'getLyricsOnline';
+  static const String enableGesture = 'enableGesture';
   ///PREFERENCES
 
 }

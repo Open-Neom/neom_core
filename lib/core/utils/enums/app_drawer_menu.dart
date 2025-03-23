@@ -19,7 +19,9 @@ enum AppDrawerMenu {
   crowdfunding("crowdfunding"),
   logout("releaseUpload"),
   releaseUpload("releaseUpload"),
-  inspiration("inspiration");
+  inspiration("inspiration"),
+  nupale("nupale"),
+  casete("casete");
 
   final String value;
   const AppDrawerMenu(this.value);

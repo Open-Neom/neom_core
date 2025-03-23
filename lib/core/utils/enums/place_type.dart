@@ -1,4 +1,5 @@
 enum PlaceType {
+  general('general'),
   academy("academy"),
   bar("bar"),
   cafe("cafe"),

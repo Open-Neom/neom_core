@@ -13,16 +13,34 @@ import 'utils/enums/verification_level.dart';
 
 class AppFlavour {
 
+  static final AppFlavour _instance = AppFlavour._internal();
+
+  factory AppFlavour({required AppInUse inUse, required String version}) {
+    _instance._init(inUse, version);
+    return _instance;
+  }
+
+  AppFlavour._internal(); // Constructor privado para Singleton
+
   static AppInUse appInUse = AppInUse.e;
   static String appVersion = "";
   static dynamic appProperties = {};
 
-  AppFlavour({required AppInUse inUse, required String version,}) {
-    appInUse = inUse;
-    appVersion = version;
+  /// Flag para garantizar que `readProperties()` solo se llame una vez
+  static bool _isPropertiesRead = false;
+
+  /// Inicializa las propiedades si aún no se han leído
+  Future<void> _init(AppInUse inUse, String version) async {
+    if (!_isPropertiesRead) {
+      appInUse = inUse;
+      appVersion = version;
+      await readProperties();
+      _isPropertiesRead = true;
+    }
   }
 
   static Future<void> readProperties() async {
+    AppUtilities.logger.t("readProperties");
     String jsonString = await rootBundle.loadString(AppAssets.propertiesJsonPath);
     appProperties = jsonDecode(jsonString);
   }
@@ -131,25 +149,11 @@ class AppFlavour {
   }
 
   static String getWebContact() {
-    switch (appInUse) {
-      case AppInUse.g:
-        return appProperties['webContact'];
-      case AppInUse.e:
-        return appProperties['webContact'];
-      case AppInUse.c:
-        return appProperties['webContact'];
-    }
+    return appProperties['webContact'] ?? '';
   }
 
   static String getNoImageUrl() {
-    switch (appInUse) {
-      case AppInUse.g:
-        return appProperties['noImageUrl'];
-      case AppInUse.e:
-        return appProperties['noImageUrl'];
-      case AppInUse.c:
-        return appProperties['noImageUrl'];
-    }
+    return appProperties['noImageUrl'] ?? '';
   }
 
   static IconData getAppItemIcon() {
@@ -204,6 +208,28 @@ class AppFlavour {
         return AppRouteConstants.audioPlayerMedia;
       case AppInUse.c:
         return AppRouteConstants.audioPlayerMedia;
+    }
+  }
+
+  static String getMainItemDetailsTag() {
+    switch (appInUse) {
+      case AppInUse.g:
+        return AppPageIdConstants.mediaPlayer;
+      case AppInUse.e:
+        return AppPageIdConstants.bookDetails;
+      case AppInUse.c:
+        return AppPageIdConstants.mediaPlayer;
+    }
+  }
+
+  static String getSecondaryItemDetailsTag() {
+    switch (appInUse) {
+      case AppInUse.g:
+        return AppPageIdConstants.mediaPlayer;
+      case AppInUse.e:
+        return AppPageIdConstants.mediaPlayer;
+      case AppInUse.c:
+        return AppPageIdConstants.mediaPlayer;
     }
   }
 

@@ -160,14 +160,14 @@ class PostFirestore implements PostRepository {
 
 
   @override
-  Future<Map<String, Post>> getTimeline() async {
+  Future<Map<String, Post>> getTimeline({int limit = AppConstants.timelineLimit}) async {
     AppUtilities.logger.t("getTimeline");
     Map<String, Post> posts = {};
 
     try {
       Query query = postsReference
           .orderBy(AppFirestoreConstants.lastInteraction, descending: true)
-          .limit(AppConstants.timelineLimit);
+          .limit(limit);
       if (_recentDocTimeline.isNotEmpty) {
         query = query.startAfterDocument(_recentDocTimeline.last);
       }

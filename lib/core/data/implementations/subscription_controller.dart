@@ -29,6 +29,8 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
   RxMap<String, SubscriptionPlan> profilePlans = <String, SubscriptionPlan>{}.obs;
 
   Rx<ProfileType>  profileType = ProfileType.general.obs;
+  Rx<FacilityType>  facilityType = FacilityType.general.obs;
+  Rx<PlaceType>  placeType = PlaceType.general.obs;
 
 
   @override
@@ -143,10 +145,10 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
                   style: const TextStyle(fontSize: 15),
                 ),
                 DropdownButton<ProfileType>(
-                  items: profileTypes.map((ProfileType profileType) {
+                  items: profileTypes.map((ProfileType type) {
                     return DropdownMenuItem<ProfileType>(
-                      value: profileType,
-                      child: Text(profileType.value.tr.capitalize),
+                      value: type,
+                      child: Text(type.value.tr.capitalize),
                     );
                   }).toList(),
                   onChanged: (ProfileType? selectedType) {
@@ -167,6 +169,69 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
                 ),
               ],
             ),
+            ///VERIFY TO DELETE
+            // if(profileType.value == ProfileType.facilitator) Row(
+            //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            //   children: [
+            //     Text("${AppTranslationConstants.type.tr}: ",
+            //       style: const TextStyle(fontSize: 15),
+            //     ),
+            //     DropdownButton<FacilityType>(
+            //       items: FacilityType.values.map((FacilityType type) {
+            //         return DropdownMenuItem<FacilityType>(
+            //           value: type,
+            //           child: Text(type.value.tr.capitalize),
+            //         );
+            //       }).toList(),
+            //       onChanged: (FacilityType? selectedType) {
+            //         if (selectedType == null) return;
+            //         selectFacilityType(selectedType);
+            //       },
+            //       value: facilityType.value,
+            //       alignment: Alignment.center,
+            //       icon: const Icon(Icons.arrow_downward),
+            //       iconSize: 20,
+            //       elevation: 16,
+            //       style: const TextStyle(color: Colors.white),
+            //       dropdownColor: AppColor.getMain(),
+            //       underline: Container(
+            //         height: 1,
+            //         color: Colors.grey,
+            //       ),
+            //     ),
+            //   ],
+            // ),
+            // if(profileType.value == ProfileType.host) Row(
+            //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            //   children: [
+            //     Text("${AppTranslationConstants.type.tr}: ",
+            //       style: const TextStyle(fontSize: 15),
+            //     ),
+            //     DropdownButton<PlaceType>(
+            //       items: PlaceType.values.map((PlaceType type) {
+            //         return DropdownMenuItem<PlaceType>(
+            //           value: type,
+            //           child: Text(type.value.tr.capitalize),
+            //         );
+            //       }).toList(),
+            //       onChanged: (PlaceType? selectedType) {
+            //         if (selectedType == null) return;
+            //         selectPlaceType(selectedType);
+            //       },
+            //       value: placeType.value,
+            //       alignment: Alignment.center,
+            //       icon: const Icon(Icons.arrow_downward),
+            //       iconSize: 20,
+            //       elevation: 16,
+            //       style: const TextStyle(color: Colors.white),
+            //       dropdownColor: AppColor.getMain(),
+            //       underline: Container(
+            //         height: 1,
+            //         color: Colors.grey,
+            //       ),
+            //     ),
+            //   ],
+            // ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -223,7 +288,6 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
             color: AppColor.bondiBlue75,
             onPressed: () async {
               await paySubscription(selectedPlan, fromRoute);
-
             },
             child: Text(AppTranslationConstants.confirmAndProceed.tr,
               style: const TextStyle(fontSize: 15),
@@ -290,6 +354,25 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
   void selectProfileType(ProfileType type) {
     try {
       profileType.value = type;
+      setProfileTypePlans();
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+  }
+
+  @override
+  void selectFacilityType(FacilityType type) {
+    try {
+      facilityType.value = type;
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+  }
+
+  @override
+  void selectPlaceType(PlaceType type) {
+    try {
+      placeType.value = type;
       setProfileTypePlans();
     } catch (e) {
       AppUtilities.logger.e(e.toString());

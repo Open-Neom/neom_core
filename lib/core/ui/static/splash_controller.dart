@@ -13,17 +13,14 @@ class SplashController extends GetxController {
   final loginController = Get.find<LoginController>();
   final userController = Get.find<UserController>();
 
-  final RxString _subtitle = "".obs;
-  String get subtitle => _subtitle.value;
-  set subtitle(String subtitle) => _subtitle.value = subtitle;
-
+  RxString subtitle = "".obs;
 
   String fromRoute = "";
   String toRoute = "";
 
   @override
-  void onInit() async {
-    logger.t("");
+  void onInit() {
+    logger.t("onInit Splash");
     super.onInit();
 
     try {
@@ -42,34 +39,34 @@ class SplashController extends GetxController {
           break;
         case AppRouteConstants.accountSettings:
           if(toRoute == AppRouteConstants.accountRemove) {
-            subtitle = AppTranslationConstants.removingAccount;
+            subtitle.value = AppTranslationConstants.removingAccount;
           } else if (toRoute == AppRouteConstants.profileRemove) {
-            subtitle = AppTranslationConstants.removingProfile;
+            subtitle.value = AppTranslationConstants.removingProfile;
           }
           break;
         case AppRouteConstants.forgotPassword:
-          subtitle = AppTranslationConstants.sendingPasswordRecovery;
+          subtitle.value = AppTranslationConstants.sendingPasswordRecovery;
           break;
         case AppRouteConstants.introReason:
-          subtitle = AppTranslationConstants.creatingAccount;
+          subtitle.value = AppTranslationConstants.creatingAccount;
           break;
         case AppRouteConstants.signup:
-          subtitle = AppTranslationConstants.creatingAccount;
+          subtitle.value = AppTranslationConstants.creatingAccount;
           break;
         case AppRouteConstants.introAddImage:
-          subtitle = AppTranslationConstants.welcome;
+          subtitle.value = AppTranslationConstants.welcome;
           break;
         case AppRouteConstants.paymentGateway:
-          subtitle = AppTranslationConstants.paymentProcessing;
+          subtitle.value = AppTranslationConstants.paymentProcessing;
           break;
         case AppRouteConstants.finishingSpotifySync:
-          subtitle = AppTranslationConstants.finishingSpotifySync;
+          subtitle.value = AppTranslationConstants.finishingSpotifySync;
           break;
         case AppRouteConstants.refresh:
-          subtitle = AppTranslationConstants.updatingApp;
+          subtitle.value = AppTranslationConstants.updatingApp;
           break;
         case AppRouteConstants.postUpload:
-          subtitle = AppTranslationConstants.updatingApp;
+          subtitle.value = AppTranslationConstants.updatingApp;
           break;
         case "":
           logger.t("There is no fromRoute");
@@ -83,67 +80,52 @@ class SplashController extends GetxController {
   }
 
   @override
-  void onReady() async {
+  void onReady() {
     super.onReady();
+    logger.t("onReady Splash");
 
-    await Future.delayed(const Duration(seconds: 1));
+    // await Future.delayed(const Duration(seconds: 1));
 
     switch(fromRoute){
       case AppRouteConstants.home:
-        await Get.offAndToNamed(toRoute);
+        Get.offAndToNamed(toRoute);
         break;
       case AppRouteConstants.logout:
-        await loginController.signOut();
+        loginController.signOut();
         break;
       case AppRouteConstants.introRequiredPermissions:
-        await loginController.signOut();
+        loginController.signOut();
         break;
       case AppRouteConstants.accountSettings:
-        if(toRoute == AppRouteConstants.accountRemove) {
-          await changeSubtitle(AppTranslationConstants.removingAccount);
-          await userController.removeAccount();
-        } else if (toRoute == AppRouteConstants.profileRemove) {
-          await changeSubtitle(AppTranslationConstants.removingProfile);
-          await userController.removeProfile();
-          Get.offAllNamed(AppRouteConstants.home);
-        }
+        handleAccountSettings();
         break;
       case AppRouteConstants.forgotPassword:
-        await changeSubtitle(AppTranslationConstants.sendingPasswordRecovery);
-        Get.offAllNamed(AppRouteConstants.login);
-        Get.snackbar(
-          AppTranslationConstants.passwordReset.tr,
-          AppTranslationConstants.passwordEmailResetSent.tr,
-          snackPosition: SnackPosition.bottom,);
+        handleForgotPassword();
         break;
       case AppRouteConstants.introReason:
-        await changeSubtitle(AppTranslationConstants.creatingAccount);
-        await userController.createUser();
+        changeSubtitle(AppTranslationConstants.creatingAccount);
+        userController.createUser();
         break;
       case AppRouteConstants.signup:
-        await changeSubtitle(AppTranslationConstants.creatingAccount);
+        changeSubtitle(AppTranslationConstants.creatingAccount);
         break;
       case AppRouteConstants.introAddImage:
-        await changeSubtitle(AppTranslationConstants.welcome);
-        await userController.createUser();
+        changeSubtitle(AppTranslationConstants.welcome);
+        userController.createUser();
         break;
       case AppRouteConstants.createAdditionalProfile:
-        await changeSubtitle(AppTranslationConstants.creatingProfile);
-        await userController.createProfile();
+        changeSubtitle(AppTranslationConstants.creatingProfile);
+        userController.createProfile();
         break;
       case AppRouteConstants.paymentGateway:
-        await changeSubtitle(AppTranslationConstants.paymentProcessed);
-        update([AppPageIdConstants.splash]);
-        //TODO VERIFY FUNCTIONALITY
-        // Get.delete<HomeController>();
-        await Get.offAllNamed(AppRouteConstants.home, arguments: [toRoute]);
+        handlePaymentGateway();
         break;
       case AppRouteConstants.finishingSpotifySync:
         AppUtilities.showSnackBar(message: AppTranslationConstants.playlistSynchFinished.tr);
-        await Get.offAllNamed(AppRouteConstants.home);
+        Get.offAllNamed(AppRouteConstants.home);
         break;
       case AppRouteConstants.refresh:
-        await Get.offAllNamed(AppRouteConstants.home);
+        Get.offAllNamed(AppRouteConstants.home);
         break;
       case "":
         logger.t("There is no fromRoute");
@@ -157,10 +139,37 @@ class SplashController extends GetxController {
     update();
   }
 
-  Future<void> changeSubtitle(String newSubtitle) async {
-    subtitle = newSubtitle;
-    await Future.delayed(const Duration(seconds: 1));
+  Future<void> handlePaymentGateway() async {
+    changeSubtitle(AppTranslationConstants.paymentProcessed);
     update([AppPageIdConstants.splash]);
+    //TODO VERIFY FUNCTIONALITY
+    // Get.delete<HomeController>();
+    await Get.offAllNamed(AppRouteConstants.home, arguments: [toRoute]);
+  }
+
+  Future<void> handleAccountSettings() async {
+    if(toRoute == AppRouteConstants.accountRemove) {
+      changeSubtitle(AppTranslationConstants.removingAccount);
+      await userController.removeAccount();
+    } else if (toRoute == AppRouteConstants.profileRemove) {
+      changeSubtitle(AppTranslationConstants.removingProfile);
+      await userController.removeProfile();
+      Get.offAllNamed(AppRouteConstants.home);
+    }
+  }
+
+  Future<void> handleForgotPassword() async {
+    changeSubtitle(AppTranslationConstants.sendingPasswordRecovery);
+    Get.offAllNamed(AppRouteConstants.login);
+    Get.snackbar(
+      AppTranslationConstants.passwordReset.tr,
+      AppTranslationConstants.passwordEmailResetSent.tr,
+      snackPosition: SnackPosition.bottom,);
+  }
+
+  void changeSubtitle(String newSubtitle) {
+    subtitle.value = newSubtitle;
+    // await Future.delayed(const Duration(seconds: 1));
   }
 
 }

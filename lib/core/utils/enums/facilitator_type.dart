@@ -1,16 +1,14 @@
 enum FacilityType {
+  general('general'),
   producer('producer'),
   publisher('publisher'),
   printing('printing'),
-  designer('designer'),
   teacher('teacher'),
-  workshop('workshop'),
   store('store'),
-  photographer('photographer'),
   podcaster('podcaster'),
   radio('radio'),
   recordStudio('recordStudio'),
-  equipmentRental('equipmentRental'),
+  soundRental('soundRental'),
   rehearsalRoom('rehearsalRoom'),
   other('other');
 

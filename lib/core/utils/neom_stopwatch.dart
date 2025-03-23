@@ -1,6 +1,11 @@
 import 'package:neom_commons/core/utils/app_utilities.dart';
 
 class NeomStopwatch {
+
+  static final NeomStopwatch _instance = NeomStopwatch._internal();
+  factory NeomStopwatch() => _instance;
+  NeomStopwatch._internal();
+
   // Mapa que asocia cada referencia (p. ej. el id del media item) a su Stopwatch
   final Map<String, Stopwatch> _stopwatches = {};
   // Mapa para acumular el tiempo reproducido de cada referencia en segundos

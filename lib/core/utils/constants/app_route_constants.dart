@@ -181,4 +181,7 @@ class AppRouteConstants {
   static const String wooWebView  = '/woo/webView';
   static const String stripeWebView  = '/stripe/webview';
 
+  static const String nupaleStats  = '/stats/nupale';
+  static const String caseteStats  = '/stats/casete';
+
 }

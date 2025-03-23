@@ -5,6 +5,7 @@ import 'dart:math';
 
 import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fba;
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -12,6 +13,8 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import '../../../core/data/firestore/app_info_firestore.dart';
 import '../../../core/data/firestore/constants/app_firestore_constants.dart';
+import '../../../core/data/implementations/app_hive_controller.dart';
+import '../../../core/data/implementations/push_notification_service.dart';
 import '../../../core/data/implementations/shared_preference_controller.dart';
 import '../../../core/data/implementations/user_controller.dart';
 import '../../../core/domain/model/app_info.dart';
@@ -35,7 +38,6 @@ import 'login_page.dart';
 class LoginController extends GetxController implements LoginService {
 
   final userController = Get.find<UserController>();
-  final sharedPreferenceController = Get.find<SharedPreferenceController>();
 
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
@@ -66,7 +68,7 @@ class LoginController extends GetxController implements LoginService {
   bool isIOS13OrHigher = false;
 
   @override
-  void onInit() async {
+  void onInit() {
     super.onInit();
     AppUtilities.logger.t("onInit Login Controller");
     appInfo.value = AppInfo();
@@ -82,12 +84,12 @@ class LoginController extends GetxController implements LoginService {
   }
 
   @override
-  void onReady() async {
+  void onReady() {
     super.onReady();
     AppUtilities.logger.t("onReady Login Controller");
-    await getAppInfo();
     isLoading.value = false;
-    update([AppPageIdConstants.login]);
+    getAppInfo();
+    // update([AppPageIdConstants.login]);
   }
 
   @override
@@ -148,7 +150,6 @@ class LoginController extends GetxController implements LoginService {
           authStatus.value = AuthStatus.loggedIn;
           Get.toNamed(AppRouteConstants.introRequiredPermissions);
         } else {
-          sharedPreferenceController.setFirstTime(false);
           Get.offAllNamed(AppRouteConstants.root);
         }
       }
@@ -163,14 +164,14 @@ class LoginController extends GetxController implements LoginService {
       isLoading.value = false;
     }
 
-    update([AppPageIdConstants.login]);
+    update([AppPageIdConstants.login, AppPageIdConstants.root]);
   }
 
   @override
   Future<void> getAppInfo() async {
     appInfo.value = await AppInfoFirestore().retrieve();
     AppUtilities.logger.i(appInfo.value.toString());
-    update([AppPageIdConstants.login]);
+    // update([AppPageIdConstants.login]);
   }
 
 
@@ -179,7 +180,7 @@ class LoginController extends GetxController implements LoginService {
 
     isButtonDisabled.value = true;
     isLoading.value = true;
-    update([AppPageIdConstants.login]);
+    // update([AppPageIdConstants.login]);
 
     loginMethod = logMethod;
 
@@ -207,7 +208,7 @@ class LoginController extends GetxController implements LoginService {
     }
 
     isButtonDisabled.value = false;
-    update([AppPageIdConstants.login]);
+    // update([AppPageIdConstants.login]);
   }
 
   @override
@@ -268,23 +269,6 @@ class LoginController extends GetxController implements LoginService {
 
     update([AppPageIdConstants.login]);
   }
-
-
-  String generateNonce([int length = 32]) {
-    const charset = '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
-    final random = Random.secure();
-    return List.generate(length, (_) => charset[random.nextInt(charset.length)])
-        .join();
-  }
-
-
-  /// Returns the sha256 hash of [input] in hex notation.
-  String sha256ofString(String input) {
-    final bytes = utf8.encode(input);
-    final digest = sha256.convert(bytes);
-    return digest.toString();
-  }
-
 
   @override
   Future<void> appleLogin() async {
@@ -375,7 +359,7 @@ class LoginController extends GetxController implements LoginService {
       }
     }
 
-    update([AppPageIdConstants.login]);
+    // update([AppPageIdConstants.login]);
   }
 
   //TODO To Verify Implementation
@@ -403,7 +387,7 @@ class LoginController extends GetxController implements LoginService {
     }
 
     AppUtilities.logger.i("signOut method finished");
-    update([AppPageIdConstants.login]);
+    // update([AppPageIdConstants.login]);
   }
 
 
@@ -436,7 +420,7 @@ class LoginController extends GetxController implements LoginService {
           break;
         case(LoginMethod.apple):
           final rawNonce = generateNonce();
-          final nonce = sha256ofString(rawNonce);
+          final nonce = AppUtilities.sha256ofString(rawNonce);
 
           AuthorizationCredentialAppleID appleCredential = await SignInWithApple.getAppleIDCredential(
             scopes: [
@@ -480,14 +464,14 @@ class LoginController extends GetxController implements LoginService {
       );
     }
 
-    update([AppPageIdConstants.login]);
+    // update([AppPageIdConstants.login]);
     return credentials;
   }
 
   @override
   void setAuthStatus(AuthStatus status) {
     authStatus.value = status;
-    update([AppPageIdConstants.login]);
+    // update([AppPageIdConstants.login]);
   }
 
   @override
@@ -497,9 +481,9 @@ class LoginController extends GetxController implements LoginService {
 
     if (appInfo.value.lastStableBuild > appLastStableBuild) {
       rootPage = const PreviousVersionPage();
-    } else if(sharedPreferenceController.firstTime) {
+    } else if(AppHiveController().firstTime) {
       rootPage = const OnGoing();
-      sharedPreferenceController.updateFirstTIme(false);
+      AppHiveController().setFirstTime(false);
     } else if(authStatus.value == AuthStatus.loggingIn) {
       rootPage = const SplashPage();
     } else if (authStatus.value == AuthStatus.loggedIn
@@ -518,7 +502,7 @@ class LoginController extends GetxController implements LoginService {
   @override
   void setIsLoading(bool loading) {
     isLoading.value = loading;
-    update([AppPageIdConstants.login]);
+    // update([AppPageIdConstants.login]);
   }
 
   Future<void> verifyPhoneNumber(String phoneNumber) async {
@@ -563,6 +547,5 @@ class LoginController extends GetxController implements LoginService {
     }
     return false;
   }
-
 
 }

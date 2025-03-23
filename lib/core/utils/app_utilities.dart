@@ -1,16 +1,19 @@
+import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
+import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
+import 'package:get_time_ago/get_time_ago.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:timeago/timeago.dart' as timeago;
 
 import '../../neom_commons.dart';
 import 'enums/itemlist_type.dart';
@@ -20,6 +23,20 @@ class AppUtilities {
   ///Logger to log different types of events within the app.
   ///i - info | d - debug | w - warning - | e - error | t - trace
   static final logger = Logger();
+
+  /// Returns the sha256 hash of [input] in hex notation.
+  static String sha256ofString(String input) {
+    final bytes = utf8.encode(input);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
+  }
+
+  static String generateNonce([int length = 32]) {
+    const charset = '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+    final random = Random.secure();
+    return List.generate(length, (_) => charset[random.nextInt(charset.length)])
+        .join();
+  }
 
   static void showAlert(BuildContext context, {String title = '',  String message = ''}) {
     if(title.isEmpty) title = AppFlavour.getAppName();
@@ -154,13 +171,13 @@ class AppUtilities {
 
   static String getTimeAgo(int createdTime, {showShort = true}) {
 
-    Locale? locale;
+    Locale? locale = Get.locale;
 
-    if(!showShort) locale = Get.locale;
+    return GetTimeAgo.parse(
+      DateTime.fromMillisecondsSinceEpoch(createdTime),
+      locale: locale?.languageCode ?? 'en_short',
+      pattern: 'dd/MM/yyyy', // Usando el patrón de solo fecha
 
-    return timeago.format(
-        DateTime.fromMillisecondsSinceEpoch(createdTime),
-        locale: locale?.languageCode ?? 'en_short'
     );
   }
 

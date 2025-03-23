@@ -1063,4 +1063,9 @@ class AppTranslationConstants {
   static const String period = 'period';
   static const String emailNotFound = 'emailNotFound';
 
+  static const String facilityType = 'facilityType';
+  static const String facilityAdded = 'facilityAdded';
+  static const String placeType = 'placeType';
+  static const String placeAdded = 'placeAdded';
+
 }

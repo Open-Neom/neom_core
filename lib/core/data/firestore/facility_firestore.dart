@@ -10,13 +10,12 @@ import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
 
 class FacilityFirestore implements FacilityRepository {
-
-  var logger = AppUtilities.logger;
+  
   final profileReference = FirebaseFirestore.instance.collectionGroup(AppFirestoreCollectionConstants.profiles);
 
   @override
   Future<Map<String,Facility>> retrieveFacilities(profileId) async {
-    logger.d("Retrieving Facility by Profile $profileId");
+    AppUtilities.logger.d("Retrieving Facility by Profile $profileId");
 
     Map<String, Facility> facilities = {};
 
@@ -35,16 +34,16 @@ class FacilityFirestore implements FacilityRepository {
         }
       }
     } catch (e) {
-      logger.e("No facilities found");
+      AppUtilities.logger.e("No facilities found");
     }
 
-    logger.d("${facilities.length} facilities found");
+    AppUtilities.logger.d("${facilities.length} facilities found");
     return facilities;
   }
 
   @override
   Future<bool> removeFacility({required String profileId, required String facilityId}) async {
-    logger.d("Removing $facilityId for by $profileId");
+    AppUtilities.logger.d("Removing $facilityId for by $profileId");
     try {
       await profileReference.get()
           .then((querySnapshot) async {
@@ -58,17 +57,17 @@ class FacilityFirestore implements FacilityRepository {
         }
       });
 
-    logger.d("Facility $facilityId removed");
+    AppUtilities.logger.d("Facility $facilityId removed");
     return true;
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
       return false;
     }
   }
 
   @override
   Future<bool> addFacility({required String profileId, required FacilityType facilityType}) async {
-    logger.d("Adding $facilityType for by $profileId");
+    AppUtilities.logger.d("Adding $facilityType for by $profileId");
 
     Facility facilityBasic = Facility.addBasic(facilityType);
     try {
@@ -83,10 +82,10 @@ class FacilityFirestore implements FacilityRepository {
         }
       });
 
-      logger.d("Facility $facilityType added");
+      AppUtilities.logger.d("Facility $facilityType added");
       return true;
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
       return false;
     }
   }
@@ -95,25 +94,25 @@ class FacilityFirestore implements FacilityRepository {
   Future<bool> updateMainFacility({required String profileId,
       required String facilityId, required String prevFacilityId}) async {
 
-    logger.d("Updating $facilityId as main for $profileId");
+    AppUtilities.logger.d("Updating $facilityId as main for $profileId");
 
     try {
       await profileReference.get()
           .then((querySnapshot) {
         for (var document in querySnapshot.docs) {
           if (document.id == profileId) {
-            logger.i("Facility $facilityId as main facility at facilities collection");
+            AppUtilities.logger.i("Facility $facilityId as main facility at facilities collection");
             document.reference
                 .collection(AppFirestoreCollectionConstants.facilities)
                 .doc(facilityId)
                 .update({AppFirestoreConstants.isMain: true});
 
-            logger.d("Facility $facilityId as main facility at profile level");
+            AppUtilities.logger.d("Facility $facilityId as main facility at profile level");
             //TODO Add to model
             //document.reference.update({GigFirestoreConstants.mainFacility: facilityId});
 
             if(prevFacilityId.isNotEmpty) {
-              logger.d("Facility $prevFacilityId unset from main facility");
+              AppUtilities.logger.d("Facility $prevFacilityId unset from main facility");
               document.reference
                   .collection(AppFirestoreCollectionConstants.facilities)
                   .doc(prevFacilityId)
@@ -125,7 +124,7 @@ class FacilityFirestore implements FacilityRepository {
 
       return true;
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
       return false;
     }
   }

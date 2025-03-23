@@ -1,12 +1,12 @@
 //TODO To remove
 class AppStaticImageUrls {
 
-  static const String forums = 'https://firebasestorage.googleapis.com/v0/b/gig-me-out.appspot.com/o/AppStatics%2FBookingAssets%2FGigmeout%20-%20Forums.png?alt=media&token=84e2afbd-c52b-4e53-ac9a-95add192a9cd';
-  static const String rehearsalRoom  = 'https://firebasestorage.googleapis.com/v0/b/gig-me-out.appspot.com/o/AppStatics%2FBookingAssets%2FGigmeout%20-%20Salas%20de%20ensayo.png?alt=media&token=faa96466-8f2f-40e9-b900-6e3f59e4d5bb';
-  static const String liveSessions = 'https://firebasestorage.googleapis.com/v0/b/gig-me-out.appspot.com/o/AppStatics%2FBookingAssets%2FGigmeout%20-%20Live%20Sessions.png?alt=media&token=d0d0f9ad-e409-402f-a193-157fcabfbdd3';
-  static const String recordStudio = 'https://firebasestorage.googleapis.com/v0/b/gig-me-out.appspot.com/o/AppStatics%2FBookingAssets%2FGigmeout%20-%20Record%20Studio.png?alt=media&token=8c28900e-f4ef-4423-8c5d-62af150f812e';
-  static const String production = 'https://firebasestorage.googleapis.com/v0/b/gig-me-out.appspot.com/o/AppStatics%2FBookingAssets%2FGigmeout%20-%20Production.png?alt=media&token=174f6f92-fd67-4566-993c-3c2b023ea427';
-  static const String homeStudio = 'https://firebasestorage.googleapis.com/v0/b/gig-me-out.appspot.com/o/AppStatics%2FBookingAssets%2FGigmeout%20-%20Home%20Studio.png?alt=media&token=25483de7-8dc4-44b4-bb0a-82b9e5446bd1';
+  // static const String forums = 'https://firebasestorage.googleapis.com/v0/b/gig-me-out.appspot.com/o/AppStatics%2FBookingAssets%2FGigmeout%20-%20Forums.png?alt=media&token=84e2afbd-c52b-4e53-ac9a-95add192a9cd';
+  // static const String rehearsalRoom  = 'https://firebasestorage.googleapis.com/v0/b/gig-me-out.appspot.com/o/AppStatics%2FBookingAssets%2FGigmeout%20-%20Salas%20de%20ensayo.png?alt=media&token=faa96466-8f2f-40e9-b900-6e3f59e4d5bb';
+  // static const String liveSessions = 'https://firebasestorage.googleapis.com/v0/b/gig-me-out.appspot.com/o/AppStatics%2FBookingAssets%2FGigmeout%20-%20Live%20Sessions.png?alt=media&token=d0d0f9ad-e409-402f-a193-157fcabfbdd3';
+  // static const String recordStudio = 'https://firebasestorage.googleapis.com/v0/b/gig-me-out.appspot.com/o/AppStatics%2FBookingAssets%2FGigmeout%20-%20Record%20Studio.png?alt=media&token=8c28900e-f4ef-4423-8c5d-62af150f812e';
+  // static const String production = 'https://firebasestorage.googleapis.com/v0/b/gig-me-out.appspot.com/o/AppStatics%2FBookingAssets%2FGigmeout%20-%20Production.png?alt=media&token=174f6f92-fd67-4566-993c-3c2b023ea427';
+  // static const String homeStudio = 'https://firebasestorage.googleapis.com/v0/b/gig-me-out.appspot.com/o/AppStatics%2FBookingAssets%2FGigmeout%20-%20Home%20Studio.png?alt=media&token=25483de7-8dc4-44b4-bb0a-82b9e5446bd1';
 
   static const List<String> warheadImgs =  [
     "https://firebasestorage.googleapis.com/v0/b/gig-me-out.appspot.com/o/RehearsalRooms%2FMexico%2FWarhead%2Fsala1.jpg?alt=media&token=d15f0e22-f31b-49e0-ae13-39f6546c8fd3",

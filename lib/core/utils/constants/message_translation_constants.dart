@@ -227,5 +227,6 @@ class MessageTranslationConstants {
   static const String updatedPhoneMsg = "updatedPhoneMsg";
 
   static const String profileTypeRelatedWithASubscriptionMsg = "profileTypeRelatedWithASubscriptionMsg";
+  static const String profileTypeRelatedWithAFacilityOrPlaceMsg = "profileTypeRelatedWithAFacilityOrPlaceMsg";
 
 }

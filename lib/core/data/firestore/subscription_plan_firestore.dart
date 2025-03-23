@@ -22,10 +22,10 @@ class SubscriptionPlanFirestore {
       QuerySnapshot querySnapshot = await subscriptionPlanReference.get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        AppUtilities.logger.d("Snapshot is not empty");
+        AppUtilities.logger.t("Snapshot is not empty");
         for (var planSnapshot in querySnapshot.docs) {
-          SubscriptionPlan plan= SubscriptionPlan.fromJSON(planSnapshot.data());
-          AppUtilities.logger.d(plan.toString());
+          SubscriptionPlan plan = SubscriptionPlan.fromJSON(planSnapshot.data());
+          AppUtilities.logger.t(plan.toString());
           plans[planSnapshot.id] = plan;
         }
         AppUtilities.logger.d("${plans.length} plans found");

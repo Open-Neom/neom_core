@@ -16,8 +16,8 @@ class CachedNetworkRoutingImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-          child: Hero(
-            tag: '${toNamed}_img_$referenceId',
+          // child: Hero(
+          //   tag: '${toNamed}_img_$referenceId',
             child: CachedNetworkImage(
               imageUrl: mediaUrl,
               fit: fit,
@@ -25,7 +25,7 @@ class CachedNetworkRoutingImage extends StatelessWidget {
                 Icons.error,
               ),
             ),
-          ),
+          // ),
           onTap: () => {
             if(toNamed.isNotEmpty)
               Get.toNamed(toNamed, arguments: [referenceId]),

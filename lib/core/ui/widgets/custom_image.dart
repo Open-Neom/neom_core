@@ -13,11 +13,12 @@ import 'full_screen_video.dart';
 import 'video_play_button.dart';
 
 Widget customCachedNetworkHeroImage(mediaUrl) {
-  AppUtilities.logger.t("Building hero widget for image url: $mediaUrl");
-  return mediaUrl == AppFlavour.getNoImageUrl() ? const SizedBox.shrink(): Hero(
-    //TODO Improve removing random int to get real hero functionality
-    tag: 'img_${mediaUrl}_${Random().nextInt(10000)}',
+  AppUtilities.logger.t("Building widget for image url: $mediaUrl");
+  return mediaUrl == AppFlavour.getNoImageUrl() ? const SizedBox.shrink(): Container(
+    ///DEPRECATED TODO Improve removing random int to get real hero functionality
+    //Hero( tag: 'img_${mediaUrl}_${Random().nextInt(10000)}',
     child: CachedNetworkImage(
+      key: ValueKey(mediaUrl),
       imageUrl: mediaUrl,
       fit: BoxFit.fill,
       errorWidget: (context,url,error) => const Icon(
@@ -30,6 +31,7 @@ Widget customCachedNetworkHeroImage(mediaUrl) {
 Widget cachedNetworkProfileImage(String profileId, String mediaUrl) {
   return GestureDetector(
     child: CachedNetworkImage(
+      key: ValueKey(mediaUrl),
         imageUrl: mediaUrl,
         fit: BoxFit.fitHeight,
         placeholder: (context, url) => const CircularProgressIndicator(),
@@ -43,8 +45,9 @@ Widget cachedNetworkProfileImage(String profileId, String mediaUrl) {
 
 Widget fileImage(mediaUrl) {
   return GestureDetector(
-      child: Hero(
-        tag: 'img_file_hero_$mediaUrl',
+    ///DEPRECATED HERO NOT NEEDED AND BAD PERFORMANCE
+      // child: Hero(
+      //   tag: 'img_file_hero_$mediaUrl',
         child: ClipRRect(
           borderRadius: BorderRadius.circular(10),
           child: Image.file(
@@ -52,64 +55,49 @@ Widget fileImage(mediaUrl) {
             fit: BoxFit.fitHeight,
           ),
         ),
-      ),
+      // ),
       onTap: () => Get.toNamed(AppRouteConstants.mediaFullScreen, arguments: [mediaUrl, false])
   );
 }
 
-// Widget fileImage(mediaUrl) {
-//   return GestureDetector(
-//     child: Hero(
-//       tag: 'img_file_hero_$mediaUrl',
-//       child: Container(
-//         decoration: BoxDecoration(
-//           borderRadius: BorderRadius.circular(10), // Adjust the radius as needed
-//           image: DecorationImage(
-//             image: FileImage(File(mediaUrl)),
-//             fit: BoxFit.fitHeight,
-//           ),
-//         ),
-//       ),
-//     ),
-//     onTap: () => Get.toNamed(AppRouteConstants.mediaFullScreen, arguments: [mediaUrl, false])
-//   );
-// }
-
 Widget cachedNetworkThumbnail({required String thumbnailUrl, required String mediaUrl}) {
   return GestureDetector(
-    child: Hero(
-      tag: 'thumbnail_$thumbnailUrl',
+    ///DEPRECATED HERO NOT NEEDED AND BAD PERFORMANCE
+    // child: Hero(
+    //   tag: 'thumbnail_$thumbnailUrl',
       child: CachedNetworkImage(
+        key: ValueKey(mediaUrl),
         imageUrl: thumbnailUrl,
         fit: BoxFit.cover,
         errorWidget: (context,url,error) => const Icon(
           Icons.error,
         ),
       ),
-    ),
-    onTap: () => Get.to(() => FullScreenVideo(thumbnailUrl: thumbnailUrl, mediaUrl: mediaUrl),
+    // ),
+    onTap: () => Get.to(() => FullScreenVideo(mediaUrl: mediaUrl),
         transition: Transition.zoom),
   );
 }
 
-Widget cachedNetworkVideoThumbnail({required String thumbnailUrl, required String mediaUrl}) {
-  return GestureDetector(
-    child: Hero(
-      tag: 'thumbnail_$thumbnailUrl',
-      child: Stack(
-        alignment: Alignment.center,
-      children: [
-        CachedNetworkImage(
-          imageUrl: thumbnailUrl,
-          fit: BoxFit.fitHeight,
-          errorWidget: (context,url,error) => const Icon(Icons.error,),
-          height: 300,
-        ),
-        VideoPlayButton(controllerFunction: () => Get.to(() => FullScreenVideo(thumbnailUrl: thumbnailUrl, mediaUrl: mediaUrl),
-            transition: Transition.zoom),)
-      ],),
-    ),
-    onTap: () => Get.to(() => FullScreenVideo(thumbnailUrl: thumbnailUrl, mediaUrl: mediaUrl),
-        transition: Transition.zoom),
-  );
-}
+// Widget cachedNetworkVideoThumbnail({required String thumbnailUrl, required String mediaUrl}) {
+//   return GestureDetector(
+//     ///DEPRECATED HERO NOT NEEDED AND BAD PERFORMANCE
+//     // child: Hero(
+//     //   tag: 'thumbnail_$thumbnailUrl',
+//       child: Stack(
+//         alignment: Alignment.center,
+//       children: [
+//         CachedNetworkImage(
+//           imageUrl: thumbnailUrl,
+//           fit: BoxFit.fitHeight,
+//           errorWidget: (context,url,error) => const Icon(Icons.error,),
+//           height: 300,
+//         ),
+//         VideoPlayButton(controllerFunction: () => Get.to(() => FullScreenVideo(mediaUrl: mediaUrl),
+//             transition: Transition.zoom),)
+//       ],),
+//     // ),
+//     onTap: () => Get.to(() => FullScreenVideo(mediaUrl: mediaUrl),
+//         transition: Transition.zoom),
+//   );
+// }

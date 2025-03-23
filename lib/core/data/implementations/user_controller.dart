@@ -31,6 +31,7 @@ import '../firestore/itemlist_firestore.dart';
 import '../firestore/profile_firestore.dart';
 import '../firestore/user_firestore.dart';
 import '../firestore/user_subscription_firestore.dart';
+import 'app_hive_controller.dart';
 import 'shared_preference_controller.dart';
 
 class UserController extends GetxController implements UserService {
@@ -55,14 +56,19 @@ class UserController extends GetxController implements UserService {
   Map<String, Itemlist> releaseItemlists = {};
 
   @override
-  void onInit() async {
+  void onInit() {
     super.onInit();
+    AppUtilities.logger.t("onInit User Controller");
+    AppHiveController().fetchProfileInfo();
   }
 
   @override
-  void onReady() async {
+  void onReady() {
+    super.onReady();
+
+    AppUtilities.logger.t("onReady User Controller");
     try {
-      fcmToken = await FirebaseMessaging.instance.getToken() ?? "";
+      getFcmToken();
     } catch (e) {
       AppUtilities.logger.e(e.toString());
     }
@@ -70,6 +76,9 @@ class UserController extends GetxController implements UserService {
     update([AppPageIdConstants.coupon]);
   }
 
+  Future<void> getFcmToken() async {
+    fcmToken = await FirebaseMessaging.instance.getToken() ?? "";
+  }
 
   @override
   Future<void> removeAccount() async {
@@ -252,7 +261,7 @@ class UserController extends GetxController implements UserService {
     }
 
     AppUtilities.logger.d("");
-    Get.find<SharedPreferenceController>().writeLocal();
+    AppHiveController().writeProfileInfo();
     update([AppPageIdConstants.login, AppPageIdConstants.home]);
   }
 
@@ -335,7 +344,7 @@ class UserController extends GetxController implements UserService {
     }
 
     AppUtilities.logger.d("");
-    Get.find<SharedPreferenceController>().writeLocal();
+    AppHiveController().writeProfileInfo();
     update([AppPageIdConstants.login, AppPageIdConstants.home]);
   }
 
@@ -366,7 +375,7 @@ class UserController extends GetxController implements UserService {
         user = userFromFirestore;
         profile = user.profiles.first;
         isNewUser = false;
-        await getUserSubscription();
+        // Future.microtask(() => getUserSubscription());
       } else {
         AppUtilities.logger.w("User $userId not exists!!");
         isNewUser = true;
@@ -386,7 +395,7 @@ class UserController extends GetxController implements UserService {
         user = userFromEmail;
         profile = user.profiles.first;
         isNewUser = false;
-        getUserSubscription();
+        // Future.microtask(() => getUserSubscription());
       } else {
         AppUtilities.logger.w("User $userEmail not exists!!");
         isNewUser = true;
@@ -491,7 +500,7 @@ class UserController extends GetxController implements UserService {
       AppUtilities.logger.e(e.toString());
     }
 
-    update([]);
+    update();
   }
 
   @override
@@ -627,7 +636,7 @@ class UserController extends GetxController implements UserService {
       AppUtilities.logger.e(e.toString());
     }
 
-    update();
+    // update();
   }
 
   @override
@@ -640,7 +649,7 @@ class UserController extends GetxController implements UserService {
       AppUtilities.logger.e(e.toString());
     }
 
-    update();
+    // update();
   }
 
   @override
@@ -654,7 +663,7 @@ class UserController extends GetxController implements UserService {
       AppUtilities.logger.e(e.toString());
     }
 
-    update();
+    // update();
   }
 
 }

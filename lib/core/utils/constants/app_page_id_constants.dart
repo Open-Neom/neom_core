@@ -1,6 +1,7 @@
 
 class AppPageIdConstants {
 
+  static const String root = "root";
   static const String splash = "splash";
   static const String login = "login";
   static const String forgotPassword = "forgot_password";
@@ -106,5 +107,6 @@ class AppPageIdConstants {
   static const String stripeWebView = 'stripeWebView';
 
   static const String offeredServices = 'offeredServices';
+  static const String youtubePlayer = 'youtubePlayer';
 
 }

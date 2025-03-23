@@ -10,7 +10,8 @@ enum AppHiveBox {
   favoriteItems(false),
   directory(false),
   nupale(false),
-  casete(false);
+  casete(false),
+  profile(false);
 
   final bool limit;
   const AppHiveBox(this.limit);
