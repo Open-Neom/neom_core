@@ -109,4 +109,6 @@ class AppPageIdConstants {
   static const String offeredServices = 'offeredServices';
   static const String youtubePlayer = 'youtubePlayer';
 
+  static const String camera = 'camera';
+
 }

@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:math';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +9,6 @@ import '../../data/implementations/user_controller.dart';
 import '../../utils/app_utilities.dart';
 import '../../utils/constants/app_route_constants.dart';
 import 'full_screen_video.dart';
-import 'video_play_button.dart';
 
 Widget customCachedNetworkHeroImage(mediaUrl) {
   AppUtilities.logger.t("Building widget for image url: $mediaUrl");

@@ -66,18 +66,15 @@ class Itemlist {
     return 'Itemlist{id: $id, name: $name, description: $description, ownerId: $ownerId, ownerName: $ownerName, ownerType: $ownerType, href: $href, imgUrl: $imgUrl, public: $public, position: $position, isModifiable: $isModifiable, appReleaseItems: $appReleaseItems, appMediaItems: $appMediaItems, uri: $uri, type: $type}';
   }
 
-  Itemlist.createBasic(this.name, desc, ownerId, ownerName, ItemlistType type) :
+  Itemlist.createBasic(this.name, desc, this.ownerId, this.ownerName, this.type) :
     id = "",
     description = desc,
     href = "",
     imgUrl = "",
     public = true,
     uri = "",
-    ownerId = ownerId,
-    ownerName = ownerName,
     ownerType = OwnerType.profile,
     appMediaItems = [],
-    type = type,
     isModifiable = true;
 
   Itemlist.fromJSON(data) :

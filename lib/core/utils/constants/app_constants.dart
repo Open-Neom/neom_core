@@ -59,7 +59,7 @@ class AppConstants {
   static const int matesLimit = 15;
   static const int profilesLimit = 1500;
   static const int maxPlaceNameLength = 28;
-  static const int maxEventNameDescLength = 25;
+  static const int maxEventNameDescLength = 50;
   static const int maxEventNameLength = 22;
   static const int maxLocationNameLength = 25;
   static const int significantDistanceKM = 5;
@@ -121,12 +121,13 @@ class AppConstants {
 
   static final List<String> appItemSize = ['Tamaño Carta - 21x29.7 - 8.5x11 ', 'Medía carta - 14x21.6cm - 6x9in', 'french', 'deutsch'];
   static const int maxVideoFileSize = 100000000; //100 MB
-  static const int verifiedMaxVideoDurationInSeconds = 60;
-  static const int adminMaxVideoDurationInSeconds = 120;
+  static const int userMaxVideoDurationInSeconds = 90;
+  static const int verifiedMaxVideoDurationInSeconds = 150;
+  static const int adminMaxVideoDurationInSeconds = 300;
   static const List<double> playbackRates = [0.75, 1.0, 1.5, 2.0, 2.5, 3.0,];
 
   static const String yyyyMMddHHmm = "yyyy-MM-dd HH:mm";
   static const String dev = "Dev";
-  static const int maxVideosPerWeek = 2;
+  static const int maxVideosPerWeek = 5;
 
 }

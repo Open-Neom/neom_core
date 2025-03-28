@@ -15,9 +15,6 @@ class AppColor {
       case AppInUse.e:
         mainColor = const Color.fromRGBO(156, 48, 26, 1);
         break;
-      case AppInUse.g:
-        mainColor = const Color.fromRGBO(22, 42, 93, 1);
-        break;
       case AppInUse.c:
         mainColor = const Color.fromRGBO(79, 25, 100, 1);
         break;
@@ -26,8 +23,8 @@ class AppColor {
     }
 
     return mainColor;
-
   }
+
   static Color main25 = getMain().withOpacity(0.25);
   static Color main50 = getMain().withOpacity(0.5);
   static Color main75 = getMain().withOpacity(0.75);

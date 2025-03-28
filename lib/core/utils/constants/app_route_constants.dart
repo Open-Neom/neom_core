@@ -184,4 +184,6 @@ class AppRouteConstants {
   static const String nupaleStats  = '/stats/nupale';
   static const String caseteStats  = '/stats/casete';
 
+  static const String camera  = '/camera';
+
 }

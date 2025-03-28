@@ -32,7 +32,6 @@ import '../firestore/profile_firestore.dart';
 import '../firestore/user_firestore.dart';
 import '../firestore/user_subscription_firestore.dart';
 import 'app_hive_controller.dart';
-import 'shared_preference_controller.dart';
 
 class UserController extends GetxController implements UserService {
 

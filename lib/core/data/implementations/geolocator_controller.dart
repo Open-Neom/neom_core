@@ -173,4 +173,46 @@ class GeoLocatorController implements GeoLocatorService {
     return newPosition;
   }
 
+  Future<List<String>> getNearbySimpleAddresses(Position currentPos, {int numberOfSuggestions = 10}) async {
+    List<String> addresses = [];
+
+    try {
+      if (currentPos.latitude == 0 || currentPos.longitude == 0) return addresses;
+
+      double offset = 0.020; // ~2000 metros, puedes ajustar
+      List<Future<String>> futures = [];
+
+      // Genera posiciones ligeramente desplazadas alrededor del punto original
+      for (int i = 0; i < numberOfSuggestions; i++) {
+        double latOffset = (i % 2 == 0 ? offset : -offset) * (i / 2).ceil();
+        double lngOffset = (i % 3 == 0 ? offset : -offset) * (i / 3).ceil();
+
+        futures.add(getAddressSimple(Position(
+          latitude: currentPos.latitude + latOffset,
+          longitude: currentPos.longitude + lngOffset,
+          timestamp: DateTime.now(),
+          accuracy: 0,
+          altitude: 0,
+          heading: 0,
+          speed: 0,
+          speedAccuracy: 0,
+          altitudeAccuracy: 0,
+          headingAccuracy: 0,
+        )));
+      }
+
+      // Espera a obtener todas las direcciones
+      addresses = await Future.wait(futures);
+
+      // Eliminar direcciones duplicadas
+      addresses = addresses.toSet().toList();
+
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+
+    return addresses;
+  }
+
+
 }

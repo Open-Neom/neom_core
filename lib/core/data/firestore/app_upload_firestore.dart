@@ -19,6 +19,11 @@ class AppUploadFirestore implements AppUploadRepository {
   Future<String> uploadImage(String mediaId, File file, UploadImageType uploadImageType) async {
     String imgUrl = "";
     try {
+      if (!file.existsSync()) {
+        AppUtilities.logger.e('El archivo no existe en la ruta: ${file.path}');
+        return "";
+      }
+
       UploadTask uploadTask = storageRef.child("${uploadImageType.name.toLowerCase()}_imgs")
           .child("${uploadImageType.name.toLowerCase()}_$mediaId.jpg").putFile(file);
       TaskSnapshot storageSnap = await uploadTask;

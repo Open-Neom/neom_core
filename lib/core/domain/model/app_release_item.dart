@@ -1,12 +1,8 @@
 import 'package:enum_to_string/enum_to_string.dart';
 
 import '../../../neom_commons.dart';
-import '../../utils/enums/app_currency.dart';
-import '../../utils/enums/owner_type.dart';
 import '../../utils/enums/release_status.dart';
 import '../../utils/enums/release_type.dart';
-import 'place.dart';
-import 'price.dart';
 import 'woo/woo_product.dart';
 
 class AppReleaseItem {

@@ -1,4 +1,4 @@
-import 'package:neom_commons/core/utils/app_utilities.dart';
+import 'app_utilities.dart';
 
 class NeomStopwatch {
 
@@ -53,7 +53,7 @@ class NeomStopwatch {
 
   /// Detiene el stopwatch para [ref] (pausándolo si está corriendo) y devuelve el tiempo total
   int stop({String? ref}) {
-    if(ref == null) ref = currentReference;
+    ref ??= currentReference;
     if (_stopwatches.containsKey(ref)) {
       if (_stopwatches[ref]!.isRunning) {
         pause(ref);

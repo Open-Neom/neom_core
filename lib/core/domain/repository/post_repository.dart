@@ -11,7 +11,6 @@ abstract class PostRepository {
   Future<bool> handleLikePost(String profileId, String postId, bool isLiked);
   Future<List<Post>> getProfilePosts(String profileId);
   Future<Map<String, Post>> getTimeline();
-  ///DEPRECATED Future<Map<String, Post>> getNextTimeline();
   Future<bool> addComment(String postId, String commentId);
   Future<bool> removeComment(String postId, String commentId);
   Future<Post> retrievePostForEvent(String eventId);

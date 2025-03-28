@@ -45,8 +45,6 @@ class Band {
   List<String>? events;
   List<String>? reviews;
 
-  ///DEPRECATED List<String>? appMediaItems;
-  ///DEPRECATED List<String>? appReleaseItems;
   List<String>? playingEvents;
 
   List<String>? requests;

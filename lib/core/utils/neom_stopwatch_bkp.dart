@@ -1,4 +1,4 @@
-import 'package:neom_commons/core/utils/app_utilities.dart';
+import 'app_utilities.dart';
 
 class NeomStopwatch {
 

@@ -12,6 +12,7 @@ class ReadMoreContainer extends StatelessWidget {
   final double padding;
   final double letterSpacing;
   final Color? color;
+  final bool isCollapsed;
 
   const ReadMoreContainer({
     this.text = '',
@@ -20,6 +21,7 @@ class ReadMoreContainer extends StatelessWidget {
     this.padding = 10,
     this.letterSpacing = 0.5,
     this.color,
+    this.isCollapsed = true,
     super.key
   });
 
@@ -40,6 +42,7 @@ class ReadMoreContainer extends StatelessWidget {
           color: color
         ),
         trimExpandedText: ' ${AppTranslationConstants.less.tr.capitalizeFirst}',
+        isCollapsed: ValueNotifier(isCollapsed),
       ),
     );
   }

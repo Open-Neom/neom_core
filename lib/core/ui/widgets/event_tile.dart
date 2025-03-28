@@ -20,33 +20,38 @@ class EventTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 120,
+      constraints: BoxConstraints(minHeight: 120),
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         color: AppColor.main75,
         borderRadius: BorderRadius.circular(8)
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           Expanded(
+            flex: 2,
             child: Container(
-              padding: const EdgeInsets.only(left: 10),
+              padding: const EdgeInsets.only(left: 0, right: 5, top: 10, bottom: 10),
               width: MediaQuery.of(context).size.width,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  kDebugMode && event.isTest ? Text(AppTranslationConstants.test.tr,
+                  kDebugMode && event.isTest ? Text('(${AppTranslationConstants.test.tr})',
                       style: const TextStyle(fontWeight: FontWeight.bold)
                   ) : const SizedBox.shrink(),
-                  Text(
-                      event.name.length <= AppConstants.maxEventNameLength ? event.name.capitalizeFirst
-                          : "${event.name.substring(0,AppConstants.maxEventNameLength)}...",
-                      style: const TextStyle(fontWeight: FontWeight.bold)
+                  Text(event.name.capitalizeFirst,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    maxLines: 2, overflow: TextOverflow.ellipsis,
                   ),
                   AppTheme.heightSpace5,
-                  Text(event.description.length <= AppConstants.maxEventNameDescLength ? event.description.capitalizeFirst
-                      : "${event.description.substring(0,AppConstants.maxEventNameDescLength).capitalizeFirst}..."
+                  Text(event.description
+                      .replaceAll(RegExp(r'\s+'), ' ') // Reemplaza saltos y espacios múltiples con un espacio
+                      .trim()
+                      .capitalizeFirst,
+                    style: const TextStyle(fontSize: 14),
+                    maxLines: 3, overflow: TextOverflow.ellipsis,
                   ),
                   AppTheme.heightSpace5,
                   Row(
@@ -55,9 +60,7 @@ class EventTile extends StatelessWidget {
                       AppTheme.widthSpace5,
                       Text(DateFormat.yMMMd(AppTranslationConstants.es)
                             .format(DateTime.fromMillisecondsSinceEpoch(event.eventDate)),
-                        style: const TextStyle(
-                          fontSize: 12
-                        )
+                        style: const TextStyle(fontSize: 12)
                       )
                     ],
                   ),
@@ -67,28 +70,33 @@ class EventTile extends StatelessWidget {
                     children: <Widget>[
                       const Icon(Icons.location_on, size: 12),
                       AppTheme.widthSpace5,
-                      Text(event.place!.name.length <= AppConstants.maxPlaceNameLength ? event.place!.name
-                          : "${event.place!.name.substring(0,AppConstants.maxPlaceNameLength)}...",
-                        style: const TextStyle(
-                          fontSize: 12
-                        )
-                      )
+                      Expanded(
+                        child: Text(
+                          event.place!.name,
+                          style: const TextStyle(fontSize: 12),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                     ],
                   ),
                 ],
               ),
             ),
           ),
-          ClipRRect(
-              borderRadius: const BorderRadius.only(topRight: Radius.circular(20), bottomRight: Radius.circular(20)),
-              child: CachedNetworkImage(
-                imageUrl: event.imgUrl.isNotEmpty ? event.imgUrl
-                    : AppFlavour.getNoImageUrl(),
-                height: 120,
-                width: 120,
-                fit: BoxFit.cover
-              )
-          ),
+          Expanded(
+            flex: 1,
+            child: ClipRRect(
+                borderRadius: const BorderRadius.only(topRight: Radius.circular(20), bottomRight: Radius.circular(20)),
+                child: CachedNetworkImage(
+                    imageUrl: event.imgUrl.isNotEmpty ? event.imgUrl
+                        : AppFlavour.getNoImageUrl(),
+                    // height: 120,
+                    // width: 120,
+                    fit: BoxFit.cover
+                )
+            ),
+          )
         ],
       ),
     );

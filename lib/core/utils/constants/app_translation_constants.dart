@@ -926,6 +926,7 @@ class AppTranslationConstants {
   static const String allowedContentReminderMsg = 'allowedContentReminderMsg';
 
   static const String openCropPage = 'openCropPage';
+  static const String clipEditor = 'clipEditor';
   static const String videoEditor = 'videoEditor';
   static const String videoCropper = 'videoCropper';
   static const String leaveVideoEditor = 'leaveVideoEditor';
