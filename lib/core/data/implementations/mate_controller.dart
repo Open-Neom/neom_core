@@ -21,8 +21,7 @@ import '../firestore/profile_firestore.dart';
 import 'geolocator_controller.dart';
 
 class MateController extends GetxController implements MateService {
-
-  var logger = AppUtilities.logger;
+  
   final userController = Get.find<UserController>();
   AppProfile profile = AppProfile();
 
@@ -44,9 +43,9 @@ class MateController extends GetxController implements MateService {
   String mateId = "";
 
   @override
-  void onInit() async {
+  void onInit() {
     super.onInit();
-    logger.t("onInit Mate Controller");
+    AppUtilities.logger.t("onInit Mate Controller");
     try {
 
       profile = userController.profile;
@@ -60,30 +59,30 @@ class MateController extends GetxController implements MateService {
       if(mateIds.isEmpty) {
         ///TODO Implement once algorithm of itemmates and eventmates is available.
         //await loadItemmates();
-        await loadProfiles();
+        loadProfiles();
       } else {
-        await loadMatesFromList(mateIds);
+        loadMatesFromList(mateIds);
       }
 
       ///TODO Implement once algorithm of itemmates and eventmates is available.
       //totalProfiles.addAll(itemmates);
       totalProfiles.addAll(profiles);
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
   }
 
 
   @override
   Future<void> loadMates() async {
-    logger.d("");
+    AppUtilities.logger.d("");
 
     try {
       if(profile.itemmates?.isNotEmpty ?? false) {
         mates.value = await MateFirestore().getMatesFromList(profile.itemmates!);
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     isLoading.value = false;
@@ -92,7 +91,7 @@ class MateController extends GetxController implements MateService {
 
 
   Future<void> loadFollowingProfiles() async {
-    logger.d("loadFollowingProfiles");
+    AppUtilities.logger.d("loadFollowingProfiles");
 
     try {
       if(profile.following?.isNotEmpty ?? false) {
@@ -100,43 +99,43 @@ class MateController extends GetxController implements MateService {
       }
 
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     isLoading.value = false;
-    logger.d("${followingProfiles.length} followingProfiles  found ");
+    AppUtilities.logger.d("${followingProfiles.length} followingProfiles  found ");
     update([AppPageIdConstants.mates, AppPageIdConstants.search]);
   }
 
 
   Future<void> loadFollowersProfiles() async {
-    logger.d("");
+    AppUtilities.logger.d("");
 
     try {
       if(profile.followers?.isNotEmpty ?? false) {
         followerProfiles.value = await MateFirestore().getMatesFromList(profile.followers!);
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     isLoading.value = false;
-    logger.d("${followingProfiles.length} followingProfiles  found ");
+    AppUtilities.logger.d("${followingProfiles.length} followingProfiles  found ");
     update([AppPageIdConstants.mates, AppPageIdConstants.search]);
   }
 
 
   @override
   Future<void> loadMatesFromList(List<String> mateIds) async {
-    logger.t("Load ${mateIds.length} mates from List");
+    AppUtilities.logger.t("Load ${mateIds.length} mates from List");
 
     try {
       mates.value = await MateFirestore().getMatesFromList(mateIds);
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
-    logger.d("${mates.length} mates found ");
+    AppUtilities.logger.d("${mates.length} mates found ");
     isLoading.value = false;
     update([AppPageIdConstants.mates, AppPageIdConstants.search,
       AppPageIdConstants.following, AppPageIdConstants.followers, AppPageIdConstants.likes]);
@@ -165,7 +164,7 @@ class MateController extends GetxController implements MateService {
         }
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
      return filteredProfiles;
@@ -174,7 +173,7 @@ class MateController extends GetxController implements MateService {
 
   @override
   Future<void> getMateDetails(AppProfile mate) async {
-    logger.d("");
+    AppUtilities.logger.d("");
     if(mate.id != profile.id) {
       Get.toNamed(AppRouteConstants.mateDetails, arguments: mate.id);
     } else {
@@ -185,7 +184,7 @@ class MateController extends GetxController implements MateService {
 
   @override
   Future<void> loadProfiles({bool includeAddress = false}) async {
-    logger.t("loadProfiles");
+    AppUtilities.logger.t("loadProfiles");
     try {
       profiles.value = await ProfileFirestore().retrieveAllProfiles();
       profiles.remove(profile.id);
@@ -236,28 +235,28 @@ class MateController extends GetxController implements MateService {
       //   profiles = profilesWithAddress;
       // }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     isLoading.value = false;
-    logger.d("${profiles.length} profiles found ");
+    AppUtilities.logger.d("${profiles.length} profiles found ");
     update([AppPageIdConstants.mates, AppPageIdConstants.search]);
   }
 
 
   @override
   Future<void> blockMate(String mateId) async {
-    logger.d("");
+    AppUtilities.logger.d("");
     try {
       if (await ProfileFirestore().blockProfile(profileId: profile.id, profileToBlock: mateId)) {
         userController.profile.following!.remove(mateId);
         following.value = false;
         userController.profile.blockTo!.add(mateId);
       } else {
-        logger.i("Something happened while blocking profile");
+        AppUtilities.logger.i("Something happened while blocking profile");
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
     
     update([AppPageIdConstants.mate, AppPageIdConstants.profile, AppPageIdConstants.timeline]);

@@ -177,7 +177,7 @@ class ItemlistFirestore implements ItemlistRepository {
       AppUtilities.logger.e(e.toString());
     }
 
-    AppUtilities.logger.d("${itemlists .length} itemlists found in total.");
+    AppUtilities.logger.d("${itemlists.length} itemlists found in total.");
     return itemlists;
   }
 

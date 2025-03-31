@@ -1069,4 +1069,6 @@ class AppTranslationConstants {
   static const String placeType = 'placeType';
   static const String placeAdded = 'placeAdded';
 
+  static const String nupaleStatistics = 'nupaleStatistics';
+
 }

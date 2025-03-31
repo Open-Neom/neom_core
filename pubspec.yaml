@@ -113,6 +113,7 @@ dependencies:
   webview_flutter_wkwebview: ^3.18.4
 
   csv: ^6.0.0
+  fl_chart: ^0.70.2
 
 #  on_audio_query: ^2.9.0
 
