@@ -58,7 +58,6 @@ export 'core/data/implementations/user_controller.dart';
 //CORE DOMAIN
 export 'core/domain/model/activity_feed.dart';
 export 'core/domain/model/address.dart';
-export 'core/domain/model/app_analytics.dart';
 export 'core/domain/model/app_coupon.dart';
 export 'core/domain/model/app_info.dart';
 export 'core/domain/model/app_item.dart';
@@ -158,7 +157,7 @@ export 'core/utils/constants/app_analytics_constants.dart';
 export 'core/utils/constants/app_assets.dart';
 export 'core/utils/constants/app_constants.dart';
 export 'core/utils/constants/app_facebook_constants.dart';
-export 'core/utils/constants/app_google_constants.dart';
+export 'core/utils/constants/app_google_utilities.dart';
 export 'core/utils/constants/app_hero_tag_constants.dart';
 export 'core/utils/constants/app_page_id_constants.dart';
 export 'core/utils/constants/app_payment_constants.dart';

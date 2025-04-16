@@ -60,4 +60,8 @@ class AppFirestoreCollectionConstants {
 
   static const String googleBooks = "googleBooks";
 
+  static const String usersAnalytics = "usersAnalytics";
+  static const String userLocations = "userLocations";
+
+
 }

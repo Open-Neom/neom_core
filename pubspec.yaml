@@ -18,19 +18,19 @@ dependencies:
   cupertino_icons: ^1.0.8
   #DEPRECATED material_design_icons_flutter: ^7.0.7296
   font_awesome_flutter: ^10.8.0
-  lucide_icons_flutter: ^1.2.9
+  lucide_icons_flutter: ^2.0.5
   transparent_image: ^2.0.1
 
-  firebase_core: ^3.12.1
-  cloud_firestore: ^5.6.5
-  cloud_functions: ^5.3.4
-  firebase_storage: ^12.4.4
-  firebase_auth: ^5.5.1
-  firebase_messaging: ^15.2.4
-  firebase_crashlytics: ^4.3.4
+  firebase_core: ^3.13.0
+  cloud_firestore: ^5.6.6
+  cloud_functions: ^5.4.0
+  firebase_storage: ^12.4.5
+  firebase_auth: ^5.5.2
+  firebase_messaging: ^15.2.5
+  firebase_crashlytics: ^4.3.5
 
   google_sign_in: ^6.3.0
-  sign_in_with_apple: ^6.1.4
+  sign_in_with_apple: ^7.0.1
 
   crypto: ^3.0.6
 
@@ -39,27 +39,28 @@ dependencies:
   dio: ^5.8.0+1
 
   hive_flutter: ^1.1.0
-  permission_handler: ^11.4.0
+  permission_handler: ^12.0.0+1
   hive: ^2.2.3
-  shared_preferences: ^2.5.2
+  shared_preferences: ^2.5.3
 
   logger: ^2.5.0
   rflutter_alert: ^2.0.7
-  enum_to_string: ^2.2.0
+  enum_to_string: ^2.2.1
   path_provider: ^2.1.5
   image_picker: ^1.1.2
-  image_cropper: ^9.0.0
+  image_cropper: ^9.1.0
   cached_network_image: ^3.4.1
   flutter_image_compress: ^2.4.0
-  audioplayers: ^6.4.0
-  audio_service: ^0.18.17
-  video_player: ^2.9.3
-  video_compress: ^3.1.4
-  file_picker: ^9.2.1
 
-  geolocator: ^13.0.2
+  audioplayers: ^6.4.0
+  audio_service: ^0.18.18
+  video_player: ^2.9.5
+  video_compress: ^3.1.4
+  file_picker: ^10.1.2
+
+  geolocator: ^14.0.0
   geocoding: ^3.0.0
-  google_maps_flutter: ^2.11.0
+  google_maps_flutter: ^2.12.1
   google_api_headers: ^4.4.3
   neom_maps_services: ^1.0.3
   neom_google_places: ^1.0.1
@@ -74,19 +75,19 @@ dependencies:
   #Post with only text
   auto_size_text: ^3.0.0
   auto_size_text_field: ^2.2.4
-  animated_text_kit: ^4.2.2
-  percent_indicator: ^4.2.3
+  animated_text_kit: ^4.2.3
+  percent_indicator: ^4.2.5
 
   #Push notification
   awesome_notifications: ^0.10.1
 
   upgrader: ^11.0.0
 
-  uuid: ^4.5.0
+  uuid: ^4.5.1
   youtube_player_flutter: ^9.1.1
 
   google_fonts: ^6.2.1
-  html: ^0.15.4
+  html: ^0.15.5+1
 
   flutter_rating_bar: ^4.0.1
 
@@ -95,7 +96,7 @@ dependencies:
   flutter_slider_indicator: ^1.0.0
   rubber: ^1.1.0
   qr_flutter: ^4.1.0
-  flutter_stripe: ^11.4.0
+  flutter_stripe: ^11.5.0
 
   #Payment
   intl_phone_field: ^3.2.0
@@ -105,17 +106,21 @@ dependencies:
   freezed_annotation: ^2.4.1
 
   package_info_plus: ^8.3.0
-#NOT IN USE   in_app_review: ^2.0.10
   in_app_purchase: ^3.2.1
-#  flutter_localization: ^0.2.0
 
   webview_flutter: ^4.10.0
-  webview_flutter_wkwebview: ^3.18.4
+  webview_flutter_wkwebview: ^3.18.6
 
   csv: ^6.0.0
+  
+  #ANALYTICS & STATS
   fl_chart: ^0.70.2
+  flutter_animate: ^4.5.2
 
-#  on_audio_query: ^2.9.0
+#NOT IN USE
+# in_app_review: ^2.0.10
+# flutter_localization: ^0.2.0
+# on_audio_query: ^2.9.0
 
 dev_dependencies:
   flutter_test:

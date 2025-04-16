@@ -1,4 +1,8 @@
 
+import 'package:enum_to_string/enum_to_string.dart';
+
+import '../../../utils/enums/subscription_level.dart';
+
 class NupaleSession {
 
   String id; ///createdTime in milisecondsSinceEpoch as id
@@ -11,16 +15,12 @@ class NupaleSession {
   int nupale; ///REAL Number of Pages Read
   int createdTime; ///CREATED SESSION TIME IN MILISECONDSSINCEEPOCH
 
-  bool isInternalArtist;
-  bool isFreemium;
+  SubscriptionLevel? subscriptionLevel;
   bool isTest;
 
   @override
   String toString() {
-    return 'NupaleSession{id: $id, itemId: $itemId, itemName: $itemName, '
-        'ownerId: $ownerId, readerId: $readerId, pages: $pagesDuration, '
-        'nupale: $nupale, createdTime: $createdTime, '
-        'isInternalArtist: $isInternalArtist, isFreemium: $isFreemium, isTest: $isTest}';
+    return 'NupaleSession{id: $id, itemId: $itemId, itemName: $itemName, ownerId: $ownerId, readerId: $readerId, pagesDuration: $pagesDuration, nupale: $nupale, createdTime: $createdTime, subscriptionLevel: $subscriptionLevel, isTest: $isTest}';
   }
 
   NupaleSession({
@@ -32,8 +32,7 @@ class NupaleSession {
     this.pagesDuration = const {},
     this.nupale = 0,
     this.createdTime = 0,
-    this.isInternalArtist = false,
-    this.isFreemium = true,
+    this.subscriptionLevel,
     this.isTest = false,
   });
 
@@ -48,8 +47,7 @@ class NupaleSession {
       'pagesDuration': pagesDuration.map((key, value) => MapEntry(key.toString(), value)),
       'nupale': nupale,
       'createdTime': createdTime,
-      'isInternalArtist': isInternalArtist,
-      'isFreemium': isFreemium,
+      'subscriptionLevel': subscriptionLevel?.name,
       'isTest': isTest,
     };
   }
@@ -67,8 +65,7 @@ class NupaleSession {
           : {},
       nupale: json['nupale'] ?? 0,
       createdTime: json['createdTime'] ?? 0,
-      isInternalArtist: json['isInternalArtist'] ?? false,
-      isFreemium: json['isFreemium'] ?? true,
+      subscriptionLevel: EnumToString.fromString(SubscriptionLevel.values, json["subscriptionLevel"].toString()),
       isTest: json['isTest'] ?? false,
     );
   }

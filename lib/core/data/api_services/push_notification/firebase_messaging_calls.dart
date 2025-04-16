@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import '../../../app_flavour.dart';
 import '../../../domain/model/app_profile.dart';
 import '../../../utils/app_utilities.dart';
-import '../../../utils/constants/app_google_constants.dart';
+import '../../../utils/constants/app_google_utilities.dart';
 import '../../../utils/constants/app_translation_constants.dart';
 import '../../../utils/enums/push_notification_type.dart';
 import '../../firestore/profile_firestore.dart';
@@ -95,7 +95,7 @@ class FirebaseMessagingCalls {
               "imgUrl": "$imgUrl",
               "referenceId": "$referenceId",
               "notificationType": "${notificationType.name}",
-              "channelId": "$channelId"
+              "channelId": "$channelId",
               "channelKey": "$channelKey"
             },
             "apns": {
@@ -107,7 +107,7 @@ class FirebaseMessagingCalls {
             }
          }''';
 
-        Uri uri = Uri.parse(AppGoogleConstants.fcmGoogleAPIUrl);
+        Uri uri = Uri.parse(AppGoogleUtilities.fcmGoogleAPIUrl);
         response = await http.post(
           uri,
           headers: {
@@ -117,7 +117,12 @@ class FirebaseMessagingCalls {
           body: body,
         );
 
-        AppUtilities.logger.i("Firebase Messaginng Response returned as: ${response.statusCode}");
+        if(response.statusCode == 200 || response.statusCode == 201) {
+          AppUtilities.logger.i("Firebase Messaginng Response returned as: ${response.statusCode}");
+        } else {
+          AppUtilities.logger.w("Firebase Messaginng Response returned as: ${response.statusCode}");
+        }
+
       } else {
         AppUtilities.logger.w("Profile $toProfileId has no FCM registered");
       }
@@ -238,7 +243,7 @@ class FirebaseMessagingCalls {
           "imgUrl": "$imgUrl",
           "referenceId": "$referenceId",
           "notificationType": "${notificationType.name}",
-          "channelId": "$channelId"
+          "channelId": "$channelId",
           "channelKey": "$channelKey"
         },
         "apns": {
@@ -250,7 +255,7 @@ class FirebaseMessagingCalls {
         }
      }''';
 
-      Uri uri = Uri.parse(AppGoogleConstants.fcmGoogleAPIUrl);
+      Uri uri = Uri.parse(AppGoogleUtilities.fcmGoogleAPIUrl);
       response = await http.post(
         uri,
         headers: {

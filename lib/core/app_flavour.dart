@@ -266,14 +266,23 @@ class AppFlavour {
     }
   }
 
+  static String getFirebaseProjectId() {
+    switch (appInUse) {
+      case AppInUse.g:
+        return appProperties['firebaseProjectId'];
+      case AppInUse.e:
+        return appProperties['firebaseProjectId'];
+      case AppInUse.c:
+        return appProperties['firebaseProjectId'];
+    }
+  }
+
   static String getFcmKey() {
     switch (appInUse) {
       case AppInUse.g:
         return appProperties['fcmKey'];
-    //return GigConstants.fcmKey;
       case AppInUse.e:
         return appProperties['fcmKey'];
-    //return EmxiConstants.fcmKey;
       case AppInUse.c:
         return "";
     }

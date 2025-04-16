@@ -181,7 +181,11 @@ class AppRouteConstants {
   static const String wooWebView  = '/woo/webView';
   static const String stripeWebView  = '/stripe/webview';
 
-  static const String nupaleStats  = '/stats/nupale';
+  static const String nupaleStats1  = '/stats/nupale1';
+  static const String nupaleStats2  = '/stats/nupale2';
+  static const String nupaleStats3  = '/stats/nupale3';
+  static const String nupaleStats4  = '/stats/nupale4';
+  static const String nupaleStats5  = '/stats/nupale5';
   static const String caseteStats  = '/stats/casete';
 
   static const String camera  = '/camera';

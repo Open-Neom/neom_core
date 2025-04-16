@@ -1070,5 +1070,7 @@ class AppTranslationConstants {
   static const String placeAdded = 'placeAdded';
 
   static const String nupaleStatistics = 'nupaleStatistics';
+  static const String users = 'users';
+
 
 }
