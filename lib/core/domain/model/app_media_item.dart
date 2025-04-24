@@ -1,6 +1,5 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:enum_to_string/enum_to_string.dart';
-import 'package:spotify/spotify.dart';
 
 import '../../utils/app_utilities.dart';
 import '../../utils/enums/app_media_source.dart';
@@ -253,65 +252,6 @@ class AppMediaItem {
 
     AppUtilities.logger.t("Retrieving ${appMediaItems.length} total AppMediaItems.");
     return appMediaItems;
-  }
-
-  static AppMediaItem mapTrackToSong(Track track) {
-    AppMediaItem song = AppMediaItem();
-    String artistName = "";
-    String albumImgUrl = "";
-
-    try {
-      if (track.artists!.length > 1) {
-        for (var artists in track.artists!) {
-          artistName.isEmpty ? artistName = (artists.name ?? "")
-              : artistName = "$artistName, ${artists.name ?? ""}";
-        }
-      } else {
-        artistName = track.artists?.first.name ?? "";
-        albumImgUrl = track.album?.images?.first.url ?? "";
-      }
-
-      song = AppMediaItem(
-          id: track.id ?? "",
-          state: 1,
-          name: track.name ?? "",
-          artist: artistName,
-          artistId: track.artists?.first.id ?? "",
-          album: track.album?.name ?? "",
-          duration: ((track.durationMs ?? 0) / 1000).ceil(),
-          imgUrl: albumImgUrl,
-          url: track.previewUrl ?? "",
-          genres: Genre.listFromJSON(track.artists?.first.genres ?? []).map((e) => e.name).toList(),
-          mediaSource: AppMediaSource.spotify,
-          type: MediaItemType.song,
-          permaUrl: track.externalUrls?.spotify ?? ''
-      );
-
-    } catch (e) {
-      AppUtilities.logger.e(e.toString());
-    }
-
-    return song;
-  }
-
-  static List<AppMediaItem> mapTracksToSongs(Paging<Track> tracks) {
-
-    List<AppMediaItem> songs = [];
-
-    ///DEPRECATED
-    // String artistName = "";
-    // String albumImgUrl = "";
-
-    try {
-      for (var playlistTrack in tracks.itemsNative!) {
-        Track track = Track.fromJson(playlistTrack["track"]);
-        songs.add(mapTrackToSong(track));
-      }
-    } catch (e) {
-      AppUtilities.logger.e(e.toString());
-    }
-
-    return songs;
   }
 
   AppMediaItem.fromChamberPreset(ChamberPreset chamberPreset) :

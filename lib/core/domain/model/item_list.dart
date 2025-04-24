@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
-import 'package:spotify/spotify.dart';
 
 import '../../utils/app_utilities.dart';
 import '../../utils/core_utilities.dart';
@@ -135,44 +134,6 @@ class Itemlist {
     'ownerType': ownerType.name,
     'isModifiable': isModifiable
   };
-
-  static Future<Itemlist> mapPlaylistToItemlist(Playlist playlist) async {
-    AppUtilities.logger.i("Mapping Spotify Playlist ${playlist.name} to Itemlist");
-    List<AppMediaItem> appMediaItems = [];
-
-    try {
-      if (playlist.tracks != null && (playlist.tracks?.total ?? 0) > 1) {
-        appMediaItems = AppMediaItem.mapTracksToSongs(playlist.tracks!);
-      }
-    } catch (e) {
-      AppUtilities.logger.e(e.toString());
-    }
-
-    return Itemlist(
-      id: playlist.id ?? "",
-      name: playlist.name ?? "",
-      description: playlist.description ?? "",
-      href: playlist.href ?? "",
-      imgUrl: playlist.images?.first.url ?? "",
-      public: playlist.public ?? true,
-      uri: playlist.uri ?? "",
-      appMediaItems: appMediaItems
-    );
-  }
-
-  Itemlist.mapPlaylistSimpleToItemlist(PlaylistSimple playlist) :
-    id = playlist.id ?? "",
-    name = playlist.name ?? "",
-    description = playlist.description ?? "",
-    href = playlist.href ?? "",
-    imgUrl = (playlist.images?.isNotEmpty ?? false) ? playlist.images?.first.url ?? "" : "",
-    public = playlist.public ?? true,
-    isModifiable = true,
-    uri = playlist.uri ?? "",
-    ownerId = '',
-    ownerName = '',
-    type = ItemlistType.playlist,
-    ownerType = OwnerType.profile;
 
   int getTotalItems() {
     int totalItems = 0;
