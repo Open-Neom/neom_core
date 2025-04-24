@@ -1,10 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'package:neom_commons/core/data/firestore/constants/app_firestore_collection_constants.dart';
-import 'package:neom_commons/core/utils/app_utilities.dart';
 import '../../domain/model/nupale/nupale_session.dart';
 import '../../domain/use_cases/nupale_session_service.dart';
-import '../../ui/analytics/nupale/nupale_stats_page.dart';
+import '../../utils/app_utilities.dart';
+import 'constants/app_firestore_collection_constants.dart';
 
 class NupaleSessionFirestore implements NupaleSessionService {
 

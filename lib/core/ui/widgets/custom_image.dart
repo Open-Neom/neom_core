@@ -12,16 +12,12 @@ import 'full_screen_video.dart';
 
 Widget customCachedNetworkHeroImage(mediaUrl) {
   AppUtilities.logger.t("Building widget for image url: $mediaUrl");
-  return mediaUrl == AppFlavour.getNoImageUrl() ? const SizedBox.shrink(): Container(
-    ///DEPRECATED TODO Improve removing random int to get real hero functionality
-    //Hero( tag: 'img_${mediaUrl}_${Random().nextInt(10000)}',
-    child: CachedNetworkImage(
-      key: ValueKey(mediaUrl),
-      imageUrl: mediaUrl,
-      fit: BoxFit.fill,
-      errorWidget: (context,url,error) => const Icon(
-        Icons.image_not_supported,
-      ),
+  return mediaUrl == AppFlavour.getNoImageUrl() ? const SizedBox.shrink(): CachedNetworkImage(
+    key: ValueKey(mediaUrl),
+    imageUrl: mediaUrl,
+    fit: BoxFit.fill,
+    errorWidget: (context,url,error) => const Icon(
+      Icons.image_not_supported,
     ),
   );
 }

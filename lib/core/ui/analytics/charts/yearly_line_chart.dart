@@ -409,4 +409,3 @@ class _YearlyLineChartState extends State<YearlyLineChart> {
 extension Log10 on double {
   double log10() => log(this) / log(10);
 }
-
