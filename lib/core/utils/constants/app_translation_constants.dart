@@ -1072,5 +1072,19 @@ class AppTranslationConstants {
   static const String nupaleStatistics = 'nupaleStatistics';
   static const String users = 'users';
 
+  static const String createCouponMsg = 'createCouponMsg';
+  static const String couponDescription = 'couponDescription';
+  static const String qtyToContribute = 'qtyToContribute';
+  static const String couponType = 'couponType';
+  static const String coinAddition = 'coinAddition';
+  static const String productDiscount = 'productDiscount';
+  static const String cartDiscount = 'cartDiscount';
+  static const String freeShipping = 'freeShipping';
+  static const String oneMonthFree = 'oneMonthFree';
+
+  static const String searchRecipientProfile = 'searchRecipientProfile';
+  static const String writeProfileName = 'writeProfileName';
+  static const String noResults = 'noResults';
+  static const String oneMonthFreeCouponDesc = 'oneMonthFreeCouponDesc';
 
 }

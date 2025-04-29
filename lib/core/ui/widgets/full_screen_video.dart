@@ -11,6 +11,7 @@ import '../../utils/app_utilities.dart';
 import '../../utils/constants/app_constants.dart';
 import '../../utils/constants/app_translation_constants.dart';
 import 'app_circular_progress_indicator.dart';
+import 'appbar_child.dart';
 import 'header_intro.dart';
 import 'video_play_button.dart';
 
@@ -121,7 +122,6 @@ class FullScreenVideoState extends State<FullScreenVideo> with SingleTickerProvi
     return Scaffold(
       // extendBodyBehindAppBar: true,
       backgroundColor: AppColor.main50,
-      // appBar: AppBarChild(color: Colors.transparent),
       body: Container(
         decoration: AppTheme.appBoxDecoration,
         child: !isLoading ?
@@ -138,28 +138,11 @@ class FullScreenVideoState extends State<FullScreenVideo> with SingleTickerProvi
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   SizedBox(height: MediaQuery.of(context).size.height * 0.05),
-                  HeaderIntro(title: 'Clips'),
+                  HeaderIntro(title: 'Clips', showPreLogo: false,),
                   AppTheme.heightSpace30,
                 ],
               ),
             ),
-            // Align(
-            //   alignment: Alignment.topCenter,
-            //   child: Padding(
-            //     padding: EdgeInsets.only(
-            //       top: screenCenter - (videoHeight / 2) - MediaQuery.of(context).size.height * 0.05,
-            //     ),
-            //     child: Column(
-            //       mainAxisSize: MainAxisSize.min,
-            //       children: [
-            //         HeaderIntro(title: 'Clips'),
-            //         AppTheme.heightSpace30,
-            //       ],
-            //     ),
-            //   ),
-            // ),
-
-
             // Widgets debajo del centro
             if(aspectRatio >= adsVisibleRatio
                 && currentOrientation == DeviceOrientation.portraitUp)

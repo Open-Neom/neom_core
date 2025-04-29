@@ -22,7 +22,7 @@ class HandledCachedNetworkImage extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       child: CachedNetworkImage(
-        imageUrl: mediaUrl.isNotEmpty ? mediaUrl : AppFlavour.getNoImageUrl(),
+        imageUrl: mediaUrl.isNotEmpty ? mediaUrl : AppFlavour.getAppLogoUrl(),
         height: height,
         width: width,
         fit: fit,

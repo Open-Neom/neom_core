@@ -18,14 +18,14 @@ dependencies:
   cupertino_icons: ^1.0.8
   #DEPRECATED material_design_icons_flutter: ^7.0.7296
   font_awesome_flutter: ^10.8.0
-  lucide_icons_flutter: ^2.0.5
+  lucide_icons_flutter: ^3.0.0
   transparent_image: ^2.0.1
 
   firebase_core: ^3.13.0
-  cloud_firestore: ^5.6.6
-  cloud_functions: ^5.4.0
+  cloud_firestore: ^5.6.7
+  cloud_functions: ^5.5.0
   firebase_storage: ^12.4.5
-  firebase_auth: ^5.5.2
+  firebase_auth: ^5.5.3
   firebase_messaging: ^15.2.5
   firebase_crashlytics: ^4.3.5
 
@@ -71,7 +71,7 @@ dependencies:
   hashtagable_v3: ^3.0.1
   flutter_linkify: ^6.0.0
   get_time_ago: ^2.3.0
-  share_plus: ^10.1.4
+  share_plus: ^11.0.0
   readmore: ^3.0.0
 
   #Post with only text
@@ -115,7 +115,7 @@ dependencies:
   csv: ^6.0.0
   
   #ANALYTICS & STATS
-  fl_chart: ^0.70.2
+  fl_chart: ^0.71.0
   flutter_animate: ^4.5.2
 
 #NOT IN USE

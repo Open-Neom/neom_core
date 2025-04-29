@@ -56,22 +56,31 @@ class MateController extends GetxController implements MateService {
         }
       }
 
-      if(mateIds.isEmpty) {
-        ///TODO Implement once algorithm of itemmates and eventmates is available.
-        //await loadItemmates();
-        loadProfiles();
-      } else {
-        loadMatesFromList(mateIds);
-      }
-
-      ///TODO Implement once algorithm of itemmates and eventmates is available.
-      //totalProfiles.addAll(itemmates);
-      totalProfiles.addAll(profiles);
+      loadMateProfiles();
     } catch (e) {
       AppUtilities.logger.e(e.toString());
     }
   }
 
+ Future<void> loadMateProfiles() async {
+
+   try {
+     if(mateIds.isEmpty) {
+       ///TODO Implement once algorithm of itemmates and eventmates is available.
+       //await loadItemmates();
+       await loadProfiles();
+     } else {
+       await loadMatesFromList(mateIds);
+     }
+
+     ///TODO Implement once algorithm of itemmates and eventmates is available.
+     //totalProfiles.addAll(itemmates);
+     totalProfiles.addAll(profiles);
+   } catch (e) {
+     AppUtilities.logger.e(e.toString());
+   }
+
+ }
 
   @override
   Future<void> loadMates() async {
@@ -144,6 +153,26 @@ class MateController extends GetxController implements MateService {
 
   void clear() {
     mates.value = <String, AppProfile>{};
+  }
+
+  @override
+  Map<String, AppProfile> filterByName(String name) {
+
+    Map<String, AppProfile> filteredProfiles = {};
+
+    try {
+      if(name.isNotEmpty) {
+        for (var profile in totalProfiles.values) {
+          if(profile.name.toLowerCase().contains(name.toLowerCase())){
+            filteredProfiles[profile.id] = profile;
+          }
+        }
+      }
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+
+    return filteredProfiles;
   }
 
   @override

@@ -6,12 +6,12 @@ class AppCoupon {
   String id;
   String code;
   double amount;
-  String ownerId;
+  String ownerEmail;
   double ownerAmount;
   String description;
   CouponType type = CouponType.coinAddition;
 
-  int usageLimit = 25;
+  int usageLimit;
   List<String>? usedBy;
 
   List<String>? productIds;
@@ -23,12 +23,12 @@ class AppCoupon {
   AppCoupon({
     this.id = "",
     this.code = "",
-    this.amount = 10,
-    this.ownerId = "",
+    this.amount = 1,
+    this.ownerEmail = "",
     this.ownerAmount = 0,
     this.description = "",
-    this.type = CouponType.coinAddition,
-    this.usageLimit = 25,
+    this.type = CouponType.oneMonthFree,
+    this.usageLimit = 100,
     this.usedBy,
     this.productIds,
     this.excludedProductIds,
@@ -38,7 +38,7 @@ class AppCoupon {
 
   @override
   String toString() {
-    return 'AppCoupon{id: $id, code: $code, amount: $amount, ownerId: $ownerId, description: $description, type: $type, usageLimit: $usageLimit, usedBy: $usedBy, productIds: $productIds, excludedProductIds: $excludedProductIds, allowedEmails: $allowedEmails, excludedEmails: $excludedEmails}';
+    return 'AppCoupon{id: $id, code: $code, amount: $amount, ownerEmail: $ownerEmail, description: $description, type: $type, usageLimit: $usageLimit, usedBy: $usedBy, productIds: $productIds, excludedProductIds: $excludedProductIds, allowedEmails: $allowedEmails, excludedEmails: $excludedEmails}';
   }
 
   Map<String, dynamic> toJSON() {
@@ -46,7 +46,7 @@ class AppCoupon {
       'id': id,
       'code': code,
       'amount': amount,
-      'ownerId': ownerId,
+      'ownerEmail': ownerEmail,
       'ownerAmount': ownerAmount,
       'description': description,
       'type': type.name,
@@ -63,7 +63,7 @@ class AppCoupon {
     id = data["id"] ?? "",
     code = data["code"] ?? "",
     amount = data["amount"] ?? 0,
-    ownerId = data["ownerId"] ?? "",
+    ownerEmail = data["ownerEmail"] ?? "",
     ownerAmount = data["ownerAmount"] ?? 0,
     description = data["description"] ?? "",
     type = EnumToString.fromString(CouponType.values, data["type"]) ?? CouponType.coinAddition,

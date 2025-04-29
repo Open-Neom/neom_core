@@ -117,7 +117,7 @@ class NupaleSessionFirestore implements NupaleSessionService {
           if(itemId == null || itemId == documentSnapshot.id){
             NupaleSession session = NupaleSession.fromJSON(documentSnapshot.data());
             session.id = documentSnapshot.id;
-            AppUtilities.logger.d("session ${session.id} was retrieved with details");
+            AppUtilities.logger.t("session ${session.id} was retrieved with details");
             sessions[session.id] = session;
           }
         }
