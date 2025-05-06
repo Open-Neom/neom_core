@@ -19,10 +19,10 @@ class PostTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
     child: post.type == PostType.image ?
-      customCachedNetworkHeroImage(post.mediaUrl)
+      customCachedNetworkImage(post.mediaUrl)
         : post.type == PostType.video ?
-      cachedNetworkThumbnail(thumbnailUrl: post.thumbnailUrl, mediaUrl: post.mediaUrl)
-        : customCachedNetworkHeroImage(event?.imgUrl ?? AppFlavour.getNoImageUrl()),
+      cachedVideoThumbnail(thumbnailUrl: post.thumbnailUrl, mediaUrl: post.mediaUrl)
+        : customCachedNetworkImage(event?.imgUrl ?? AppFlavour.getNoImageUrl()),
       onTap:()=> {
         //TODO VERIFY ITS WORKING
         //Get.delete<PostDetailsController>(),

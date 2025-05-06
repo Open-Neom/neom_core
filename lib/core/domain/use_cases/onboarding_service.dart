@@ -14,14 +14,7 @@ abstract class OnBoardingService {
   void setFacilityType(FacilityType facilityTpe);
   void setTermsAgreement(bool agree);
   Future<void> createAdditionalProfile();
-
-  // void addGenresToProfile();
-  ///DEPRECATED
-  /// Future<void>  addGenreIntro(int index);
-  /// Future<void> removeGenreIntro(int index);
-  /// // Future<void> addInstrumentIntro(int index);
-  //   // Future<void> removeInstrumentIntro(int index);
-  //   // void addInstrumentToProfile();
-
+  Future<void> verifyPhone();
+  Future<void> verifySmsCode();
 
 }

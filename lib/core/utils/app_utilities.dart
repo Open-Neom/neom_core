@@ -5,12 +5,9 @@ import 'dart:math';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
-import 'package:get_time_ago/get_time_ago.dart';
-import 'package:image_cropper/image_cropper.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
@@ -169,17 +166,7 @@ class AppUtilities {
     return "$twoDigitMinutes:$twoDigitSeconds";
   }
 
-  static String getTimeAgo(int createdTime, {showShort = true}) {
 
-    Locale? locale = Get.locale;
-
-    return GetTimeAgo.parse(
-      DateTime.fromMillisecondsSinceEpoch(createdTime),
-      locale: locale?.languageCode ?? 'en_short',
-      pattern: 'dd/MM/yyyy', // Usando el patrón de solo fecha
-
-    );
-  }
 
   static void goHome() {
     logger.d("");
@@ -292,102 +279,6 @@ class AppUtilities {
     }
   }
 
-  static Future<File> cropImage(XFile mediaFile, {double ratioX = 1, double ratioY = 1}) async {
-    AppUtilities.logger.d("Initializing Image Cropper");
-
-    File croppedImageFile = File("");
-    try {
-      CroppedFile? croppedFile = await ImageCropper().cropImage(
-        sourcePath: mediaFile.path,
-        aspectRatio: CropAspectRatio(
-            ratioX: ratioX,
-            ratioY: ratioY
-        ),
-        uiSettings: [
-          AndroidUiSettings(
-            toolbarTitle: AppTranslationConstants.adjustImage.tr,
-            backgroundColor: AppColor.getMain(),
-            toolbarColor: AppColor.getMain(),
-            toolbarWidgetColor: AppColor.white,
-            statusBarColor: AppColor.getMain(),
-            dimmedLayerColor: AppColor.main50,
-            activeControlsWidgetColor: AppColor.yellow,
-            aspectRatioPresets: [
-              CropAspectRatioPreset.square,
-              CropAspectRatioPreset.ratio3x2,
-              CropAspectRatioPreset.original,
-              CropAspectRatioPreset.ratio4x3,
-              CropAspectRatioPreset.ratio16x9
-            ],
-              // initAspectRatio: CropAspectRatioPreset.square,
-
-          ),
-          IOSUiSettings(
-            title: AppTranslationConstants.adjustImage.tr,
-            cancelButtonTitle: AppTranslationConstants.cancel.tr,
-            doneButtonTitle: AppTranslationConstants.done.tr,
-            minimumAspectRatio: 1.0,
-            showCancelConfirmationDialog: true,
-            aspectRatioLockEnabled: true,
-            aspectRatioPresets: [
-              CropAspectRatioPreset.square,
-              CropAspectRatioPreset.ratio3x2,
-              CropAspectRatioPreset.original,
-              CropAspectRatioPreset.ratio4x3,
-              CropAspectRatioPreset.ratio16x9
-            ],
-          )
-        ],
-      );
-
-      croppedImageFile = File(croppedFile?.path ?? "");
-
-
-    } catch (e) {
-      AppUtilities.logger.e(e.toString());
-    }
-    AppUtilities.logger.d("Cropped Image in file ${croppedImageFile.path}");
-
-    return croppedImageFile;
-  }
-
-  static Future<XFile> compressImageFile(XFile imageFile) async {
-
-    XFile compressedImageFile = XFile('');
-    CompressFormat compressFormat = CompressFormat.jpeg;
-
-    try {
-      ///DEPRECATED final lastIndex = imageFile.path.lastIndexOf(RegExp(r'.jp'));
-      final lastIndex = imageFile.path.lastIndexOf(RegExp(r'\.jp|\.png'));
-
-
-      if(lastIndex >= 0) {
-        String subPath = imageFile.path.substring(0, (lastIndex));
-        String fileFormat = imageFile.path.substring(lastIndex);
-
-        if(fileFormat.contains(CompressFormat.png.name)){
-          compressFormat = CompressFormat.png;
-        }
-
-        String outPath = "${subPath}_out$fileFormat";
-        XFile? result = await FlutterImageCompress.compressAndGetFile(imageFile.path, outPath, format: compressFormat);
-
-        if(result != null) {
-          compressedImageFile = result;
-          AppUtilities.logger.d("Image compressed successfully");
-        } else {
-          compressedImageFile = imageFile;
-          AppUtilities.logger.w("Image was not compressed and return as before");
-        }
-      }
-    } catch(e) {
-      AppUtilities.logger.e(e.toString());
-    }
-
-
-    return compressedImageFile;
-  }
-
   static bool isWithinLastSevenDays(int date) {
     DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(date);
     DateTime now = DateTime.now();
@@ -494,6 +385,79 @@ class AppUtilities {
     final bool isInternal = url.contains(AppFlavour.getHubName())
         || url.contains(AppFlavour.getStorageServerName());
     return isInternal;
+  }
+
+  static Future<bool?> showConfirmationDialog(
+      BuildContext context, {
+        String title = '',
+        String message = '',
+        String textConfirm = 'OK', // Default text for confirm button
+        String textCancel = 'Cancel', // Default text for cancel button
+      }) async {
+    if (title.isEmpty) title = AppFlavour.getAppName(); // Use default app name if title is empty
+
+    return showDialog<bool?>( // Specify the return type of showDialog
+      context: context,
+      barrierDismissible: false, // User must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppColor.getMain(), // Consistent with showAlert
+          title: Text(title),
+          content: Text(message),
+          actions: <Widget>[
+            // Cancel Button
+            TextButton(
+              child: Text(
+                textCancel,
+                style: const TextStyle(color: AppColor.white), // White text color
+              ),
+              onPressed: () {
+                Navigator.of(context).pop(false); // Return false when cancelled
+              },
+            ),
+            // Confirm Button
+            TextButton(
+              child: Text(
+                textConfirm,
+                style: const TextStyle(color: AppColor.white), // White text color
+              ),
+              onPressed: () {
+                Navigator.of(context).pop(true); // Return true when confirmed
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Normaliza una cadena, quitando acentos y caracteres especiales comunes.
+  static String normalizeString(String input) {
+    // Mapa de caracteres acentuados y especiales a sus equivalentes sin acento.
+    const Map<String, String> accentMap = {
+      'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ú': 'u',
+      'Á': 'A', 'É': 'E', 'Í': 'I', 'Ó': 'O', 'Ú': 'U',
+      'à': 'a', 'è': 'e', 'ì': 'i', 'ò': 'o', 'ù': 'u',
+      'À': 'A', 'È': 'E', 'Ì': 'I', 'Ò': 'O', 'Ù': 'U',
+      'â': 'a', 'ê': 'e', 'î': 'i', 'ô': 'o', 'û': 'u',
+      'Â': 'A', 'Ê': 'E', 'Î': 'I', 'Ô': 'O', 'Û': 'U',
+      'ä': 'a', 'ë': 'e', 'ï': 'i', 'ö': 'o', 'ü': 'u',
+      'Ä': 'A', 'Ë': 'E', 'Ï': 'I', 'Ö': 'O', 'Ü': 'U',
+      'ñ': 'n', 'Ñ': 'N',
+      'ç': 'c', 'Ç': 'C',
+    };
+
+    String normalized = input;
+    // Reemplazar cada carácter acentuado con su equivalente sin acento.
+    accentMap.forEach((key, value) {
+      normalized = normalized.replaceAll(key, value);
+    });
+
+    // Opcional: quitar otros caracteres no alfanuméricos si es necesario para el código del cupón.
+    // Por ejemplo, para permitir solo letras y números:
+    // normalized = normalized.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '');
+
+    return normalized;
   }
 
 }

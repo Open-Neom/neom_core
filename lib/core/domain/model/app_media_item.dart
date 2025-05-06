@@ -1,4 +1,3 @@
-import 'package:audio_service/audio_service.dart';
 import 'package:enum_to_string/enum_to_string.dart';
 
 import '../../utils/app_utilities.dart';
@@ -327,22 +326,6 @@ class AppMediaItem {
     return appItem;
   }
 
-  static AppMediaItem fromMediaItem(MediaItem mediaItem) {
-    return AppMediaItem(
-      id: mediaItem.id,
-      album: mediaItem.album ?? '',
-      artist: mediaItem.artist ?? AppUtilities.getArtistName(mediaItem.title),
-      duration: mediaItem.duration?.inSeconds ?? 0,
-      name: AppUtilities.getMediaName(mediaItem.title),
-      imgUrl: mediaItem.artUri?.toString() ?? '',
-      genres: mediaItem.genre != null ? [mediaItem.genre!] : [],
-      url: mediaItem.extras?['url'].toString() ?? '',
-      description: mediaItem.extras?['description'].toString() ?? '',
-      lyrics: mediaItem.extras?['lyrics'].toString() ?? '',
-      artistId: mediaItem.extras?['artistId'].toString() ?? '',
-      permaUrl: mediaItem.extras?['perma_url'].toString() ?? '',
-      mediaSource: AppUtilities.isInternal(mediaItem.extras?['url'].toString() ?? '') ? AppMediaSource.internal : AppMediaSource.spotify,
-    );
-  }
+
 
 }

@@ -9,6 +9,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../neom_commons.dart';
 import 'domain/model/app_media_item.dart';
+import 'utils/constants/app_locale_constants.dart';
 import 'utils/enums/verification_level.dart';
 
 class AppFlavour {
@@ -588,7 +589,7 @@ class AppFlavour {
   static String getAppLogoPath() {
     switch (appInUse) {
       case AppInUse.g:
-        return AppTranslationConstants.languageFromLocale(Get.locale!)
+        return AppLocaleConstants.languageFromLocale(Get.locale!)
             == AppTranslationConstants.spanish ? AppAssets.logoSloganSpanish
             : AppAssets.logoSloganEnglish;
       case AppInUse.e:

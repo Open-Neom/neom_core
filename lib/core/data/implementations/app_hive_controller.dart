@@ -58,33 +58,6 @@ class AppHiveController {
   String releaseLastUpdate = '';
   String directoryLastUpdate = '';
 
-  // @override
-  // Future<void> onInit() async {
-  //   super.onInit();
-  //   AppUtilities.logger.t('onInit AppHive Controller');
-  //
-  //   try {
-  //     await Hive.initFlutter();
-  //
-  //     // fetchProfileInfo();
-  //     // fetchCachedData();
-  //     // fetchSettingsData();
-  //   } catch (e) {
-  //     AppUtilities.logger.e(e.toString());
-  //   }
-  // }
-  //
-  // @override
-  // void onReady() async {
-  //   super.onReady();
-  //   AppUtilities.logger.t("onReady AppHive Controller");
-  //   await fetchProfileInfo();
-  //   Future.wait([
-  //     fetchCachedData(),
-  //     fetchSettingsData()
-  //   ]);
-  // }
-
   Future<Box> getBox(String boxName, {bool limit = false}) async {
     return Hive.isBoxOpen(boxName) ? Hive.box(boxName) : await openHiveBox(boxName, limit: limit);
   }
@@ -130,9 +103,9 @@ class AppHiveController {
     firstTime = profileBox.get(AppHiveConstants.firstTime, defaultValue: true);
     lastNotificationCheckDate = profileBox.get(AppHiveConstants.lastNotificationCheckDate, defaultValue: 0);
 
-    final appLocale = profileBox.get(AppHiveConstants.appLocale, defaultValue: 'spanish');
-    if(appLocale.isNotEmpty) {
-      setLocale(EnumToString.fromString(AppLocale.values, appLocale)!);
+    final savedLocale = profileBox.get(AppHiveConstants.appLocale, defaultValue: 'spanish');
+    if(savedLocale.isNotEmpty) {
+      setLocale(EnumToString.fromString(AppLocale.values, savedLocale)!);
     } else {
       AppLocale appLocale = AppLocale.spanish;
 
@@ -280,6 +253,7 @@ class AppHiveController {
 
   @override
   void setLocale(AppLocale appLocale) {
+    AppUtilities.logger.d("Updating GetX locale to ${appLocale.name}");
 
     Locale locale = Get.deviceLocale!;
 

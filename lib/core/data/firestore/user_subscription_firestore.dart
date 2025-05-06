@@ -47,10 +47,10 @@ class UserSubscriptionFirestore {
         return UserSubscription.fromJSON(doc.data() as Map<String, dynamic>);
       }).toList();
 
-      AppUtilities.logger.t("${subscriptions.length} Subscriptions retrieved for user: $userId");
+      AppUtilities.logger.d("${subscriptions.length} Subscriptions retrieved for user: $userId");
       return subscriptions;
     } catch (e) {
-      AppUtilities.logger.d("Error getting subscriptions for user: $e");
+      AppUtilities.logger.e("Error getting subscriptions for user: $e");
       return [];
     }
   }

@@ -25,8 +25,6 @@ export 'core/data/api_services/google_books/google_books_api.dart';
 //CORE DATA
 //TODO ADD ADMOB
 export 'core/data/api_services/push_notification/firebase_messaging_calls.dart';
-export 'core/data/api_services/push_notification/notification_channel_constants.dart';
-export 'core/data/api_services/push_notification/push_notification_config.dart';
 export 'core/data/firestore/activity_feed_firestore.dart';
 export 'core/data/firestore/app_analytics_firestore.dart';
 export 'core/data/firestore/app_info_firestore.dart';
@@ -52,8 +50,6 @@ export 'core/data/implementations/app_drawer_controller.dart';
 export 'core/data/implementations/geolocator_controller.dart';
 export 'core/data/implementations/maps_controller.dart';
 export 'core/data/implementations/mate_controller.dart';
-export 'core/data/implementations/push_notification_service.dart';
-export 'core/data/implementations/shared_preference_controller.dart';
 export 'core/data/implementations/user_controller.dart';
 //CORE DOMAIN
 export 'core/domain/model/activity_feed.dart';

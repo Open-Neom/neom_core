@@ -8,11 +8,10 @@ import '../../app_flavour.dart';
 import '../../data/implementations/user_controller.dart';
 import '../../utils/app_utilities.dart';
 import '../../utils/constants/app_route_constants.dart';
-import 'full_screen_video.dart';
 
-Widget customCachedNetworkHeroImage(mediaUrl) {
+Widget customCachedNetworkImage(mediaUrl) {
   AppUtilities.logger.t("Building widget for image url: $mediaUrl");
-  return mediaUrl == AppFlavour.getNoImageUrl() ? const SizedBox.shrink(): CachedNetworkImage(
+  return mediaUrl == AppFlavour.getAppLogoUrl() ? const SizedBox.shrink(): CachedNetworkImage(
     key: ValueKey(mediaUrl),
     imageUrl: mediaUrl,
     fit: BoxFit.fill,
@@ -54,11 +53,8 @@ Widget fileImage(mediaUrl) {
   );
 }
 
-Widget cachedNetworkThumbnail({required String thumbnailUrl, required String mediaUrl}) {
+Widget cachedVideoThumbnail({required String thumbnailUrl, required String mediaUrl}) {
   return GestureDetector(
-    ///DEPRECATED HERO NOT NEEDED AND BAD PERFORMANCE
-    // child: Hero(
-    //   tag: 'thumbnail_$thumbnailUrl',
       child: CachedNetworkImage(
         key: ValueKey(mediaUrl),
         imageUrl: thumbnailUrl,
@@ -68,8 +64,7 @@ Widget cachedNetworkThumbnail({required String thumbnailUrl, required String med
         ),
       ),
     // ),
-    onTap: () => Get.to(() => FullScreenVideo(mediaUrl: mediaUrl),
-        transition: Transition.zoom),
+    onTap: () => Get.toNamed(AppRouteConstants.videoFullScreen, arguments: [mediaUrl]),
   );
 }
 

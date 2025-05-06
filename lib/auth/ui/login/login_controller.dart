@@ -14,8 +14,6 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import '../../../core/data/firestore/app_info_firestore.dart';
 import '../../../core/data/firestore/constants/app_firestore_constants.dart';
 import '../../../core/data/implementations/app_hive_controller.dart';
-import '../../../core/data/implementations/push_notification_service.dart';
-import '../../../core/data/implementations/shared_preference_controller.dart';
 import '../../../core/data/implementations/user_controller.dart';
 import '../../../core/domain/model/app_info.dart';
 import '../../../core/ui/static/previous_version_page.dart';

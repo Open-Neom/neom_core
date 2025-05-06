@@ -61,6 +61,7 @@ class AppRouteConstants {
   static const String createPostText = '/createPost/text';
 
   static const String mediaFullScreen = '/media/fullscreen';
+  static const String videoFullScreen = '/video/fullscreen';
 
   static const String createEventType = '/createEvent/type';
   static const String createNeomEventType = '/neom/createEvent/type';

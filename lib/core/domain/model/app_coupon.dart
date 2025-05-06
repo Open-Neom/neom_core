@@ -9,7 +9,7 @@ class AppCoupon {
   String ownerEmail;
   double ownerAmount;
   String description;
-  CouponType type = CouponType.coinAddition;
+  CouponType type;
 
   int usageLimit;
   List<String>? usedBy;
@@ -23,9 +23,9 @@ class AppCoupon {
   AppCoupon({
     this.id = "",
     this.code = "",
-    this.amount = 1,
+    this.amount = 0,
     this.ownerEmail = "",
-    this.ownerAmount = 0,
+    this.ownerAmount = 1,
     this.description = "",
     this.type = CouponType.oneMonthFree,
     this.usageLimit = 100,
@@ -66,7 +66,7 @@ class AppCoupon {
     ownerEmail = data["ownerEmail"] ?? "",
     ownerAmount = data["ownerAmount"] ?? 0,
     description = data["description"] ?? "",
-    type = EnumToString.fromString(CouponType.values, data["type"]) ?? CouponType.coinAddition,
+    type = EnumToString.fromString(CouponType.values, data["type"]) ?? CouponType.oneMonthFree,
     usageLimit = data["usageLimit"] ?? 25,
     usedBy = data["usedBy"]?.cast<String>() ?? [],
     productIds = data["productIds"]?.cast<String>() ?? [],

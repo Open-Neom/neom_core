@@ -3,40 +3,6 @@ import 'package:flutter/cupertino.dart';
 
 class AppTranslationConstants {
 
-  static final List<String> supportedLanguages = ['english', 'spanish', 'french', 'deutsch'];
-
-  static const Map<String, Locale> supportedLocales = {
-    'english': Locale('en', 'US'),
-    'spanish': Locale('es', 'MX'),
-    'french': Locale('fr', 'FR'),
-    'deutsch': Locale('de', 'DE')
-  };
-
-  static const String es = 'es';
-
-  static String languageFromLocale(Locale locale) {
-    String language = "";
-    switch(locale.languageCode){
-      case 'en':
-        language = "english";
-        break;
-      case 'esp':
-        language = "spanish";
-        break;
-      case 'es':
-        language = "spanish";
-        break;
-      case 'fr':
-        language = "french";
-        break;
-      case 'de':
-        language = "deutsch";
-        break;
-    }
-
-    return language;
-  }
-
   static const String spanish = "spanish";
   static const String setLocale = "setLocale";
 
@@ -1086,5 +1052,17 @@ class AppTranslationConstants {
   static const String writeProfileName = 'writeProfileName';
   static const String noResults = 'noResults';
   static const String oneMonthFreeCouponDesc = 'oneMonthFreeCouponDesc';
+
+  // --- Nuevas constantes para el diálogo de confirmación ---
+  static const String potentialConflict = 'potentialConflict';
+  static const String suggestedCouponCode = 'suggestedCouponCode';
+  static const String similarProfileExists = 'similarProfileExists';
+  static const String keepCode = 'keepCode';
+  static const String changeManually = 'changeManually';
+  // --- Constantes para validación y errores ---
+  static const String validationError = 'validationError';
+  static const String fillRequiredFields = 'fillRequiredFields';
+  static const String error = 'error';
+  static const String somethingWentWrong = 'somethingWentWrong';
 
 }
