@@ -244,7 +244,6 @@ class AppHiveController {
     try {
       final profileBox = await getBox(AppHiveBox.profile.name);
       await profileBox.put(AppHiveConstants.appLocale, appLocale.name);
-      setLocale(appLocale);
     } catch (e) {
       AppUtilities.logger.e(e.toString());
     }

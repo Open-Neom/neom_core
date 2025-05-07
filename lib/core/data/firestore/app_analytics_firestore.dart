@@ -85,7 +85,6 @@ class AppAnalyticsFirestore implements AppAnalyticsRepository {
 
   @override
   Future<void> setUserLocations({bool getEmailsAsText = false}) async {
-    AppUtilities.startStopwatch(reference: "Setting UserAnalytics on DB");
       AppUtilities.logger.d("Setting App Analytics for fast access.");
 
 
@@ -179,7 +178,6 @@ class AppAnalyticsFirestore implements AppAnalyticsRepository {
       AppUtilities.showSnackBar(title: AppTranslationConstants.analytics,
           message: "Las analíticas han sido actualizadas");
 
-    AppUtilities.stopStopwatch();
   }
 
   Future<void> getUserEmailsAsText(bool getEmailsAsText, List<AppUser> users) async {

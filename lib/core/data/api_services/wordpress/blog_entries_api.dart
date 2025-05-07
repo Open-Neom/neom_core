@@ -22,7 +22,7 @@ class BlogEntriesApi {
         // },
       );
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 202) {
         final List<dynamic> data = jsonDecode(response.body);
         entries = data
             .map((item) => BlogEntry.fromJson(item as Map<String, dynamic>))

@@ -1,13 +1,14 @@
 enum SubscriptionLevel {
   freemium(0),
-  basic(1),
-  creator(2),
-  connect(3),
-  artist(4),
-  professional(5),
-  premium(6),
-  publish(7),
-  platinum(8);
+  freeMonth(1),
+  basic(2),
+  creator(3),
+  connect(4),
+  artist(5),
+  professional(6),
+  premium(7),
+  publish(8),
+  platinum(9);
 
   final int value;
   const SubscriptionLevel(this.value);

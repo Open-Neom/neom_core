@@ -1,5 +1,6 @@
 
 import 'package:flutter/cupertino.dart';
+import '../../utils/app_utilities.dart';
 
 class AppLocaleConstants {
 
@@ -37,24 +38,25 @@ class AppLocaleConstants {
     return language;
   }
 
-  static const List<String> spanishCountries = [
-    'Mexico', 'Spain', 'Argentina', 'Colombia', 'Peru', 'Venezuela',
-    'Chile', 'Ecuador', 'Guatemala', 'Cuba', 'Bolivia', 'Honduras',
-    'Paraguay', 'El Salvador', 'Nicaragua', 'Costa Rica', 'Puerto Rico',
-    'Uruguay', 'Panama', 'Dominican Republic', 'Equatorial Guinea'
-  ];
+// Listas de países por idioma (normalizadas y en minúsculas)
+  static List<String> spanishCountries = [
+    'mexico', 'spain', 'argentina', 'colombia', 'peru', 'venezuela',
+    'chile', 'ecuador', 'guatemala', 'cuba', 'bolivia', 'honduras',
+    'paraguay', 'el salvador', 'nicaragua', 'costa rica', 'puerto rico',
+    'uruguay', 'panama', 'dominican republic', 'equatorial guinea'
+  ].map((country) => AppUtilities.normalizeString(country).toLowerCase()).toList(); // Aplicar normalización y minúsculas
 
-  static const List<String> frenchCountries = [
-    'France', 'Belgium', 'Switzerland', 'Senegal', 'Ivory Coast',
-    'Cameroon', 'Burkina Faso', 'Niger', 'Mali', 'Haiti', 'Chad',
-    'Guinea', 'Rwanda', 'Burundi', 'Benin', 'Togo', 'Central African Republic',
-    'Republic of the Congo', 'Gabon', 'Djibouti', 'Comoros', 'Luxembourg',
-    'Monaco', 'Seychelles', 'Vanuatu'
-  ];
+  static List<String> frenchCountries =  [
+    'france', 'belgium', 'switzerland', 'senegal', 'ivory coast',
+    'cameroon', 'burkina faso', 'niger', 'mali', 'haiti', 'chad',
+    'guinea', 'rwanda', 'burundi', 'benin', 'togo', 'central african republic',
+    'republic of the congo', 'gabon', 'djibouti', 'comoros', 'luxembourg',
+    'monaco', 'seychelles', 'vanuatu'
+  ].map((country) => AppUtilities.normalizeString(country).toLowerCase()).toList(); // Aplicar normalización y minúsculas
 
-  static const List<String> germanCountries = [
-    'Germany', 'Austria', 'Switzerland', 'Luxembourg', 'Belgium', 'Liechtenstein'
-  ];
+  static List<String> germanCountries = [
+    'germany', 'austria', 'switzerland', 'luxembourg', 'belgium', 'liechtenstein'
+  ].map((country) => AppUtilities.normalizeString(country).toLowerCase()).toList();
 
 
 }

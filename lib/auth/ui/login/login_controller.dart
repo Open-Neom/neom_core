@@ -121,7 +121,7 @@ class LoginController extends GetxController implements LoginService {
               userController.getUserFromFirebase(user);
               break;
             case(SignedInWith.facebook):
-              await userController.getUserFromFacebook(_fbAccessToken);
+              // await userController.getUserFromFacebook(_fbAccessToken);
               break;
             case(SignedInWith.apple):
               userController.getUserFromFirebase(user);

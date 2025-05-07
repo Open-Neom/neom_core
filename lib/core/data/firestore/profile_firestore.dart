@@ -1702,15 +1702,14 @@ class ProfileFirestore implements ProfileRepository {
     AppUtilities.logger.d("Verify if name $profileName is available to create this profile");
 
     try {
-      QuerySnapshot querySnapshot = await profileReference.get();
+      QuerySnapshot querySnapshot = await profileReference
+          .where(AppFirestoreConstants.name, isEqualTo: profileName.trim())
+          .limit(1) // Limitar a 1 resultado ya que solo necesitamos saber si existe
+          .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        for(QueryDocumentSnapshot doc in querySnapshot.docs) {
-          if(profileName == AppProfile.fromJSON(doc.data()).name) {
-            AppUtilities.logger.w("Profile Name already in use");
-            return false;
-          }
-        }
+        AppUtilities.logger.w("Profile Name '$profileName' already in use");
+        return false; // No disponible
       }
 
     } catch (e) {

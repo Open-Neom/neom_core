@@ -95,6 +95,7 @@ Widget buildIconActionChip({
 Widget buildContainerTextField(String hint, {
   required TextEditingController controller,
   TextInputType textInputType = TextInputType.multiline,
+  TextCapitalization textCapitalization = TextCapitalization.none,
   int maxLines = 1
 }) {
   return Padding(
@@ -107,6 +108,7 @@ Widget buildContainerTextField(String hint, {
         keyboardType: textInputType,
         minLines: 1,
         maxLines: maxLines,
+        textCapitalization: textCapitalization,
         decoration: InputDecoration(labelText: hint),
       )
   );

@@ -27,7 +27,17 @@ class MapsController extends GetxController implements MapsService {
     AppUtilities.logger.t("Maps Controller Init");
 
     profile = userController.profile;
-    location = Location(lat: profile.position!.latitude, lng: profile.position!.longitude);
+    if(profile.position != null) {
+      location = Location(lat: profile.position!.latitude, lng: profile.position!.longitude);
+    } else {
+      try {
+        Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+        profile.position = position;
+        userController.profile = profile;
+      } catch (e) {
+        AppUtilities.logger.e(e.toString());
+      }
+    }
 
     await goToHomePosition();
   }

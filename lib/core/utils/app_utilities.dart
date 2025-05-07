@@ -265,7 +265,7 @@ class AppUtilities {
 
     return formattedTime;
   }
-  
+
   static bool isDeviceSupportedVersion({bool isIOS = false}){
     logger.i(Platform.operatingSystemVersion);
     if(isIOS) {
@@ -286,34 +286,49 @@ class AppUtilities {
     return difference.inDays < 7;
   }
 
-  ///Stopwatch to measure execution time of tasks
-  static final _stopwatch = Stopwatch();
-  static String _stopWatchReference = '';
+  static bool isWithinFirstMonth(int createdTime) {
+    DateTime creationDate = DateTime.fromMillisecondsSinceEpoch(createdTime);
+    DateTime now = DateTime.now();
 
-  /// Starts the stopwatch
-  static void startStopwatch({String reference = ''}) {
-    _stopWatchReference = reference;
-    if(!_stopwatch.isRunning) {
-      logger.i('Starting stopwatch for $_stopWatchReference.');
-      _stopwatch.start();
-    } else {
-      logger.i('Instance of stopwatch is running for $_stopWatchReference.');
-    }
+    DateTime dateOneMonthLater = DateTime(
+      creationDate.year,
+      creationDate.month + 1,
+      creationDate.day,
+    );
+
+    return now.isBefore(dateOneMonthLater);
   }
 
-  /// Stops the stopwatch, logs the execution time, and resets the stopwatch
-  static void stopStopwatch() {
-    _stopwatch.stop();
-    if(_stopWatchReference.isNotEmpty) {
-      logger.i('Execution Time: ${_stopwatch.elapsedMilliseconds} ms for $_stopWatchReference');
-      _stopWatchReference = '';
-    } else {
-      logger.i('Execution Time: ${_stopwatch.elapsedMilliseconds} ms');
-    }
 
-    _stopwatch.reset();
-
-  }
+  ///DEPRECATED
+  // ///Stopwatch to measure execution time of tasks
+  // static final _stopwatch = Stopwatch();
+  // static String _stopWatchReference = '';
+  //
+  // /// Starts the stopwatch
+  // static void startStopwatch({String reference = ''}) {
+  //   _stopWatchReference = reference;
+  //   if(!_stopwatch.isRunning) {
+  //     logger.i('Starting stopwatch for $_stopWatchReference.');
+  //     _stopwatch.start();
+  //   } else {
+  //     logger.i('Instance of stopwatch is running for $_stopWatchReference.');
+  //   }
+  // }
+  //
+  // /// Stops the stopwatch, logs the execution time, and resets the stopwatch
+  // static void stopStopwatch() {
+  //   _stopwatch.stop();
+  //   if(_stopWatchReference.isNotEmpty) {
+  //     logger.i('Execution Time: ${_stopwatch.elapsedMilliseconds} ms for $_stopWatchReference');
+  //     _stopWatchReference = '';
+  //   } else {
+  //     logger.i('Execution Time: ${_stopwatch.elapsedMilliseconds} ms');
+  //   }
+  //
+  //   _stopwatch.reset();
+  //
+  // }
 
   static List<DropdownMenuItem<String>> buildDropDownMenuItemlists(List<Itemlist> itemlists) {
 

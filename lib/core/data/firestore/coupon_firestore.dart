@@ -57,17 +57,19 @@ class CouponFirestore implements CouponRepository {
 
 
   @override
-  Future<AppCoupon> getCouponByCode(String couponCode) async {
-    AppUtilities.logger.d("Getting Coupon By Code");
+  Future<AppCoupon?> getCouponByCode(String couponCode) async {
+    AppUtilities.logger.d("Getting Coupon By Code $couponCode");
 
-    AppCoupon coupon = AppCoupon();
+    AppCoupon? coupon;
 
     try {
-      QuerySnapshot snapshot = await couponsReference.get();
+      QuerySnapshot querySnapshot = await couponsReference.where(FieldPath.documentId, isEqualTo: couponCode).get();
 
-      for(var document in snapshot.docs) {
-        AppCoupon coupon = AppCoupon.fromJSON(document.data());
-        if(coupon.code == couponCode) coupon = coupon;
+      if (querySnapshot.docs.isNotEmpty) {
+        coupon = AppCoupon.fromJSON(querySnapshot.docs.first.data());
+        coupon.id = querySnapshot.docs.first.id;
+      } else {
+        AppUtilities.logger.d("No coupon found with code $couponCode");
       }
     } catch (e) {
       AppUtilities.logger.e(e.toString());
@@ -84,7 +86,7 @@ class CouponFirestore implements CouponRepository {
       try {
         DocumentSnapshot documentSnapshot = await couponsReference.doc(couponId).get();
         await documentSnapshot.reference.update({
-          AppFirestoreConstants.orderIds: FieldValue.arrayUnion([email])
+          AppFirestoreConstants.usedBy: FieldValue.arrayUnion([email])
         });
 
         AppUtilities.logger.d("Coupon $couponId was updated to include usedBy $email");

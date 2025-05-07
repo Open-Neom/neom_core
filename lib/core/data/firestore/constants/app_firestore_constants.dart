@@ -137,5 +137,6 @@ class AppFirestoreConstants {
   static const String endReason = "endReason";
   static const String userId = "userId";
   static const String usageReason = "usageReason";
-  
+  static const String usedBy = "usedBy";
+
 }

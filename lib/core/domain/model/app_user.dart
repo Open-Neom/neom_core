@@ -10,7 +10,7 @@ class AppUser {
   String name;
   String firstName;
   String lastName;
-  String dateOfBirth;
+  int dateOfBirth;
   String homeTown;
   String phoneNumber;
   String countryCode;
@@ -30,9 +30,9 @@ class AppUser {
   List<String>? releaseItemIds;
   List<String>? boughtItems;
 
-  //TODO
-  //Add read of this values from documentSnapshot
-  String referralCode = "";
+  String couponCode = "";  ///If user has a coupon code to share
+  String referralCode = ""; ///If user has used a referral coupon code
+
   int createdDate = 0;
   int lastTimeOn = 0;
 
@@ -41,14 +41,14 @@ class AppUser {
   String currentProfileId;
 
   String customerId; ///Customer Stripe Id for future references
-  String subscriptionId; ///If is not empty, user has subscription and is premium
+  String subscriptionId; ///If is not empty, user has minimum a basic plan
 
   AppUser({
     this.id = "",
     this.name = "",
     this.firstName = "",
     this.lastName = "",
-    this.dateOfBirth = "",
+    this.dateOfBirth = 0,
     this.homeTown = "",
     this.phoneNumber = "",
     this.countryCode = "",
@@ -62,6 +62,7 @@ class AppUser {
     this.profiles = const [],
     this.orderIds = const [],
     this.referralCode = "",
+    this.couponCode = "",
     this.createdDate = 0,
     this.lastTimeOn = 0,
     this.fcmToken = "",
@@ -99,6 +100,7 @@ class AppUser {
         releaseItemIds = data["releaseItemIds"]?.cast<String>() ?? [],
         boughtItems = data["boughtItems"]?.cast<String>() ?? [],
         referralCode = data["referralCode"] ?? "",
+        couponCode = data["couponCode"] ?? "",
         createdDate = data["createdDate"] ?? 0,
         lastTimeOn = data["lastTimeOn"] ?? 0,
         fcmToken = data["fcmToken"] ?? "",
@@ -107,30 +109,31 @@ class AppUser {
         customerId = data["customerId"] ?? "",
         subscriptionId = data["subscriptionId"] ?? "";
 
-  AppUser.fromFbProfile(profile) :
-    id = profile["id"],
-    name = profile["name"],
-    firstName = profile["first_name"],
-    lastName = profile["last_name"],
-    password = "",
-    email = profile["email"],
-    photoUrl = profile['picture']['data']['url'],
-    userRole = UserRole.subscriber,
-    dateOfBirth = "",
-    homeTown = "",
-    phoneNumber = "",
-    countryCode = "",
-    isBanned = false,
-    isVerified = false,
-    androidNotificationToken = "",
-    profiles = [],
-    orderIds = [],
-    referralCode = "",
-    fcmToken = "",
-    spotifyToken = "",
-    currentProfileId = "",
-    customerId = '',
-    subscriptionId = '';
+  ///DEPRECATED
+  // AppUser.fromFbProfile(profile) :
+  //   id = profile["id"],
+  //   name = profile["name"],
+  //   firstName = profile["first_name"],
+  //   lastName = profile["last_name"],
+  //   password = "",
+  //   email = profile["email"],
+  //   photoUrl = profile['picture']['data']['url'],
+  //   userRole = UserRole.subscriber,
+  //   dateOfBirth = 0,
+  //   homeTown = "",
+  //   phoneNumber = "",
+  //   countryCode = "",
+  //   isBanned = false,
+  //   isVerified = false,
+  //   androidNotificationToken = "",
+  //   profiles = [],
+  //   orderIds = [],
+  //   referralCode = "",
+  //   fcmToken = "",
+  //   spotifyToken = "",
+  //   currentProfileId = "",
+  //   customerId = '',
+  //   subscriptionId = '';
 
 
   Map<String, dynamic> toJSON() {

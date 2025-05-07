@@ -429,7 +429,6 @@ class PostFirestore implements PostRepository {
     getMoreLiked = true, bool getMoreComment = true, bool getReleases = true, bool
     getBlogEntries = true, List<String>? followingIds}) async {
 
-    AppUtilities.startStopwatch(reference: 'getDiverseTimeline');
     AppUtilities.logger.d("Getting Next Timeline Posts");
     Map<String, Post> posts = {};
 
@@ -555,7 +554,6 @@ class PostFirestore implements PostRepository {
     }
 
     AppUtilities.logger.d("Retrieveing ${posts.length} Posts");
-    AppUtilities.stopStopwatch();
     return posts;
   }
 

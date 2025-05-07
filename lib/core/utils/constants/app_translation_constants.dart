@@ -1064,5 +1064,7 @@ class AppTranslationConstants {
   static const String fillRequiredFields = 'fillRequiredFields';
   static const String error = 'error';
   static const String somethingWentWrong = 'somethingWentWrong';
+  static const String couponAlreadyUsed = 'couponAlreadyUsed';
+  static const String testPeriod = 'testPeriod';
 
 }

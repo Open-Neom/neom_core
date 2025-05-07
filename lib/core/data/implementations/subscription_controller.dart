@@ -168,69 +168,6 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
                 ),
               ],
             ),
-            ///VERIFY TO DELETE
-            // if(profileType.value == ProfileType.facilitator) Row(
-            //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            //   children: [
-            //     Text("${AppTranslationConstants.type.tr}: ",
-            //       style: const TextStyle(fontSize: 15),
-            //     ),
-            //     DropdownButton<FacilityType>(
-            //       items: FacilityType.values.map((FacilityType type) {
-            //         return DropdownMenuItem<FacilityType>(
-            //           value: type,
-            //           child: Text(type.value.tr.capitalize),
-            //         );
-            //       }).toList(),
-            //       onChanged: (FacilityType? selectedType) {
-            //         if (selectedType == null) return;
-            //         selectFacilityType(selectedType);
-            //       },
-            //       value: facilityType.value,
-            //       alignment: Alignment.center,
-            //       icon: const Icon(Icons.arrow_downward),
-            //       iconSize: 20,
-            //       elevation: 16,
-            //       style: const TextStyle(color: Colors.white),
-            //       dropdownColor: AppColor.getMain(),
-            //       underline: Container(
-            //         height: 1,
-            //         color: Colors.grey,
-            //       ),
-            //     ),
-            //   ],
-            // ),
-            // if(profileType.value == ProfileType.host) Row(
-            //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            //   children: [
-            //     Text("${AppTranslationConstants.type.tr}: ",
-            //       style: const TextStyle(fontSize: 15),
-            //     ),
-            //     DropdownButton<PlaceType>(
-            //       items: PlaceType.values.map((PlaceType type) {
-            //         return DropdownMenuItem<PlaceType>(
-            //           value: type,
-            //           child: Text(type.value.tr.capitalize),
-            //         );
-            //       }).toList(),
-            //       onChanged: (PlaceType? selectedType) {
-            //         if (selectedType == null) return;
-            //         selectPlaceType(selectedType);
-            //       },
-            //       value: placeType.value,
-            //       alignment: Alignment.center,
-            //       icon: const Icon(Icons.arrow_downward),
-            //       iconSize: 20,
-            //       elevation: 16,
-            //       style: const TextStyle(color: Colors.white),
-            //       dropdownColor: AppColor.getMain(),
-            //       underline: Container(
-            //         height: 1,
-            //         color: Colors.grey,
-            //       ),
-            //     ),
-            //   ],
-            // ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [

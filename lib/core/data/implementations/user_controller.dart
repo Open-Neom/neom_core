@@ -22,6 +22,7 @@ import '../../utils/constants/message_translation_constants.dart';
 import '../../utils/core_utilities.dart';
 import '../../utils/enums/itemlist_type.dart';
 import '../../utils/enums/owner_type.dart';
+import '../../utils/enums/subscription_level.dart';
 import '../../utils/enums/subscription_status.dart';
 import '../../utils/enums/user_role.dart';
 import '../firestore/app_release_item_firestore.dart';
@@ -47,8 +48,8 @@ class UserController extends GetxController implements UserService {
   String fcmToken = "";
 
   UserSubscription? userSubscription;
-  AppCoupon? coupon;
-  bool appliedCoupon = false;
+  SubscriptionLevel subscriptionLevel = SubscriptionLevel.freemium;
+
 
   //Move to other global Controller to get ReleaseItemList on AudioPlayerHome
   ItemlistType defaultItemlistType  = ItemlistType.playlist;
@@ -72,7 +73,6 @@ class UserController extends GetxController implements UserService {
       AppUtilities.logger.e(e.toString());
     }
 
-    update([AppPageIdConstants.coupon]);
   }
 
   Future<void> getFcmToken() async {
@@ -84,8 +84,16 @@ class UserController extends GetxController implements UserService {
     AppUtilities.logger.d("removeAccount method Started");
     try {
 
+      if(user.id.isNotEmpty && user.profiles.isNotEmpty) {
+        for (var prof in user.profiles) {
+          await ProfileFirestore().remove(userId: user.id, profileId: prof.id);
+        }
+        await UserFirestore().remove(user.id);
+      }
+
       LoginController loginController = Get.find<LoginController>();
       fba.AuthCredential? authCredential;
+
       if(loginController.credentials == null) {
         authCredential = await loginController.getAuthCredentials();
       } else {
@@ -93,16 +101,10 @@ class UserController extends GetxController implements UserService {
       }
 
       if(authCredential != null) {
-        for (var prof in user.profiles) {
-          await ProfileFirestore().remove(userId: user.id, profileId: prof.id);
-        }
-
-        if(await UserFirestore().remove(user.id)) {
-          await loginController.fbaUser.value?.reauthenticateWithCredential(authCredential);
-          await loginController.fbaUser.value?.delete();
-          await loginController.signOut();
-          clear();
-        }
+        await loginController.fbaUser.value?.reauthenticateWithCredential(authCredential);
+        await loginController.fbaUser.value?.delete();
+        await loginController.signOut();
+        clear();
       } else {
         AppUtilities.logger.e("AuthCredentials to reauthenticate were null");
         Get.offAndToNamed(AppRouteConstants.login);
@@ -122,33 +124,33 @@ class UserController extends GetxController implements UserService {
   }
 
 
-  @override
-  Future<void> getUserFromFacebook(String fbAccessToken) async {
-    AppUtilities.logger.i("User is new");
-    try {
-
-      Uri fbURI = Uri.https(AppFacebookConstants.graphApiAuthorityUrl, AppFacebookConstants.graphApiUnencondedPath,
-          {AppFacebookConstants.graphApiQueryFieldsParam: AppFacebookConstants.graphApiQueryFieldsValues,
-            AppFacebookConstants.graphApiQueryAccessTokenParam: fbAccessToken});
-
-      var graphResponse = await http.get(fbURI);
-
-      if(graphResponse.statusCode == 200) {
-        var jsonResponse = jsonDecode(graphResponse.body) as Map<String, dynamic>;
-        AppUtilities.logger.i("Profile from Graph FB API ${jsonResponse.toString()}");
-        user = AppUser.fromFbProfile(jsonResponse);
-      } else {
-        AppUtilities.logger.w("Request failed with status: ${graphResponse.statusCode}");
-      }
-    } catch (e) {
-      Get.snackbar(
-        MessageTranslationConstants.errorCreatingAccount.tr,
-        e.toString(),
-        snackPosition: SnackPosition.bottom,
-      );
-      AppUtilities.logger.e(e);
-    }
-  }
+  // @override
+  // Future<void> getUserFromFacebook(String fbAccessToken) async {
+  //   AppUtilities.logger.i("User is new");
+  //   try {
+  //
+  //     Uri fbURI = Uri.https(AppFacebookConstants.graphApiAuthorityUrl, AppFacebookConstants.graphApiUnencondedPath,
+  //         {AppFacebookConstants.graphApiQueryFieldsParam: AppFacebookConstants.graphApiQueryFieldsValues,
+  //           AppFacebookConstants.graphApiQueryAccessTokenParam: fbAccessToken});
+  //
+  //     var graphResponse = await http.get(fbURI);
+  //
+  //     if(graphResponse.statusCode == 200) {
+  //       var jsonResponse = jsonDecode(graphResponse.body) as Map<String, dynamic>;
+  //       AppUtilities.logger.i("Profile from Graph FB API ${jsonResponse.toString()}");
+  //       user = AppUser.fromFbProfile(jsonResponse);
+  //     } else {
+  //       AppUtilities.logger.w("Request failed with status: ${graphResponse.statusCode}");
+  //     }
+  //   } catch (e) {
+  //     Get.snackbar(
+  //       MessageTranslationConstants.errorCreatingAccount.tr,
+  //       e.toString(),
+  //       snackPosition: SnackPosition.bottom,
+  //     );
+  //     AppUtilities.logger.e(e);
+  //   }
+  // }
 
 
   /// Create user profile from google login
@@ -156,8 +158,7 @@ class UserController extends GetxController implements UserService {
   void getUserFromFirebase(fba.User fbaUser) {
     AppUtilities.logger.d("Getting User Info From Firebase Authentication");
     user =  AppUser(
-      dateOfBirth: DateTime(1950, DateTime.now().month, DateTime.now().day + 3)
-          .toString(),
+      dateOfBirth: 0,
       homeTown: AppTranslationConstants.somewhereUniverse.tr,
       photoUrl: fbaUser.photoURL ?? "",
       name: fbaUser.displayName ?? "",
@@ -228,6 +229,8 @@ class UserController extends GetxController implements UserService {
         newUser.name = newProfile.name;
       }
 
+      newUser.createdDate = DateTime.now().millisecondsSinceEpoch;
+
       if(await UserFirestore().insert(newUser)) {
         isNewUser = false;
         user = newUser;
@@ -239,11 +242,10 @@ class UserController extends GetxController implements UserService {
           user.currentProfileId = profileId;
           UserFirestore().updateCurrentProfile(user.id, profileId);
           profile = user.profiles.first;
-          profile.itemlists = await ItemlistFirestore().getByOwnerId(profile.id);
-          if(appliedCoupon) await CouponFirestore().addUsedBy(coupon?.id ?? '', user.email);
           Get.offAllNamed(AppRouteConstants.home);
+          profile.itemlists = await ItemlistFirestore().getByOwnerId(profile.id);
         } else {
-          await UserFirestore().remove(newUser.id);
+          UserFirestore().remove(newUser.id);
           AppUtilities.logger.e("Something wrong creating account.");
           Get.offAllNamed(AppRouteConstants.login);
         }
@@ -300,19 +302,6 @@ class UserController extends GetxController implements UserService {
     newProfile.itemlists = {};
     newProfile.favoriteItems = [];
 
-    ///Verify if useful - 0125
-    // (newProfile.type == ProfileType.instrumentist) ?
-    // newProfile.itemlists![AppConstants.myFavorites] = Itemlist.myFirstItemlist()
-    //     : newProfile.itemlists![AppConstants.myFavorites] = Itemlist.myFirstItemlistFan();
-
-    // if(AppFlavour.appInUse == AppInUse.cyberneom) {
-    //   // newProfile.itemlists![AppConstants.myFavorites]!.chamberPresets = [];
-    //   // newProfile.itemlists![AppConstants.myFavorites]!.chamberPresets!.add(ChamberPreset.myFirstNeomChamberPreset());
-    //   // newProfile.chamberPresets = [AppConstants.firstChamberPreset];
-    // } else {
-    //   newProfile.favoriteItems = [];
-    // }
-
     try {
 
       String profileId = await ProfileFirestore().insert(user.id, newProfile);
@@ -323,7 +312,7 @@ class UserController extends GetxController implements UserService {
         profile = newProfile;
 
         if(profileId.isNotEmpty) {
-          await UserFirestore().updateCurrentProfile(user.id, profileId);
+          UserFirestore().updateCurrentProfile(user.id, profileId);
           AppUtilities.logger.i("Additional profile created successfully.");
           Get.offAllNamed(AppRouteConstants.home);
         } else {
@@ -628,14 +617,30 @@ class UserController extends GetxController implements UserService {
 
     try {
       List<UserSubscription> subscriptions = await UserSubscriptionFirestore().getByUserId(user.id);
+
       if(subscriptions.isNotEmpty) {
         userSubscription = subscriptions.firstWhereOrNull((subscription) => subscription.status == SubscriptionStatus.active);
+        if(userSubscription?.subscriptionId == user.subscriptionId) {
+          AppUtilities.logger.d('User subscriptionId is the same as user.subscriptionId');
+        } else if(userSubscription?.subscriptionId.isNotEmpty ?? false) {
+          user.subscriptionId = userSubscription?.subscriptionId ?? '';
+          AppUtilities.logger.d('User subscription is different from user.subscriptionId');
+        }
+      } else if(user.subscriptionId.isNotEmpty) {
+        if (AppUtilities.isWithinFirstMonth(user.createdDate)) {
+          subscriptionLevel = SubscriptionLevel.freeMonth;
+          AppUtilities.logger.i('User subscriptionId ${user.subscriptionId} is still within free month for SubscriptionLevel ${subscriptionLevel.name}');
+        } else {
+          AppUtilities.logger.w('User subscriptionId ${user.subscriptionId} is out of free month');
+          user.subscriptionId = "";
+        }
+      } else {
+        AppUtilities.logger.d('No user subscription found');
       }
     } catch (e) {
       AppUtilities.logger.e(e.toString());
     }
 
-    // update();
   }
 
   @override
