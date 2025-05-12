@@ -24,7 +24,7 @@ class AppDrawerController extends GetxController {
     appProfile = userController.profile;
 
     if(user.subscriptionId.isEmpty) {
-      final subscriptionController = Get.put(SubscriptionController());
+      subscriptionController = Get.put(SubscriptionController());
     }
   }
 

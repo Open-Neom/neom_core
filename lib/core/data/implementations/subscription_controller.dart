@@ -340,5 +340,18 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
     }
   }
 
+  double getSubscriptionPrice(SubscriptionLevel level) {
+
+    subscriptionPlans.forEach((key, plan) {
+      if(plan.level == level) {
+        selectedPlan = plan;
+        selectedPlanName.value = selectedPlan.name;
+        selectedPlanImgUrl.value = selectedPlan.imgUrl;
+        selectedPrice.value = selectedPlan.price!;
+      }
+    });
+
+    return selectedPrice.value.amount;
+  }
 
 }

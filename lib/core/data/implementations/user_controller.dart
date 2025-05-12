@@ -1,12 +1,9 @@
-import 'dart:convert';
 
 import 'package:firebase_auth/firebase_auth.dart' as fba;
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
 
 import '../../../auth/ui/login/login_controller.dart';
-import '../../domain/model/app_coupon.dart';
 import '../../domain/model/app_profile.dart';
 import '../../domain/model/app_user.dart';
 import '../../domain/model/band.dart';
@@ -14,7 +11,6 @@ import '../../domain/model/item_list.dart';
 import '../../domain/model/user_subscription.dart';
 import '../../domain/use_cases/user_service.dart';
 import '../../utils/app_utilities.dart';
-import '../../utils/constants/app_facebook_constants.dart';
 import '../../utils/constants/app_page_id_constants.dart';
 import '../../utils/constants/app_route_constants.dart';
 import '../../utils/constants/app_translation_constants.dart';
@@ -27,7 +23,6 @@ import '../../utils/enums/subscription_status.dart';
 import '../../utils/enums/user_role.dart';
 import '../firestore/app_release_item_firestore.dart';
 import '../firestore/chamber_firestore.dart';
-import '../firestore/coupon_firestore.dart';
 import '../firestore/itemlist_firestore.dart';
 import '../firestore/profile_firestore.dart';
 import '../firestore/user_firestore.dart';
@@ -36,6 +31,8 @@ import 'app_hive_controller.dart';
 
 class UserController extends GetxController implements UserService {
 
+  UserFirestore userFirestore = UserFirestore();
+  
   AppUser user = AppUser();
   AppProfile profile = AppProfile();
   AppProfile newProfile = AppProfile();
@@ -88,7 +85,7 @@ class UserController extends GetxController implements UserService {
         for (var prof in user.profiles) {
           await ProfileFirestore().remove(userId: user.id, profileId: prof.id);
         }
-        await UserFirestore().remove(user.id);
+        await userFirestore.remove(user.id);
       }
 
       LoginController loginController = Get.find<LoginController>();
@@ -231,7 +228,7 @@ class UserController extends GetxController implements UserService {
 
       newUser.createdDate = DateTime.now().millisecondsSinceEpoch;
 
-      if(await UserFirestore().insert(newUser)) {
+      if(await userFirestore.insert(newUser)) {
         isNewUser = false;
         user = newUser;
 
@@ -240,12 +237,12 @@ class UserController extends GetxController implements UserService {
         if(profileId.isNotEmpty) {
           user.profiles.first.id = profileId;
           user.currentProfileId = profileId;
-          UserFirestore().updateCurrentProfile(user.id, profileId);
+          userFirestore.updateCurrentProfile(user.id, profileId);
           profile = user.profiles.first;
           Get.offAllNamed(AppRouteConstants.home);
           profile.itemlists = await ItemlistFirestore().getByOwnerId(profile.id);
         } else {
-          UserFirestore().remove(newUser.id);
+          userFirestore.remove(newUser.id);
           AppUtilities.logger.e("Something wrong creating account.");
           Get.offAllNamed(AppRouteConstants.login);
         }
@@ -312,7 +309,7 @@ class UserController extends GetxController implements UserService {
         profile = newProfile;
 
         if(profileId.isNotEmpty) {
-          UserFirestore().updateCurrentProfile(user.id, profileId);
+          userFirestore.updateCurrentProfile(user.id, profileId);
           AppUtilities.logger.i("Additional profile created successfully.");
           Get.offAllNamed(AppRouteConstants.home);
         } else {
@@ -341,7 +338,7 @@ class UserController extends GetxController implements UserService {
     AppUtilities.logger.d("User looked up by ${user.id}");
 
     try {
-      user.profiles = await ProfileFirestore().retrieveProfiles(user.id);
+      user.profiles = await ProfileFirestore().retrieveByUserId(user.id);
     } catch (e) {
       Get.snackbar(
         MessageTranslationConstants.errorRetrievingProfiles.tr,
@@ -357,7 +354,7 @@ class UserController extends GetxController implements UserService {
   Future<void> getUserById(String userId) async {
 
     try {
-      AppUser userFromFirestore = await UserFirestore().getById(userId);
+      AppUser userFromFirestore = await userFirestore.getById(userId);
       if(userFromFirestore.id.isNotEmpty){
         AppUtilities.logger.i("User $userId exists!!");
         user = userFromFirestore;
@@ -377,30 +374,27 @@ class UserController extends GetxController implements UserService {
   Future<void> getUserByEmail(String userEmail) async {
 
     try {
-      AppUser userFromEmail = await UserFirestore().getByEmail(userEmail) ?? AppUser();
+      AppUser userFromEmail = await userFirestore.getByEmail(userEmail, getProfile: true) ?? AppUser();
       if(userFromEmail.id.isNotEmpty) {
         AppUtilities.logger.t("User $userEmail exists!!");
         user = userFromEmail;
         profile = user.profiles.first;
         isNewUser = false;
-        // Future.microtask(() => getUserSubscription());
       } else {
         AppUtilities.logger.w("User $userEmail not exists!!");
-        isNewUser = true;
         user = AppUser();
         profile = AppProfile();
+        isNewUser = true;
       }
     } catch (e) {
       AppUtilities.logger.e(e.toString());
     }
   }
 
-
   void addToWallet(amount) {
     user.wallet.amount = user.wallet.amount + amount;
     update([]);
   }
-
 
   void subtractFromWallet(double amount) {
     user.wallet.amount = user.wallet.amount - amount;
@@ -413,7 +407,7 @@ class UserController extends GetxController implements UserService {
     try {
       profile = selectedProfile;
       Get.toNamed(AppRouteConstants.splashScreen, arguments: [AppRouteConstants.refresh]);
-      profile = await UserFirestore().updateCurrentProfile(user.id, selectedProfile.id);
+      profile = await userFirestore.updateCurrentProfile(user.id, selectedProfile.id);
     } catch(e) {
       AppUtilities.logger.e(e.toString());
     }
@@ -429,7 +423,7 @@ class UserController extends GetxController implements UserService {
       if(await ProfileFirestore().remove(userId: user.id, profileId: profile.id)) {
         user.profiles.removeWhere((element) => element.id == profile.id);
         if(user.profiles.isNotEmpty) {
-          profile = await UserFirestore().updateCurrentProfile(user.id, user.profiles.first.id);
+          profile = await userFirestore.updateCurrentProfile(user.id, user.profiles.first.id);
         }
 
       }
@@ -517,7 +511,7 @@ class UserController extends GetxController implements UserService {
   Future<void> addOrderId(String orderId) async {
     AppUtilities.logger.d("addOrderId $orderId");
     try {
-      if(await UserFirestore().addOrderId(userId: user.id, orderId: orderId)) {
+      if(await userFirestore.addOrderId(userId: user.id, orderId: orderId)) {
         user.orderIds.add(orderId);
       } else {
         AppUtilities.logger.w("Something occurred while adding order to User ${user.id}");
@@ -533,7 +527,7 @@ class UserController extends GetxController implements UserService {
     AppUtilities.logger.d("addBoughtItem $itemId");
     try {
       if(itemId.isNotEmpty) {
-        if(await UserFirestore().addBoughtItem(userId: user.id, itemId: itemId)) {
+        if(await userFirestore.addBoughtItem(userId: user.id, itemId: itemId)) {
           user.boughtItems ??= [];
           user.boughtItems!.add(itemId);
         }
@@ -552,7 +546,7 @@ class UserController extends GetxController implements UserService {
 
     try {
       user.customerId = customerId;
-      UserFirestore().updateCustomerId(user.id, customerId);
+      userFirestore.updateCustomerId(user.id, customerId);
     } catch (e) {
       AppUtilities.logger.e(e.toString());
     }
@@ -566,7 +560,7 @@ class UserController extends GetxController implements UserService {
 
     try {
       user.subscriptionId = subscriptionId;
-      UserFirestore().updateSubscriptionId(user.id, subscriptionId);
+      userFirestore.updateSubscriptionId(user.id, subscriptionId);
     } catch (e) {
       AppUtilities.logger.e(e.toString());
     }
@@ -580,9 +574,9 @@ class UserController extends GetxController implements UserService {
     bool wasUpdated = false;
     try {
       if(user.phoneNumber != phone) {
-        if(await UserFirestore().isAvailablePhone(phone)) {
+        if(await userFirestore.isAvailablePhone(phone)) {
           user.phoneNumber = phone;
-          UserFirestore().updatePhoneNumber(user.id, phone);
+          userFirestore.updatePhoneNumber(user.id, phone);
           wasUpdated = true;
         } else {
           AppUtilities.logger.e("Phone number is not available");
@@ -597,7 +591,7 @@ class UserController extends GetxController implements UserService {
 
       if(user.countryCode != countryCode) {
         user.countryCode = countryCode;
-        UserFirestore().updateCountryCode(user.id, countryCode);
+        userFirestore.updateCountryCode(user.id, countryCode);
         wasUpdated = true;
       } else {
         AppUtilities.logger.d("Same Country Code");
@@ -621,7 +615,8 @@ class UserController extends GetxController implements UserService {
       if(subscriptions.isNotEmpty) {
         userSubscription = subscriptions.firstWhereOrNull((subscription) => subscription.status == SubscriptionStatus.active);
         if(userSubscription?.subscriptionId == user.subscriptionId) {
-          AppUtilities.logger.d('User subscriptionId is the same as user.subscriptionId');
+          subscriptionLevel = userSubscription?.level ?? SubscriptionLevel.freemium;
+          AppUtilities.logger.d('User subscriptionId is the same as user.subscriptionId for ${subscriptionLevel.name}');
         } else if(userSubscription?.subscriptionId.isNotEmpty ?? false) {
           user.subscriptionId = userSubscription?.subscriptionId ?? '';
           AppUtilities.logger.d('User subscription is different from user.subscriptionId');
@@ -661,7 +656,7 @@ class UserController extends GetxController implements UserService {
     AppUtilities.logger.d('Setting isVerified value $isVerified for: ${user.id}');
 
     try {
-      await UserFirestore().setIsVerified(user.id, isVerified);
+      await userFirestore.setIsVerified(user.id, isVerified);
       user.isVerified = isVerified;
     } catch (e) {
       AppUtilities.logger.e(e.toString());

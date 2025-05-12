@@ -183,6 +183,7 @@ class AppRouteConstants {
   static const String stripeWebView  = '/stripe/webview';
 
   static const String nupaleHome  = '/nupale/home';
+  static const String nupaleItemDetails  = '/nupale/item/details';
   static const String nupaleStats1  = '/stats/nupale1';
   static const String nupaleStats2  = '/stats/nupale2';
   static const String nupaleStats3  = '/stats/nupale3';

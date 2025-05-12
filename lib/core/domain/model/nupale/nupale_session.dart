@@ -8,8 +8,8 @@ class NupaleSession {
   String id; ///createdTime in milisecondsSinceEpoch as id
   String itemId; /// ID del libro
   String itemName; /// Título del libro
-  String ownerId; ///USERID OR EMAIL OF OWNER
-  String readerId; ///PROFILEID OF READER
+  String ownerEmail; ///EMAIL OF OWNER
+  String readerEmail; ///EMAIL OF READER
 
   Map<int, int> pagesDuration;
   int nupale; ///REAL Number of Pages Read
@@ -20,15 +20,15 @@ class NupaleSession {
 
   @override
   String toString() {
-    return 'NupaleSession{id: $id, itemId: $itemId, itemName: $itemName, ownerId: $ownerId, readerId: $readerId, pagesDuration: $pagesDuration, nupale: $nupale, createdTime: $createdTime, subscriptionLevel: $subscriptionLevel, isTest: $isTest}';
+    return 'NupaleSession{id: $id, itemId: $itemId, itemName: $itemName, ownerEmail: $ownerEmail, readerEmail: $readerEmail, pagesDuration: $pagesDuration, nupale: $nupale, createdTime: $createdTime, subscriptionLevel: $subscriptionLevel, isTest: $isTest}';
   }
 
   NupaleSession({
     this.id = '',
     this.itemId = '',
     this.itemName = '',
-    this.ownerId = '',
-    this.readerId = '',
+    this.ownerEmail = '',
+    this.readerEmail = '',
     this.pagesDuration = const {},
     this.nupale = 0,
     this.createdTime = 0,
@@ -42,8 +42,8 @@ class NupaleSession {
       'id': id,
       'itemId': itemId,
       'itemName': itemName,
-      'ownerId': ownerId,
-      'readerId': readerId,
+      'ownerEmail': ownerEmail,
+      'readerEmail': readerEmail,
       'pagesDuration': pagesDuration.map((key, value) => MapEntry(key.toString(), value)),
       'nupale': nupale,
       'createdTime': createdTime,
@@ -58,8 +58,8 @@ class NupaleSession {
       id: json['id'] ?? '',
       itemId: json['itemId'] ?? '',
       itemName: json['itemName'] ?? '',
-      ownerId: json['ownerId'] ?? '',
-      readerId: json['readerId'] ?? '',
+      ownerEmail: json['ownerEmail'] ?? json['ownerId'] ?? '',
+      readerEmail: json['readerEmail'] ?? json['readerId'] ?? '',
       pagesDuration: (json['pagesDuration'] != null)
           ? (json['pagesDuration'] as Map).map((key, value) => MapEntry(int.parse(key), value))
           : {},

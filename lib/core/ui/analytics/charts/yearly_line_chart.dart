@@ -3,7 +3,6 @@ import 'dart:math';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
-import '../../../utils/constants/app_translation_constants.dart';
 
 class YearlyLineChart extends StatefulWidget {
 

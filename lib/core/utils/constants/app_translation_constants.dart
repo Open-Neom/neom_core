@@ -1,5 +1,4 @@
 
-import 'package:flutter/cupertino.dart';
 
 class AppTranslationConstants {
 
@@ -1035,7 +1034,7 @@ class AppTranslationConstants {
   static const String placeType = 'placeType';
   static const String placeAdded = 'placeAdded';
 
-  static const String nupaleStatistics = 'nupaleStatistics';
+  static const String nupaleAnalytics = 'nupaleAnalytics';
   static const String users = 'users';
 
   static const String createCouponMsg = 'createCouponMsg';
@@ -1066,5 +1065,8 @@ class AppTranslationConstants {
   static const String somethingWentWrong = 'somethingWentWrong';
   static const String couponAlreadyUsed = 'couponAlreadyUsed';
   static const String testPeriod = 'testPeriod';
+  static const String top10nupale = 'top10nupale';
+  static const String readingSessions = 'readingSessions';
+  static const String reportsAndAnalytics = 'reportsAndAnalytics';
 
 }

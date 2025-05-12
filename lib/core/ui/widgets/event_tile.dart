@@ -8,7 +8,6 @@ import '../../app_flavour.dart';
 import '../../domain/model/event.dart';
 import '../../utils/app_color.dart';
 import '../../utils/app_theme.dart';
-import '../../utils/constants/app_constants.dart';
 import '../../utils/constants/app_locale_constants.dart';
 import '../../utils/constants/app_translation_constants.dart';
 

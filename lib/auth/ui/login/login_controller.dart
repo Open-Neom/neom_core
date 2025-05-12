@@ -205,7 +205,6 @@ class LoginController extends GetxController implements LoginService {
       isLoading.value = false;
     }
 
-    isButtonDisabled.value = false;
     // update([AppPageIdConstants.login]);
   }
 
@@ -339,8 +338,6 @@ class LoginController extends GetxController implements LoginService {
         authStatus.value = AuthStatus.loggedIn;
         signedInWith = SignedInWith.google;
       }
-
-
     } catch (e) {
       fbaUser.value = null;
       authStatus.value = AuthStatus.notLoggedIn;
@@ -351,10 +348,7 @@ class LoginController extends GetxController implements LoginService {
         message: MessageTranslationConstants.errorLoginGoogle.tr,
       );
     } finally {
-      isButtonDisabled.value = false;
-      if(credentials == null) {
-        isLoading.value = false;
-      }
+      if(credentials == null) isLoading.value = false;
     }
 
     // update([AppPageIdConstants.login]);

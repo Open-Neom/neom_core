@@ -96,7 +96,7 @@ class UserFirestore implements UserRepository {
                AppUtilities.logger.d("Profile for userId $userId not found");
              }
           } else {
-             user.profiles = await ProfileFirestore().retrieveProfiles(userId);
+             user.profiles = await ProfileFirestore().retrieveByUserId(userId);
 
           }
 
@@ -116,42 +116,44 @@ class UserFirestore implements UserRepository {
   }
 
   @override
-  Future<AppUser?> getByEmail(String email,  {getProfileFeatures = false}) async {
+  Future<AppUser?> getByEmail(String email,  {bool getProfile = false, bool getProfileFeatures = false}) async {
     AppUtilities.logger.d("Get User by Email: $email");
 
     try {
       QuerySnapshot querySnapshot = await userReference.where(AppFirestoreConstants.email, isEqualTo: email).limit(1).get();
+
       if (querySnapshot.docs.isNotEmpty) {
         var queryDocumentSnapshot = querySnapshot.docs.first;
         if (queryDocumentSnapshot.exists) {
           AppUser user = AppUser.fromJSON(queryDocumentSnapshot.data());
           user.id = queryDocumentSnapshot.id;
 
-          AppProfile profile = AppProfile();
+          if(getProfile) {
+            AppProfile profile = AppProfile();
 
-          if(user.currentProfileId.isNotEmpty) {
-            profile = await ProfileFirestore().retrieve(user.currentProfileId);
-            if(profile.id.isNotEmpty) {
-              if(AppFlavour.appInUse == AppInUse.c) {
-                profile.chambers = await ChamberFirestore().fetchAll(ownerId: profile.id);
-                profile.chamberPresets?.clear();
+            if(user.currentProfileId.isNotEmpty) {
+              profile = await ProfileFirestore().retrieve(user.currentProfileId);
+              if(profile.id.isNotEmpty) {
+                if(AppFlavour.appInUse == AppInUse.c) {
+                  profile.chambers = await ChamberFirestore().fetchAll(ownerId: profile.id);
+                  profile.chamberPresets?.clear();
 
-                CoreUtilities.getTotalPresets(profile.chambers!).forEach((key, value) {
-                  profile.chamberPresets!.add(key);
-                });
+                  CoreUtilities.getTotalPresets(profile.chambers!).forEach((key, value) {
+                    profile.chamberPresets!.add(key);
+                  });
+                }
+                user.profiles = [profile];
+              } else {
+                AppUtilities.logger.d("Profile for userId ${user.id} not found");
               }
-              user.profiles = [profile];
             } else {
-              AppUtilities.logger.d("Profile for userId ${user.id} not found");
+              user.profiles = await ProfileFirestore().retrieveByUserId(user.id);
             }
-          } else {
-            user.profiles = await ProfileFirestore().retrieveProfiles(user.id);
 
-          }
-
-          if(getProfileFeatures) {
-            if(user.profiles.isNotEmpty && user.profiles.first.id.isNotEmpty) {
-              user.profiles.first = await ProfileFirestore().getProfileFeatures(user.profiles.first);
+            if(getProfileFeatures) {
+              if(user.profiles.isNotEmpty && user.profiles.first.id.isNotEmpty) {
+                user.profiles.first = await ProfileFirestore().getProfileFeatures(user.profiles.first);
+              }
             }
           }
 
