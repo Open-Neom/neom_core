@@ -18,7 +18,7 @@ class AppReleaseItem {
   ReleaseType type; ///RELEASE TYPE TO HANDLE FURTHER FEATURES
   ReleaseStatus status;
 
-  String ownerEmail; ///EMAIL OF PROFILE ON APP
+  String ownerEmail; ///EMAIL OF USER ON APP
   String ownerName; ///NAME OF PROFILE ON APP
   OwnerType ownerType; ///TO KNOW IF RELEASE WAS UPLOADED FROM USER OR BAND TO FLOW
 

@@ -1,3 +1,4 @@
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
@@ -15,13 +16,13 @@ class WeeklyBarChart extends StatefulWidget {
     super.key});
 
   List<Color> get availableColors => const <Color>[
-        Colors.purple,
-        Colors.yellow,
-        Colors.blue,
-        Colors.orange,
-        Colors.pink,
-        Colors.red,
-      ];
+    Colors.purple,
+    Colors.yellow,
+    Colors.blue,
+    Colors.orange,
+    Colors.pink,
+    Colors.red,
+  ];
 
   final Color barBackgroundColor = Colors.white.withOpacity(0.3);
   final Color barColor = Colors.white;
@@ -65,13 +66,13 @@ class WeeklyBarChartState extends State<WeeklyBarChart> {
   }
 
   BarChartGroupData makeGroupData(
-    int x,
-    double y, {
-    bool isTouched = false,
-    Color? barColor,
-    double width = 22,
-    List<int> showTooltips = const [],
-  }) {
+      int x,
+      double y, {
+        bool isTouched = false,
+        Color? barColor,
+        double width = 22,
+        List<int> showTooltips = const [],
+      }) {
     barColor ??= widget.barColor;
     return BarChartGroupData(
       x: x,
@@ -81,7 +82,7 @@ class WeeklyBarChartState extends State<WeeklyBarChart> {
           color: isTouched ? widget.touchedBarColor : barColor,
           width: width,
           borderSide:
-              isTouched ? BorderSide(color: widget.touchedBarColor) : const BorderSide(color: Colors.white, width: 0),
+          isTouched ? BorderSide(color: widget.touchedBarColor) : const BorderSide(color: Colors.white, width: 0),
           backDrawRodData: BackgroundBarChartRodData(
             show: true,
             toY: 20,
@@ -94,25 +95,25 @@ class WeeklyBarChartState extends State<WeeklyBarChart> {
   }
 
   List<BarChartGroupData> showingGroups() => List.generate(7, (i) {
-        switch (i) {
-          case 0:
-            return makeGroupData(0, 5, isTouched: i == touchedIndex);
-          case 1:
-            return makeGroupData(1, 6.5, isTouched: i == touchedIndex);
-          case 2:
-            return makeGroupData(2, 5, isTouched: i == touchedIndex);
-          case 3:
-            return makeGroupData(3, 7.5, isTouched: i == touchedIndex);
-          case 4:
-            return makeGroupData(4, 9, isTouched: i == touchedIndex);
-          case 5:
-            return makeGroupData(5, 11.5, isTouched: i == touchedIndex);
-          case 6:
-            return makeGroupData(6, 6.5, isTouched: i == touchedIndex);
-          default:
-            return throw Error();
-        }
-      });
+    switch (i) {
+      case 0:
+        return makeGroupData(0, 5, isTouched: i == touchedIndex);
+      case 1:
+        return makeGroupData(1, 6.5, isTouched: i == touchedIndex);
+      case 2:
+        return makeGroupData(2, 5, isTouched: i == touchedIndex);
+      case 3:
+        return makeGroupData(3, 7.5, isTouched: i == touchedIndex);
+      case 4:
+        return makeGroupData(4, 9, isTouched: i == touchedIndex);
+      case 5:
+        return makeGroupData(5, 11.5, isTouched: i == touchedIndex);
+      case 6:
+        return makeGroupData(6, 6.5, isTouched: i == touchedIndex);
+      default:
+        return throw Error();
+    }
+  });
 
   BarChartData mainBarData() {
     return BarChartData(

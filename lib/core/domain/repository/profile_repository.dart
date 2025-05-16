@@ -91,8 +91,8 @@ abstract class ProfileRepository {
   Future<bool> removeBand({required String profileId, required String bandId});
   Future<bool> removeRequest(String profileId, String requestId, RequestType requestType);
   Future<bool> addRequest(String profileId, String requestId, RequestType requestType);
-  Future<bool> addToWallet(String profileId, double amount, {AppCurrency appCurrency = AppCurrency.appCoin});
-  Future<bool> subtractFromWallet(String profileId, double amount, {AppCurrency appCurrency = AppCurrency.appCoin});
+  // Future<bool> addToWallet(String profileId, double amount, {AppCurrency appCurrency = AppCurrency.appCoin});
+  // Future<bool> subtractFromWallet(String profileId, double amount, {AppCurrency appCurrency = AppCurrency.appCoin});
   Future<bool> isAvailableName(String profileName);
 
   Future<bool> updateLastSpotifySync(String profileId);

@@ -2,7 +2,6 @@ import 'package:enum_to_string/enum_to_string.dart';
 
 import '../../utils/enums/user_role.dart';
 import 'app_profile.dart';
-import 'wallet.dart';
 
 class AppUser {
 
@@ -25,7 +24,7 @@ class AppUser {
   String androidNotificationToken;
   List<AppProfile> profiles;
 
-  Wallet wallet = Wallet();
+  // Wallet wallet = Wallet();
   List<String> orderIds = [];
   List<String>? releaseItemIds;
   List<String>? boughtItems;
@@ -74,7 +73,7 @@ class AppUser {
 
   @override
   String toString() {
-    return 'AppUser{id: $id, name: $name, firstName: $firstName, lastName: $lastName, dateOfBirth: $dateOfBirth, homeTown: $homeTown, phoneNumber: $phoneNumber, countryCode: $countryCode, password: $password, email: $email, photoUrl: $photoUrl, userRole: $userRole, isVerified: $isVerified, isBanned: $isBanned, androidNotificationToken: $androidNotificationToken, profiles: $profiles, wallet: $wallet, orderIds: $orderIds, releaseItemIds: $releaseItemIds, boughtItems: $boughtItems, referralCode: $referralCode, createdDate: $createdDate, lastTimeOn: $lastTimeOn, fcmToken: $fcmToken, spotifyToken: $spotifyToken, currentProfileId: $currentProfileId, customerId: $customerId, subscriptionId: $subscriptionId}';
+    return 'AppUser{id: $id, name: $name, firstName: $firstName, lastName: $lastName, dateOfBirth: $dateOfBirth, homeTown: $homeTown, phoneNumber: $phoneNumber, countryCode: $countryCode, password: $password, email: $email, photoUrl: $photoUrl, userRole: $userRole, isVerified: $isVerified, isBanned: $isBanned, androidNotificationToken: $androidNotificationToken, profiles: $profiles, orderIds: $orderIds, releaseItemIds: $releaseItemIds, boughtItems: $boughtItems, referralCode: $referralCode, createdDate: $createdDate, lastTimeOn: $lastTimeOn, fcmToken: $fcmToken, spotifyToken: $spotifyToken, currentProfileId: $currentProfileId, customerId: $customerId, subscriptionId: $subscriptionId}';
   }
 
   AppUser.fromJSON(data) :
@@ -95,7 +94,7 @@ class AppUser {
         isBanned = data["isBanned"] ?? true,
         androidNotificationToken = data["androidNotificationToken"] ?? "",
         profiles = [],
-        wallet = Wallet.fromJSON(data["wallet"] ?? {}),
+        // wallet = Wallet.fromJSON(data["wallet"] ?? {}),
         orderIds = data["orderIds"]?.cast<String>() ?? [],
         releaseItemIds = data["releaseItemIds"]?.cast<String>() ?? [],
         boughtItems = data["boughtItems"]?.cast<String>() ?? [],
@@ -153,7 +152,7 @@ class AppUser {
       'isVerified': isVerified,
       'isBanned': isBanned,
       'androidNotificationToken': androidNotificationToken,
-      'wallet': wallet.toJSON(),
+      // 'wallet': wallet.toJSON(),
       'orderIds': orderIds,
       'releaseItemIds': releaseItemIds,
       'boughtItems': boughtItems,

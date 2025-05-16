@@ -208,23 +208,12 @@ class UserController extends GetxController implements UserService {
     newProfile.itemlists = {};
     newProfile.favoriteItems = [];
 
-
     newUser.profiles = [newProfile];
     newUser.userRole = UserRole.subscriber;
 
-    if(Get.find<LoginController>().appInfo.value.coinPromo) {
-      AppUtilities.logger.i("GIVING COINS AS PART OF BETA LAUNCH");
-      newUser.wallet.amount = newUser.wallet.amount + Get.find<LoginController>().appInfo.value.coinAmount;
-    }
-
-    ///DEPRECATED
-    // await Future.delayed(const Duration(seconds: 1));
-
     try {
 
-      if(newUser.name.isEmpty) {
-        newUser.name = newProfile.name;
-      }
+      if(newUser.name.isEmpty) newUser.name = newProfile.name;
 
       newUser.createdDate = DateTime.now().millisecondsSinceEpoch;
 
@@ -391,15 +380,15 @@ class UserController extends GetxController implements UserService {
     }
   }
 
-  void addToWallet(amount) {
-    user.wallet.amount = user.wallet.amount + amount;
-    update([]);
-  }
+  // void addToWallet(amount) {
+  //   user.wallet.amount = user.wallet.amount + amount;
+  //   update([]);
+  // }
 
-  void subtractFromWallet(double amount) {
-    user.wallet.amount = user.wallet.amount - amount;
-    update([]);
-  }
+  // void subtractFromWallet(double amount) {
+  //   user.wallet.amount = user.wallet.amount - amount;
+  //   update([]);
+  // }
 
   Future<void> changeProfile(AppProfile selectedProfile) async {
     AppUtilities.logger.i("Changing profile to ${selectedProfile.id}");
@@ -629,8 +618,9 @@ class UserController extends GetxController implements UserService {
           AppUtilities.logger.w('User subscriptionId ${user.subscriptionId} is out of free month');
           user.subscriptionId = "";
         }
-      } else {
+      } else if(user.userRole.value > UserRole.subscriber.value){
         AppUtilities.logger.d('No user subscription found');
+        subscriptionLevel = SubscriptionLevel.ambassador;
       }
     } catch (e) {
       AppUtilities.logger.e(e.toString());

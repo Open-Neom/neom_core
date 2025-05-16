@@ -248,11 +248,11 @@ class AppFlavour {
   static String getAppCoinName() {
     switch (appInUse) {
       case AppInUse.g:
-        return "Gigcoin";
+        return "Gig Coin";
       case AppInUse.e:
-        return "Emxis";
+        return "Emxi Coin";
       case AppInUse.c:
-        return "Neomcoin";
+        return "Neom Coin";
     }
   }
 
@@ -731,24 +731,33 @@ class AppFlavour {
   }
 
   static Widget getVerificationIcon(VerificationLevel level, {double? size}) {
+
+    Widget icon = Icon(Icons.check_circle_outline, size: size);
+
     switch (appInUse) {
       case AppInUse.e:
         switch(level) {
+          case VerificationLevel.verified:
+            icon = Icon(Icons.check_circle, size: size); // Sin verificación
+          case VerificationLevel.ambassador:
+            icon = Icon(Icons.verified_user, size: size); // Verificado como Embajador
           case VerificationLevel.artist:
-            return Icon(Icons.verified, size: size); // Publicado o verificado completo
+            icon = Icon(Icons.verified, size: size); // Publicado o verificado completo
           case VerificationLevel.professional:
-            return Icon(Icons.handshake, size: size); // Verificado como Profesional
+            icon = Icon(Icons.handshake, size: size); // Verificado como Profesional
           case VerificationLevel.premium:
-            return Icon(Icons.auto_awesome, size: size); // Verificación Premium
-          // case VerificationLevel.platinum:
-          //   return Icon(Icons.workspace_premium, size: size); // Verificación Platino
+            icon = Icon(Icons.auto_awesome, size: size); // Verificación Premium
+          case VerificationLevel.platinum:
+            icon = Icon(Icons.workspace_premium, size: size); // Verificación Platino
           default:
-            return Icon(Icons.verified, size: size); // Icono predeterminado
+            icon = Icon(Icons.check_circle_outline, size: size); // Icono predeterminado
         }
       case AppInUse.g:
       case AppInUse.c:
         return Icon(Icons.verified, size: size); // Publicado o verificado completo
     }
+
+    return icon;
   }
 
 

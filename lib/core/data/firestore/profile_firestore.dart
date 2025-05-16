@@ -1495,164 +1495,162 @@ class ProfileFirestore implements ProfileRepository {
     return followedMap;
   }
 
-
-  @override
-  Future<bool> addToWallet(String profileId, double amount,
-      {AppCurrency appCurrency = AppCurrency.appCoin}) async {
-    AppUtilities.logger.d(
-        "addToWallet from ProfileFirestore for profileID $profileId");
-    String userId = "";
-    AppUser user = AppUser();
-    QuerySnapshot userQuerySnapshot;
-    QueryDocumentSnapshot? userQueryDocumentSnapshot;
-
-    try {
-      QuerySnapshot querySnapshot = await profileReference.get();
-
-      for (var profile in querySnapshot.docs) {
-        if (profile.id == profileId) {
-          AppUtilities.logger.i(
-              "Reference id: ${profile.reference.parent.parent!.id}");
-          DocumentReference documentReference = profile.reference;
-          userId = documentReference.parent.parent!.id;
-
-          userQuerySnapshot =
-          await usersReference.where(FieldPath.documentId, isEqualTo: userId)
-              .get();
-          AppUtilities.logger.i("${userQuerySnapshot.docs.length} users found");
-
-          for (var doc in userQuerySnapshot.docs) {
-            user = AppUser.fromJSON(doc.data());
-            user.id = doc.id;
-            userQueryDocumentSnapshot = doc;
-          }
-        }
-      }
-
-      if (!userQueryDocumentSnapshot!.exists) {
-        userQuerySnapshot = await usersReference.get();
-        for (var doc in userQuerySnapshot.docs) {
-          if (doc.exists) {
-            QuerySnapshot profileQuerySnapshot = await doc.reference
-                .collection(AppFirestoreCollectionConstants.profiles)
-                .get();
-
-            if (profileQuerySnapshot.docs.isNotEmpty) {
-              AppUtilities.logger.d("Profiles were found for userId ${doc.id}");
-
-              for (var profileSnapshot in profileQuerySnapshot.docs) {
-                if (profileSnapshot.id == profileId) {
-                  AppUtilities.logger.d(
-                      "Profile $profileId was found for userId ${doc.id} ");
-                  user = AppUser.fromJSON(doc.data());
-                  user.id = doc.id;
-                  userQueryDocumentSnapshot = doc;
-                }
-              }
-            } else {
-              AppUtilities.logger.i("No user found");
-            }
-          }
-        }
-      }
-
-      if (userQueryDocumentSnapshot?.exists ?? false) {
-        if (user.id.isNotEmpty) {
-          double newAmount = user.wallet.amount + amount;
-          AppUtilities.logger.i(
-              "Updating UserWallet from ${user.wallet.amount} to $newAmount");
-          user.wallet.amount = newAmount;
-          await userQueryDocumentSnapshot!.reference.update({
-            AppFirestoreConstants.wallet: user.wallet.toJSON()
-          });
-          AppUtilities.logger.d("User Wallet updated");
-          return true;
-        }
-      }
-    } catch (e) {
-      AppUtilities.logger.e(e.toString());
-    }
-
-    return false;
-  }
+  // @override
+  // Future<bool> addToWallet(String profileId, double amount,
+  //     {AppCurrency appCurrency = AppCurrency.appCoin}) async {
+  //   AppUtilities.logger.d(
+  //       "addToWallet from ProfileFirestore for profileID $profileId");
+  //   String userId = "";
+  //   AppUser user = AppUser();
+  //   QuerySnapshot userQuerySnapshot;
+  //   QueryDocumentSnapshot? userQueryDocumentSnapshot;
+  //
+  //   try {
+  //     QuerySnapshot querySnapshot = await profileReference.get();
+  //
+  //     for (var profile in querySnapshot.docs) {
+  //       if (profile.id == profileId) {
+  //         AppUtilities.logger.i(
+  //             "Reference id: ${profile.reference.parent.parent!.id}");
+  //         DocumentReference documentReference = profile.reference;
+  //         userId = documentReference.parent.parent!.id;
+  //
+  //         userQuerySnapshot =
+  //         await usersReference.where(FieldPath.documentId, isEqualTo: userId)
+  //             .get();
+  //         AppUtilities.logger.i("${userQuerySnapshot.docs.length} users found");
+  //
+  //         for (var doc in userQuerySnapshot.docs) {
+  //           user = AppUser.fromJSON(doc.data());
+  //           user.id = doc.id;
+  //           userQueryDocumentSnapshot = doc;
+  //         }
+  //       }
+  //     }
+  //
+  //     if (!userQueryDocumentSnapshot!.exists) {
+  //       userQuerySnapshot = await usersReference.get();
+  //       for (var doc in userQuerySnapshot.docs) {
+  //         if (doc.exists) {
+  //           QuerySnapshot profileQuerySnapshot = await doc.reference
+  //               .collection(AppFirestoreCollectionConstants.profiles)
+  //               .get();
+  //
+  //           if (profileQuerySnapshot.docs.isNotEmpty) {
+  //             AppUtilities.logger.d("Profiles were found for userId ${doc.id}");
+  //
+  //             for (var profileSnapshot in profileQuerySnapshot.docs) {
+  //               if (profileSnapshot.id == profileId) {
+  //                 AppUtilities.logger.d(
+  //                     "Profile $profileId was found for userId ${doc.id} ");
+  //                 user = AppUser.fromJSON(doc.data());
+  //                 user.id = doc.id;
+  //                 userQueryDocumentSnapshot = doc;
+  //               }
+  //             }
+  //           } else {
+  //             AppUtilities.logger.i("No user found");
+  //           }
+  //         }
+  //       }
+  //     }
+  //
+  //     if (userQueryDocumentSnapshot?.exists ?? false) {
+  //       if (user.id.isNotEmpty) {
+  //         double newAmount = user.wallet.amount + amount;
+  //         AppUtilities.logger.i("Updating UserWallet from ${user.wallet.amount} to $newAmount");
+  //         user.wallet.amount = newAmount;
+  //         await userQueryDocumentSnapshot!.reference.update({
+  //           AppFirestoreConstants.wallet: user.wallet.toJSON()
+  //         });
+  //         AppUtilities.logger.d("User Wallet updated");
+  //         return true;
+  //       }
+  //     }
+  //   } catch (e) {
+  //     AppUtilities.logger.e(e.toString());
+  //   }
+  //
+  //   return false;
+  // }
 
 
-  @override
-  Future<bool> subtractFromWallet(String profileId, double amount,
-      {AppCurrency appCurrency = AppCurrency.appCoin}) async {
-    AppUtilities.logger.d(
-        "Entering substractToWallet method from ProfileFirestore");
-    String userId = "";
-    AppUser user = AppUser();
-    QuerySnapshot userQuerySnapshot;
-    QueryDocumentSnapshot? userQueryDocumentSnapshot;
-
-    try {
-      QuerySnapshot querySnapshot = await profileReference.get();
-
-      for (var profile in querySnapshot.docs) {
-        if (profile.id == profileId) {
-          AppUtilities.logger.i(
-              "Reference id: ${profile.reference.parent.parent!.id}");
-          DocumentReference documentReference = profile.reference;
-          userId = documentReference.parent.parent!.id;
-
-          userQuerySnapshot =
-          await usersReference.where(FieldPath.documentId, isEqualTo: userId)
-              .get();
-          AppUtilities.logger.i("${userQuerySnapshot.docs.length} users found");
-
-          for (var doc in userQuerySnapshot.docs) {
-            user = AppUser.fromJSON(doc.data());
-            user.id = doc.id;
-            userQueryDocumentSnapshot = doc;
-          }
-        }
-      }
-
-      if (!userQueryDocumentSnapshot!.exists) {
-        userQuerySnapshot = await usersReference.get();
-        for (var doc in userQuerySnapshot.docs) {
-          if (doc.exists) {
-            QuerySnapshot profileQuerySnapshot = await doc.reference
-                .collection(AppFirestoreCollectionConstants.profiles)
-                .get();
-
-            if (profileQuerySnapshot.docs.isNotEmpty) {
-              AppUtilities.logger.d("Profiles were found for userId ${doc.id}");
-
-              for (var profileSnapshot in profileQuerySnapshot.docs) {
-                if (profileSnapshot.id == profileId) {
-                  AppUtilities.logger.d(
-                      "Profile $profileId was found for userId ${doc.id} ");
-                  user = AppUser.fromJSON(doc.data());
-                  user.id = doc.id;
-                  userQueryDocumentSnapshot = doc;
-                }
-              }
-            } else {
-              AppUtilities.logger.i("No user found");
-            }
-          }
-        }
-      }
-
-      if (userQueryDocumentSnapshot?.exists ?? false) {
-        if (user.id.isNotEmpty) {
-          user.wallet.amount = user.wallet.amount - amount;
-          await userQueryDocumentSnapshot!.reference.update({
-            AppFirestoreConstants.wallet: user.wallet.toJSON()
-          });
-          AppUtilities.logger.d("User Wallet updated");
-          return true;
-        }
-      }
-    } catch (e) {
-      AppUtilities.logger.e(e.toString());
-    }
-
-    return false;
-  }
+  // @override
+  // Future<bool> subtractFromWallet(String profileId, double amount,
+  //     {AppCurrency appCurrency = AppCurrency.appCoin}) async {
+  //   AppUtilities.logger.d(
+  //       "Entering substractToWallet method from ProfileFirestore");
+  //   String userId = "";
+  //   AppUser user = AppUser();
+  //   QuerySnapshot userQuerySnapshot;
+  //   QueryDocumentSnapshot? userQueryDocumentSnapshot;
+  //
+  //   try {
+  //     QuerySnapshot querySnapshot = await profileReference.get();
+  //
+  //     for (var profile in querySnapshot.docs) {
+  //       if (profile.id == profileId) {
+  //         AppUtilities.logger.i(
+  //             "Reference id: ${profile.reference.parent.parent!.id}");
+  //         DocumentReference documentReference = profile.reference;
+  //         userId = documentReference.parent.parent!.id;
+  //
+  //         userQuerySnapshot =
+  //         await usersReference.where(FieldPath.documentId, isEqualTo: userId)
+  //             .get();
+  //         AppUtilities.logger.i("${userQuerySnapshot.docs.length} users found");
+  //
+  //         for (var doc in userQuerySnapshot.docs) {
+  //           user = AppUser.fromJSON(doc.data());
+  //           user.id = doc.id;
+  //           userQueryDocumentSnapshot = doc;
+  //         }
+  //       }
+  //     }
+  //
+  //     if (!userQueryDocumentSnapshot!.exists) {
+  //       userQuerySnapshot = await usersReference.get();
+  //       for (var doc in userQuerySnapshot.docs) {
+  //         if (doc.exists) {
+  //           QuerySnapshot profileQuerySnapshot = await doc.reference
+  //               .collection(AppFirestoreCollectionConstants.profiles)
+  //               .get();
+  //
+  //           if (profileQuerySnapshot.docs.isNotEmpty) {
+  //             AppUtilities.logger.d("Profiles were found for userId ${doc.id}");
+  //
+  //             for (var profileSnapshot in profileQuerySnapshot.docs) {
+  //               if (profileSnapshot.id == profileId) {
+  //                 AppUtilities.logger.d(
+  //                     "Profile $profileId was found for userId ${doc.id} ");
+  //                 user = AppUser.fromJSON(doc.data());
+  //                 user.id = doc.id;
+  //                 userQueryDocumentSnapshot = doc;
+  //               }
+  //             }
+  //           } else {
+  //             AppUtilities.logger.i("No user found");
+  //           }
+  //         }
+  //       }
+  //     }
+  //
+  //     if (userQueryDocumentSnapshot?.exists ?? false) {
+  //       if (user.id.isNotEmpty) {
+  //         user.wallet.amount = user.wallet.amount - amount;
+  //         await userQueryDocumentSnapshot!.reference.update({
+  //           AppFirestoreConstants.wallet: user.wallet.toJSON()
+  //         });
+  //         AppUtilities.logger.d("User Wallet updated");
+  //         return true;
+  //       }
+  //     }
+  //   } catch (e) {
+  //     AppUtilities.logger.e(e.toString());
+  //   }
+  //
+  //   return false;
+  // }
 
 
   @override

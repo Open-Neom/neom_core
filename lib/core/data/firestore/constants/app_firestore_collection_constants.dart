@@ -63,5 +63,8 @@ class AppFirestoreCollectionConstants {
   static const String usersAnalytics = "usersAnalytics";
   static const String userLocations = "userLocations";
 
+  static const String wallets = "wallets";
+  static const String transactions = "transactions";
+
 
 }

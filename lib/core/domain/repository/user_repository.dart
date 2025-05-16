@@ -17,7 +17,7 @@ abstract class UserRepository {
   Future<bool> updateAndroidNotificationToken(String userId, String token);
   Future<bool> isAvailableEmail(String email);
   Future<bool> isAvailablePhone(String phoneNumber);
-  Future<bool> addToWallet(String userId, double amount, {AppCurrency appCurrency = AppCurrency.appCoin});
+  // Future<bool> addToWallet(String userId, double amount, {AppCurrency appCurrency = AppCurrency.appCoin});
   Future<bool> updatePhotoUrl(String userId, String photoUrl);
   Future<bool> addOrderId({required String userId, required String orderId});
   Future<bool> removeOrderId({required String userId, required String orderId});

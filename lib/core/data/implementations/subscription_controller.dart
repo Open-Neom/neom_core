@@ -5,6 +5,7 @@ import 'package:rflutter_alert/rflutter_alert.dart';
 import '../../../neom_commons.dart';
 import '../../domain/model/stripe/stripe_price.dart';
 import '../../domain/model/subscription_plan.dart';
+import '../../domain/model/user_subscription.dart';
 import '../../ui/widgets/handled_cached_network_image.dart';
 import '../../utils/enums/subscription_level.dart';
 import '../../utils/enums/subscription_status.dart';
@@ -26,6 +27,7 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
   SubscriptionPlan selectedPlan = SubscriptionPlan();
   Map<String, SubscriptionPlan> subscriptionPlans = {};
   RxMap<String, SubscriptionPlan> profilePlans = <String, SubscriptionPlan>{}.obs;
+  RxMap<SubscriptionLevel,List<UserSubscription>> activeSubscriptions = <SubscriptionLevel,List<UserSubscription>>{}.obs;
 
   Rx<ProfileType>  profileType = ProfileType.general.obs;
   Rx<FacilityType>  facilityType = FacilityType.general.obs;
@@ -33,17 +35,12 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
 
 
   @override
-  void onInit() async {
+  void onInit() {
     super.onInit();
     // Map<String, List<StripePrice>> recurringPrices = await StripeService.getRecurringPricesFromStripe();
     profile = userController.profile;
     profileType.value = profile.type;
-    if(userController.userSubscription?.status != SubscriptionStatus.active && subscriptionPlans.isEmpty) {
-      await initializeSubscriptions();
-    }
-
-    isLoading.value = false;
-    // SubscriptionPlanFirestore().insertSubscriptionPlans();
+    initializeSubscriptions();
   }
 
   Future<void> initializeSubscriptions() async {
@@ -58,6 +55,13 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
 
       setProfileTypePlans();
     }
+  }
+
+  @override
+  void onReady() async {
+    setActiveSubscriptions();
+    isLoading.value = false;
+    update([AppPageIdConstants.accountSettings]);
   }
 
   void setProfileTypePlans() {
@@ -97,11 +101,6 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
     if(selectedPlan.price != null) {
       selectedPrice.value = selectedPlan.price!;
     }
-  }
-
-  @override
-  void onReady() async {
-    update([AppPageIdConstants.accountSettings]);
   }
 
   Future<bool?> getSubscriptionAlert(BuildContext context, String fromRoute) async {
@@ -352,6 +351,24 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
     });
 
     return selectedPrice.value.amount;
+  }
+
+  Future<void> setActiveSubscriptions() async {
+    if(activeSubscriptions.isEmpty) {
+      List<UserSubscription> subscriptions = await UserSubscriptionFirestore().getAll();
+      if(subscriptions.isNotEmpty) {
+        for(UserSubscription subscription in subscriptions) {
+          if(subscription.status == SubscriptionStatus.active && subscription.level != null) {
+            if(activeSubscriptions[subscription.level] == null) {
+              activeSubscriptions[subscription.level!] = [];
+            }
+            activeSubscriptions[subscription.level]?.add(subscription);
+          }
+        }
+      }
+    } else {
+      AppUtilities.logger.d("Active Subscriptions already loaded");
+    }
   }
 
 }

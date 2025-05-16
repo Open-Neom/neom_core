@@ -116,7 +116,6 @@ class AppRouteConstants {
   static const String requestUp = '/request-up';
   static const String requestDetails = '/request/details';
   static const String invitationDetails = '/invitation/details';
-  static const String wallet = '/wallet';
 
   static const String createCoupon = '/coupon/create';
   static const String createSponsor = '/sponsor/create';
@@ -193,4 +192,6 @@ class AppRouteConstants {
 
   static const String camera  = '/camera';
 
+  static const String wallet = '/wallet';
+  static const String transactionDetails = '/transaction/details';
 }

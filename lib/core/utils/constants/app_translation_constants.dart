@@ -1068,5 +1068,22 @@ class AppTranslationConstants {
   static const String top10nupale = 'top10nupale';
   static const String readingSessions = 'readingSessions';
   static const String reportsAndAnalytics = 'reportsAndAnalytics';
+  static const String plan = 'plan';
+  static const String appCoin = 'appCoin';
+
+  // --- Constantes para Niveles de Suscripción ---
+  static const String freemium = 'freemium';
+  static const String freeMonth = 'freeMonth';
+  static const String basic = 'basic';
+  static const String student = 'student';
+  static const String family = 'family';
+  static const String connect = 'connect';
+  static const String creator = 'creator';
+  static const String ambassador = 'ambassador';
+  static const String artist = 'artist';
+  static const String professional = 'professional';
+  static const String premium = 'premium';
+  static const String publish = 'publish';
+  static const String platinum = 'platinum';
 
 }

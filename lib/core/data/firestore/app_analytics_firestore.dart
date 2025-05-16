@@ -38,29 +38,7 @@ class AppAnalyticsFirestore implements AppAnalyticsRepository {
         userLocations.dateId = queryDocumentSnapshot.id;
         userLocationsList.add(userLocations);
       }
-      // userLocations = UserLocations.fromJSON(querySnapshot.data());
-      // for (var queryDocumentSnapshot in querySnapshot.docs) {
-      //   if (queryDocumentSnapshot.exists) {
-      //     Map<String, dynamic> snapshots = queryDocumentSnapshot.data() as Map<String, dynamic>;
-      //     snapshots.forEach((key, value) {
-      //       AppAnalytics analytic = AppAnalytics(location: "", qty: 0);
-      //       Map<String,dynamic> mapItem = {};
-      //       mapItem["location"] = key;
-      //
-      //       if(value is int) {
-      //         mapItem["qty"] = value;
-      //       } else if(value is String) {
-      //         mapItem["qty"] = int.parse(value);
-      //       } else {
-      //         mapItem["qty"] = 0;
-      //       }
-      //
-      //
-      //       analytic = AppAnalytics.fromJson(mapItem);
-      //       analytics.add(analytic);
-      //     });
-      //   }
-      // }
+
     } catch (e) {
       AppUtilities.logger.e(e.toString());
     }
@@ -124,30 +102,12 @@ class AppAnalyticsFirestore implements AppAnalyticsRepository {
 
         totalLocations = await AppUtilities.getAddressesFromPositions(positions);
 
-
-        ///
-        // await analyticsReference
-        //     .doc(AppFirestoreCollectionConstants.analytics)
-        //     .set({});
-
         await userLocationsReferences.doc(dateId)
             .set({
               AppFirestoreConstants.totalUsers: "${users.length}",
               AppFirestoreConstants.totalLocations: "${totalLocations.length}"
             });
 
-        ///
-        // Map<String, int> locationTimes = {};
-        // // Recorrer la lista de ciudades y contar ocurrencias
-        // for (var locationName in totalLocations) {
-        //   // Si la ciudad ya está en el mapa, incrementar su contador
-        //   if (locationTimes.containsKey(locationName)) {
-        //     locationTimes[locationName] = locationTimes[locationName]! + 1;
-        //   } else {
-        //     // Si no está, inicializar con 1
-        //     locationTimes[locationName] = 1;
-        //   }
-        // }
 
         Map<String, int> locationTimes = totalLocations.fold<Map<String, int>>(
           {}, (map, location) {

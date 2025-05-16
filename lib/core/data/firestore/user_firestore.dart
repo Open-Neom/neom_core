@@ -282,58 +282,58 @@ class UserFirestore implements UserRepository {
   }
 
 
-  @override
-  Future<bool> addToWallet(String userId, double amount, {AppCurrency appCurrency = AppCurrency.appCoin}) async {
-    AppUtilities.logger.d("Entering addToWalletMethod");
+  // @override
+  // Future<bool> addToWallet(String userId, double amount, {AppCurrency appCurrency = AppCurrency.appCoin}) async {
+  //   AppUtilities.logger.d("Entering addToWalletMethod");
+  //
+  //   AppUser user = AppUser();
+  //   try {
+  //     DocumentSnapshot documentSnapshot = await userReference.doc(userId).get();
+  //     if (documentSnapshot.exists) {
+  //       user = AppUser.fromJSON(documentSnapshot.data());
+  //       user.wallet.amount = user.wallet.amount + amount;
+  //
+  //       await documentSnapshot.reference.update({
+  //         AppFirestoreConstants.wallet: user.wallet.toJSON()
+  //       });
+  //
+  //       AppUtilities.logger.d("User Wallet updated");
+  //       return true;
+  //     } else {
+  //       AppUtilities.logger.i("No user found");
+  //     }
+  //   } catch (e) {
+  //     AppUtilities.logger.e(e.toString());
+  //   }
+  //
+  //   return false;
+  // }
 
-    AppUser user = AppUser();
-    try {
-      DocumentSnapshot documentSnapshot = await userReference.doc(userId).get();
-      if (documentSnapshot.exists) {
-        user = AppUser.fromJSON(documentSnapshot.data());
-        user.wallet.amount = user.wallet.amount + amount;
 
-        await documentSnapshot.reference.update({
-          AppFirestoreConstants.wallet: user.wallet.toJSON()
-        });
-
-        AppUtilities.logger.d("User Wallet updated");
-        return true;
-      } else {
-        AppUtilities.logger.i("No user found");
-      }
-    } catch (e) {
-      AppUtilities.logger.e(e.toString());
-    }
-
-    return false;
-  }
-
-
-  Future<bool> subtractFromWallet(String userId, double amount, {AppCurrency appCurrency = AppCurrency.appCoin}) async {
-    AppUtilities.logger.d("Subtraction $amount Aopcoins from UserId $userId");
-    AppUser user = AppUser();
-    try {
-      DocumentSnapshot documentSnapshot = await userReference.doc(userId).get();
-      if (documentSnapshot.exists) {
-        user = AppUser.fromJSON(documentSnapshot.data());
-        user.wallet.amount = user.wallet.amount - amount;
-
-        await documentSnapshot.reference.update({
-          AppFirestoreConstants.wallet: user.wallet.toJSON()
-        });
-
-        AppUtilities.logger.i("User Wallet updated for user $userId");
-        return true;
-      } else {
-        AppUtilities.logger.i("No user found");
-      }
-    } catch (e) {
-      AppUtilities.logger.e(e.toString());
-    }
-
-    return false;
-  }
+  // Future<bool> subtractFromWallet(String userId, double amount, {AppCurrency appCurrency = AppCurrency.appCoin}) async {
+  //   AppUtilities.logger.d("Subtraction $amount Aopcoins from UserId $userId");
+  //   AppUser user = AppUser();
+  //   try {
+  //     DocumentSnapshot documentSnapshot = await userReference.doc(userId).get();
+  //     if (documentSnapshot.exists) {
+  //       user = AppUser.fromJSON(documentSnapshot.data());
+  //       user.wallet.amount = user.wallet.amount - amount;
+  //
+  //       await documentSnapshot.reference.update({
+  //         AppFirestoreConstants.wallet: user.wallet.toJSON()
+  //       });
+  //
+  //       AppUtilities.logger.i("User Wallet updated for user $userId");
+  //       return true;
+  //     } else {
+  //       AppUtilities.logger.i("No user found");
+  //     }
+  //   } catch (e) {
+  //     AppUtilities.logger.e(e.toString());
+  //   }
+  //
+  //   return false;
+  // }
 
 
   @override
