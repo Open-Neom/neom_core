@@ -149,9 +149,9 @@ class ProfileFirestore implements ProfileRepository {
 
 
   @override
-  Future<AppProfile> retrieveSimple(String profileId) async {
+  Future<AppProfile?> retrieveSimple(String profileId) async {
     AppUtilities.logger.d("Retrieving Profile $profileId");
-    AppProfile profile = AppProfile();
+    AppProfile? profile;
 
     try {
       QuerySnapshot querySnapshot = await profileReference.get();
@@ -164,10 +164,10 @@ class ProfileFirestore implements ProfileRepository {
         break;
       }
 
-      if (profile.id.isNotEmpty) {
+      if (profile?.id.isNotEmpty ?? false) {
         AppUtilities.logger.d("Profile ${profile.toString()}");
       } else {
-        AppUtilities.logger.d("Profile not found");
+        AppUtilities.logger.d("Profile not found $profileId");
       }
     } catch (e) {
       AppUtilities.logger.e(e.toString());

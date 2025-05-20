@@ -15,8 +15,7 @@ import 'constants/app_firestore_constants.dart';
 import 'profile_firestore.dart';
 
 class InboxFirestore implements InboxRepository {
-
-  var logger = AppUtilities.logger;
+  
   final inboxReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.inbox);
   final messageReference = FirebaseFirestore.instance.collectionGroup(AppFirestoreCollectionConstants.messages);
   //final activityFeedReference = FirebaseFirestore.instance.collection(GigConstants.fs_feed);
@@ -24,31 +23,31 @@ class InboxFirestore implements InboxRepository {
   @override
   Future<bool> addMessage(String inboxRoomId, InboxMessage message,
       {InboxRoomType inboxRoomType = InboxRoomType.profile}) async {
-    logger.t("Adding Message to inbox $inboxRoomId");
+    AppUtilities.logger.t("Adding Message to inbox $inboxRoomId");
 
     try {
       await inboxReference.doc(inboxRoomId).collection(AppFirestoreCollectionConstants.messages)
           .add(message.toJSON());
-      logger.d("${message.text} message added");
+      AppUtilities.logger.d("${message.text} message added");
 
       if(inboxRoomType == InboxRoomType.profile) {
         await inboxReference.doc(inboxRoomId)
             .update({AppFirestoreConstants.lastMessage: message.toJSON()});
       }
 
-      logger.i("${message.text} last message added");
+      AppUtilities.logger.i("${message.text} last message added");
       return true;
     } catch (e) {
-      logger.e("Something occurred.");
+      AppUtilities.logger.e("Something occurred.");
     }
 
-    logger.d("Message not send");
+    AppUtilities.logger.d("Message not send");
     return false;
   }
 
   @override
   Future<bool> handleLikeMessage(String profileId, String messageId, bool isLiked) async {
-    logger.d("");
+    AppUtilities.logger.d("");
     try {
       await messageReference.get()
           .then((querySnapshot) async {
@@ -62,7 +61,7 @@ class InboxFirestore implements InboxRepository {
 
       return true;
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
       return false;
     }
   }
@@ -70,7 +69,7 @@ class InboxFirestore implements InboxRepository {
 
   @override
   Future<bool> inboxExists(String inboxId) async {
-    logger.d("");
+    AppUtilities.logger.d("");
 
     try {
       DocumentSnapshot documentSnapshot = await inboxReference.doc(inboxId).get();
@@ -78,17 +77,17 @@ class InboxFirestore implements InboxRepository {
         return true;
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
-    logger.d("");
+    AppUtilities.logger.d("");
     return false;
   }
 
 
   @override
   Future<List<InboxMessage>> retrieveMessages(String inboxId) async {
-    logger.t("Retrieving messages for inbox room $inboxId from firestore");
+    AppUtilities.logger.t("Retrieving messages for inbox room $inboxId from firestore");
     List<InboxMessage> messages = [];
 
     try {
@@ -99,16 +98,16 @@ class InboxFirestore implements InboxRepository {
         for (var messageSnapshot in querySnapshot.docs) {
           InboxMessage message = InboxMessage.fromJSON(messageSnapshot.data());
           message.id = messageSnapshot.id;
-          logger.t('Message text ${message.text}');
+          AppUtilities.logger.t('Message text ${message.text}');
           messages.add(message);
         }
-        logger.t("${messages.length} messages retrieved");
+        AppUtilities.logger.t("${messages.length} messages retrieved");
       } else {
-        logger.t("No messages found Found");
+        AppUtilities.logger.t("No messages found Found");
       }
 
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     return messages;
@@ -117,14 +116,14 @@ class InboxFirestore implements InboxRepository {
 
   @override
   Future<bool> addInbox(Inbox inbox) async {
-    logger.d("");
+    AppUtilities.logger.d("");
 
     try {
       await inboxReference.doc(inbox.id).set(inbox.toJSON());
-      logger.d("");
+      AppUtilities.logger.d("");
       return true;
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     return false;
@@ -132,7 +131,7 @@ class InboxFirestore implements InboxRepository {
 
   @override
   Future<List<Inbox>> getProfileInbox(String profileId) async {
-    logger.t("Getting Inbox for Profile $profileId from firestore");
+    AppUtilities.logger.t("Getting Inbox for Profile $profileId from firestore");
 
     List<Inbox> inboxs = [];
 
@@ -142,39 +141,41 @@ class InboxFirestore implements InboxRepository {
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        for(int queryIndex = 0; queryIndex < querySnapshot.docs.length; queryIndex++)  {
-          Inbox inbox = Inbox.fromQueryDocumentSnapshot(querySnapshot.docs.elementAt(queryIndex));
-          inbox.profiles = [];
-          for(int i = 0; i < inbox.profileIds.length; i++) {
-            String itemmateId = inbox.profileIds.elementAt(i);
-            AppProfile mate = AppProfile();
-            if(itemmateId != profileId) {
-              if(inbox.lastMessage?.ownerId != profileId) {
-                mate.id = inbox.lastMessage!.ownerId;
-                mate.name = inbox.lastMessage!.profileName;
-                mate.photoUrl = inbox.lastMessage!.profileImgUrl;
-              } else {
-                //mate =  await GigProfileFirestore().retrieveGigProfileSimple(itemmateId);
-              }
+        for(var documentSnapshot in querySnapshot.docs) {          
+          Inbox inbox = Inbox.fromJSON(documentSnapshot.data());
+          inbox.id = documentSnapshot.id;
 
-              inbox.profiles!.add(mate);
-            } else if (inbox.profileIds.length == 1) {
-              mate = AppProfile(
-                name: AppConstants.appBotName,
-                photoUrl: AppFlavour.getAppLogoUrl()
-              );
+          ///DEPRECATED
+          // inbox.profiles = [];
+          // for (String itemmateId in inbox.profileIds) {
+          //   AppProfile mate = AppProfile();
+          //   if(itemmateId != profileId) {
+          //     if(inbox.lastMessage?.ownerId != profileId) {
+          //       mate.id = inbox.lastMessage!.ownerId;
+          //       mate.name = inbox.lastMessage!.profileName;
+          //       mate.photoUrl = inbox.lastMessage!.profileImgUrl;
+          //     } else {
+          //       //mate =  await GigProfileFirestore().retrieveGigProfileSimple(itemmateId);
+          //     }
+          //
+          //     inbox.profiles!.add(mate);
+          //   } else if (inbox.profileIds.length == 1) {
+          //     mate = AppProfile(
+          //       name: AppConstants.appBotName,
+          //       photoUrl: AppFlavour.getAppLogoUrl()
+          //     );
+          //
+          //     inbox.profiles!.add(mate);
+          //   }
+          // }
 
-              inbox.profiles!.add(mate);
-            }
-          }
-
-            logger.i('Inbox ${inbox.id} found');
+            AppUtilities.logger.i('Inbox ${inbox.id} found');
             inboxs.add(inbox);
           }
         }
-      logger.i("${inboxs.length} inboxRoom retrieved");
+      AppUtilities.logger.i("${inboxs.length} inboxRoom retrieved");
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     return inboxs;
@@ -183,7 +184,7 @@ class InboxFirestore implements InboxRepository {
 
   @override
   Future<Inbox> getOrCreateInboxRoom(AppProfile profile, AppProfile itemmate) async {
-    logger.d("Getting or creating InboxRoom for profile ${profile.id}");
+    AppUtilities.logger.d("Getting or creating InboxRoom for profile ${profile.id}");
 
     Inbox inbox = Inbox();
 
@@ -193,15 +194,17 @@ class InboxFirestore implements InboxRepository {
     try {
       DocumentSnapshot documentSnapshot = await inboxReference.doc(inboxRoomId).get();
       if(documentSnapshot.exists){
-        logger.d("Retrieving inbox from main user");
-        inbox = Inbox.fromDocumentSnapshot(documentSnapshot);
+        AppUtilities.logger.d("Retrieving inbox from main user");
+        inbox = Inbox.fromJSON(documentSnapshot.data());
+        inbox.id = documentSnapshot.id;
       } else {
         DocumentSnapshot itemmateDocumentSnapshot = await inboxReference.doc(mateInboxRoomId).get();
         if(itemmateDocumentSnapshot.exists){
-          logger.i("Retrieving inbox from itemmate");
-          inbox = Inbox.fromDocumentSnapshot(itemmateDocumentSnapshot);
+          AppUtilities.logger.i("Retrieving inbox from itemmate");          
+          inbox = Inbox.fromJSON(itemmateDocumentSnapshot.data());
+          inbox.id = documentSnapshot.id;
         } else {
-          logger.i("Creating inbox from main user");
+          AppUtilities.logger.i("Creating inbox from main user");
           inbox.id = inboxRoomId;
           List<String> profileIds = [];
           profileIds.add(profile.id);
@@ -212,20 +215,21 @@ class InboxFirestore implements InboxRepository {
         }
       }
 
-      inbox.profiles = [];
-      for(int i = 0; i < inbox.profileIds.length; i++)  {
-        String itemmateId = inbox.profileIds.elementAt(i);
-        if(itemmateId != profile.id) {
-          AppProfile itemmate = await ProfileFirestore().retrieve(itemmateId);
-          inbox.profiles!.add(itemmate);
-        }
-      }
+      ///DEPRECATED
+      // inbox.profiles = [];
+      // for(int i = 0; i < inbox.profileIds.length; i++)  {
+      //   String itemmateId = inbox.profileIds.elementAt(i);
+      //   if(itemmateId != profile.id) {
+      //     AppProfile itemmate = await ProfileFirestore().retrieve(itemmateId);
+      //     inbox.profiles!.add(itemmate);
+      //   }
+      // }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
       rethrow;
     }
 
-    logger.d(inbox.toString());
+    AppUtilities.logger.d(inbox.toString());
     return inbox;
   }
 
@@ -244,7 +248,7 @@ class InboxFirestore implements InboxRepository {
 
 
   Future<Inbox> getOrCreateAppBotRoom(String profileId) async {
-    logger.t("getOrCreateAppBotRoom for profile $profileId");
+    AppUtilities.logger.t("getOrCreateAppBotRoom for profile $profileId");
 
     Inbox inbox = Inbox();
 
@@ -253,10 +257,12 @@ class InboxFirestore implements InboxRepository {
     try {
       DocumentSnapshot documentSnapshot = await inboxReference.doc(inboxRoomId).get();
       if(documentSnapshot.exists){
-        logger.d("Retrieving inbox from main user");
-        inbox = Inbox.fromDocumentSnapshot(documentSnapshot);
+        AppUtilities.logger.d("Retrieving inbox from main user");
+        inbox = Inbox.fromJSON(documentSnapshot.data());
+        inbox.id = documentSnapshot.id;
+        
       } else {
-        logger.d("Creating inbox for AppBot");
+        AppUtilities.logger.d("Creating inbox for AppBot");
         inbox.id = inboxRoomId;
         List<String> profileIds = [];
         profileIds.add(profileId);
@@ -264,19 +270,19 @@ class InboxFirestore implements InboxRepository {
           await inboxReference.doc(inboxRoomId).set(inbox.toJSON());
       }
 
-      inbox.profiles = [];
-      for(int i = 0; i < inbox.profileIds.length; i++)  {
-        String itemmateId = inbox.profileIds.elementAt(i);
-        if(itemmateId != profileId) {
-          AppProfile itemmate = await ProfileFirestore().retrieve(itemmateId);
-          inbox.profiles!.add(itemmate);
-        }
-      }
+      // inbox.profiles = [];
+      // for(int i = 0; i < inbox.profileIds.length; i++)  {
+      //   String itemmateId = inbox.profileIds.elementAt(i);
+      //   if(itemmateId != profileId) {
+      //     AppProfile itemmate = await ProfileFirestore().retrieve(itemmateId);
+      //     inbox.profiles!.add(itemmate);
+      //   }
+      // }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
-    logger.d(inbox.toString());
+    AppUtilities.logger.d(inbox.toString());
     return inbox;
   }
 

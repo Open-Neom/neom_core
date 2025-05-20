@@ -194,7 +194,7 @@ export 'core/utils/enums/request_decision.dart';
 export 'core/utils/enums/search_type.dart';
 export 'core/utils/enums/sort_user.dart';
 export 'core/utils/enums/sponsor_type.dart';
-export 'core/utils/enums/spotify_search_type.dart';
+export 'core/utils/enums/media_search_type.dart';
 export 'core/utils/enums/upload_image_type.dart';
 export 'core/utils/enums/usage_reason.dart';
 export 'core/utils/enums/user_role.dart';

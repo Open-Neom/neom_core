@@ -15,7 +15,7 @@ abstract class ProfileRepository {
 
   Future<String> insert(String userId, AppProfile profile);
   Future<AppProfile> retrieve(String profileId);
-  Future<AppProfile> retrieveSimple(String profileId);
+  Future<AppProfile?> retrieveSimple(String profileId);
   Future<AppProfile> retrieveFull(String profileId);
   Future<bool> remove({required String userId, required String profileId});
 
