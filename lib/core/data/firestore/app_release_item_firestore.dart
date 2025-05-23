@@ -139,6 +139,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
     }
     return false;
   }
+
   @override
   Future<bool> exists(String releaseItemId) async {
     AppUtilities.logger.d("Getting releaseItem $releaseItemId");

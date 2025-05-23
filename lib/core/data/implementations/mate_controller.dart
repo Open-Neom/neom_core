@@ -50,7 +50,7 @@ class MateController extends GetxController implements MateService {
 
       profile = userController.profile;
 
-      if(Get.arguments != null && Get.arguments is List) {
+      if(Get.arguments != null && Get.arguments is List<String>) {
         if(Get.arguments.isNotEmpty) {
           mateIds = Get.arguments;
         }

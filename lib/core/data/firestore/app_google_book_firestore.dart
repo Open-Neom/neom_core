@@ -15,7 +15,6 @@ class AppGoogleBookFirestore {
   final appGoogleBookReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.googleBooks);
   final profileReference = FirebaseFirestore.instance.collectionGroup(AppFirestoreCollectionConstants.profiles);
 
-  @override
   Future<AppMediaItem> retrieve(String itemId) async {
     AppUtilities.logger.d("Getting item $itemId");
     AppMediaItem appMediaItem = AppMediaItem();
@@ -35,8 +34,6 @@ class AppGoogleBookFirestore {
     return appMediaItem;
   }
 
-
-  @override
   Future<Map<String, AppMediaItem>> fetchAll({ int minItems = 0, int maxLength = 100,
     MediaItemType? type, List<MediaItemType>? excludeTypes}) async {
     AppUtilities.logger.t("Getting appMediaItems from list");
@@ -67,7 +64,6 @@ class AppGoogleBookFirestore {
     return appMediaItems;
   }
 
-  @override
   Future<Map<String, AppMediaItem>> retrieveFromList(List<String> appMediaItemIds) async {
     AppUtilities.logger.t("Getting ${appMediaItemIds.length} appMediaItems from firestore");
 
@@ -92,7 +88,6 @@ class AppGoogleBookFirestore {
     return appMediaItems;
   }
 
-  @override
   Future<bool> exists(String appMediaItemId) async {
     AppUtilities.logger.d("Getting appMediaItem $appMediaItemId");
 
@@ -110,7 +105,6 @@ class AppGoogleBookFirestore {
     return false;
   }
 
-  @override
   Future<void> insert(AppMediaItem appMediaItem) async {
     AppUtilities.logger.t("Adding appMediaItem to database collection");
     try {
@@ -133,7 +127,6 @@ class AppGoogleBookFirestore {
     }
   }
 
-  @override
   Future<bool> remove(AppMediaItem appMediaItem) async {
     AppUtilities.logger.d("Removing appMediaItem from database collection");
     try {
@@ -145,7 +138,6 @@ class AppGoogleBookFirestore {
     }
   }
 
-  @override
   Future<bool> removeItemFromList(String profileId, String itemlistId, AppMediaItem appMediaItem) async {
     AppUtilities.logger.d("Removing ItemlistItem for user $profileId");
 
@@ -177,7 +169,6 @@ class AppGoogleBookFirestore {
     return false;
   }
 
-  @override
   Future<void> existsOrInsert(AppMediaItem appMediaItem) async {
     AppUtilities.logger.t("existsOrInsert appMediaItem ${appMediaItem.id}");
 

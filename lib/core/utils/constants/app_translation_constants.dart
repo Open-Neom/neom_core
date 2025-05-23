@@ -325,9 +325,7 @@ class AppTranslationConstants {
   static const String somewhereUniverse = 'somewhereUniverse';
   static const String searchByCountryName = 'searchByCountryName';
   static const String phoneNumber = 'phoneNumber';
-
-  static const String searchPostProfileItemmates = 'searchPostProfileItemmates';
-  static const String searchProfileItemmates = 'searchProfileItemmates';
+  
   static const String chooseYourLanguage = 'chooseYourLanguage';
 
   static const String profileType = 'profileType';

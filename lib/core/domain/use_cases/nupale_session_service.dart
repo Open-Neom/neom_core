@@ -6,5 +6,6 @@ abstract class NupaleSessionService {
   Future<bool> remove(String sessionId);
   Future<Map<String, NupaleSession>> retrieveFromList(List<String> sessionIds);
   Future<NupaleSession> retrieveSession(String orderId);
+  Future<Map<String, NupaleSession>> fetchAll({String? itemId, bool skipTest = true});
 
 }

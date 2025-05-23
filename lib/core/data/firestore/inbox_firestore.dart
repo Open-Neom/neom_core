@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import '../../app_flavour.dart';
 import '../../domain/model/app_profile.dart';
 import '../../domain/model/inbox.dart';
 import '../../domain/model/inbox_message.dart';
@@ -12,7 +11,6 @@ import '../../utils/constants/app_constants.dart';
 import '../../utils/enums/inbox_room_type.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
-import 'profile_firestore.dart';
 
 class InboxFirestore implements InboxRepository {
   

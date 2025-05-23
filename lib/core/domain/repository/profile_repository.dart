@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
 
-import '../../utils/enums/app_currency.dart';
 import '../../utils/enums/event_action.dart';
 import '../../utils/enums/facilitator_type.dart';
 import '../../utils/enums/place_type.dart';
@@ -106,4 +105,8 @@ abstract class ProfileRepository {
   Future<bool> updatePhoneNumber(String profileId, String phoneNumber);
   Future<bool> updateType(String profileId, ProfileType type);
   Future<bool> updateVerificationLevel(String profileId, VerificationLevel verificationLevel);
+
+  Future<AppProfile?> getByEmail(String email);
+
+
 }

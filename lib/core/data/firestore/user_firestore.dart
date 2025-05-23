@@ -12,7 +12,6 @@ import '../../domain/model/post.dart';
 import '../../domain/repository/user_repository.dart';
 import '../../utils/app_utilities.dart';
 import '../../utils/core_utilities.dart';
-import '../../utils/enums/app_currency.dart';
 import '../../utils/enums/app_in_use.dart';
 import '../../utils/enums/facilitator_type.dart';
 import '../../utils/enums/place_type.dart';

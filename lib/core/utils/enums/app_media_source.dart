@@ -10,10 +10,3 @@ enum AppMediaSource {
   const AppMediaSource(this.value);
 
 }
-
-///Future Idea - Verify if is needed to add more sources
-//   apple('apple'),
-//   deezer('deezer'),
-//   jiosaavn('jiosaavn'),
-//   google('google'),
-//   amazon('amazon'),

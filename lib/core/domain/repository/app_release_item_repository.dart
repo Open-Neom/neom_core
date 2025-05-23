@@ -10,4 +10,6 @@ abstract class AppReleaseItemRepository {
   Future<bool> remove(AppReleaseItem releaseItem);
   Future<bool> addBoughtUser({required String releaseItemId, required String userId});
   Future<Map<String, AppReleaseItem>> retrieveAll();
+  Future<bool> exists(String releaseItemId);
+
 }

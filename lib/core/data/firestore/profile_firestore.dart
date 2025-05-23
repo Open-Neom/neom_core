@@ -13,7 +13,6 @@ import '../../domain/repository/profile_repository.dart';
 import '../../utils/app_utilities.dart';
 import '../../utils/constants/app_constants.dart';
 import '../../utils/core_utilities.dart';
-import '../../utils/enums/app_currency.dart';
 import '../../utils/enums/app_in_use.dart';
 import '../../utils/enums/event_action.dart';
 import '../../utils/enums/facilitator_type.dart';
@@ -268,7 +267,9 @@ class ProfileFirestore implements ProfileRepository {
           for (String postId in profile.posts!) {
             Post post = posts.firstWhere((p) => p.id == postId);
             if (post.mediaUrl.isNotEmpty &&
-                post.mediaUrl.contains('.jpg')) postImgUrls.add(post.mediaUrl);
+                post.mediaUrl.contains('.jpg')) {
+              postImgUrls.add(post.mediaUrl);
+            }
           }
 
 
@@ -321,8 +322,10 @@ class ProfileFirestore implements ProfileRepository {
         if (profile.address.isEmpty) {
           profile.address =
           await AppUtilities.getAddressFromPlacerMark(profile.position!);
-          if (profile.address.isNotEmpty) ProfileFirestore().updateAddress(
+          if (profile.address.isNotEmpty) {
+            ProfileFirestore().updateAddress(
               profile.id, profile.address);
+          }
         }
 
         currentProfileIds.add(profile.id);
@@ -964,7 +967,6 @@ class ProfileFirestore implements ProfileRepository {
     return false;
   }
 
-  @override
   Future<bool> updateUsageReason(String profileId, UsageReason reason) async {
     AppUtilities.logger.i(
         "Updating Profile $profileId with new type as ${reason.name}");
@@ -1808,15 +1810,17 @@ class ProfileFirestore implements ProfileRepository {
         profile.chamberPresets?.clear();
 
         CoreUtilities.getTotalPresets(profile.chambers!).forEach((key, value) {
-          profile?.chamberPresets!.add(key);
+          profile.chamberPresets!.add(key);
         });
       }
 
       profile.genres = await GenreFirestore().retrieveGenres(profile.id);
       profile.itemlists = await ItemlistFirestore().getByOwnerId(profile.id);
       if (profile.genres!.isEmpty) AppUtilities.logger.t("Genres not found");
-      if (profile.itemlists!.isEmpty) AppUtilities.logger.t(
+      if (profile.itemlists!.isEmpty) {
+        AppUtilities.logger.t(
           "Itemlists not found");
+      }
     } catch (e) {
       AppUtilities.logger.e(e.toString());
     }
@@ -2119,7 +2123,7 @@ class ProfileFirestore implements ProfileRepository {
       AppUtilities.logger.e(e.toString());
     }
 
-    return (user?.profiles?.isNotEmpty ?? false) ? user!.profiles!.first : null;
+    return (user?.profiles.isNotEmpty ?? false) ? user!.profiles.first : null;
   }
 
 }

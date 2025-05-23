@@ -56,7 +56,7 @@ class AnalyticsPageState extends State<AnalyticsPage> {
                 for (UserLocations ul in userLocations) {
                   // Convertir el dateId a DateTime para extraer el mes.
                   DateTime? date = parseDateId(ul.dateId);
-                  int month = date?.month ?? 0;
+                  int month = date.month;
                   // Acumular totalUsers para cada mes.
                   monthlyValues[month] = (monthlyValues[month] ?? 0) + ul.totalUsers;
                 }

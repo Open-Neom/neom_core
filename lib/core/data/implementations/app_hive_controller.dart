@@ -220,22 +220,18 @@ class AppHiveController {
 
   Future<File?> getCachedPdf(String id) async {
     final pdfCacheBox = await getBox(AppHiveBox.pdfCache.name);
-    if (pdfCacheBox != null) {
-      final String? cachedPath = pdfCacheBox.get(id);
-      if (cachedPath != null && File(cachedPath).existsSync()) {
-        return File(cachedPath);
-      }
+    final String? cachedPath = pdfCacheBox.get(id);
+    if (cachedPath != null && File(cachedPath).existsSync()) {
+      return File(cachedPath);
     }
-    return null;
+      return null;
   }
 
   /// Guarda la ruta del archivo PDF en el caché usando la URL como key
   Future<void> cachePdf(String id, File file) async {
     final pdfCacheBox = await getBox(AppHiveBox.pdfCache.name);
-    if (pdfCacheBox != null) {
-      await pdfCacheBox.put(id, file.path);
+    await pdfCacheBox.put(id, file.path);
     }
-  }
 
   @override
   Future<void> updateLocale(AppLocale appLocale) async {

@@ -1,6 +1,5 @@
 import 'package:geolocator/geolocator.dart';
 
-import '../../utils/enums/app_currency.dart';
 import '../../utils/enums/facilitator_type.dart';
 import '../../utils/enums/profile_type.dart';
 import '../../utils/enums/user_role.dart';

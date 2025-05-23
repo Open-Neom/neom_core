@@ -219,7 +219,6 @@ class ItemlistFirestore implements ItemlistRepository {
     return false;
   }
 
-  @override
   Future<bool> updateType(Itemlist itemlist) async {
     AppUtilities.logger.d("Updating Itemlist for user ${itemlist.id}");
 

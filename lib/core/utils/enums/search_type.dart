@@ -1,6 +1,7 @@
 enum SearchType {
-  profile,
-  band,
-  event,
+  profiles,
+  bands,
+  events,
+  items,
   any
 }
