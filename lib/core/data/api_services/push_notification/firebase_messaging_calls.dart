@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:get/get.dart';
+import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:http/http.dart' as http;
 
 import '../../../app_flavour.dart';
@@ -7,8 +10,8 @@ import '../../../utils/app_utilities.dart';
 import '../../../utils/constants/app_google_utilities.dart';
 import '../../../utils/constants/app_translation_constants.dart';
 import '../../../utils/enums/push_notification_type.dart';
+import '../../firestore/constants/app_firestore_constants.dart';
 import '../../firestore/profile_firestore.dart';
-import '../../firestore/user_firestore.dart';
 
 class FirebaseMessagingCalls {
 
@@ -17,12 +20,105 @@ class FirebaseMessagingCalls {
     required PushNotificationType notificationType, String message = "",
     String referenceId = "", String imgUrl = ""}) async {
 
+
+    http.Response? response;
+
+    String profileFCMToken = "";
+
+    try {
+      profileFCMToken = await ProfileFirestore().retrievedFcmToken(toProfileId);
+      AppUtilities.logger.i("Profile $toProfileId has FCM registered: $profileFCMToken");
+
+      if(profileFCMToken.isNotEmpty) {
+
+        String body = jsonEncode(buildPrivatePayload(notificationType, message, fromProfile, imgUrl, referenceId, profileFCMToken));
+        String fcmUrl = AppGoogleUtilities.fcmGoogleAPIUrl.replaceFirst(AppGoogleUtilities.projectId, AppFlavour.getFirebaseProjectId());
+        Uri uri = Uri.parse(fcmUrl);
+
+        String? accessToken = await getAccessToken(); // Llama a tu función para obtener el token
+        if (accessToken == null || accessToken.isEmpty) {
+          AppUtilities.logger.e("Firebase Messaging Error: Access Token es nulo o vacío. No se puede enviar la notificación.");
+          return null; // O manejar el error de otra forma
+        }
+
+        response = await http.post(
+          uri,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $accessToken',
+          },
+          body: body,
+        );
+
+        if(response.statusCode == 200 || response.statusCode == 201) {
+          AppUtilities.logger.i("Firebase Messaginng Response returned as: ${response.statusCode}");
+        } else {
+          AppUtilities.logger.e("Firebase Messaging Error: ${response.statusCode} - ${response.body}");
+        }
+      } else {
+        AppUtilities.logger.w("Profile $toProfileId has no FCM registered");
+      }
+
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+
+    return response;
+
+  }
+
+  static Future<http.Response?> sendPublicPushNotification({
+    required AppProfile fromProfile, required PushNotificationType notificationType, AppProfile? toProfile,
+    String? selfFCM, String message = "", String referenceId = "", String imgUrl = ""}) async {
+
+    http.Response? response;
+
+    try {
+
+      String body = jsonEncode(buildPublicPayload(notificationType, message: message,
+          fromProfile: fromProfile, toProfile: toProfile, referenceId: referenceId, imgUrl: imgUrl));
+
+      String fcmUrl = AppGoogleUtilities.fcmGoogleAPIUrl.replaceFirst(AppGoogleUtilities.projectId, AppFlavour.getFirebaseProjectId());
+      Uri uri = Uri.parse(fcmUrl);
+
+      String? accessToken = await getAccessToken(); // Llama a tu función para obtener el token
+      if (accessToken == null || accessToken.isEmpty) {
+        AppUtilities.logger.e("Firebase Messaging Error: Access Token es nulo o vacío. No se puede enviar la notificación.");
+        return null; // O manejar el error de otra forma
+      }
+
+      response = await http.post(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: body,
+      );
+
+      if(response.statusCode == 200 || response.statusCode == 201) {
+        AppUtilities.logger.i("Firebase Messaginng Response returned as: ${response.statusCode}");
+      } else {
+        AppUtilities.logger.e("Firebase Messaging Error: ${response.statusCode} - ${response.body}");
+      }
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+
+    return response;
+
+  }
+
+  /// Devuelve un Map<String, dynamic> listo para ser codificado a JSON.
+  static Map<String, dynamic> buildPrivatePayload(PushNotificationType notificationType, String message,
+      AppProfile fromProfile, String imgUrl, String referenceId, String profileFCMToken) {
+
     String notificationTitle = "";
     String notificationBody = message;
-    http.Response? response;
     int channelId = 0;
     String channelKey = "";
-    String profileFCMToken = "";
+
+    Map<String, dynamic> fcmPrivatePayload = {};
 
     try {
       switch(notificationType) {
@@ -73,205 +169,220 @@ class FirebaseMessagingCalls {
         case PushNotificationType.appItemAdded:
           break;
         case PushNotificationType.releaseAppItemAdded:
-          // TODO: Handle this case.
+        // TODO: Handle this case.
           break;
         case PushNotificationType.chamberPresetAdded:
-          // TODO: Handle this case.
+        // TODO: Handle this case.
       }
 
-      profileFCMToken = await ProfileFirestore().retrievedFcmToken(toProfileId);
+      Map<String, dynamic> dataPayload = {
+        "title": notificationTitle.tr,
+        "body": notificationBody,
+        "fromId" : fromProfile.id,
+        "fromName" : fromProfile.name,
+        "fromImgUrl": fromProfile.photoUrl,
+        "imgUrl": imgUrl,
+        "referenceId": referenceId,
+        "notificationType": notificationType.name,
+        "click_action": "FLUTTER_NOTIFICATION_CLICK", // Acción estándar para Flutter
+        "channelId": channelId.toString(), // Los valores en data suelen ser strings
+        "channelKey": channelKey,
+        "isPublic": "false",
+      };
 
-      if(profileFCMToken.isNotEmpty) {
-
-        String body = '''
-         {
-           "registration_ids": ["$profileFCMToken"],
-           "data": {
-              "title": "${notificationTitle.tr}",
-              "body": "$notificationBody",
-              "fromId" :"${fromProfile.id}",
-              "fromName" :"${fromProfile.name}",
-              "fromImgUrl": "${fromProfile.photoUrl}",
-              "imgUrl": "$imgUrl",
-              "referenceId": "$referenceId",
-              "notificationType": "${notificationType.name}",
-              "channelId": "$channelId",
-              "channelKey": "$channelKey"
-            },
-            "apns": {
-              "content-available" : 1,
-              "apns-push-type": "background",
-              "headers": {
-                "apns-priority": "10"
-              }
-            }
-         }''';
-
-        Uri uri = Uri.parse(AppGoogleUtilities.fcmGoogleAPIUrl);
-        response = await http.post(
-          uri,
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'key=${AppFlavour.getFcmKey()}',
-          },
-          body: body,
-        );
-
-        if(response.statusCode == 200 || response.statusCode == 201) {
-          AppUtilities.logger.i("Firebase Messaginng Response returned as: ${response.statusCode}");
-        } else {
-          AppUtilities.logger.w("Firebase Messaginng Response returned as: ${response.statusCode}");
+      // Configuración específica de APNS (iOS)
+      Map<String, dynamic> apnsPayload = {
+        "payload": {
+          "aps": {
+            "content-available": 1, // Para notificaciones silenciosas o de datos en iOS
+            // "alert": { // Si quieres que APNS muestre una alerta visual
+            //   "title": finalNotificationTitle,
+            //   "body": messageBodyContent,
+            // },
+            // "badge": 1, // Opcional: para actualizar el contador del ícono de la app
+            // "sound": "default" // Opcional: sonido de la notificación
+          }
+        },
+        "headers": {
+          "apns-push-type": "background", // o 'alert' si tienes la sección "alert" en aps
+          "apns-priority": "5", // 5 para content-available, 10 para alertas visuales
         }
+      };
 
-      } else {
-        AppUtilities.logger.w("Profile $toProfileId has no FCM registered");
-      }
+      // Configuración específica de Android (opcional, para personalizar cómo Android maneja la notificación)
+      Map<String, dynamic> androidPayload = {
+        "priority": "high", // "normal" o "high"
+        // "notification": { // Puedes definir aquí también el aspecto de la notificación para Android
+        //   "title": finalNotificationTitle,
+        //   "body": messageBodyContent,
+        //   "image": imgUrl,
+        //   "click_action": "FLUTTER_NOTIFICATION_CLICK",
+        //   // "channel_id": channelKey, // Si tienes canales de notificación en Android
+        // }
+      };
 
+
+      // Construcción del payload FCM v1 completo
+      fcmPrivatePayload = {
+        "message": {
+          "token": profileFCMToken, // Token del dispositivo específico
+          "data": dataPayload,
+          "apns": apnsPayload,
+          "android": androidPayload,
+        }
+      };
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppUtilities.logger.e("Error al traducir el mensaje de notificación: $e");
+      notificationBody = message; // Fallback al mensaje original si hay un error
     }
 
-    return response;
 
+    return fcmPrivatePayload;
   }
 
-  static Future<http.Response?> sendGlobalPushNotification({
-    required AppProfile fromProfile, AppProfile? toProfile,
-    required PushNotificationType notificationType, String message = "",
-    String referenceId = "", String imgUrl = ""}) async {
+  static Map<String, dynamic> buildPublicPayload(PushNotificationType notificationType,
+    {required AppProfile fromProfile, AppProfile? toProfile, String message = '', String imgUrl = '', String referenceId = ''}) {
 
-    String selfFCM = "";
     String notificationTitle = "";
     String notificationBody = message;
-    http.Response? response;
     int channelId = 0;
     String channelKey = "";
-    String registrationIds = "";
+    String toProfileName = toProfile?.name.capitalizeFirst ?? "";
 
-    try {
-      switch(notificationType) {
-        case PushNotificationType.like:
-          notificationTitle = "${AppTranslationConstants.hasReactedToThePostOf.tr} ${toProfile?.name ?? ""}";
-          channelId = PushNotificationType.like.value;
-          channelKey = PushNotificationType.like.name;
-          break;
-        case PushNotificationType.comment:
-          notificationTitle = "${AppTranslationConstants.commentedThePostOf.tr} ${toProfile?.name ?? ""}";
-          channelId = PushNotificationType.comment.value;
-          channelKey = PushNotificationType.comment.name;
-          break;
-        case PushNotificationType.request:
-          notificationTitle = "${AppTranslationConstants.sentRequestTo.tr} ${toProfile?.name ?? ""}";
-          channelId = PushNotificationType.request.value;
-          channelKey = PushNotificationType.request.name;
-          break;
-        case PushNotificationType.message:
-          notificationTitle = "${AppTranslationConstants.sentMessageTo.tr} ${toProfile?.name ?? ""}";
-          channelId = PushNotificationType.message.value;
-          channelKey = PushNotificationType.message.name;
-          break;
-        case PushNotificationType.eventCreated:
-          notificationTitle = AppTranslationConstants.createdAnEvent;
-          channelId = PushNotificationType.eventCreated.value;
-          channelKey = PushNotificationType.eventCreated.name;
-          break;
-        case PushNotificationType.goingEvent:
-          notificationTitle = AppTranslationConstants.goingToEvent;
-          channelId = PushNotificationType.goingEvent.value;
-          channelKey = PushNotificationType.goingEvent.name;
-          break;
-        case PushNotificationType.viewProfile:
-          notificationTitle = "${AppTranslationConstants.viewedProfileOf.tr} ${toProfile?.name ?? ""}";
-          channelId = PushNotificationType.viewProfile.value;
-          channelKey = PushNotificationType.viewProfile.name;
-          break;
-        case PushNotificationType.following:
-          notificationTitle = "${AppTranslationConstants.isFollowingTo.tr} ${toProfile?.name ?? ""}";
-          channelId = PushNotificationType.following.value;
-          channelKey = PushNotificationType.following.name;
-          break;
-        case PushNotificationType.post:
-          notificationTitle = AppTranslationConstants.hasPostedSomethingNew;
-          channelId = PushNotificationType.post.value;
-          channelKey = PushNotificationType.post.name;
-          break;
-        case PushNotificationType.blog:
-          notificationTitle = AppTranslationConstants.hasPostedInBlog;
-          channelId = PushNotificationType.blog.value;
-          channelKey = PushNotificationType.blog.name;
-          break;
-        case PushNotificationType.appItemAdded:
-          notificationTitle = AppTranslationConstants.addedAppItemToList;
-          channelId = PushNotificationType.appItemAdded.value;
-          channelKey = PushNotificationType.appItemAdded.name;
-          break;
-        case PushNotificationType.releaseAppItemAdded:
-          notificationTitle = AppTranslationConstants.addedReleaseAppItem;
-          channelId = PushNotificationType.appItemAdded.value;
-          channelKey = PushNotificationType.appItemAdded.name;
-          break;
-        case PushNotificationType.chamberPresetAdded:
-          notificationTitle = AppTranslationConstants.chamberPresetAdded;
-          channelId = PushNotificationType.chamberPresetAdded.value;
-          channelKey = PushNotificationType.chamberPresetAdded.name;
-          break;
-      }
-
-      String toProfileFCMToken = "";
-      selfFCM = await ProfileFirestore().retrievedFcmToken(fromProfile.id);
-      if(toProfile != null) {
-        toProfileFCMToken = await ProfileFirestore().retrievedFcmToken(toProfile.id);
-      }
-
-      List<String> fcmTokens = await UserFirestore().getFCMTokens();
-      for (var fcmToken in fcmTokens) {
-        if(fcmToken != selfFCM && fcmToken != toProfileFCMToken) {
-          registrationIds = registrationIds.isEmpty
-              ? '"$fcmToken"' : '$registrationIds, "$fcmToken"';
-        }
-      }
-
-      String body = '''
-     {
-       "registration_ids": [$registrationIds],
-       "data": {
-          "title": "${notificationTitle.tr}",
-          "body": "$notificationBody",
-          "fromId" :"${fromProfile.id}",
-          "fromName" :"${fromProfile.name}",
-          "fromImgUrl": "${fromProfile.photoUrl}",
-          "imgUrl": "$imgUrl",
-          "referenceId": "$referenceId",
-          "notificationType": "${notificationType.name}",
-          "channelId": "$channelId",
-          "channelKey": "$channelKey"
-        },
-        "apns": {
-          "content-available" : 1,
-          "apns-push-type": "background",
-          "headers": {
-            "apns-priority": "10"
-          }
-        }
-     }''';
-
-      Uri uri = Uri.parse(AppGoogleUtilities.fcmGoogleAPIUrl);
-      response = await http.post(
-        uri,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'key=${AppFlavour.getFcmKey()}',
-        },
-        body: body,
-      );
-
-      AppUtilities.logger.i("Firebase Messaginng Response returned as: ${response.statusCode}");
-    } catch (e) {
-      AppUtilities.logger.e(e.toString());
+    switch(notificationType) {
+      case PushNotificationType.like:
+        notificationTitle = "${AppTranslationConstants.hasReactedToThePostOf.tr} $toProfileName";
+        channelId = PushNotificationType.like.value;
+        channelKey = PushNotificationType.like.name;
+        break;
+      case PushNotificationType.comment:
+        notificationTitle = "${AppTranslationConstants.commentedThePostOf.tr} $toProfileName";
+        channelId = PushNotificationType.comment.value;
+        channelKey = PushNotificationType.comment.name;
+        break;
+      case PushNotificationType.request:
+        notificationTitle = "${AppTranslationConstants.sentRequestTo.tr} $toProfileName";
+        channelId = PushNotificationType.request.value;
+        channelKey = PushNotificationType.request.name;
+        break;
+      case PushNotificationType.message:
+        notificationTitle = "${AppTranslationConstants.sentMessageTo.tr} $toProfileName";
+        channelId = PushNotificationType.message.value;
+        channelKey = PushNotificationType.message.name;
+        break;
+      case PushNotificationType.eventCreated:
+        notificationTitle = AppTranslationConstants.createdAnEvent;
+        channelId = PushNotificationType.eventCreated.value;
+        channelKey = PushNotificationType.eventCreated.name;
+        break;
+      case PushNotificationType.goingEvent:
+        notificationTitle = AppTranslationConstants.goingToEvent;
+        channelId = PushNotificationType.goingEvent.value;
+        channelKey = PushNotificationType.goingEvent.name;
+        break;
+      case PushNotificationType.viewProfile:
+        notificationTitle = "${AppTranslationConstants.viewedProfileOf.tr} $toProfileName";
+        channelId = PushNotificationType.viewProfile.value;
+        channelKey = PushNotificationType.viewProfile.name;
+        break;
+      case PushNotificationType.following:
+        notificationTitle = "${AppTranslationConstants.isFollowingTo.tr} $toProfileName";
+        channelId = PushNotificationType.following.value;
+        channelKey = PushNotificationType.following.name;
+        break;
+      case PushNotificationType.post:
+        notificationTitle = AppTranslationConstants.hasPostedSomethingNew;
+        channelId = PushNotificationType.post.value;
+        channelKey = PushNotificationType.post.name;
+        break;
+      case PushNotificationType.blog:
+        notificationTitle = AppTranslationConstants.hasPostedInBlog;
+        channelId = PushNotificationType.blog.value;
+        channelKey = PushNotificationType.blog.name;
+        break;
+      case PushNotificationType.appItemAdded:
+        notificationTitle = AppTranslationConstants.addedAppItemToList;
+        channelId = PushNotificationType.appItemAdded.value;
+        channelKey = PushNotificationType.appItemAdded.name;
+        break;
+      case PushNotificationType.releaseAppItemAdded:
+        notificationTitle = AppTranslationConstants.addedReleaseAppItem;
+        channelId = PushNotificationType.appItemAdded.value;
+        channelKey = PushNotificationType.appItemAdded.name;
+        break;
+      case PushNotificationType.chamberPresetAdded:
+        notificationTitle = AppTranslationConstants.chamberPresetAdded;
+        channelId = PushNotificationType.chamberPresetAdded.value;
+        channelKey = PushNotificationType.chamberPresetAdded.name;
+        break;
     }
 
-    return response;
+    Map<String, dynamic> dataPayload = {
+      "title": notificationTitle.tr,
+      "body": notificationBody,
+      "fromId" : fromProfile.id,
+      "fromName" : fromProfile.name,
+      "fromImgUrl": fromProfile.photoUrl,
+      "toId": toProfile?.id,
+      "imgUrl": imgUrl,
+      "referenceId": referenceId,
+      "notificationType": notificationType.name,
+      "click_action": "FLUTTER_NOTIFICATION_CLICK", // Acción estándar para Flutter
+      "channelId": channelId.toString(), // Los valores en data suelen ser strings
+      "channelKey": channelKey,
+      "isPublic": "true", // Public notifications are not private
+    };
 
+    // Configuración específica de APNS (iOS)
+    Map<String, dynamic> apnsPayload = {
+      "payload": {
+        "aps": {
+          "content-available": 1, // Para notificaciones silenciosas o de datos en iOS
+        }
+      },
+      "headers": {
+        "apns-push-type": "background", // o 'alert' si tienes la sección "alert" en aps
+        "apns-priority": "5", // 5 para content-available, 10 para alertas visuales
+      }
+    };
+
+    Map<String, dynamic> androidPayload = {
+      "priority": "high", // "normal" o "high"
+    };
+
+    // Construcción del payload FCM v1 completo
+    Map<String, dynamic> fcmPublicPayload = {
+      "message": {
+        "topic": AppFirestoreConstants.allUsers,
+        "data": dataPayload,
+        "apns": apnsPayload,
+        "android": androidPayload,
+      }
+    };
+
+    return fcmPublicPayload;
+  }
+
+
+  static Future<String?> getAccessToken() async {
+    AppUtilities.logger.d("Obteniendo token de acceso OAuth2 para Firebase Cloud Messaging");
+
+    String? accessToken;
+    String serviceAccount = jsonEncode(AppFlavour.serviceAccount);
+
+    try {
+      auth.ServiceAccountCredentials credentials = auth.ServiceAccountCredentials.fromJson(serviceAccount);
+      var scopes = ['https://www.googleapis.com/auth/firebase.messaging'];
+
+      auth.AccessCredentials accessCredentials = await auth.obtainAccessCredentialsViaServiceAccount(
+          credentials, scopes, http.Client()); // Necesitas un http.Client
+      accessToken = accessCredentials.accessToken.data;
+    } catch (e) {
+      AppUtilities.logger.e("Error obteniendo token de acceso OAuth2: $e");
+
+    }
+
+    return accessToken;
   }
 
 }

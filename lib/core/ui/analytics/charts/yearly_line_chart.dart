@@ -6,14 +6,14 @@ import 'package:flutter/material.dart';
 
 class YearlyLineChart extends StatefulWidget {
 
-  Map<int,int> monthlyValues = {};
-  int xTitlesInterval;
-  int yTitlesInterval;
-  String xTitle;
-  String yTitle;
+  final Map<int,int> monthlyValues;
+  final int xTitlesInterval;
+  final int yTitlesInterval;
+  final String xTitle;
+  final String yTitle;
 
 
-  YearlyLineChart({required this.monthlyValues,
+  const YearlyLineChart({required this.monthlyValues,
     this.xTitlesInterval = 5, this.yTitlesInterval = 5,
     this.xTitle = '', this.yTitle = '',
     super.key});

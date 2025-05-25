@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 
 class WeeklyBarChart extends StatefulWidget {
 
-  Map<int,int> weeklyValues;
-  int xTitlesInterval;
-  int yTitlesInterval;
-  String xTitle;
-  String yTitle;
+  final Map<int,int> weeklyValues;
+  final int xTitlesInterval;
+  final int yTitlesInterval;
+  final String xTitle;
+  final String yTitle;
 
   WeeklyBarChart({required this.weeklyValues,
     this.xTitlesInterval = 5, this.yTitlesInterval = 5,

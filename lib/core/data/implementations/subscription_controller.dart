@@ -285,7 +285,6 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
     update([AppPageIdConstants.accountSettings]);
   }
 
-  @override
   void selectProfileType(ProfileType type) {
     try {
       profileType.value = type;
@@ -295,7 +294,6 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
     }
   }
 
-  @override
   void selectFacilityType(FacilityType type) {
     try {
       facilityType.value = type;
@@ -304,7 +302,6 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
     }
   }
 
-  @override
   void selectPlaceType(PlaceType type) {
     try {
       placeType.value = type;
@@ -314,7 +311,6 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
     }
   }
 
-  @override
   Future<void> updateProfileType() async {
     try {
       if(profileType.value != profile.type && profile.id.isNotEmpty) {

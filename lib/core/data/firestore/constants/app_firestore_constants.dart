@@ -140,4 +140,6 @@ class AppFirestoreConstants {
   static const String usedBy = "usedBy";
   static const String isTest = "isTest";
 
+  static const String allUsers = "allUsers";
+
 }

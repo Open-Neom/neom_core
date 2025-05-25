@@ -12,7 +12,6 @@ class SubscriptionPlanFirestore {
   
   final subscriptionPlanReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.subscriptionPlans);
 
-  @override
   Future<Map<String, SubscriptionPlan>> getAll() async {
     AppUtilities.logger.d("Retrieving Plans");
     Map<String, SubscriptionPlan> plans = {};
@@ -48,7 +47,6 @@ class SubscriptionPlanFirestore {
     return plans;
   }
 
-  @override
   Future<List<SubscriptionPlan>> getPlansByType({required SubscriptionLevel level}) async {
     AppUtilities.logger.d("Retrieving Products by type ${level.name}");
     List<SubscriptionPlan> plans = [];
@@ -74,8 +72,6 @@ class SubscriptionPlanFirestore {
     return plans;
   }
 
-
-  @override
   Future<String> insert(SubscriptionPlan plan) async {
     AppUtilities.logger.d("Inserting product ${plan.level?.name}");
     String planId = "";
@@ -101,8 +97,6 @@ class SubscriptionPlanFirestore {
 
   }
 
-
-  @override
   Future<bool> remove(String planId) async {
     AppUtilities.logger.d("Removing product $planId");
 

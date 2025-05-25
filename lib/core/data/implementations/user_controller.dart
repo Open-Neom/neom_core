@@ -23,6 +23,7 @@ import '../../utils/enums/subscription_status.dart';
 import '../../utils/enums/user_role.dart';
 import '../firestore/app_release_item_firestore.dart';
 import '../firestore/chamber_firestore.dart';
+import '../firestore/constants/app_firestore_constants.dart';
 import '../firestore/itemlist_firestore.dart';
 import '../firestore/profile_firestore.dart';
 import '../firestore/user_firestore.dart';
@@ -74,6 +75,14 @@ class UserController extends GetxController implements UserService {
 
   Future<void> getFcmToken() async {
     fcmToken = await FirebaseMessaging.instance.getToken() ?? "";
+
+    if(fcmToken.isNotEmpty) {
+      await FirebaseMessaging.instance.subscribeToTopic(AppFirestoreConstants.allUsers);
+      AppUtilities.logger.i("User ${user.id} subscribed to topic ${AppFirestoreConstants.allUsers}.");
+    } else {
+      AppUtilities.logger.w("FCM Token is empty");
+    }
+
   }
 
   @override

@@ -3,26 +3,39 @@ import '../../utils/enums/push_notification_type.dart';
 
 class PushNotificationMessage {
 
-  String title = "";
-  String body = "";
-  String fromId = "";
-  String fromName = "";
-  String fromImgUrl = "";
-  String referenceId = "";
-  String? imgUrl = "";
-  PushNotificationType type = PushNotificationType.message;
-  int channelId = 0;
-  String channelKey = "";
+  String title;
+  String body;
+  String fromId;
+  String fromName;
+  String fromImgUrl;
+  String referenceId;
+  String? imgUrl;
+  PushNotificationType type;
+  int channelId;
+  String channelKey;
+
+  String toId;
+  bool isPublic;
 
   PushNotificationMessage({
     required this.title,
-    required this.body
+    required this.body,
+    required this.fromId,
+    this.fromName = '',
+    this.fromImgUrl = '',
+    this.referenceId = '',
+    this.imgUrl,
+    this.type = PushNotificationType.message,
+    this.channelId = 0,
+    this.channelKey = "",
+    this.toId = '',
+    this.isPublic = false,
   });
 
 
   @override
   String toString() {
-    return 'PushNotificationMessage{title: $title, body: $body, fromId: $fromId, fromName: $fromName, fromImgUrl: $fromImgUrl, referenceId: $referenceId, imgUrl: $imgUrl, type: $type, channelId: $channelId, channelKey: $channelKey}';
+    return 'PushNotificationMessage{title: $title, body: $body, fromId: $fromId, fromName: $fromName, fromImgUrl: $fromImgUrl, imgUrl: $imgUrl, type: ${type.name}, channelKey: $channelKey, channelId: $channelId, referenceId: $referenceId, toId: $toId, isPublic: $isPublic}';
   }
 
 
@@ -37,7 +50,10 @@ class PushNotificationMessage {
         ?? PushNotificationType.message.name) ??  PushNotificationType.message,
     channelKey = data["channelKey"] ?? PushNotificationType.message.name,
     channelId = int.parse(data["channelId"] ?? PushNotificationType.message.value.toString()),
-    referenceId = data["referenceId"] ?? "";
+    referenceId = data["referenceId"] ?? "",
+    toId = data["toId"] ?? "",
+    isPublic = (data["isPublic"]?.toString().toLowerCase() == 'true');
+
 
 
 }

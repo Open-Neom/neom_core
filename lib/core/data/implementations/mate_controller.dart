@@ -155,7 +155,6 @@ class MateController extends GetxController implements MateService {
     mates.value = <String, AppProfile>{};
   }
 
-  @override
   Map<String, AppProfile> filterByName(String name) {
 
     Map<String, AppProfile> filteredProfiles = {};

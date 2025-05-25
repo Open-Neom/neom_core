@@ -43,6 +43,7 @@ class ProfileFirestore implements ProfileRepository {
   List<QueryDocumentSnapshot> _profileDocuments = [];
   Map<dynamic, AppProfile> sortedProfiles = {};
   List<String> currentProfileIds = [];
+  Map<String, AppProfile> profiles = <String, AppProfile>{};
 
   @override
   Future<String> insert(String userId, AppProfile profile) async {
@@ -156,6 +157,7 @@ class ProfileFirestore implements ProfileRepository {
       QuerySnapshot querySnapshot = await profileReference.get();
 
       for (var profileDocument in querySnapshot.docs) {
+        AppUtilities.logger.d("Profile Document: ${profileDocument.id}");
         if (profileDocument.id == profileId) {
           profile = AppProfile.fromJSON(profileDocument.data());
           profile.id = profileDocument.id;
@@ -479,7 +481,6 @@ class ProfileFirestore implements ProfileRepository {
   Future<Map<String, AppProfile>> retrieveFromList(
       List<String> profileIds) async {
     AppUtilities.logger.t("RetrievingProfiles");
-    Map<String, AppProfile> profiles = <String, AppProfile>{};
 
     try {
       QuerySnapshot querySnapshot = await profileReference.get();
@@ -1318,7 +1319,6 @@ class ProfileFirestore implements ProfileRepository {
   @override
   Future<Map<String, AppProfile>> retrieveAllProfiles({int limit = 0}) async {
     AppUtilities.logger.d("RetrievingProfiles");
-    Map<String, AppProfile> profiles = <String, AppProfile>{};
 
     try {
       if (limit <= 0) limit = AppConstants.profilesLimit;
@@ -1330,14 +1330,6 @@ class ProfileFirestore implements ProfileRepository {
               .fromJSON(document.data())
             ..id = document.id
       };
-      //
-      // for (var document in querySnapshot.docs) {
-      //   if(document.data()['name'] != null) {
-      //     AppProfile profile = AppProfile.fromJSON(document.data());
-      //     profile.id = document.id;
-      //     profiles[profile.id] = profile;
-      //   }
-      // }
 
     } catch (e) {
       AppUtilities.logger.e(e.toString());
@@ -2014,12 +2006,9 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<Map<String, AppProfile>> retrieveProfilesByPlace({
-    required String selfProfileId,
-    required Position? currentPosition,
+    required String selfProfileId, required Position? currentPosition,
+    PlaceType? placeType, int maxDistance = 30, int maxProfiles = 30}) async {
 
-    PlaceType? placeType,
-    int maxDistance = 30,
-    int maxProfiles = 30}) async {
     AppUtilities.logger.d("RetrievingProfiles by place");
 
     Map<String, AppProfile> hostProfiles = <String, AppProfile>{};

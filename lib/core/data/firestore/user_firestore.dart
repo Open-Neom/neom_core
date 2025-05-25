@@ -403,6 +403,7 @@ class UserFirestore implements UserRepository {
       DocumentSnapshot documentSnapshot = await userReference.doc(userId).get();
       await documentSnapshot.reference.update({AppFirestoreConstants.fcmToken: fcmToken});
       AppUtilities.logger.i("FCM Token successfully updated for User $userId");
+
       return true;
     } catch (e) {
       AppUtilities.logger.e(e.toString());

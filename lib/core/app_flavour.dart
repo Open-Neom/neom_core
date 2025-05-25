@@ -26,6 +26,7 @@ class AppFlavour {
   static AppInUse appInUse = AppInUse.e;
   static String appVersion = "";
   static dynamic appProperties = {};
+  static dynamic serviceAccount = {};
 
   /// Flag para garantizar que `readProperties()` solo se llame una vez
   static bool _isPropertiesRead = false;
@@ -36,6 +37,7 @@ class AppFlavour {
       appInUse = inUse;
       appVersion = version;
       await readProperties();
+      await readServiceAccount();
       _isPropertiesRead = true;
     }
   }
@@ -44,6 +46,12 @@ class AppFlavour {
     AppUtilities.logger.t("readProperties");
     String jsonString = await rootBundle.loadString(AppAssets.propertiesJsonPath);
     appProperties = jsonDecode(jsonString);
+  }
+
+  static Future<void> readServiceAccount() async {
+    AppUtilities.logger.t("readServiceAccount");
+    String jsonString = await rootBundle.loadString(AppAssets.serviceAccountJsonPath);
+    serviceAccount = jsonDecode(jsonString);
   }
 
   static String getAppName() {    
@@ -268,36 +276,11 @@ class AppFlavour {
   }
 
   static String getFirebaseProjectId() {
-    switch (appInUse) {
-      case AppInUse.g:
-        return appProperties['firebaseProjectId'];
-      case AppInUse.e:
-        return appProperties['firebaseProjectId'];
-      case AppInUse.c:
-        return appProperties['firebaseProjectId'];
-    }
-  }
-
-  static String getFcmKey() {
-    switch (appInUse) {
-      case AppInUse.g:
-        return appProperties['fcmKey'];
-      case AppInUse.e:
-        return appProperties['fcmKey'];
-      case AppInUse.c:
-        return "";
-    }
+    return appProperties['firebaseProjectId'];
   }
 
   static String getGoogleApiKey() {
-    switch (appInUse) {
-      case AppInUse.g:
-        return appProperties['googleApiKey'];
-      case AppInUse.e:
-        return appProperties['googleApiKey'];
-      case AppInUse.c:
-        return appProperties['googleApiKey'];
-    }
+    return appProperties['googleApiKey'];
   }
 
   static String getSpotifyClientId() {

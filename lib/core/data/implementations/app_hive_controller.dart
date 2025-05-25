@@ -233,7 +233,6 @@ class AppHiveController {
     await pdfCacheBox.put(id, file.path);
     }
 
-  @override
   Future<void> updateLocale(AppLocale appLocale) async {
     AppUtilities.logger.d("Setting locale preference to ${appLocale.name}");
 
@@ -246,7 +245,6 @@ class AppHiveController {
 
   }
 
-  @override
   void setLocale(AppLocale appLocale) {
     AppUtilities.logger.d("Updating GetX locale to ${appLocale.name}");
 
@@ -270,7 +268,6 @@ class AppHiveController {
     Get.updateLocale(locale);
   }
 
-  @override
   Future<void> setFirstTime(bool fTime) async {
     AppUtilities.logger.t("Setting firsTime to $firstTime");
 
