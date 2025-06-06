@@ -27,7 +27,7 @@ class FirebaseMessagingCalls {
 
     try {
       profileFCMToken = await ProfileFirestore().retrievedFcmToken(toProfileId);
-      AppUtilities.logger.i("Profile $toProfileId has FCM registered: $profileFCMToken");
+      AppUtilities.logger.d("Profile $toProfileId has FCM registered: $profileFCMToken");
 
       if(profileFCMToken.isNotEmpty) {
 

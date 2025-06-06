@@ -26,7 +26,7 @@ class SignupPage extends StatelessWidget {
         appBar: AppBarChild(color: Colors.transparent),
         backgroundColor: AppColor.main50,
         body: SingleChildScrollView(
-          child: Container(
+          child: Obx(() => Container(
             width: AppTheme.fullWidth(context),
             height: AppTheme.fullHeight(context),
             decoration: AppTheme.appBoxDecoration,
@@ -86,8 +86,7 @@ class SignupPage extends StatelessWidget {
                   ],
                 ),
               ),
-
-          ),
+          ),),
         ),
       ),
     );

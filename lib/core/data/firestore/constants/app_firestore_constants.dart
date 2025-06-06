@@ -142,4 +142,8 @@ class AppFirestoreConstants {
 
   static const String allUsers = "allUsers";
 
+  static const String balance = "balance";
+  static const String lastUpdated = "lastUpdated";
+  static const String lastTransactionId = "lastTransactionId";  
+
 }

@@ -652,6 +652,7 @@ class AppTranslationConstants {
   static const String addNewMember = 'addNewMember';
   static const String addNewMemberMsg = 'addNewMemberMsg';
 
+  static const String coupon = 'coupon';
   static const String createdCoupon = 'createdCoupon';
   static const String createdCouponMsg = 'createdCouponMsg';
   static const String couponDesc = 'couponDesc';
@@ -996,6 +997,7 @@ class AppTranslationConstants {
   static const String inDownloads = "inDownloads";
   static const String noItemOwnerFound = "noItemOwnerFound";
 
+  static const String verified = "verified";
   static const String phoneVerified = "phoneVerified";
   static const String phoneVerificationFailed = "phoneVerificationFailed";
 
@@ -1083,5 +1085,9 @@ class AppTranslationConstants {
   static const String premium = 'premium';
   static const String publish = 'publish';
   static const String platinum = 'platinum';
+  static const String appMember = 'appMember';
+
+  static const String walletNotActive = 'walletNotActive';
+  static const String contactSupportForActivation = 'contactSupportForActivation';
 
 }

@@ -62,7 +62,7 @@ class AppConstants {
   static const int maxPlaceNameLength = 28;
   static const int maxEventNameDescLength = 50;
   static const int maxEventNameLength = 22;
-  static const int maxLocationNameLength = 22;
+  static const int maxLocationNameLength = 20;
   static const int significantDistanceKM = 5;
   static const int directoryLimit = 20;
   static const int mainItemFeedTurn = 2;

@@ -3,7 +3,9 @@ import 'package:get/get.dart';
 import '../../data/firestore/app_analytics_firestore.dart';
 import '../../domain/model/analytics/user_locations.dart';
 import '../../utils/app_theme.dart';
+import '../../utils/app_utilities.dart';
 import '../../utils/constants/app_translation_constants.dart';
+import '../widgets/app_circular_progress_indicator.dart';
 import '../widgets/appbar_child.dart';
 import 'charts/yearly_line_chart.dart';
 
@@ -28,13 +30,11 @@ class AnalyticsPageState extends State<AnalyticsPage> {
           child: FutureBuilder<List<UserLocations>>(
             future: AppAnalyticsFirestore().getUserLocations(), // Replace with your own function to fetch userLocations asynchronously
             builder: (context, snapshot) {
+              AppUtilities.logger.d("AnalyticsPage: FutureBuilder snapshot: ${snapshot.connectionState} - ${snapshot.data?.length ?? 0}");
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
+                return AppCircularProgressIndicator();
               } else if (snapshot.hasError) {
-                return const Center(
-                  child: Text('Error loading userLocations'),
+                return const Center(child: Text('Error loading userLocations'),
                 );
               } else {
 
@@ -58,12 +58,23 @@ class AnalyticsPageState extends State<AnalyticsPage> {
                   DateTime? date = parseDateId(ul.dateId);
                   int month = date.month;
                   // Acumular totalUsers para cada mes.
-                  monthlyValues[month] = (monthlyValues[month] ?? 0) + ul.totalUsers;
+                  if(monthlyValues[month] == null || (monthlyValues[month] ?? 0) < ul.totalUsers) {
+                    monthlyValues[month] = ul.totalUsers;
+                  }
+
                 }
 
                 return Column(
                   children: [
                     YearlyLineChart(monthlyValues: monthlyValues, yTitle: AppTranslationConstants.users.tr,),
+                    AppTheme.heightSpace5,
+                    Text('${monthlyValues[DateTime.now().month]} ${AppTranslationConstants.users.tr.capitalize}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20
+                      ),
+                    ),
+                    AppTheme.heightSpace5,
                     DataTable(
                       columns: [
                         DataColumn(label: Text(AppTranslationConstants.location.tr,style: const TextStyle(fontWeight: FontWeight.bold),)),

@@ -47,11 +47,11 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<String> insert(String userId, AppProfile profile) async {
-    AppUtilities.logger.i("Inserting profile ${profile.id} to Firestore");
+    AppUtilities.logger.d("Inserting profile ${profile.id} to Firestore");
     String profileId = "";
 
     try {
-      AppUtilities.logger.i(profile.toJSON());
+      AppUtilities.logger.t(profile.toJSON());
 
       DocumentReference documentReference = await usersReference
           .doc(userId)

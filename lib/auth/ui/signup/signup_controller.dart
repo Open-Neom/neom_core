@@ -9,8 +9,6 @@ import '../../../core/data/implementations/user_controller.dart';
 import '../../../core/domain/model/app_user.dart';
 import '../../../core/ui/widgets/custom_loader.dart';
 import '../../../core/utils/app_utilities.dart';
-import '../../../core/utils/constants/app_page_id_constants.dart';
-import '../../../core/utils/constants/app_route_constants.dart';
 import '../../../core/utils/constants/app_translation_constants.dart';
 import '../../../core/utils/constants/message_translation_constants.dart';
 import '../../../core/utils/validator.dart';
@@ -60,10 +58,13 @@ class SignUpController extends GetxController implements SignUpService {
 
   @override
   Future<bool> submit(BuildContext context) async {
+    AppUtilities.logger.d("Submitting Sign-up form");
 
     try {
 
       if(await validateInfo()) {
+        setUserFromSignUp();
+
         User? fbaUser = (await loginController.auth
             .createUserWithEmailAndPassword(
             email: emailController.text.toLowerCase().trim(),
@@ -72,8 +73,6 @@ class SignUpController extends GetxController implements SignUpService {
 
         loginController.signedInWith = SignedInWith.signUp;
         loginController.fbaUser.value = fbaUser;
-        setUserFromSignUp();
-        Get.offAllNamed(AppRouteConstants.introCreating, arguments: [AppRouteConstants.signup]);
 
       }
     } on FirebaseAuthException catch (e) {
@@ -124,7 +123,7 @@ class SignUpController extends GetxController implements SignUpService {
       AppUtilities.logger.e(e.toString());
     }
 
-    AppUtilities.logger.d(userController.user.toString());
+    AppUtilities.logger.d("User Info set: ${userController.user.toString()}");
   }
 
   @override
@@ -159,10 +158,11 @@ class SignUpController extends GetxController implements SignUpService {
     }
 
     if (validatorMsg.isNotEmpty) {
-      Get.snackbar(
-          MessageTranslationConstants.accountSignUp.tr,
-          validatorMsg.tr,
-          snackPosition: SnackPosition.bottom);
+      AppUtilities.showSnackBar(
+        title: MessageTranslationConstants.accountSignUp.tr,
+        message: validatorMsg.tr,
+      );
+
       return false;
     }
 
@@ -171,14 +171,14 @@ class SignUpController extends GetxController implements SignUpService {
 
   @override
   void setTermsAgreement(bool agree) {
-    AppUtilities.logger.d("");
+    AppUtilities.logger.d("Bool agreement: $agree");
+
     try {
       agreeTerms.value = agree;
     } catch (e) {
       AppUtilities.logger.e(e.toString());
     }
 
-    update([AppPageIdConstants.signUp]);
   }
 
 }

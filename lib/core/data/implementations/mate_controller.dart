@@ -162,7 +162,7 @@ class MateController extends GetxController implements MateService {
     try {
       if(name.isNotEmpty) {
         for (var profile in totalProfiles.values) {
-          if(profile.name.toLowerCase().contains(name.toLowerCase())){
+          if(AppUtilities.normalizeString(profile.name.toLowerCase()).contains(name.toLowerCase())){
             filteredProfiles[profile.id] = profile;
           }
         }
@@ -182,7 +182,7 @@ class MateController extends GetxController implements MateService {
     try {
       if(name.isNotEmpty) {
         for (var profile in totalProfiles.values) {
-          if(profile.name.toLowerCase().contains(name.toLowerCase())
+          if(AppUtilities.normalizeString(profile.name.toLowerCase()).contains(name.toLowerCase())
               || profile.mainFeature.toLowerCase().contains(name.toLowerCase())
               || profile.mainFeature.tr.toLowerCase().contains(name.toLowerCase())
               || profile.address.toLowerCase().contains(name.toLowerCase())

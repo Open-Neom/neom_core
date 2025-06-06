@@ -53,9 +53,6 @@ class SplashController extends GetxController {
         case AppRouteConstants.signup:
           subtitle.value = AppTranslationConstants.creatingAccount;
           break;
-        case AppRouteConstants.introAddImage:
-          subtitle.value = AppTranslationConstants.welcome;
-          break;
         case AppRouteConstants.paymentGateway:
           subtitle.value = AppTranslationConstants.paymentProcessing;
           break;
@@ -108,10 +105,6 @@ class SplashController extends GetxController {
         break;
       case AppRouteConstants.signup:
         changeSubtitle(AppTranslationConstants.creatingAccount);
-        break;
-      case AppRouteConstants.introAddImage:
-        changeSubtitle(AppTranslationConstants.welcome);
-        userController.createUser();
         break;
       case AppRouteConstants.createAdditionalProfile:
         changeSubtitle(AppTranslationConstants.creatingProfile);

@@ -34,6 +34,12 @@ class UserFirestore implements UserRepository {
   @override
   Future<bool> insert(AppUser user) async {
     String userId = user.id.toLowerCase();
+
+    if(userId.isEmpty) {
+      AppUtilities.logger.e("User ID is empty, cannot insert user.");
+      return false;
+    }
+
     AppUtilities.logger.i("Inserting user $userId to Firestore");
 
     Map<String,dynamic> userJSON = user.toJSON();

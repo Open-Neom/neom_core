@@ -41,7 +41,7 @@ class LoginController extends GetxController implements LoginService {
   final TextEditingController passwordController = TextEditingController();
 
   final Rx<AuthStatus> authStatus = AuthStatus.notDetermined.obs;
-  final GoogleSignIn _googleSignIn = GoogleSignIn(clientId: kIsWeb ? '444807211272-qlk8fl7dp6lg5d5o7hq6dkv2rj80m8kt.apps.googleusercontent.com' : null);
+  GoogleSignIn _googleSignIn = GoogleSignIn();
 
   //TODO Verify if its not needed
   //final SignInWithApple _appleSignIn = SignInWithApple();
@@ -74,7 +74,14 @@ class LoginController extends GetxController implements LoginService {
     ever<fba.User?>(fbaUser, handleAuthChanged);
     fbaUser.bindStream(auth.authStateChanges());
 
-    if(!kIsWeb && Platform.isIOS) {
+    if(kIsWeb) {
+      _googleSignIn = GoogleSignIn(clientId: '444807211272-qlk8fl7dp6lg5d5o7hq6dkv2rj80m8kt.apps.googleusercontent.com');
+    } else {
+      if(Platform.isIOS) {
+
+      }
+    }
+    if(Platform.isIOS && !kIsWeb ) {
       isIOS13OrHigher = AppUtilities.isDeviceSupportedVersion(isIOS: Platform.isIOS);
     } else if (Platform.isAndroid) {
       AppUtilities.logger.t(Platform.version);
@@ -109,29 +116,25 @@ class LoginController extends GetxController implements LoginService {
           _userId = user.providerData.first.uid!;
           if(Validator.isEmail(_userId) || (user.providerData.first.email?.isNotEmpty ?? false)) {
             String email = Validator.isEmail(_userId) ? _userId : user.providerData.first.email ?? '';
-            await userController.getUserByEmail(email);
+            await userController.setUserByEmail(email);
           } else if(_userId.isNotEmpty) {
-            await userController.getUserById(_userId);
+            await userController.setUserById(_userId);
           }
         }
 
-        if (userController.user.id.isEmpty) {
+        if(userController.user.id.isEmpty) {
+          AppUtilities.logger.d("User not found in Firestore for $_userId.");
           switch(signedInWith) {
+            case(SignedInWith.signUp):
+              gotoIntroPage();
+              break;
             case(SignedInWith.email):
-              userController.getUserFromFirebase(user);
-              break;
-            case(SignedInWith.facebook):
-              // await userController.getUserFromFacebook(_fbAccessToken);
-              break;
+            case(SignedInWith.google):
             case(SignedInWith.apple):
               userController.getUserFromFirebase(user);
               break;
-            case(SignedInWith.google):
-              userController.getUserFromFirebase(user);
-              break;
+            case(SignedInWith.facebook):
             case(SignedInWith.spotify):
-              break;
-            case(SignedInWith.signUp):
               break;
             case(SignedInWith.notDetermined):
               authStatus.value = AuthStatus.notDetermined;
@@ -144,10 +147,10 @@ class LoginController extends GetxController implements LoginService {
           authStatus.value = AuthStatus.loggedIn;
         }
 
-        if (userController.isNewUser && userController.user.id.isNotEmpty) {
-          authStatus.value = AuthStatus.loggedIn;
-          Get.toNamed(AppRouteConstants.introRequiredPermissions);
+        if(userController.isNewUser && userController.user.id.isNotEmpty) {
+          gotoIntroPage();
         } else {
+          AppUtilities.logger.i("User found for $_userId. Redirecting to Root Page");
           Get.offAllNamed(AppRouteConstants.root);
         }
       }
@@ -172,6 +175,11 @@ class LoginController extends GetxController implements LoginService {
     // update([AppPageIdConstants.login]);
   }
 
+  void gotoIntroPage() {
+    AppUtilities.logger.i("New User found for $_userId. Redirecting to Intro Page");
+    authStatus.value = AuthStatus.loggedIn;
+    Get.toNamed(AppRouteConstants.introRequiredPermissions);
+  }
 
   @override
   Future<void> handleLogin(LoginMethod logMethod) async {
@@ -205,14 +213,10 @@ class LoginController extends GetxController implements LoginService {
       isLoading.value = false;
     }
 
-    // update([AppPageIdConstants.login]);
   }
 
   @override
   Future<void> emailLogin() async {
-
-    //TODO
-    //GigUtilities.kAnalytics.logLogin(loginMethod: GigAnalyticsConstants.email_login);
 
     fba.User? emailUser;
     try {
@@ -264,24 +268,17 @@ class LoginController extends GetxController implements LoginService {
       }
     }
 
-    update([AppPageIdConstants.login]);
   }
 
   @override
   Future<void> appleLogin() async {
-
     AppUtilities.logger.d("Entering Logging Method with Apple Account");
 
-    fba.AuthCredential? oauthCredential;
-
     try {
-      //TODO
-      //await GigUtilities.kAnalytics.logLogin(loginMethod: GigAnalyticsConstants.apple_login);
+      await setAuthCredentials();
 
-       oauthCredential = await getAuthCredentials();
-
-      if(oauthCredential != null) {
-        fba.UserCredential userCredential = await auth.signInWithCredential(oauthCredential);
+      if(credentials != null) {
+        fba.UserCredential userCredential = await auth.signInWithCredential(credentials!);
         fbaUser.value = userCredential.user;
         authStatus.value = AuthStatus.loggedIn;
         signedInWith = SignedInWith.apple;
@@ -312,13 +309,8 @@ class LoginController extends GetxController implements LoginService {
     } finally {
       isButtonDisabled.value = false;
       isLoading.value = false;
-      ///DEPRECATED
-      // if(oauthCredential == null) {
-      //   isLoading.value = false;
-      // }
     }
 
-    update([AppPageIdConstants.login]);
   }
 
 
@@ -328,10 +320,7 @@ class LoginController extends GetxController implements LoginService {
     AppUtilities.logger.i("Entering Logging Method with Google Account");
 
     try {
-
-      //TODO
-      //await GigUtilities.kAnalytics.logLogin(loginMethod: GigAnalyticsConstants.google_login);
-       credentials = await getAuthCredentials();
+       await setAuthCredentials();
 
       if(credentials != null) {
         fbaUser.value = (await auth.signInWithCredential(credentials!)).user;
@@ -350,8 +339,6 @@ class LoginController extends GetxController implements LoginService {
     } finally {
       if(credentials == null) isLoading.value = false;
     }
-
-    // update([AppPageIdConstants.login]);
   }
 
   //TODO To Verify Implementation
@@ -379,7 +366,6 @@ class LoginController extends GetxController implements LoginService {
     }
 
     AppUtilities.logger.i("signOut method finished");
-    // update([AppPageIdConstants.login]);
   }
 
 
@@ -396,7 +382,7 @@ class LoginController extends GetxController implements LoginService {
   }
 
 
-  Future<fba.AuthCredential?> getAuthCredentials() async {
+  Future<void> setAuthCredentials() async {
 
 
     try {
@@ -435,12 +421,14 @@ class LoginController extends GetxController implements LoginService {
 
           break;
         case(LoginMethod.google):
-          final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-          GoogleSignInAuthentication googleAuth = await googleUser!.authentication;
-          credentials = fba.GoogleAuthProvider.credential(
-              idToken: googleAuth.idToken,
-              accessToken: googleAuth.accessToken
-          );
+          GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+          if(googleUser != null) {
+            GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+            credentials = fba.GoogleAuthProvider.credential(
+                idToken: googleAuth.idToken,
+                accessToken: googleAuth.accessToken
+            );
+          }
           break;
         case(LoginMethod.spotify):
           break;
@@ -456,8 +444,6 @@ class LoginController extends GetxController implements LoginService {
       );
     }
 
-    // update([AppPageIdConstants.login]);
-    return credentials;
   }
 
   @override

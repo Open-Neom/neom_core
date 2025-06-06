@@ -63,7 +63,6 @@ class UserController extends GetxController implements UserService {
   @override
   void onReady() {
     super.onReady();
-
     AppUtilities.logger.t("onReady User Controller");
     try {
       getFcmToken();
@@ -101,7 +100,8 @@ class UserController extends GetxController implements UserService {
       fba.AuthCredential? authCredential;
 
       if(loginController.credentials == null) {
-        authCredential = await loginController.getAuthCredentials();
+        await loginController.setAuthCredentials();
+        authCredential = loginController.credentials;
       } else {
         authCredential = loginController.credentials;
       }
@@ -129,36 +129,6 @@ class UserController extends GetxController implements UserService {
     update();
   }
 
-
-  // @override
-  // Future<void> getUserFromFacebook(String fbAccessToken) async {
-  //   AppUtilities.logger.i("User is new");
-  //   try {
-  //
-  //     Uri fbURI = Uri.https(AppFacebookConstants.graphApiAuthorityUrl, AppFacebookConstants.graphApiUnencondedPath,
-  //         {AppFacebookConstants.graphApiQueryFieldsParam: AppFacebookConstants.graphApiQueryFieldsValues,
-  //           AppFacebookConstants.graphApiQueryAccessTokenParam: fbAccessToken});
-  //
-  //     var graphResponse = await http.get(fbURI);
-  //
-  //     if(graphResponse.statusCode == 200) {
-  //       var jsonResponse = jsonDecode(graphResponse.body) as Map<String, dynamic>;
-  //       AppUtilities.logger.i("Profile from Graph FB API ${jsonResponse.toString()}");
-  //       user = AppUser.fromFbProfile(jsonResponse);
-  //     } else {
-  //       AppUtilities.logger.w("Request failed with status: ${graphResponse.statusCode}");
-  //     }
-  //   } catch (e) {
-  //     Get.snackbar(
-  //       MessageTranslationConstants.errorCreatingAccount.tr,
-  //       e.toString(),
-  //       snackPosition: SnackPosition.bottom,
-  //     );
-  //     AppUtilities.logger.e(e);
-  //   }
-  // }
-
-
   /// Create user profile from google login
   @override
   void getUserFromFirebase(fba.User fbaUser) {
@@ -182,6 +152,7 @@ class UserController extends GetxController implements UserService {
   }
 
   void clear() {
+    AppUtilities.logger.d("Clearing User");
     user = AppUser();
   }
 
@@ -191,9 +162,54 @@ class UserController extends GetxController implements UserService {
 
     AppUtilities.logger.d("User to create ${user.name}");
     AppUser newUser = user;
+    setNewProfileInfo();
 
-    newProfile.photoUrl = newUser.photoUrl;
-    newProfile.coverImgUrl = newUser.photoUrl;
+    newUser.profiles = [newProfile];
+    newUser.userRole = UserRole.subscriber;
+
+    try {
+
+      if(newUser.name.isEmpty) newUser.name = newProfile.name;
+
+      newUser.createdDate = DateTime.now().millisecondsSinceEpoch;
+
+      if(await userFirestore.insert(newUser)) {
+        isNewUser = false;
+
+        String profileId = await ProfileFirestore().insert(newUser.id, newUser.profiles.first);
+
+        if(profileId.isNotEmpty) {
+          newUser.profiles.first.id = profileId;
+          newUser.currentProfileId = profileId;
+          userFirestore.updateCurrentProfile(newUser.id, profileId);
+          profile = newUser.profiles.first;
+          user = newUser;
+          AppHiveController().writeProfileInfo();
+          Get.offAllNamed(AppRouteConstants.home);
+        } else {
+          userFirestore.remove(newUser.id);
+          AppUtilities.showSnackBar(
+            title: MessageTranslationConstants.errorCreatingAccount.tr,
+          );
+          Get.offAllNamed(AppRouteConstants.login);
+        }
+      } else {
+        AppUtilities.showSnackBar(
+          title: MessageTranslationConstants.errorCreatingAccount.tr,
+        );
+        Get.offAllNamed(AppRouteConstants.login);
+      }
+    } catch (e) {
+      AppUtilities.showSnackBar(
+        title: MessageTranslationConstants.errorCreatingAccount.tr,
+        message: e.toString(),
+      );
+    }
+  }
+
+  void setNewProfileInfo() {
+    newProfile.photoUrl = user.photoUrl;
+    newProfile.coverImgUrl = user.photoUrl;
     newProfile.mainFeature = CoreUtilities.getProfileMainFeature(newProfile);
     newProfile.isActive = true;
     newProfile.reviewStars = 0;
@@ -216,49 +232,6 @@ class UserController extends GetxController implements UserService {
     newProfile.playingEvents = [];
     newProfile.itemlists = {};
     newProfile.favoriteItems = [];
-
-    newUser.profiles = [newProfile];
-    newUser.userRole = UserRole.subscriber;
-
-    try {
-
-      if(newUser.name.isEmpty) newUser.name = newProfile.name;
-
-      newUser.createdDate = DateTime.now().millisecondsSinceEpoch;
-
-      if(await userFirestore.insert(newUser)) {
-        isNewUser = false;
-        user = newUser;
-
-        String profileId = await ProfileFirestore().insert(user.id, user.profiles.first);
-
-        if(profileId.isNotEmpty) {
-          user.profiles.first.id = profileId;
-          user.currentProfileId = profileId;
-          userFirestore.updateCurrentProfile(user.id, profileId);
-          profile = user.profiles.first;
-          Get.offAllNamed(AppRouteConstants.home);
-          profile.itemlists = await ItemlistFirestore().getByOwnerId(profile.id);
-        } else {
-          userFirestore.remove(newUser.id);
-          AppUtilities.logger.e("Something wrong creating account.");
-          Get.offAllNamed(AppRouteConstants.login);
-        }
-      } else {
-        AppUtilities.logger.e("Something wrong creating account.");
-        Get.offAllNamed(AppRouteConstants.login);
-      }
-    } catch (e) {
-      Get.snackbar(
-        MessageTranslationConstants.errorCreatingAccount.tr,
-        e.toString(),
-        snackPosition: SnackPosition.bottom,
-      );
-    }
-
-    AppUtilities.logger.d("");
-    AppHiveController().writeProfileInfo();
-    update([AppPageIdConstants.login, AppPageIdConstants.home]);
   }
 
   @override
@@ -349,7 +322,7 @@ class UserController extends GetxController implements UserService {
 
 
   @override
-  Future<void> getUserById(String userId) async {
+  Future<void> setUserById(String userId) async {
 
     try {
       AppUser userFromFirestore = await userFirestore.getById(userId);
@@ -369,35 +342,23 @@ class UserController extends GetxController implements UserService {
   }
 
   @override
-  Future<void> getUserByEmail(String userEmail) async {
+  Future<void> setUserByEmail(String userEmail) async {
 
     try {
-      AppUser userFromEmail = await userFirestore.getByEmail(userEmail, getProfile: true) ?? AppUser();
-      if(userFromEmail.id.isNotEmpty) {
+      AppUser? userFromEmail = await userFirestore.getByEmail(userEmail, getProfile: true);
+      if(userFromEmail?.id.isNotEmpty ?? false) {
         AppUtilities.logger.t("User $userEmail exists!!");
-        user = userFromEmail;
+        user = userFromEmail!;
         profile = user.profiles.first;
         isNewUser = false;
       } else {
         AppUtilities.logger.w("User $userEmail not exists!!");
-        user = AppUser();
-        profile = AppProfile();
         isNewUser = true;
       }
     } catch (e) {
       AppUtilities.logger.e(e.toString());
     }
   }
-
-  // void addToWallet(amount) {
-  //   user.wallet.amount = user.wallet.amount + amount;
-  //   update([]);
-  // }
-
-  // void subtractFromWallet(double amount) {
-  //   user.wallet.amount = user.wallet.amount - amount;
-  //   update([]);
-  // }
 
   Future<void> changeProfile(AppProfile selectedProfile) async {
     AppUtilities.logger.i("Changing profile to ${selectedProfile.id}");

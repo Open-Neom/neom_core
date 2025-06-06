@@ -6,11 +6,7 @@ class AppPageIdConstants {
   static const String login = "login";
   static const String forgotPassword = "forgot_password";
   static const String signUp = "signUp";
-  static const String onBoardingProfile = "onBoardingProfile";
-  static const String onBoardingInstruments = "onBoardingInstruments";
-  static const String onBoardingGenres = "onBoardingGenres";
-  static const String onBoardingReason = "onBoardingReason";
-  static const String onBoardingAddImage = "onBoardingAddImage";
+  static const String onBoarding = "onBoarding";
   static const String profile = "profile";
   static const String profilePosts = "profilePosts";
 
