@@ -52,6 +52,7 @@ class AppFlavour {
     AppUtilities.logger.t("readServiceAccount");
     String jsonString = await rootBundle.loadString(AppAssets.serviceAccountJsonPath);
     serviceAccount = jsonDecode(jsonString);
+    AppUtilities.logger.t("Service Account Loaded as: $serviceAccount");
   }
 
   static String getAppName() {    

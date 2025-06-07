@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:get/get.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:http/http.dart' as http;
-
+import 'dart:io';
 import '../../../app_flavour.dart';
 import '../../../domain/model/app_profile.dart';
 import '../../../utils/app_utilities.dart';
@@ -195,12 +195,6 @@ class FirebaseMessagingCalls {
         "payload": {
           "aps": {
             "content-available": 1, // Para notificaciones silenciosas o de datos en iOS
-            // "alert": { // Si quieres que APNS muestre una alerta visual
-            //   "title": finalNotificationTitle,
-            //   "body": messageBodyContent,
-            // },
-            // "badge": 1, // Opcional: para actualizar el contador del ícono de la app
-            // "sound": "default" // Opcional: sonido de la notificación
           }
         },
         "headers": {
@@ -212,24 +206,21 @@ class FirebaseMessagingCalls {
       // Configuración específica de Android (opcional, para personalizar cómo Android maneja la notificación)
       Map<String, dynamic> androidPayload = {
         "priority": "high", // "normal" o "high"
-        // "notification": { // Puedes definir aquí también el aspecto de la notificación para Android
-        //   "title": finalNotificationTitle,
-        //   "body": messageBodyContent,
-        //   "image": imgUrl,
-        //   "click_action": "FLUTTER_NOTIFICATION_CLICK",
-        //   // "channel_id": channelKey, // Si tienes canales de notificación en Android
-        // }
       };
 
+      Map<String, dynamic> messagePayload = {
+        "token": profileFCMToken,
+        "data": dataPayload,
+        "android": androidPayload,
+      };
+
+      if(Platform.isIOS) {
+        messagePayload['apns'] = apnsPayload;
+      }
 
       // Construcción del payload FCM v1 completo
       fcmPrivatePayload = {
-        "message": {
-          "token": profileFCMToken, // Token del dispositivo específico
-          "data": dataPayload,
-          "apns": apnsPayload,
-          "android": androidPayload,
-        }
+        "message": messagePayload
       };
     } catch (e) {
       AppUtilities.logger.e("Error al traducir el mensaje de notificación: $e");
@@ -350,14 +341,19 @@ class FirebaseMessagingCalls {
       "priority": "high", // "normal" o "high"
     };
 
+    Map<String, dynamic> messagePayload = {
+      "topic": AppFirestoreConstants.allUsers,
+      "data": dataPayload,
+      "android": androidPayload,
+    };
+
+    if(Platform.isIOS) {
+      messagePayload['apns'] = apnsPayload;
+    }
+
     // Construcción del payload FCM v1 completo
     Map<String, dynamic> fcmPublicPayload = {
-      "message": {
-        "topic": AppFirestoreConstants.allUsers,
-        "data": dataPayload,
-        "apns": apnsPayload,
-        "android": androidPayload,
-      }
+      "message": messagePayload
     };
 
     return fcmPublicPayload;
