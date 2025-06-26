@@ -2,16 +2,16 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../app_config.dart';
 import '../../domain/model/place.dart';
 import '../../domain/repository/place_repository.dart';
-import '../../utils/app_utilities.dart';
 import '../../utils/enums/place_type.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
 
 class PlaceFirestore implements PlaceRepository {
 
-  var logger = AppUtilities.logger;
+  final logger = AppConfig.logger;
   final profileReference = FirebaseFirestore.instance.collectionGroup(AppFirestoreCollectionConstants.profiles);
 
 

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../app_config.dart';
 import '../../domain/model/user_subscription.dart';
-import '../../utils/app_utilities.dart';
+
 import '../../utils/enums/cancellation_reason.dart';
 import '../../utils/enums/subscription_status.dart';
 import 'constants/app_firestore_collection_constants.dart';
@@ -14,9 +15,9 @@ class UserSubscriptionFirestore {
   Future<void> insert(UserSubscription subscription) async {
     try {
       await userSubscriptionsReference.doc(subscription.subscriptionId).set(subscription.toJSON());
-      AppUtilities.logger.d("Subscription inserted successfully: ${subscription.subscriptionId}");
+      AppConfig.logger.d("Subscription inserted successfully: ${subscription.subscriptionId}");
     } catch (e) {
-      AppUtilities.logger.d("Error inserting subscription: $e");
+      AppConfig.logger.d("Error inserting subscription: $e");
     }
   }
 
@@ -25,13 +26,13 @@ class UserSubscriptionFirestore {
     try {
       DocumentSnapshot doc = await userSubscriptionsReference.doc(subscriptionId).get();
       if (doc.exists) {
-        AppUtilities.logger.d("Subscription retrieved: $subscriptionId");
+        AppConfig.logger.d("Subscription retrieved: $subscriptionId");
         return UserSubscription.fromJSON(doc.data() as Map<String, dynamic>);
       } else {
-        AppUtilities.logger.d("Subscription not found: $subscriptionId");
+        AppConfig.logger.d("Subscription not found: $subscriptionId");
       }
     } catch (e) {
-      AppUtilities.logger.d("Error getting subscription: $e");
+      AppConfig.logger.d("Error getting subscription: $e");
     }
     return null;
   }
@@ -47,10 +48,10 @@ class UserSubscriptionFirestore {
         return UserSubscription.fromJSON(doc.data() as Map<String, dynamic>);
       }).toList();
 
-      AppUtilities.logger.d("${subscriptions.length} Subscriptions retrieved for user: $userId");
+      AppConfig.logger.d("${subscriptions.length} Subscriptions retrieved for user: $userId");
       return subscriptions;
     } catch (e) {
-      AppUtilities.logger.e("Error getting subscriptions for user: $e");
+      AppConfig.logger.e("Error getting subscriptions for user: $e");
       return [];
     }
   }
@@ -63,10 +64,10 @@ class UserSubscriptionFirestore {
       List<UserSubscription> subscriptions = querySnapshot.docs.map((doc) {
         return UserSubscription.fromJSON(doc.data() as Map<String, dynamic>);
       }).toList();
-      AppUtilities.logger.d("All subscriptions retrieved.");
+      AppConfig.logger.d("All subscriptions retrieved.");
       return subscriptions;
     } catch (e) {
-      AppUtilities.logger.d("Error getting all subscriptions: $e");
+      AppConfig.logger.d("Error getting all subscriptions: $e");
       return [];
     }
   }
@@ -75,9 +76,9 @@ class UserSubscriptionFirestore {
   Future<void> update(String subscriptionId, Map<String, dynamic> updates) async {
     try {
       await userSubscriptionsReference.doc(subscriptionId).update(updates);
-      AppUtilities.logger.d("Subscription updated successfully: $subscriptionId");
+      AppConfig.logger.d("Subscription updated successfully: $subscriptionId");
     } catch (e) {
-      AppUtilities.logger.d("Error updating subscription: $e");
+      AppConfig.logger.d("Error updating subscription: $e");
     }
   }
 
@@ -85,9 +86,9 @@ class UserSubscriptionFirestore {
   Future<void> remove(String subscriptionId) async {
     try {
       await userSubscriptionsReference.doc(subscriptionId).delete();
-      AppUtilities.logger.d("Subscription removed successfully: $subscriptionId");
+      AppConfig.logger.d("Subscription removed successfully: $subscriptionId");
     } catch (e) {
-      AppUtilities.logger.d("Error removing subscription: $e");
+      AppConfig.logger.d("Error removing subscription: $e");
     }
   }
 
@@ -98,9 +99,9 @@ class UserSubscriptionFirestore {
         AppFirestoreConstants.status: SubscriptionStatus.cancelled.name,
         AppFirestoreConstants.endReason: CancellationReason.userCancelled.name,
       });
-      AppUtilities.logger.d("Subscription cancelled successfully: $subscriptionId");
+      AppConfig.logger.d("Subscription cancelled successfully: $subscriptionId");
     } catch (e) {
-      AppUtilities.logger.d("Error cancelling subscription: $e");
+      AppConfig.logger.d("Error cancelling subscription: $e");
     }
   }
 }

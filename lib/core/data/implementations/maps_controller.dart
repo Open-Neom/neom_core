@@ -8,8 +8,16 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:neom_google_places/neom_google_places.dart';
 import 'package:neom_maps_services/places.dart';
 
-import '../../../neom_commons.dart';
+import '../../app_config.dart';
+import '../../app_properties.dart';
+import '../../domain/model/address.dart';
+import '../../domain/model/app_profile.dart';
+import '../../domain/model/place.dart';
+import '../../domain/use_cases/maps_service.dart';
+import '../../utils/constants/core_constants.dart';
+import 'user_controller.dart';
 
+//TODO Move to neom_maps_service or something specific out of neom_core
 class MapsController extends GetxController implements MapsService {
 
   final userController = Get.find<UserController>();
@@ -24,18 +32,20 @@ class MapsController extends GetxController implements MapsService {
   @override
   void onInit() async {
     super.onInit();
-    AppUtilities.logger.t("Maps Controller Init");
+    AppConfig.logger.t("Maps Controller Init");
 
     profile = userController.profile;
     if(profile.position != null) {
       location = Location(lat: profile.position!.latitude, lng: profile.position!.longitude);
     } else {
       try {
-        Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+        Position position = await Geolocator.getCurrentPosition(
+          locationSettings: LocationSettings(accuracy: LocationAccuracy.high,)
+        );
         profile.position = position;
         userController.profile = profile;
       } catch (e) {
-        AppUtilities.logger.e(e.toString());
+        AppConfig.logger.e(e.toString());
       }
     }
 
@@ -44,24 +54,24 @@ class MapsController extends GetxController implements MapsService {
 
   @override
   Future<void> goToPosition(Position placePosition) async {
-    AppUtilities.logger.d("Go to position on Maps Controller");
+    AppConfig.logger.d("Go to position on Maps Controller");
 
     try {
       final GoogleMapController controller = await _controller.future;
       controller.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
           target: LatLng(placePosition.latitude, placePosition.longitude),
-          zoom: AppConstants.cameraPositionZoom
+          zoom: CoreConstants.cameraPositionZoom
       )));
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
-    update([AppPageIdConstants.event]);
+    update();
   }
 
   @override
   Future<void> goToHomePosition() async {
-    AppUtilities.logger.t("goToHomePosition");
+    AppConfig.logger.t("goToHomePosition");
 
     try {
       GoogleMapController controller = await _controller.future;
@@ -71,27 +81,27 @@ class MapsController extends GetxController implements MapsService {
           CameraUpdate.newCameraPosition(
               CameraPosition(
                   target: LatLng(position.latitude, position.longitude),
-                  zoom: AppConstants.cameraPositionZoom,
+                  zoom: CoreConstants.cameraPositionZoom,
               )
           )
       );
     } catch (e) {
-      AppUtilities.logger.d(e.toString());
+      AppConfig.logger.d(e.toString());
     }
   }
 
   @override
   void onError(PlacesAutocompleteResponse response) {
     try {
-      AppUtilities.logger.d(response.toString());
+      AppConfig.logger.d(response.toString());
     } catch (e) {
-      AppUtilities.logger.d(e.toString());
+      AppConfig.logger.d(e.toString());
     }
   }
 
   @override
   Future<Prediction> placeAutoComplete(BuildContext context, String startText) async {
-    AppUtilities.logger.d("Entering placeAutocomplate method");
+    AppConfig.logger.d("Entering placeAutocomplate method");
 
     Prediction prediction = Prediction();
 
@@ -105,12 +115,12 @@ class MapsController extends GetxController implements MapsService {
         strictbounds: false,
         mode: Mode.fullscreen,
         context: context,
-        apiKey: AppFlavour.getGoogleApiKey(),
+        apiKey: AppProperties.getGoogleApiKey(),
         onError: onError,
         language: "mx",
         decoration: InputDecoration(
-          hintText: AppTranslationConstants.search.tr,
-          fillColor: AppColor.yellow
+          hintText: CoreConstants.search.tr,
+          fillColor: Colors.yellow
         ),
 
         components: [Component(Component.country, "mx")],
@@ -119,7 +129,7 @@ class MapsController extends GetxController implements MapsService {
       if(retrievedPrediction != null) prediction = retrievedPrediction;
 
     } catch (e) {
-      AppUtilities.logger.d(e.toString());
+      AppConfig.logger.d(e.toString());
     }
 
     return prediction;
@@ -129,13 +139,13 @@ class MapsController extends GetxController implements MapsService {
   CameraPosition getCameraPosition(Position position){
     return CameraPosition(
       target: LatLng(position.latitude, position.longitude),
-      zoom: AppConstants.cameraPositionZoom,
+      zoom: CoreConstants.cameraPositionZoom,
     );
   }
 
   @override
   Future<Place> predictionToGooglePlace(Prediction p) async {
-    AppUtilities.logger.d("");
+    AppConfig.logger.d("");
 
     Place place = Place();
     String placeName = "";
@@ -170,7 +180,7 @@ class MapsController extends GetxController implements MapsService {
 
     try {
       GoogleMapsPlaces places = GoogleMapsPlaces(
-        apiKey: AppFlavour.getGoogleApiKey(),
+        apiKey: AppProperties.getGoogleApiKey(),
         apiHeaders: await const GoogleApiHeaders().getHeaders(),
       );
 
@@ -184,9 +194,9 @@ class MapsController extends GetxController implements MapsService {
           timestamp: DateTime.now(), accuracy: 0, altitude: 0, heading: 0, speed: 0, speedAccuracy: 0,
           altitudeAccuracy: 1, headingAccuracy: 1
       );
-      AppUtilities.logger.i(place.toString());
+      AppConfig.logger.i(place.toString());
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return place;

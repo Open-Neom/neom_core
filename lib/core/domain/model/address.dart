@@ -1,7 +1,8 @@
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+import '../../app_config.dart';
 import '../../data/implementations/geolocator_controller.dart';
-import '../../utils/app_utilities.dart';
+
 
 class Address {
 
@@ -43,7 +44,7 @@ class Address {
         zipCode = data["zipCode"] ?? "";
 
   static Future<Address> getAddressFromPosition(Position position) async {
-    AppUtilities.logger.d("");
+    AppConfig.logger.d("");
 
     Placemark placeMark = await GeoLocatorController().getPlaceMark(position);
 
@@ -70,7 +71,7 @@ class Address {
       address = "$locality, $country"
           : address = "$administrativeArea, $country" ;
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return address;

@@ -1,4 +1,4 @@
-import '../model/chamber.dart';
+import '../model/neom/chamber.dart';
 
 abstract class ChamberService {
 

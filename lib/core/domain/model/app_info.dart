@@ -1,7 +1,7 @@
 class AppInfo {
 
   String version;
-  int lastStableBuild;
+  int build;
 
   bool googleLoginEnabled;
   bool mediaPlayerEnabled;
@@ -20,7 +20,7 @@ class AppInfo {
 
   AppInfo({
     this.version = "",
-    this.lastStableBuild = 0,
+    this.build = 0,
     this.googleLoginEnabled = true,
     this.mediaPlayerEnabled = true,
     this.orderNumber = 1,
@@ -33,12 +33,12 @@ class AppInfo {
 
   @override
   String toString() {
-    return 'AppInfo{version: $version, lastStableBuild: $lastStableBuild, googleLoginEnabled: $googleLoginEnabled, mediaPlayerEnabled: $mediaPlayerEnabled, orderNumber: $orderNumber, suggestedUrl: $suggestedUrl, hideNupale: $hideNupale, hideCasete: $hideCasete, hideWallet: $hideWallet}';
+    return 'AppInfo{version: $version, build: $build, googleLoginEnabled: $googleLoginEnabled, mediaPlayerEnabled: $mediaPlayerEnabled, orderNumber: $orderNumber, suggestedUrl: $suggestedUrl, hideNupale: $hideNupale, hideCasete: $hideCasete, hideWallet: $hideWallet}';
   }
 
   AppInfo.fromJSON(data):
     version = data["version"] ?? "",
-    lastStableBuild = data["lastStableBuild"] ?? 0,
+    build = data["build"] ?? 0,
     googleLoginEnabled = data["googleLoginEnabled"] ?? true,
     mediaPlayerEnabled = data["mediaPlayerEnabled"] ?? true,
     orderNumber = data["orderNumber"] ?? 1,
@@ -51,7 +51,7 @@ class AppInfo {
   Map<String, dynamic> toJSON() {
     return <String, dynamic> {
       'version': version,
-      'lastStableBuild': lastStableBuild,
+      'build': build,
       'googleLoginEnabled': googleLoginEnabled,
       'mediaPlayerEnabled': mediaPlayerEnabled,
       'suggestedUrl': suggestedUrl,

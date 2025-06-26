@@ -1,14 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../app_config.dart';
 import '../../domain/model/report.dart';
 import '../../domain/repository/report_repository.dart';
-import '../../utils/app_utilities.dart';
 import 'constants/app_firestore_collection_constants.dart';
 
 
 class ReportFirestore implements ReportRepository {
 
-  var logger = AppUtilities.logger;
+  var logger = AppConfig.logger;
   final reportsReference = FirebaseFirestore.instance.collection(
       AppFirestoreCollectionConstants.reports);
 

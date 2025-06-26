@@ -2,15 +2,15 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../app_config.dart';
 import '../../domain/model/genre.dart';
 import '../../domain/repository/genre_repository.dart';
-import '../../utils/app_utilities.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
 
 class GenreFirestore implements GenreRepository {
 
-  var logger = AppUtilities.logger;
+  final logger = AppConfig.logger;
   final profileReference = FirebaseFirestore.instance.collectionGroup(AppFirestoreCollectionConstants.profiles);
 
 

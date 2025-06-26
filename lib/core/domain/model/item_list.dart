@@ -2,19 +2,13 @@ import 'dart:convert';
 
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:get/get.dart';
 
-import '../../utils/app_utilities.dart';
+import '../../app_config.dart';
 import '../../utils/core_utilities.dart';
 import '../../utils/enums/itemlist_type.dart';
-import '../../utils/enums/media_item_type.dart';
 import '../../utils/enums/owner_type.dart';
-import '../../utils/enums/release_status.dart';
-import '../../utils/enums/release_type.dart';
 import 'app_media_item.dart';
 import 'app_release_item.dart';
-import 'woo/woo_product.dart';
-import 'woo/woo_product_downloads.dart';
 
 class Itemlist {
 
@@ -58,6 +52,11 @@ class Itemlist {
     this.appMediaItems,
     this.uri = "",
     this.type = ItemlistType.playlist,
+    this.createdTime,
+    this.modifiedTime,
+    this.language = "",
+    this.categories,
+    this.tags,
   });
 
   @override
@@ -139,7 +138,7 @@ class Itemlist {
     int totalItems = 0;
     if(appMediaItems != null) totalItems = totalItems + (appMediaItems?.length ?? 0);
     if(appReleaseItems != null) totalItems = totalItems + (appReleaseItems?.length ?? 0);
-    AppUtilities.logger.t("Retrieving $totalItems Total Items.");
+    AppConfig.logger.t("Retrieving $totalItems Total Items.");
     return totalItems;
   }
 
@@ -170,41 +169,8 @@ class Itemlist {
 
     }
 
-    AppUtilities.logger.t("Retrieving ${imgUrls.length} total Images for itemlist $name.");
+    AppConfig.logger.t("Retrieving ${imgUrls.length} total Images for itemlist $name.");
     return imgUrls.toList();
   }
 
-  Itemlist.fromWooProduct(WooProduct product) :
-        id = product.id.toString(),
-        name = product.name,
-        description = product.description.isNotEmpty ? product.description : product.shortDescription.isNotEmpty ? product.shortDescription : '',
-        ownerId = (product.attributes?.containsKey('ownerEmail') ?? false) ? product.attributes!['ownerEmail']!.options.first : '',
-        ownerName = (product.attributes?.containsKey('ownerName') ?? false) ? product.attributes!['ownerName']!.options.first : '',
-        ownerType = OwnerType.woo,
-        href = product.permalink,
-        imgUrl = product.images.isNotEmpty ? product.images.first.src : '',
-        public = (EnumToString.fromString(ReleaseStatus.values, product.status.name) ?? ReleaseStatus.draft) == ReleaseStatus.publish,
-        isModifiable = false,
-        uri = product.permalink,
-        type = (product.attributes?.containsKey('type') ?? false) ? EnumToString.fromString(ItemlistType.values, product.attributes!['type']!.options.first) ?? ItemlistType.single : ItemlistType.single,
-        categories = List.from(product.categories.map((c) => c.name).toList()),
-        tags = List.from(product.tags.map((t) => t.name).toList()),
-        language = (product.attributes?.containsKey('language') ?? false) ? product.attributes!['language']!.options.first : '',
-        createdTime = product.dateCreated?.millisecondsSinceEpoch ?? 0,
-        modifiedTime = product.dateModified?.millisecondsSinceEpoch,
-        appReleaseItems = product.downloads?.asMap().entries.map((entry) {
-          int index = entry.key;
-          WooProductDownload download = entry.value;
-          AppReleaseItem releaseItem = AppReleaseItem.fromWooProduct(product);
-          if(product.categories.firstWhereOrNull((category) => category.name == MediaItemType.podcast.name) != null){
-            releaseItem.type = ReleaseType.episode;
-          } else if(product.categories.firstWhereOrNull((category) => category.name == MediaItemType.audiobook.name.tr) != null){
-            releaseItem.type = ReleaseType.chapter;
-          }
-          releaseItem.name = download.name ?? '';
-          releaseItem.ownerName = product.name;
-          releaseItem.previewUrl = download.file ?? '';
-          releaseItem.id = '${product.id}_${index++}';
-          return releaseItem;
-        },).toList();
 }

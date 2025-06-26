@@ -1,27 +1,35 @@
 import 'dart:collection';
 import 'dart:convert';
 // import 'dart:html' as html;
-import 'dart:io';
 import 'dart:math';
 
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 
-import '../../neom_commons.dart';
+import '../app_config.dart';
+import '../app_properties.dart';
 import '../domain/model/app_media_item.dart';
+import '../domain/model/app_profile.dart';
 import '../domain/model/app_release_item.dart';
-import '../domain/model/chamber.dart';
+import '../domain/model/band.dart';
+import '../domain/model/band_member.dart';
+import '../domain/model/event.dart';
+import '../domain/model/facility.dart';
+import '../domain/model/genre.dart';
+import '../domain/model/instrument.dart';
+import '../domain/model/item_list.dart';
+import '../domain/model/neom/chamber.dart';
 import '../domain/model/neom/chamber_preset.dart';
-import 'enums/media_item_type.dart';
+import '../domain/model/place.dart';
+import '../domain/model/post.dart';
+import 'constants/data_assets.dart';
+import 'enums/app_currency.dart';
+import 'enums/app_item_state.dart';
+import 'enums/itemlist_type.dart';
+import 'enums/profile_type.dart';
+import 'enums/usage_reason.dart';
+import 'position_utilities.dart';
 
 
 class CoreUtilities {
@@ -62,7 +70,7 @@ class CoreUtilities {
         );
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return position;
@@ -93,7 +101,7 @@ class CoreUtilities {
         }
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return itemlistItems;
@@ -172,267 +180,14 @@ class CoreUtilities {
     return totalItems;
   }
 
-  static Widget ratingImage(String asset) {
-    return Image.asset(
-      asset,
-      height: 10.0,
-      width: 10.0,
-      color: Colors.blueGrey,
-    );
-  }
-
-  static String getInstruments(Map<String,Instrument> profileInstruments) {
-    AppUtilities.logger.t("getInstruments on String value");
-    String instruments = "";
-    String mainInstrument = "";
-
-    int instrumentsQty = profileInstruments.length;
-    int index = 1;
-
-    profileInstruments.forEach((key, value) {
-      if (index < instrumentsQty) {
-        if(value.isMain) {
-          mainInstrument = key.tr;
-        } else {
-          instruments = "$instruments${key.tr} - ";
-        }
-      } else {
-        instruments = instruments + key.tr;
-      }
-      index++;
-    });
-
-    if(instruments.length > AppConstants.maxInstrumentsNameLength) {
-      instruments = "${instruments.substring(0,AppConstants.maxInstrumentsNameLength)}...";
-    }
-
-    return mainInstrument.isEmpty ? instruments : mainInstrument;
-  }
-
-
-  static List<AppMediaItem> myFirstBook() {
-    List<AppMediaItem> myFirstAppItem = [];
-    List<Genre> genres = [];
-    genres.add(Genre(id: "Fiction", name: "Fiction"));
-
-    myFirstAppItem.add(
-        AppMediaItem(
-          id: "2drTDQAAQBAJ",
-          state: AppItemState.heardIt.value,
-          artist: "Antoine de Saint-Exupéry" ,
-          imgUrl: "http://books.google.com/books/content?id=2drTDQAAQBAJ&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api",
-          url:"https://play.google.com/store/books/details?id=2drTDQAAQBAJ&source=gbs_api",
-          permaUrl: "https://play.google.com/store/books/details?id=2drTDQAAQBAJ&source=gbs_api",
-          name: "El Principito",
-          album: "SELECTOR",
-          duration: 104,
-          publishedYear: 2017,
-          genres: genres.map((e) => e.name).toList()
-        )
-    );
-
-    return myFirstAppItem;
-  }
-
-  static List<AppMediaItem> myFirstSong() {
-    List<AppMediaItem> myFirstAppItem = [];
-    List<Genre> genres = [];
-    genres.add(Genre(id: "Rock", name: "Rock"));
-
-    myFirstAppItem.add(
-        AppMediaItem(
-          id: "40riOy7x9W7GXjyGp4pjAv",
-          state: AppItemState.heardIt.value,
-          imgUrl: "https://i.scdn.co/image/ab67616d0000b2734637341b9f507521afa9a778",
-          artist: "The Eagles" ,
-          url:"https://p.scdn.co/mp3-preview/50e82c99c20ffa4223e82250605bbd8500cb3928?cid=4e12110673b14aa5948c165a3531eea3",
-          name: "Hotel California - 2013 Remaster",
-          album: "Hotel California (2013 Remaster)",
-          duration: 391,
-          genres: genres.map((e) => e.name).toList(),
-        )
-    );
-
-    return myFirstAppItem;
-  }
-
   static String createCompositeInboxId(List<String> profileIds){
     StringBuffer compositeKeyBuffer = StringBuffer();
     for (var profileId in profileIds) {
       compositeKeyBuffer.write("${profileId}_");
     }
-    AppUtilities.logger.d(compositeKeyBuffer.toString());
+    AppConfig.logger.d(compositeKeyBuffer.toString());
     return compositeKeyBuffer.toString();
   }
-
-  //TODO
-  // static void logEvent(String event, {Map<String, dynamic> parameter}) {
-  //   kReleaseMode ? kAnalytics.logEvent(name: event, parameters: parameter)
-  //       : print("[EVENT]: $event");
-  // }
-
-  static Future<void> clearWebViewCache() async {
-    WebViewController webViewController = WebViewController();
-    await webViewController.clearCache();
-  }
-
-  static Future<void> clearWebViewCookies() async {
-    WebViewCookieManager cookieManager = WebViewCookieManager();
-    await cookieManager.clearCookies();
-  }
-
-  ///DEPRECATED
-  // static void launchInWebView(BuildContext context, String url, {
-  //   List<String> allowedUrls = const [], bool clearCache = false, bool clearCookies = false}) async {
-  //
-  //   WebViewController webViewController = WebViewController();
-  //
-  //   if (clearCache) webViewController.clearCache();
-  //   if (clearCookies) await clearWebViewCookies();
-  //
-  //   bool canPopWebView = false;
-  //   webViewController.loadRequest(Uri.parse(url));
-  //   webViewController.setJavaScriptMode(JavaScriptMode.unrestricted);
-  //   webViewController.setNavigationDelegate(
-  //     NavigationDelegate(
-  //       onProgress: (int progress) {
-  //         // Update loading bar.
-  //       },
-  //       onPageStarted: (String url) {},
-  //       onPageFinished: (String url) {},
-  //       onHttpError: (HttpResponseError error) {
-  //         AppUtilities.logger.e(error.toString());
-  //       },
-  //       onWebResourceError: (WebResourceError error) {
-  //         AppUtilities.logger.e(error.toString());
-  //       },
-  //       onNavigationRequest: (NavigationRequest request) async {
-  //         AppUtilities.logger.d('Navigation Request for URL: ${request.url}');
-  //         if(allowedUrls.isEmpty || allowedUrls.any((allowedUrl) => request.url.contains(allowedUrl))) {
-  //           return NavigationDecision.navigate;
-  //         } else {
-  //           Navigator.pop(context);
-  //           return NavigationDecision.prevent;
-  //         }
-  //       },
-  //     ),
-  //   );
-  //
-  //   Navigator.of(context).push(MaterialPageRoute(
-  //     builder: (BuildContext context) {
-  //       return SafeArea(
-  //         child: PopScope(
-  //           canPop: canPopWebView,
-  //           onPopInvoked: (didPop) async {
-  //             if (await webViewController.canGoBack()) {
-  //               await webViewController.goBack();
-  //             } else {
-  //               canPopWebView = true;
-  //             }
-  //           },
-  //           child: WebViewWidget(
-  //             controller: webViewController,
-  //           ),
-  //         ),
-  //       );
-  //     }
-  //   ));
-  // }
-
-
-  static void launchURL(String url, {bool openInApp = true, bool clearCache = false, bool clearCookies = false, bool sameTab = false}) async {
-    AppUtilities.logger.d('Launching: $url - openInApp: $openInApp');
-
-    try {
-      if (await canLaunchUrl(Uri.parse(url))) {
-
-        if(openInApp && CoreUtilities.isExternalDomain(url)) {
-          openInApp = false;
-        }
-
-        if (kIsWeb && sameTab) {
-          // Si estás en la web, abre en la misma pestaña o en una nueva
-          // html.window.location.href = url; // Esto abrirá en la misma pestaña
-        } else {
-          if(clearCache) await clearWebViewCache();
-          if(clearCookies) await clearWebViewCookies();
-
-          await launchUrl(Uri.parse(url),
-            mode: openInApp ? LaunchMode.inAppWebView : LaunchMode.externalApplication,
-          );
-        }
-
-      } else {
-        AppUtilities.logger.i('Could not launch $url');
-      }
-    } catch(e) {
-      AppUtilities.logger.e(e.toString());
-    }
-  }
-
-  static void launchWhatsappURL(String phone, String message) async {
-    try {
-      String url = UrlConstants.whatsAppURL.replaceAll("<phoneNumber>", phone);
-      url = url.replaceAll("<message>", message);
-
-      if (await canLaunchUrl(Uri.parse("https://$url"))) { //TODO Verify how to use constant
-        await launchUrl(Uri.parse(url));
-      } else {
-        AppUtilities.logger.i('Could not launch $url');
-      }
-    } catch(e) {
-      AppUtilities.logger.e(e.toString());
-    }
-  }
-
-  static void launchGoogleMaps({String? address, Place? place}) async {
-    try {
-      String mapsQuery = '';
-      if(address != null) {
-        mapsQuery = address;
-      } else if(place != null) {
-        StringBuffer placeAddress = StringBuffer();
-        placeAddress.write(place.name);
-        placeAddress.write(',');
-        placeAddress.write(place.address!.street);
-        placeAddress.write(',');
-        placeAddress.write(place.address!.city);
-        placeAddress.write(',');
-        placeAddress.write(place.address!.state);
-        placeAddress.write(',');
-        placeAddress.write(place.address!.country);
-        AppUtilities.logger.i(placeAddress.toString());
-        mapsQuery = placeAddress.toString();
-      }
-
-      String mapOptions = Uri.encodeComponent(mapsQuery);
-      final String googleMapsUrl = "https://www.google.com/maps/search/?api=1&query=$mapOptions";
-      launchURL(googleMapsUrl);
-    } catch(e) {
-      AppUtilities.logger.e(e.toString());
-    }
-  }
-
-  static List<EventTypeModel> getEventTypes() {
-
-    List<EventTypeModel> eventTypes = [];
-    eventTypes.add(EventTypeModel(
-        imgAssetPath: AppAssets.rehearsal,
-        type: EventType.rehearsal)
-    );
-    eventTypes.add(EventTypeModel(
-        imgAssetPath: AppAssets.microphone,
-        type: AppFlavour.appInUse != AppInUse.e ? EventType.gig : EventType.jamming)
-    );
-    eventTypes.add(EventTypeModel(
-        imgAssetPath: AppAssets.festival,
-        type: AppFlavour.appInUse != AppInUse.e ? EventType.festival : EventType.gig)
-    );
-
-    //TODO Add more event types as Class, Clinic, Event for musicians, etc
-    return eventTypes;
-  }
-
 
   static String getProfileMainFeature(AppProfile profile) {
 
@@ -509,25 +264,21 @@ class CoreUtilities {
     return mainFacility.type.name;
   }
 
-  static String getAppItemHeroTag(int index) {
-    return "APP_ITEM_HERO_TAG_$index";
-  }
-
   static Future<List<Genre>> loadGenres() async {
-    AppUtilities.logger.t("loadGenres");
+    AppConfig.logger.t("loadGenres");
     List<Genre> genreList = [];
 
     try {
-      String genreStr = await rootBundle.loadString(AppAssets.genresJsonPath);
+      String genreStr = await rootBundle.loadString(DataAssets.genresJsonPath);
       List<dynamic> genresJSON = jsonDecode(genreStr);
 
       for (var genreJSON in genresJSON) {
         genreList.add(Genre.fromJsonDefault(genreJSON));
       }
 
-      AppUtilities.logger.d("${genreList.length} loaded genres from json");
+      AppConfig.logger.d("${genreList.length} loaded genres from json");
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return genreList;
@@ -535,20 +286,20 @@ class CoreUtilities {
 
 
   static Map<String, AppMediaItem> getItemMatches(Map<String, AppMediaItem> totalItems, List<String> profileItems) {
-    AppUtilities.logger.t("Get Item Matches for ${totalItems.length} total items");
+    AppConfig.logger.t("Get Item Matches for ${totalItems.length} total items");
     Map<String, AppMediaItem> matchedItemms = <String,AppMediaItem>{};
 
     try {
       totalItems.forEach((itemId, item) {
         if(profileItems.contains(itemId)) {
           matchedItemms[itemId] = item;
-          AppUtilities.logger.t("Adding Item Id: $itemId - Name: ${item.name}");
+          AppConfig.logger.t("Adding Item Id: $itemId - Name: ${item.name}");
         }
       });
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
-    AppUtilities.logger.d("Total ItemmMatches: ${matchedItemms.length}");
+    AppConfig.logger.d("Total ItemmMatches: ${matchedItemms.length}");
     return matchedItemms;
   }
 
@@ -563,7 +314,7 @@ class CoreUtilities {
         }
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return matchedInstruments;
@@ -581,7 +332,7 @@ class CoreUtilities {
         }
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return bandInstrumentMatches;
@@ -599,7 +350,7 @@ class CoreUtilities {
         }
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return bandInstrumentMatches;
@@ -613,7 +364,7 @@ class CoreUtilities {
     UsageReason profileReason = UsageReason.any,
     int profileDistanceKm = 0})
   {
-    AppUtilities.logger.t("Fulfillment Matched Requirements");
+    AppConfig.logger.t("Fulfillment Matched Requirements");
 
     bool requirementsMatched = false;
 
@@ -628,42 +379,15 @@ class CoreUtilities {
       }
 
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
 
     return requirementsMatched;
   }
 
-  static Future<CachedNetworkImageProvider> handleCachedImageProvider(String imageUrl) async {
-
-    CachedNetworkImageProvider cachedNetworkImageProvider = const CachedNetworkImageProvider("");
-
-    try {
-      if(imageUrl.isEmpty) {
-        imageUrl = AppFlavour.getNoImageUrl();
-      }
-
-      Uri uri = Uri.parse(imageUrl);
-
-      if(uri.host.isNotEmpty) {
-        http.Response response = await http.get(uri);
-        if (response.statusCode == 200) {
-          cachedNetworkImageProvider = CachedNetworkImageProvider(imageUrl);
-        } else {
-          cachedNetworkImageProvider = CachedNetworkImageProvider(AppFlavour.getNoImageUrl());
-        }
-      }
-
-    } catch (e){
-      AppUtilities.logger.e(e.toString());
-    }
-
-    return cachedNetworkImageProvider;
-  }
-
   Future<bool> isAvailableMediaUrl(String mediaUrl) async {
-    AppUtilities.logger.t("Verifying if mediaUrl is available: $mediaUrl");
+    AppConfig.logger.t("Verifying if mediaUrl is available: $mediaUrl");
 
     bool isAvailable = true;
     try {
@@ -673,7 +397,7 @@ class CoreUtilities {
         isAvailable = false;
       }
     } catch (e){
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
       isAvailable = false;
     }
     return isAvailable;
@@ -682,15 +406,15 @@ class CoreUtilities {
 
   Future<Post> verifyPostMediaUrls(Post post) async {
     if(post.profileImgUrl.isEmpty || !await isAvailableMediaUrl(post.profileImgUrl)) {
-      post.profileImgUrl = AppFlavour.getNoImageUrl();
+      post.profileImgUrl = AppProperties.getNoImageUrl();
     }
 
     if(post.mediaUrl.isEmpty || !await isAvailableMediaUrl(post.mediaUrl)) {
-      post.mediaUrl = AppFlavour.getNoImageUrl();
+      post.mediaUrl = AppProperties.getNoImageUrl();
     }
 
     if(post.thumbnailUrl.isEmpty || !await isAvailableMediaUrl(post.thumbnailUrl)) {
-      post.thumbnailUrl = AppFlavour.getNoImageUrl();
+      post.thumbnailUrl = AppProperties.getNoImageUrl();
     }
 
     return post;
@@ -720,198 +444,17 @@ class CoreUtilities {
     return currencySymbol;
   }
 
-
-  Future<void> shareApp() async {
-    ShareResult shareResult = await Share.share('${MessageTranslationConstants.shareAppMsg.tr}\n'
-        '${AppFlavour.getLinksUrl()}'
-    );
-
-    if(shareResult.status == ShareResultStatus.success && shareResult.raw != "null") {
-      Get.snackbar(MessageTranslationConstants.sharedApp.tr,
-          MessageTranslationConstants.sharedAppMsg.tr,
-          snackPosition: SnackPosition.bottom);
-    }
-
-  }
-
-
-  Future<void> shareAppWithPost(Post post) async {
-
-    String thumbnailLocalPath = "";
-
-    if(post.thumbnailUrl.isNotEmpty || post.mediaUrl.isNotEmpty ) {
-      String imgUrl = post.thumbnailUrl.isNotEmpty ? post.thumbnailUrl : post.mediaUrl;
-      if(imgUrl.isNotEmpty) {
-        thumbnailLocalPath = await downloadImage(imgUrl);
-      }
-    }
-
-    ShareResult? shareResult;
-    String caption = post.caption;
-    if(post.type == PostType.blogEntry) {
-      if(caption.contains(AppConstants.titleTextDivider)) {
-        caption = caption.replaceAll(AppConstants.titleTextDivider, "\n\n");
-      }
-      String dotsLine = "";
-      for(int i = 0; i < post.profileName.length; i++) {
-        dotsLine = "$dotsLine.";
-      }
-      caption = "$caption\n\n${post.profileName}\n$dotsLine";
-    }
-
-
-    if(thumbnailLocalPath.isNotEmpty) {
-      shareResult = await Share.shareXFiles([XFile(thumbnailLocalPath)],
-          text: '$caption${caption.isNotEmpty ? "\n\n" : ""}'
-              '${MessageTranslationConstants.shareAppMsg.tr}\n'
-              '\n${AppFlavour.getLinksUrl()}\n'
-      );
-    } else {
-      shareResult = await Share.share(
-          '$caption${caption.isNotEmpty ? "\n\n" : ""}'
-              '${MessageTranslationConstants.shareAppMsg.tr}\n'
-              '\n${AppFlavour.getLinksUrl()}\n'
-      );
-    }
-
-
-    if(shareResult.status == ShareResultStatus.success && shareResult.raw != "null") {
-      Get.snackbar(MessageTranslationConstants.sharedApp.tr,
-          MessageTranslationConstants.sharedAppMsg.tr,
-          snackPosition: SnackPosition.bottom);
-    }
-
-  }
-
-  Future<void> shareAppWithMediaItem(AppMediaItem mediaItem) async {
-
-    String thumbnailLocalPath = "";
-
-    if(mediaItem.imgUrl.isNotEmpty || (mediaItem.allImgs?.isNotEmpty ?? false) ) {
-      String imgUrl = mediaItem.imgUrl.isNotEmpty ? mediaItem.imgUrl : mediaItem.allImgs?.first ?? "";
-      if(imgUrl.isNotEmpty) {
-        thumbnailLocalPath = await downloadImage(imgUrl, imgName: "${mediaItem.artist}_${mediaItem.name}");
-      }
-    }
-
-    ShareResult? shareResult;
-    String caption = mediaItem.name;
-    if(mediaItem.type == MediaItemType.song) {
-      if(caption.contains(AppConstants.titleTextDivider)) {
-        caption = caption.replaceAll(AppConstants.titleTextDivider, "\n\n");
-      }
-      String dotsLine = "";
-      for(int i = 0; i < mediaItem.artist.length; i++) {
-        dotsLine = "$dotsLine.";
-      }
-      caption = "$caption\n\n${mediaItem.artist}\n$dotsLine";
-    }
-
-
-    if(thumbnailLocalPath.isNotEmpty) {
-      shareResult = await Share.shareXFiles([XFile(thumbnailLocalPath)],
-          text: '$caption${caption.isNotEmpty ? "\n\n" : ""}'
-              '${MessageTranslationConstants.shareMediaItem.tr}\n'
-              '\n${AppFlavour.getLinksUrl()}\n'
-      );
-    } else {
-      shareResult = await Share.share(
-          '$caption${caption.isNotEmpty ? "\n\n" : ""}'
-              '${MessageTranslationConstants.shareMediaItemMsg.tr}\n'
-              '\n${AppFlavour.getLinksUrl()}\n'
-      );
-    }
-
-
-    if(shareResult.status == ShareResultStatus.success && shareResult.raw != "null") {
-      Get.snackbar(MessageTranslationConstants.sharedMediaItem.tr,
-          MessageTranslationConstants.sharedMediaItemMsg.tr,
-          snackPosition: SnackPosition.bottom);
-    }
-
-  }
-
-  static Future<String> downloadImage(String imgUrl, {String imgName = ''}) async {
-    AppUtilities.logger.d("Entering downloadImage method");
-    String localPath = "";
-    String name = imgName.isNotEmpty ? imgName : imgUrl;
-    try {
-
-      final response = await http.get(Uri.parse(imgUrl));
-      if (response.statusCode == 200) {
-        name = name.replaceAll(".", "").replaceAll(":", "").replaceAll("/", "");
-        // Get the document directory path
-        localPath = await getLocalPath();
-        localPath = "$localPath/$name.jpeg";
-        File jpegFileRef = File(localPath);
-        await jpegFileRef.writeAsBytes(response.bodyBytes);
-        AppUtilities.logger.i("Image downloaded to path $localPath successfully.");
-      }
-    } catch (e) {
-      AppUtilities.logger.e(e.toString());
-    }
-    return localPath;
-  }
-
-  static Future<String> getLocalPath() async {
-    final directory = await getApplicationDocumentsDirectory();
-    return directory.path;
-  }
-
-  ///Deprecated
-  // String getYouTubeUrl(String content) {
-  //   RegExp regExp = RegExp(
-  //       r'((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?'
-  //   );
-  //   String matches = regExp.stringMatch(content) ?? "";
-  //
-  //   final String youTubeUrl = matches;
-  //
-  //   return youTubeUrl;
-  // }
-
-  ///Deprecated
-  // List<ActivityFeed> getActivityFeedSinceLastCheck(List<ActivityFeed> activitiesFeed) {
-  //
-  //   List<ActivityFeed> activityFeedSinceLastCheck = [];
-  //   int lastNotificationCheckDate = Get.find<SharedPreferenceController>().lastNotificationCheckDate;
-  //   DateTime lastNotificationCheckDateTime = DateTime.fromMillisecondsSinceEpoch(lastNotificationCheckDate);
-  //
-  //   for (var activityFeed in activitiesFeed) {
-  //     DateTime activityDate = DateTime.fromMillisecondsSinceEpoch(activityFeed.createdTime);
-  //     if(activityDate.compareTo(lastNotificationCheckDateTime) > 0) {
-  //       activityFeedSinceLastCheck.add(activityFeed);
-  //     }
-  //   }
-  //
-  //   return activityFeedSinceLastCheck;
-  // }
-
-  static String removeQueryParameters(String url) {
-    final int questionMarkIndex = url.indexOf('?');
-    if (questionMarkIndex == -1) {
-      return url;
-    }
-
-    return url.substring(0, questionMarkIndex);
-  }
-
-  static void copyToClipboard({required String text, String? displayText,}) {
-    Clipboard.setData(ClipboardData(text: text),);
-    AppUtilities.showSnackBar(message: displayText ?? AppTranslationConstants.copied.tr);
-  }
-
   static Map<double, AppProfile> sortProfilesByLocation(Position currentPosition, List<AppProfile> profiles) {
     SplayTreeMap<double, AppProfile> sortedProfiles = SplayTreeMap<double, AppProfile>();
 
     for (var mate in profiles) {
-      double distanceBetweenProfiles = AppUtilities.distanceBetweenPositions(
+      double distanceBetweenProfiles = PositionUtilities.distanceBetweenPositions(
           currentPosition, mate.position!);
       distanceBetweenProfiles = distanceBetweenProfiles + Random().nextDouble();
       sortedProfiles[distanceBetweenProfiles] = mate;
     }
 
-    AppUtilities.logger.d("Sorted Profiles ${sortedProfiles.length}");
+    AppConfig.logger.d("Sorted Profiles ${sortedProfiles.length}");
     return Map.from(sortedProfiles);
   }
 
@@ -928,35 +471,40 @@ class CoreUtilities {
     return profileMap;
   }
 
-  static String capitalizeFirstLetter(String input) {
-    if (input.isEmpty) {
-      return input;
-    }
-    return input[0].toUpperCase() + input.substring(1);
-  }
+  static List<Itemlist> filterItemlists(List<Itemlist> lists, ItemlistType type) {
+    if(lists.isEmpty) return [];
 
-  static bool isExternalDomain(String url) {
-    final uri = Uri.parse(url);
-    return UrlConstants.externalDomains.contains(uri.host);
-  }
-
-  static bool mapKeysEquals(Map<String, dynamic> a, Map<String, dynamic> b) {
-    if (a.length != b.length) {
-      return false;
+    switch(type) {
+      case ItemlistType.playlist:
+        lists.removeWhere((list) => list.type == ItemlistType.readlist);
+        lists.removeWhere((list) => list.type == ItemlistType.giglist);
+        break;
+      case ItemlistType.readlist:
+        lists.removeWhere((list) => list.type != ItemlistType.readlist);
+      default:
+        break;
     }
 
-    for (String key in a.keys) {
-      if (!b.containsKey(key) || a[key] != b[key]) {
-        return false;
-      }
-    }
-
-    return true;
+    return lists;
   }
 
-  static bool isTablet(BuildContext context) {
-    var shortestSide = MediaQuery.of(context).size.shortestSide;
-    return shortestSide >= 600;  // Typically, tablets have a minimum width of 600dp
+  static bool isInternal(String url) {
+    final bool isInternal = url.contains(AppProperties.getHubName())
+        || url.contains(AppProperties.getStorageServerName());
+    return isInternal;
+  }
+
+  static bool isWithinFirstMonth(int createdTime) {
+    DateTime creationDate = DateTime.fromMillisecondsSinceEpoch(createdTime);
+    DateTime now = DateTime.now();
+
+    DateTime dateOneMonthLater = DateTime(
+      creationDate.year,
+      creationDate.month + 1,
+      creationDate.day,
+    );
+
+    return now.isBefore(dateOneMonthLater);
   }
 
 }

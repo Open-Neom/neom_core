@@ -2,16 +2,16 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../app_config.dart';
 import '../../domain/model/sponsor.dart';
 import '../../domain/repository/sponsor_repository.dart';
-import '../../utils/app_utilities.dart';
-import '../../utils/constants/app_constants.dart';
+import '../../utils/constants/core_constants.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
 
 class SponsorFirestore implements SponsorRepository {
 
-  var logger = AppUtilities.logger;
+  var logger = AppConfig.logger;
   final sponsorsReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.sponsors);
   List<QueryDocumentSnapshot> _documentTimeline = [];
   int documentTimelineCounter = 0;
@@ -40,7 +40,7 @@ class SponsorFirestore implements SponsorRepository {
 
     try {
       QuerySnapshot snapshot = await sponsorsReference
-          .limit(AppConstants.sponsorsLimit)
+          .limit(CoreConstants.sponsorsLimit)
           .where(AppFirestoreConstants.isActive, isEqualTo: true)
           .get();
 
@@ -67,7 +67,7 @@ class SponsorFirestore implements SponsorRepository {
     try {
       QuerySnapshot snapshot = await sponsorsReference
           .startAfterDocument(_documentTimeline[documentTimelineCounter++])
-          .limit(AppConstants.sponsorsLimit).get();
+          .limit(CoreConstants.sponsorsLimit).get();
 
       _documentTimeline.addAll(snapshot.docs);
 

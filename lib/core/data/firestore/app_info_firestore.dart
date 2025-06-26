@@ -2,14 +2,15 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../app_config.dart';
 import '../../domain/model/app_info.dart';
 import '../../domain/repository/app_info_repository.dart';
-import '../../utils/app_utilities.dart';
+
 import 'constants/app_firestore_collection_constants.dart';
 
 class AppInfoFirestore implements AppInfoRepository {
 
-  final logger = AppUtilities.logger;
+  final logger = AppConfig.logger;
   final appReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.app);
 
   @override

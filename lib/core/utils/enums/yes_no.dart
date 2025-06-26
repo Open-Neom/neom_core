@@ -1,4 +1,0 @@
-enum YesNo {
-  yes,
-  no,
-}

@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../app_config.dart';
 import '../../domain/model/facility.dart';
 import '../../domain/repository/facility_repository.dart';
-import '../../utils/app_utilities.dart';
 import '../../utils/enums/facilitator_type.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
@@ -15,7 +15,7 @@ class FacilityFirestore implements FacilityRepository {
 
   @override
   Future<Map<String,Facility>> retrieveFacilities(profileId) async {
-    AppUtilities.logger.d("Retrieving Facility by Profile $profileId");
+    AppConfig.logger.d("Retrieving Facility by Profile $profileId");
 
     Map<String, Facility> facilities = {};
 
@@ -34,16 +34,16 @@ class FacilityFirestore implements FacilityRepository {
         }
       }
     } catch (e) {
-      AppUtilities.logger.e("No facilities found");
+      AppConfig.logger.e("No facilities found");
     }
 
-    AppUtilities.logger.d("${facilities.length} facilities found");
+    AppConfig.logger.d("${facilities.length} facilities found");
     return facilities;
   }
 
   @override
   Future<bool> removeFacility({required String profileId, required String facilityId}) async {
-    AppUtilities.logger.d("Removing $facilityId for by $profileId");
+    AppConfig.logger.d("Removing $facilityId for by $profileId");
     try {
       await profileReference.get()
           .then((querySnapshot) async {
@@ -57,17 +57,17 @@ class FacilityFirestore implements FacilityRepository {
         }
       });
 
-    AppUtilities.logger.d("Facility $facilityId removed");
+    AppConfig.logger.d("Facility $facilityId removed");
     return true;
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
       return false;
     }
   }
 
   @override
   Future<bool> addFacility({required String profileId, required FacilityType facilityType}) async {
-    AppUtilities.logger.d("Adding $facilityType for by $profileId");
+    AppConfig.logger.d("Adding $facilityType for by $profileId");
 
     Facility facilityBasic = Facility.addBasic(facilityType);
     try {
@@ -82,10 +82,10 @@ class FacilityFirestore implements FacilityRepository {
         }
       });
 
-      AppUtilities.logger.d("Facility $facilityType added");
+      AppConfig.logger.d("Facility $facilityType added");
       return true;
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
       return false;
     }
   }
@@ -94,25 +94,25 @@ class FacilityFirestore implements FacilityRepository {
   Future<bool> updateMainFacility({required String profileId,
       required String facilityId, required String prevFacilityId}) async {
 
-    AppUtilities.logger.d("Updating $facilityId as main for $profileId");
+    AppConfig.logger.d("Updating $facilityId as main for $profileId");
 
     try {
       await profileReference.get()
           .then((querySnapshot) {
         for (var document in querySnapshot.docs) {
           if (document.id == profileId) {
-            AppUtilities.logger.i("Facility $facilityId as main facility at facilities collection");
+            AppConfig.logger.i("Facility $facilityId as main facility at facilities collection");
             document.reference
                 .collection(AppFirestoreCollectionConstants.facilities)
                 .doc(facilityId)
                 .update({AppFirestoreConstants.isMain: true});
 
-            AppUtilities.logger.d("Facility $facilityId as main facility at profile level");
+            AppConfig.logger.d("Facility $facilityId as main facility at profile level");
             //TODO Add to model
             //document.reference.update({GigFirestoreConstants.mainFacility: facilityId});
 
             if(prevFacilityId.isNotEmpty) {
-              AppUtilities.logger.d("Facility $prevFacilityId unset from main facility");
+              AppConfig.logger.d("Facility $prevFacilityId unset from main facility");
               document.reference
                   .collection(AppFirestoreCollectionConstants.facilities)
                   .doc(prevFacilityId)
@@ -124,7 +124,7 @@ class FacilityFirestore implements FacilityRepository {
 
       return true;
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
       return false;
     }
   }

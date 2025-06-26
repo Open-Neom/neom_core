@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:core';
 
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
-import '../../../../neom_commons.dart';
+import '../../../app_config.dart';
+import '../../../app_properties.dart';
 import '../../../domain/model/stripe/stripe_price.dart';
 import '../../../domain/model/stripe/stripe_product.dart';
 import '../../../domain/model/stripe/stripe_session.dart';
@@ -35,7 +35,7 @@ class StripeService {
       final response = await http.post(
         Uri.parse(url),
         headers: {
-          'Authorization': 'Bearer ${isDebug ? AppFlavour.getStripeSecretTestKey() : AppFlavour.getStripeSecretLiveKey()}',
+          'Authorization': 'Bearer ${AppProperties.getStripeSecretKey()}',
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: body,
@@ -43,14 +43,14 @@ class StripeService {
 
       final responseData = json.decode(response.body);
       if (response.statusCode == 200) {
-        AppUtilities.logger.i('Checkout session created: ${responseData['id']}');
+        AppConfig.logger.i('Checkout session created: ${responseData['id']}');
         checkoutSession.id = responseData['id'];
         checkoutSession.url= responseData['url'];
       } else {
-        AppUtilities.logger.w('Error: ${responseData['error']['message']}');
+        AppConfig.logger.w('Error: ${responseData['error']['message']}');
       }
     } catch (e) {
-      AppUtilities.logger.e('Error creating checkout session: $e');
+      AppConfig.logger.e('Error creating checkout session: $e');
     }
 
     return checkoutSession;
@@ -59,12 +59,12 @@ class StripeService {
   // static Future<void> createSubscription({required String email, required String paymentMethodId,}) async {
   //   try {
   //   } catch (e) {
-  //     AppUtilities.logger.d('Error creating subscription: $e');
+  //     AppConfig.logger.d('Error creating subscription: $e');
   //   }
   // }
 
-  static Future<String> getSubscriptionId(String sessionId,{bool isDebug = false}) async {
-    AppUtilities.logger.d('getSubscriptionId by sessionId: $sessionId');
+  static Future<String> getSubscriptionId(String sessionId, {bool? isDebug}) async {
+    AppConfig.logger.d('getSubscriptionId by sessionId: $sessionId');
 
     String url = 'https://api.stripe.com/v1/checkout/sessions/$sessionId';
     String subscriptionId = '';
@@ -72,7 +72,7 @@ class StripeService {
     final response = await http.get(
       Uri.parse(url),
       headers: {
-        'Authorization': 'Bearer ${isDebug ? AppFlavour.getStripeSecretTestKey() : AppFlavour.getStripeSecretLiveKey()}',
+        'Authorization': 'Bearer ${AppProperties.getStripeSecretKey(isDebug: isDebug)}',
       },
     );
 
@@ -80,13 +80,13 @@ class StripeService {
     if (response.statusCode == 200) {
       subscriptionId = responseData['subscription'] ?? '';
       if (subscriptionId.isNotEmpty) {
-        AppUtilities.logger.i('Subscription ID: $subscriptionId');
+        AppConfig.logger.i('Subscription ID: $subscriptionId');
         // Aquí puedes guardar el subscriptionId o hacer algo con él
       } else {
-        AppUtilities.logger.w('No subscription found for this session.');
+        AppConfig.logger.w('No subscription found for this session.');
       }
     } else {
-      AppUtilities.logger.e('Error fetching session: ${responseData['error']['message']}');
+      AppConfig.logger.e('Error fetching session: ${responseData['error']['message']}');
     }
 
     return subscriptionId;
@@ -98,7 +98,7 @@ class StripeService {
     final response = await http.get(
       Uri.parse(url),
       headers: {
-        'Authorization': 'Bearer ${kDebugMode ? AppFlavour.getStripeSecretTestKey() : AppFlavour.getStripeSecretLiveKey()}',
+        'Authorization': 'Bearer ${AppProperties.getStripeSecretKey()}',
       },
     );
 
@@ -106,33 +106,33 @@ class StripeService {
     if (response.statusCode == 200) {
       customerId = responseData['customer'] ?? '';
       if (customerId.isNotEmpty) {
-        AppUtilities.logger.i('Customer ID: $customerId');
+        AppConfig.logger.i('Customer ID: $customerId');
         // Aquí puedes guardar el subscriptionId o hacer algo con él
       } else {
-        AppUtilities.logger.w('No subscription found for this session.');
+        AppConfig.logger.w('No subscription found for this session.');
       }
     } else {
-      AppUtilities.logger.e('Error fetching session: ${responseData['error']['message']}');
+      AppConfig.logger.e('Error fetching session: ${responseData['error']['message']}');
     }
 
     return customerId;
   }
 
-  static Future<bool> cancelSubscription(String subscriptionId, {bool isDebug = false}) async {
+  static Future<bool> cancelSubscription(String subscriptionId, {bool? isDebug}) async {
     String url = 'https://api.stripe.com/v1/subscriptions/$subscriptionId';
 
     final response = await http.delete(
       Uri.parse(url),
       headers: {
-        'Authorization': 'Bearer ${isDebug ? AppFlavour.getStripeSecretTestKey() : AppFlavour.getStripeSecretLiveKey()}',
+        'Authorization': 'Bearer ${AppProperties.getStripeSecretKey(isDebug: isDebug)}',
       },
     );
 
     if (response.statusCode == 200) {
-      AppUtilities.logger.i('Subscription cancelled successfully.');
+      AppConfig.logger.i('Subscription cancelled successfully.');
       return true;
     } else {
-      AppUtilities.logger.e('Error cancelling subscription: ${json.decode(response.body)['error']['message']}');
+      AppConfig.logger.e('Error cancelling subscription: ${json.decode(response.body)['error']['message']}');
     }
 
     return false;
@@ -144,16 +144,16 @@ class StripeService {
     final response = await http.get(
       Uri.parse(url),
       headers: {
-        'Authorization': 'Bearer ${kDebugMode ? AppFlavour.getStripeSecretTestKey() : AppFlavour.getStripeSecretLiveKey()}',
+        'Authorization': 'Bearer ${AppProperties.getStripeSecretKey()}',
       },
     );
 
     final responseData = json.decode(response.body);
     if (response.statusCode == 200) {
-      AppUtilities.logger.d('Subscription status: ${responseData['status']}');
+      AppConfig.logger.d('Subscription status: ${responseData['status']}');
       // Puedes manejar los diferentes estados, como "active", "canceled", etc.
     } else {
-      AppUtilities.logger.d('Error fetching subscription details: ${responseData['error']['message']}');
+      AppConfig.logger.d('Error fetching subscription details: ${responseData['error']['message']}');
     }
   }
 
@@ -163,7 +163,7 @@ class StripeService {
     final response = await http.get(
       Uri.parse(url),
       headers: {
-        'Authorization': 'Bearer ${kDebugMode ? AppFlavour.getStripeSecretTestKey() : AppFlavour.getStripeSecretLiveKey()}',
+        'Authorization': 'Bearer ${AppProperties.getStripeSecretKey()}',
       },
     );
 
@@ -172,14 +172,14 @@ class StripeService {
       List customers = responseData['data'];
       if (customers.isNotEmpty) {
         String customerId = customers[0]['id'];  // Obtén el primer cliente que coincide
-        AppUtilities.logger.d('Customer ID: $customerId');
+        AppConfig.logger.d('Customer ID: $customerId');
         // Ahora puedes usar el customerId para obtener las suscripciones
         await getSubscriptionsFromCustomer(customerId);
       } else {
-        AppUtilities.logger.d('No customer found with that email.');
+        AppConfig.logger.d('No customer found with that email.');
       }
     } else {
-      AppUtilities.logger.d('Error fetching customer: ${responseData['error']['message']}');
+      AppConfig.logger.d('Error fetching customer: ${responseData['error']['message']}');
     }
   }
 
@@ -190,7 +190,7 @@ class StripeService {
     final response = await http.get(
       Uri.parse(url),
       headers: {
-        'Authorization': 'Bearer ${kDebugMode ? AppFlavour.getStripeSecretTestKey() : AppFlavour.getStripeSecretLiveKey()}',
+        'Authorization': 'Bearer ${AppProperties.getStripeSecretKey()}',
       },
     );
 
@@ -200,15 +200,15 @@ class StripeService {
       if (subscriptions.isNotEmpty) {
         for (var subscription in subscriptions) {
           String subscriptionId = subscription['id'];
-          AppUtilities.logger.d('Subscription ID: $subscriptionId');
-          AppUtilities.logger.d('Status: ${subscription['status']}');
+          AppConfig.logger.d('Subscription ID: $subscriptionId');
+          AppConfig.logger.d('Status: ${subscription['status']}');
           // Aquí puedes manejar el subscriptionId o guardarlo en tu base de datos
         }
       } else {
-        AppUtilities.logger.d('No subscriptions found for this customer.');
+        AppConfig.logger.d('No subscriptions found for this customer.');
       }
     } else {
-      AppUtilities.logger.d('Error fetching subscriptions: ${responseData['error']['message']}');
+      AppConfig.logger.d('Error fetching subscriptions: ${responseData['error']['message']}');
     }
   }
 
@@ -219,7 +219,7 @@ class StripeService {
       final response = await http.get(
         Uri.parse(url),
         headers: {
-          'Authorization': 'Bearer ${isDebug ? AppFlavour.getStripeSecretTestKey() : AppFlavour.getStripeSecretLiveKey()}',
+          'Authorization': 'Bearer ${AppProperties.getStripeSecretKey()}',
         },
       );
 
@@ -230,14 +230,14 @@ class StripeService {
             .map<StripeProduct>((productData) => StripeProduct.fromJSON(productData))
             .toList();
 
-        AppUtilities.logger.d('Products fetched successfully.');
+        AppConfig.logger.d('Products fetched successfully.');
         return products;
       } else {
-        AppUtilities.logger.e('Error fetching products: ${responseData['error']['message']}');
+        AppConfig.logger.e('Error fetching products: ${responseData['error']['message']}');
         return [];
       }
     } catch (e) {
-      AppUtilities.logger.e('Error fetching products: $e');
+      AppConfig.logger.e('Error fetching products: $e');
       return [];
     }
   }
@@ -249,21 +249,21 @@ class StripeService {
       final response = await http.get(
         Uri.parse(url),
         headers: {
-          'Authorization': 'Bearer ${isDebug ? AppFlavour.getStripeSecretTestKey() : AppFlavour.getStripeSecretLiveKey()}',
+          'Authorization': 'Bearer ${AppProperties.getStripeSecretKey()}',
         },
       );
 
       final responseData = json.decode(response.body);
       if (response.statusCode == 200) {
         StripeProduct product = StripeProduct.fromJSON(responseData);
-        AppUtilities.logger.d('Product fetched: $productId');
+        AppConfig.logger.d('Product fetched: $productId');
         return product;
       } else {
-        AppUtilities.logger.e('Error fetching product: ${responseData['error']['message']}');
+        AppConfig.logger.e('Error fetching product: ${responseData['error']['message']}');
         return null;
       }
     } catch (e) {
-      AppUtilities.logger.e('Error fetching product: $e');
+      AppConfig.logger.e('Error fetching product: $e');
       return null;
     }
   }
@@ -275,7 +275,7 @@ class StripeService {
       final response = await http.get(
         Uri.parse(url),
         headers: {
-          'Authorization': 'Bearer ${isDebug ? AppFlavour.getStripeSecretTestKey() : AppFlavour.getStripeSecretLiveKey()}',
+          'Authorization': 'Bearer ${AppProperties.getStripeSecretKey()}',
         },
       );
 
@@ -283,14 +283,14 @@ class StripeService {
       if (response.statusCode == 200) {
         // Convertir los datos del precio desde JSON al modelo StripePrice
         StripePrice price = StripePrice.fromJSON(responseData);
-        AppUtilities.logger.d('Price fetched successfully: $priceId');
+        AppConfig.logger.d('Price fetched successfully: $priceId');
         return price;
       } else {
-        AppUtilities.logger.e('Error fetching price: ${responseData['error']['message']}');
+        AppConfig.logger.e('Error fetching price: ${responseData['error']['message']}');
         return null;
       }
     } catch (e) {
-      AppUtilities.logger.e('Error fetching price: $e');
+      AppConfig.logger.e('Error fetching price: $e');
       return null;
     }
   }
@@ -303,7 +303,7 @@ class StripeService {
       final response = await http.get(
         Uri.parse(url),
         headers: {
-          'Authorization': 'Bearer ${isDebug ? AppFlavour.getStripeSecretTestKey() : AppFlavour.getStripeSecretLiveKey()}',
+          'Authorization': 'Bearer ${AppProperties.getStripeSecretKey()}',
         },
       );
 
@@ -314,20 +314,20 @@ class StripeService {
             .map<StripePrice>((priceData) => StripePrice.fromJSON(priceData))
             .toList();
 
-        AppUtilities.logger.d('Prices fetched for product: $productId');
+        AppConfig.logger.d('Prices fetched for product: $productId');
         return prices;
       } else {
-        AppUtilities.logger.e('Error fetching prices: ${responseData['error']['message']}');
+        AppConfig.logger.e('Error fetching prices: ${responseData['error']['message']}');
         return [];
       }
     } catch (e) {
-      AppUtilities.logger.e('Error fetching prices: $e');
+      AppConfig.logger.e('Error fetching prices: $e');
       return [];
     }
   }
 
   static Future<Map<String, List<StripePrice>>> getRecurringPricesFromStripe() async {
-    AppUtilities.logger.d('getRecurringPricesFromStripe');
+    AppConfig.logger.d('getRecurringPricesFromStripe');
     Map<String, List<StripePrice>> recurringProductPrices = {};
 
     try {
@@ -350,10 +350,10 @@ class StripeService {
         }
       }
 
-      AppUtilities.logger.d("Fetched Stripe Subscription Products & Prices successfully");
+      AppConfig.logger.d("Fetched Stripe Subscription Products & Prices successfully");
       return recurringProductPrices;
     } catch (e) {
-      AppUtilities.logger.e("Error fetching recurring prices: $e");
+      AppConfig.logger.e("Error fetching recurring prices: $e");
     }
 
     return recurringProductPrices;

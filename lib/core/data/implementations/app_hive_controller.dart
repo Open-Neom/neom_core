@@ -8,9 +8,9 @@ import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../../app_config.dart';
 import '../../domain/model/app_release_item.dart';
 import '../../domain/model/item_list.dart';
-import '../../utils/app_utilities.dart';
 import '../../utils/constants/app_hive_constants.dart';
 import '../../utils/enums/app_hive_box.dart';
 import '../../utils/enums/app_locale.dart';
@@ -34,12 +34,12 @@ class AppHiveController {
     if (_isInitialized) return;
     _isInitialized = true;
 
-    AppUtilities.logger.t('AppHive Controller Initialization');
+    AppConfig.logger.t('AppHive Controller Initialization');
 
     try {
       // await Hive.initFlutter();
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
   }
 
@@ -63,9 +63,9 @@ class AppHiveController {
   }
 
   Future<Box> openHiveBox(String boxName, {bool limit = false}) async {
-    AppUtilities.logger.t('openHiveBox $boxName');
+    AppConfig.logger.t('openHiveBox $boxName');
     final box = await Hive.openBox(boxName).onError((error, stackTrace) async {
-      AppUtilities.logger.e('Failed to open $boxName Box');
+      AppConfig.logger.e('Failed to open $boxName Box');
       final Directory dir = await getApplicationDocumentsDirectory();
       final String dirPath = dir.path;
       final File dbFile = File('$dirPath/$boxName.hive');
@@ -78,7 +78,7 @@ class AppHiveController {
     });
 
     if (limit && box.length > 500) {
-      AppUtilities.logger.w("Box $boxName would be cleared as it exceeded the limit");
+      AppConfig.logger.w("Box $boxName would be cleared as it exceeded the limit");
       box.clear();
     }
 
@@ -92,7 +92,7 @@ class AppHiveController {
 
   // Shared Preference Migration to Hive
   Future<void> fetchProfileInfo() async {
-    AppUtilities.logger.d('fetchProfileInfo');
+    AppConfig.logger.d('fetchProfileInfo');
 
     final profileBox = await getBox(AppHiveBox.profile.name);
     userController.user.id = profileBox.get(AppHiveConstants.userId, defaultValue: '');
@@ -139,7 +139,7 @@ class AppHiveController {
   }
 
   Future<void> fetchCachedData() async {
-    AppUtilities.logger.d('fetchCachedData');
+    AppConfig.logger.d('fetchCachedData');
     // Usa un cast seguro (as Map<dynamic, dynamic>?) y el operador ?.
     final releasesBox = await getBox(AppHiveBox.releases.name);
 
@@ -181,14 +181,14 @@ class AppHiveController {
   }
 
   Future<void> fetchSettingsData() async {
-    AppUtilities.logger.d('fetchSettingsData');
+    AppConfig.logger.d('fetchSettingsData');
     final settingsBox = await getBox(AppHiveBox.settings.name);
     searchQueries = settingsBox.get(AppHiveConstants.searchQueries, defaultValue: []) as List;
     // await settingsBox.close();
   }
 
   Future<void> setSearchQueries(List searchQueries) async {
-    AppUtilities.logger.d('setSearchQueries');
+    AppConfig.logger.d('setSearchQueries');
     final settingsBox = await getBox(AppHiveBox.settings.name);
     await settingsBox.put(AppHiveConstants.searchQueries, searchQueries);
     // await settingsBox.close();
@@ -205,7 +205,7 @@ class AppHiveController {
       if (searchQueries.length > 10) searchQueries = searchQueries.sublist(0, 10);
       await settingsBox.put(AppHiveConstants.search, searchQueries);
     } catch(e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
   }
@@ -234,19 +234,19 @@ class AppHiveController {
     }
 
   Future<void> updateLocale(AppLocale appLocale) async {
-    AppUtilities.logger.d("Setting locale preference to ${appLocale.name}");
+    AppConfig.logger.d("Setting locale preference to ${appLocale.name}");
 
     try {
       final profileBox = await getBox(AppHiveBox.profile.name);
       await profileBox.put(AppHiveConstants.appLocale, appLocale.name);
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
   }
 
   void setLocale(AppLocale appLocale) {
-    AppUtilities.logger.d("Updating GetX locale to ${appLocale.name}");
+    AppConfig.logger.d("Updating GetX locale to ${appLocale.name}");
 
     Locale locale = Get.deviceLocale!;
 
@@ -269,37 +269,37 @@ class AppHiveController {
   }
 
   Future<void> setFirstTime(bool fTime) async {
-    AppUtilities.logger.t("Setting firsTime to $firstTime");
+    AppConfig.logger.t("Setting firsTime to $firstTime");
 
     try {
       firstTime = fTime;
       final profileBox = await getBox(AppHiveBox.profile.name);
       await profileBox.put(AppHiveConstants.firstTime, fTime);
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
   }
 
   Future<void> setLastNotificationCheckDate(int lastNotificationCheckDate) async {
-    AppUtilities.logger.d("Setting last time notification were checked");
+    AppConfig.logger.d("Setting last time notification were checked");
 
     try {
       final profileBox = await getBox(AppHiveBox.profile.name);
       await profileBox.put(AppHiveConstants.lastNotificationCheckDate, lastNotificationCheckDate);
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
   }
 
   Future<void> setLastIndexPos({required int? lastIndex, required int lastPos}) async {
-    AppUtilities.logger.d("Setting last time notification were checked");
+    AppConfig.logger.d("Setting last time notification were checked");
 
     try {
       final playerBox = await getBox(AppHiveBox.player.name);
       await playerBox.put(AppHiveConstants.lastIndex, lastIndex);
       await playerBox.put(AppHiveConstants.lastPos, lastPos);
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
   }

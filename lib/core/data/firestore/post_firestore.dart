@@ -1,9 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../app_config.dart';
 import '../../domain/model/post.dart';
 import '../../domain/repository/post_repository.dart';
-import '../../utils/app_utilities.dart';
-import '../../utils/constants/app_constants.dart';
+
+import '../../utils/constants/core_constants.dart';
 import '../../utils/enums/post_type.dart';
+import '../../utils/position_utilities.dart';
 import 'activity_feed_firestore.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
@@ -25,25 +27,25 @@ class PostFirestore implements PostRepository {
 
   @override
   Future<List<Post>> retrievePosts() async {
-    AppUtilities.logger.d("Retrieving Posts");
+    AppConfig.logger.d("Retrieving Posts");
     List<Post> posts = <Post>[];
 
     try {
       QuerySnapshot querySnapshot = await postsReference.get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        AppUtilities.logger.t("Snapshot is not empty");
+        AppConfig.logger.t("Snapshot is not empty");
         for (var postSnapshot in querySnapshot.docs) {
           Post post = Post.fromJSON(postSnapshot.data());
           post.id = postSnapshot.id;
-          AppUtilities.logger.t(post.toString());
+          AppConfig.logger.t(post.toString());
           posts.add(post);
         }
-        AppUtilities.logger.t("${posts.length} posts found");
+        AppConfig.logger.t("${posts.length} posts found");
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
-      AppUtilities.logger.w("No Posts Found");
+      AppConfig.logger.e(e.toString());
+      AppConfig.logger.w("No Posts Found");
     }
 
     return posts;
@@ -52,7 +54,7 @@ class PostFirestore implements PostRepository {
   @override
   Future<bool> handleLikePost(String profileId, String postId,
       bool isLiked) async {
-    AppUtilities.logger.d("Handle Like for Post: $postId - isLiked: $isLiked");
+    AppConfig.logger.d("Handle Like for Post: $postId - isLiked: $isLiked");
     try {
       await postsReference.doc(postId).update({
         AppFirestoreConstants.likedProfiles: isLiked ? FieldValue.arrayRemove([profileId]) : FieldValue.arrayUnion([profileId]),
@@ -61,36 +63,36 @@ class PostFirestore implements PostRepository {
 
       return true;
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
       return false;
     }
   }
 
   @override
   Future<String> insert(Post post) async {
-    AppUtilities.logger.t("Insert");
+    AppConfig.logger.t("Insert");
     String postId = "";
     try {
       DocumentReference documentReference = await postsReference
           .add(post.toJSON());
       postId = documentReference.id;
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
-    AppUtilities.logger.d("Post Inserted with ID: $postId");
+    AppConfig.logger.d("Post Inserted with ID: $postId");
     return postId;
   }
 
   @override
   Future<Post> retrieve(String postId) async {
-    AppUtilities.logger.d("Retrieving post: $postId");
+    AppConfig.logger.d("Retrieving post: $postId");
     Post post = Post();
     try {
       DocumentSnapshot postSnapshot = await postsReference.doc(postId).get();
       post = Post.fromJSON(postSnapshot.data());
       post.id = postSnapshot.id;
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return post;
@@ -99,26 +101,26 @@ class PostFirestore implements PostRepository {
 
   @override
   Future<bool> remove(String profileId, String postId) async {
-    AppUtilities.logger.t("remove Post");
+    AppConfig.logger.t("remove Post");
     bool wasDeleted = false;
     try {
       await postsReference.doc(postId).delete();
       wasDeleted = await ProfileFirestore().removePost(profileId, postId);
       await ActivityFeedFirestore().removePostActivity(postId);
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return wasDeleted;
   }
 
   Future<bool> update(Post post) async {
-    AppUtilities.logger.d("");
+    AppConfig.logger.d("");
     try {
       await postsReference.doc(post.id).update(post.toJSON());
       return true;
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return false;
@@ -126,7 +128,7 @@ class PostFirestore implements PostRepository {
 
   @override
   Future<List<Post>> getProfilePosts(String profileId) async {
-    AppUtilities.logger.t("getProfilePosts from Firestore");
+    AppConfig.logger.t("getProfilePosts from Firestore");
 
     List<Post> posts = [];
 
@@ -144,24 +146,24 @@ class PostFirestore implements PostRepository {
         for(var doc in querySnapshot.docs) {
           Post post = Post.fromJSON(doc.data());
           post.id = doc.id;
-          AppUtilities.logger.t('Post ${post.id} of type ${post.type.name} at ${post.location}');
+          AppConfig.logger.t('Post ${post.id} of type ${post.type.name} at ${post.location}');
           if (post.type != PostType.event && post.type != PostType.releaseItem) {
             posts.add(post);
           }
         }
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
-    AppUtilities.logger.d("Retrieveing ${posts.length} Posts");
+    AppConfig.logger.d("Retrieveing ${posts.length} Posts");
     return posts;
   }
 
 
   @override
-  Future<Map<String, Post>> getTimeline({int limit = AppConstants.timelineLimit}) async {
-    AppUtilities.logger.t("getTimeline");
+  Future<Map<String, Post>> getTimeline({int limit = CoreConstants.timelineLimit}) async {
+    AppConfig.logger.t("getTimeline");
     Map<String, Post> posts = {};
 
     try {
@@ -180,7 +182,7 @@ class PostFirestore implements PostRepository {
         if(!post.isDraft && !_diverseDocTimeline.containsKey(doc.id)) {
           post.id = doc.id;
           if(post.location.isEmpty && post.position?.latitude != 0) {
-            post.location = await AppUtilities.getAddressFromPlacerMark(post.position!);
+            post.location = await PositionUtilities.getAddressFromPlacerMark(post.position!);
           }
           posts[post.id] = post;
           _diverseDocTimeline[doc.id] = doc;
@@ -188,17 +190,17 @@ class PostFirestore implements PostRepository {
 
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
-    AppUtilities.logger.d("Retrieveing ${posts.length} Posts");
+    AppConfig.logger.d("Retrieveing ${posts.length} Posts");
     return posts;
   }
 
   ///DEPRECATED
   // @override
   // Future<Map<String, Post>> getNextTimeline() async {
-  //   AppUtilities.logger.d("Getting Next Timeline Posts");
+  //   AppConfig.logger.d("Getting Next Timeline Posts");
   //   Map<String, Post> posts = {};
   //
   //   try {
@@ -215,14 +217,14 @@ class PostFirestore implements PostRepository {
   //       posts[post.id] = post;
   //     }
   //   } catch (e) {
-  //     AppUtilities.logger.e(e.toString());
+  //     AppConfig.logger.e(e.toString());
   //   }
   //
   //   return posts;
   // }
 
   Future<Map<String, Post>> getDrafts({String profileId = ""}) async {
-    AppUtilities.logger.d("");
+    AppConfig.logger.d("");
     List<Post> sortedDrafts = [];
     Map<String, Post> drafts = {};
 
@@ -237,7 +239,7 @@ class PostFirestore implements PostRepository {
         Post post = Post.fromJSON(_recentDocTimeline.elementAt(i).data());
         post.id = _recentDocTimeline.elementAt(i).id;
         if(post.location.isEmpty && post.position != null) {
-          post.location = await AppUtilities.getAddressFromPlacerMark(post.position!);
+          post.location = await PositionUtilities.getAddressFromPlacerMark(post.position!);
         }
 
         if(profileId == post.ownerId || profileId.isEmpty) {
@@ -253,14 +255,14 @@ class PostFirestore implements PostRepository {
       }
 
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return drafts;
   }
 
   Future<bool> removeEventPost(String ownerId, String eventId) async {
-    AppUtilities.logger.t('Remove Event Post $eventId');
+    AppConfig.logger.t('Remove Event Post $eventId');
     bool wasDeleted = false;
 
     try {
@@ -278,7 +280,7 @@ class PostFirestore implements PostRepository {
         }
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return wasDeleted;
@@ -287,7 +289,7 @@ class PostFirestore implements PostRepository {
 
   @override
   Future<bool> addComment(String postId, String commentId) async {
-    AppUtilities.logger.d("");
+    AppConfig.logger.d("");
     try {
 
       await postsReference.doc(postId).update({
@@ -297,7 +299,7 @@ class PostFirestore implements PostRepository {
 
       return true;
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
       return false;
     }
   }
@@ -305,7 +307,7 @@ class PostFirestore implements PostRepository {
 
   @override
   Future<bool> removeComment(String postId, String commentId) async {
-    AppUtilities.logger.d("");
+    AppConfig.logger.d("");
     try {
       await postsReference.doc(postId).update({
         AppFirestoreConstants.commentIds: FieldValue.arrayRemove([commentId]),
@@ -313,7 +315,7 @@ class PostFirestore implements PostRepository {
       });
       return true;
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
       return false;
     }
   }
@@ -321,7 +323,7 @@ class PostFirestore implements PostRepository {
 
   @override
   Future<Post> retrievePostForEvent(String eventId) async {
-    AppUtilities.logger.d("Retrieving post for Event $eventId");
+    AppConfig.logger.d("Retrieving post for Event $eventId");
 
     Post post = Post();
 
@@ -330,15 +332,15 @@ class PostFirestore implements PostRepository {
           AppFirestoreConstants.eventId, isEqualTo: eventId).get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        AppUtilities.logger.d("Snapshot is not empty");
+        AppConfig.logger.d("Snapshot is not empty");
         for (DocumentSnapshot doc in querySnapshot.docs) {
           post = Post.fromJSON(doc.data());
           post.id = doc.id;
-          AppUtilities.logger.d(post.toString());
+          AppConfig.logger.d(post.toString());
         }
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return post;
@@ -346,7 +348,7 @@ class PostFirestore implements PostRepository {
 
   @override
   Future<Map<String, Post>> getBlogEntries({String profileId = ""}) async {
-    AppUtilities.logger.d("getBlogEntries");
+    AppConfig.logger.d("getBlogEntries");
     List<Post> sortedDrafts = [];
     Map<String, Post> drafts = {};
 
@@ -361,7 +363,7 @@ class PostFirestore implements PostRepository {
 
         if(profileId == post.ownerId || profileId.isEmpty) {
           if(post.location.isEmpty && post.position != null) {
-            post.location = await AppUtilities.getAddressFromPlacerMark(post.position!);
+            post.location = await PositionUtilities.getAddressFromPlacerMark(post.position!);
           }
           sortedDrafts.add(post);
         }
@@ -377,7 +379,7 @@ class PostFirestore implements PostRepository {
       }
 
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return drafts;
@@ -388,7 +390,7 @@ class PostFirestore implements PostRepository {
   // getBlogEntries = true, List<String>? followingIds}) async {
   //
   //   final stopwatch = Stopwatch()..start();
-  //   AppUtilities.logger.d("Getting Next Timeline Posts");
+  //   AppConfig.logger.d("Getting Next Timeline Posts");
   //   Map<String, Post> posts = {};
   //   List<Post> fetchedPosts = [];
   //
@@ -415,12 +417,12 @@ class PostFirestore implements PostRepository {
   //     }
   //
   //   } catch (e) {
-  //     AppUtilities.logger.e(e.toString());
+  //     AppConfig.logger.e(e.toString());
   //   }
   //
-  //   AppUtilities.logger.d("Retrieveing ${posts.length} Posts");
+  //   AppConfig.logger.d("Retrieveing ${posts.length} Posts");
   //   stopwatch.stop();
-  //   AppUtilities.logger.i('Tiempo de ejecución: ${stopwatch.elapsedMilliseconds} ms');
+  //   AppConfig.logger.i('Tiempo de ejecución: ${stopwatch.elapsedMilliseconds} ms');
   //   return posts;
   // }
 
@@ -429,7 +431,7 @@ class PostFirestore implements PostRepository {
     getMoreLiked = true, bool getMoreComment = true, bool getReleases = true, bool
     getBlogEntries = true, List<String>? followingIds}) async {
 
-    AppUtilities.logger.d("Getting Next Timeline Posts");
+    AppConfig.logger.d("Getting Next Timeline Posts");
     Map<String, Post> posts = {};
 
     try {
@@ -444,7 +446,7 @@ class PostFirestore implements PostRepository {
       if(getRecent) {
         Query query = postsReference
             .orderBy(AppFirestoreConstants.lastInteraction, descending: true)
-            .limit(AppConstants.diverseTimelineLimit);
+            .limit(CoreConstants.diverseTimelineLimit);
         if (_recentDocTimeline.isNotEmpty) {
           query = query.startAfterDocument(_recentDocTimeline.last);
         }
@@ -454,7 +456,7 @@ class PostFirestore implements PostRepository {
       if(getMoreLiked) {
         Query query = postsReference
             .orderBy(AppFirestoreConstants.likedProfiles, descending: true)
-            .limit(AppConstants.diverseTimelineLimit);
+            .limit(CoreConstants.diverseTimelineLimit);
         if (_moreLikedDocTimeline.isNotEmpty) {
           query = query.startAfterDocument(_moreLikedDocTimeline.last);
         }
@@ -464,7 +466,7 @@ class PostFirestore implements PostRepository {
       if(getMoreComment) {
         Query query = postsReference
             .orderBy(AppFirestoreConstants.commentIds, descending: true)
-            .limit(AppConstants.diverseTimelineLimit);
+            .limit(CoreConstants.diverseTimelineLimit);
         if (_moreCommentsDocTimeline.isNotEmpty) {
           query = query.startAfterDocument(_moreCommentsDocTimeline.last);
         }
@@ -475,7 +477,7 @@ class PostFirestore implements PostRepository {
         Query query = postsReference
             .where(AppFirestoreConstants.type, isEqualTo: PostType.releaseItem.name)
             .orderBy(AppFirestoreConstants.lastInteraction, descending: true)
-            .limit(AppConstants.diverseTimelineLimit);
+            .limit(CoreConstants.diverseTimelineLimit);
         if (_releaseDocTimeline.isNotEmpty) {
           query = query.startAfterDocument(_releaseDocTimeline.last);
         }
@@ -486,7 +488,7 @@ class PostFirestore implements PostRepository {
         Query query = postsReference
             .where(AppFirestoreConstants.type, isEqualTo: PostType.blogEntry.name)
             .orderBy(AppFirestoreConstants.lastInteraction, descending: true)
-            .limit(AppConstants.diverseTimelineLimit);
+            .limit(CoreConstants.diverseTimelineLimit);
         if (_blogEntriesDocTimeline.isNotEmpty) {
           query = query.startAfterDocument(_blogEntriesDocTimeline.last);
         }
@@ -496,15 +498,15 @@ class PostFirestore implements PostRepository {
       ///IMPROVE PAGINATION FOR FOLLOWINGIDS
       if(followingIds?.isNotEmpty ?? false) {
         int start = _followingDocTimeline.length;
-        int end = (start + AppConstants.diverseTimelineLimit < followingIds!.length)
-            ? start + AppConstants.diverseTimelineLimit : followingIds.length;
+        int end = (start + CoreConstants.diverseTimelineLimit < followingIds!.length)
+            ? start + CoreConstants.diverseTimelineLimit : followingIds.length;
 
         // List<String> shuffleFollowingIds = List<String>.from(followingIds)..shuffle();
         followingIds.shuffle();
         Query query = postsReference
             .where(AppFirestoreConstants.ownerId, whereIn: followingIds.sublist(start, end))
             .orderBy(AppFirestoreConstants.lastInteraction, descending: true)
-            .limit(AppConstants.diverseTimelineLimit);
+            .limit(CoreConstants.diverseTimelineLimit);
         if (_followingDocTimeline.isNotEmpty) {
           query = query.startAfterDocument(_followingDocTimeline.last);
         }
@@ -543,23 +545,23 @@ class PostFirestore implements PostRepository {
           Post post = Post.fromJSON(doc.data());
           post.id = doc.id;
           if(post.location.isEmpty && post.position?.latitude != 0) {
-            post.location = await AppUtilities.getAddressFromPlacerMark(post.position!);
+            post.location = await PositionUtilities.getAddressFromPlacerMark(post.position!);
           }
           posts[post.id] = post;
           _diverseDocTimeline[doc.id] = doc;
         }
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
-    AppUtilities.logger.d("Retrieveing ${posts.length} Posts");
+    AppConfig.logger.d("Retrieveing ${posts.length} Posts");
     return posts;
   }
 
   ///NOT NEEDED
   Future<void> updateAllPostsLastInteraction() async {
-    AppUtilities.logger.i("Updating lastInteraction for all posts");
+    AppConfig.logger.i("Updating lastInteraction for all posts");
 
     try {
       // Fetch all posts
@@ -581,9 +583,9 @@ class PostFirestore implements PostRepository {
       // Commit the batch
       await batch.commit();
 
-      AppUtilities.logger.d("All ${querySnapshot.docs.length} posts updated successfully.");
+      AppConfig.logger.d("All ${querySnapshot.docs.length} posts updated successfully.");
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
   }
 

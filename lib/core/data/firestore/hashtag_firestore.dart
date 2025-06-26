@@ -2,15 +2,15 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../app_config.dart';
 import '../../domain/model/hashtag.dart';
 import '../../domain/repository/hashtag_repository.dart';
-import '../../utils/app_utilities.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
 
 class HashtagFirestore implements HashtagRepository {
 
-  var logger = AppUtilities.logger;
+  var logger = AppConfig.logger;
   final hashtagReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.hashtags );
   final profileReference = FirebaseFirestore.instance.collectionGroup(AppFirestoreCollectionConstants.profiles);
 

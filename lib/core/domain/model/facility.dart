@@ -4,7 +4,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:geolocator/geolocator.dart';
 
-import '../../../neom_commons.dart';
+import '../../app_properties.dart';
+import '../../utils/core_utilities.dart';
+import '../../utils/enums/facilitator_type.dart';
+import 'address.dart';
+import 'facility_commodity.dart';
+import 'price.dart';
 
 class Facility {
 
@@ -114,7 +119,7 @@ class Facility {
     address = Address.fromJSON(data["address"]),
     ownerName = data["ownerName"] ?? "",
     ownerId = data["ownerId"] ?? "",
-    ownerImgUrl = data["ownerImgUrl"] ?? AppFlavour.getNoImageUrl(),
+    ownerImgUrl = data["ownerImgUrl"] ?? AppProperties.getNoImageUrl(),
     position = CoreUtilities.JSONtoPosition(data["position"]),
     type = EnumToString.fromString(FacilityType.values, data["type"] ?? "producer") ?? FacilityType.publisher,
     galleryImgUrls = data["galleryImgUrls"].cast<String>() ?? [],

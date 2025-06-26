@@ -1,5 +1,5 @@
 import 'dart:async';
-import '../model/chamber.dart';
+import '../model/neom/chamber.dart';
 import '../model/neom/chamber_preset.dart';
 
 

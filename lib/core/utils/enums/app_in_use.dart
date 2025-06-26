@@ -1,5 +1,10 @@
 enum AppInUse {
-  g,
+  a,
+  b,
+  c,
   e,
-  c
+  f,
+  g,
+  o,
+  s,
 }

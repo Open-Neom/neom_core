@@ -1,8 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import '../../app_flavour.dart';
+import '../../app_config.dart';
 import '../../domain/model/subscription_plan.dart';
-import '../../utils/app_utilities.dart';
 import '../../utils/enums/app_in_use.dart';
 import '../../utils/enums/subscription_level.dart';
 import 'constants/app_firestore_collection_constants.dart';
@@ -13,7 +12,7 @@ class SubscriptionPlanFirestore {
   final subscriptionPlanReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.subscriptionPlans);
 
   Future<Map<String, SubscriptionPlan>> getAll() async {
-    AppUtilities.logger.d("Retrieving Plans");
+    AppConfig.logger.d("Retrieving Plans");
     Map<String, SubscriptionPlan> plans = {};
 
     try {
@@ -21,13 +20,13 @@ class SubscriptionPlanFirestore {
       QuerySnapshot querySnapshot = await subscriptionPlanReference.get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        AppUtilities.logger.t("Snapshot is not empty");
+        AppConfig.logger.t("Snapshot is not empty");
         for (var planSnapshot in querySnapshot.docs) {
           SubscriptionPlan plan = SubscriptionPlan.fromJSON(planSnapshot.data());
-          AppUtilities.logger.t(plan.toString());
+          AppConfig.logger.t(plan.toString());
           plans[planSnapshot.id] = plan;
         }
-        AppUtilities.logger.d("${plans.length} plans found");
+        AppConfig.logger.d("${plans.length} plans found");
 
         // Ordenar los planes basados en el nivel
         final sortedPlans = Map.fromEntries(plans.entries.toList()
@@ -42,13 +41,13 @@ class SubscriptionPlanFirestore {
         return sortedPlans;
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
     return plans;
   }
 
   Future<List<SubscriptionPlan>> getPlansByType({required SubscriptionLevel level}) async {
-    AppUtilities.logger.d("Retrieving Products by type ${level.name}");
+    AppConfig.logger.d("Retrieving Products by type ${level.name}");
     List<SubscriptionPlan> plans = [];
 
     try {
@@ -58,22 +57,22 @@ class SubscriptionPlanFirestore {
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        AppUtilities.logger.d("Snapshot is not empty");
+        AppConfig.logger.d("Snapshot is not empty");
         for (var planSnapshot in querySnapshot.docs) {
           SubscriptionPlan plan= SubscriptionPlan.fromJSON(planSnapshot.data());
-          AppUtilities.logger.d(plan.toString());
+          AppConfig.logger.d(plan.toString());
           plans.add(plan);
         }
-        AppUtilities.logger.d("${plans.length} plans found");
+        AppConfig.logger.d("${plans.length} plans found");
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
     return plans;
   }
 
   Future<String> insert(SubscriptionPlan plan) async {
-    AppUtilities.logger.d("Inserting product ${plan.level?.name}");
+    AppConfig.logger.d("Inserting product ${plan.level?.name}");
     String planId = "";
 
     try {
@@ -88,9 +87,9 @@ class SubscriptionPlanFirestore {
         plan.id = planId;
         
       }
-      AppUtilities.logger.d("SubscriptionPlan ${plan.level?.name} added with id ${plan.id}");
+      AppConfig.logger.d("SubscriptionPlan ${plan.level?.name} added with id ${plan.id}");
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return planId;
@@ -98,15 +97,15 @@ class SubscriptionPlanFirestore {
   }
 
   Future<bool> remove(String planId) async {
-    AppUtilities.logger.d("Removing product $planId");
+    AppConfig.logger.d("Removing product $planId");
 
     try {
       await subscriptionPlanReference.doc(planId).delete();
-      AppUtilities.logger.d("Product $planId removed");
+      AppConfig.logger.d("Product $planId removed");
       return true;
 
     } catch (e) {
-      AppUtilities.logger.e(e.toString());      
+      AppConfig.logger.e(e.toString());      
     }
     return false;
   }
@@ -115,7 +114,7 @@ class SubscriptionPlanFirestore {
     SubscriptionPlanFirestore subscriptionPlanFirestore = SubscriptionPlanFirestore();
     List<SubscriptionPlan> subscriptionPlans = [];
 
-    if(AppFlavour.appInUse == AppInUse.e) {
+    if(AppConfig.appInUse == AppInUse.e) {
       // Lista de planes de suscripción con sus datos hardcodeados desde la imagen
       subscriptionPlans = [
         SubscriptionPlan(
@@ -238,7 +237,7 @@ class SubscriptionPlanFirestore {
     // Inserta cada uno de los planes
     for (var plan in subscriptionPlans) {
       await subscriptionPlanFirestore.insert(plan);
-      AppUtilities.logger.i("Inserted plan with ID: ${plan.id}");
+      AppConfig.logger.i("Inserted plan with ID: ${plan.id}");
     }
   }
 

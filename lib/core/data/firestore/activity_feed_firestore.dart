@@ -1,10 +1,10 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../app_config.dart';
 import '../../domain/model/activity_feed.dart';
 import '../../domain/repository/activity_feed_repository.dart';
-import '../../utils/app_utilities.dart';
-import '../../utils/constants/app_constants.dart';
+import '../../utils/constants/core_constants.dart';
 import '../../utils/enums/activity_feed_type.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
@@ -16,10 +16,10 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
 
   @override
   Future<void> removeActivityById(String ownerId, String activityFeedId) async {
-    AppUtilities.logger.d("removeActivityById for ownerId $ownerId & activityFeedId $activityFeedId");
+    AppConfig.logger.d("removeActivityById for ownerId $ownerId & activityFeedId $activityFeedId");
 
     if (ownerId.isEmpty || activityFeedId.isEmpty) {
-      AppUtilities.logger.w("Owner ID or Activity Feed ID is empty");
+      AppConfig.logger.w("Owner ID or Activity Feed ID is empty");
       return;
     }
 
@@ -31,7 +31,7 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
             if (doc.exists) await doc.reference.delete();
           });
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
   }
 
@@ -40,7 +40,7 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
   Future<void> removeByReferenceActivity(String ownerId, ActivityFeedType activityFeedType,
       {String activityReferenceId = ""}) async {
 
-    AppUtilities.logger.d("removeByReferenceActivity for ownerId $ownerId,"
+    AppConfig.logger.d("removeByReferenceActivity for ownerId $ownerId,"
         " activityFeedType $activityFeedType, activityReferenceId $activityReferenceId");
 
 
@@ -50,7 +50,7 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        AppUtilities.logger.d("Snapshot is not empty");
+        AppConfig.logger.d("Snapshot is not empty");
         for (var activitySnapshot in querySnapshot.docs) {
           ActivityFeed activityFeed = ActivityFeed
               .fromJSON(activitySnapshot.data());
@@ -61,7 +61,7 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
         }
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
   }
 
@@ -69,7 +69,7 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
   @override
   Future<String> insert(ActivityFeed activityFeed) async {
     //add only activity my by other user (to avoid getting notification for our own like)
-    AppUtilities.logger.d("Inserting activity feed for ${activityFeed.ownerId} with type ${activityFeed.activityFeedType}");
+    AppConfig.logger.d("Inserting activity feed for ${activityFeed.ownerId} with type ${activityFeed.activityFeedType}");
     bool isNotActivityOwner = activityFeed.profileId != activityFeed.ownerId;
     String activityFeedId = "";
 
@@ -83,7 +83,7 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
         activityFeedId = documentReference.id;
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return activityFeedId;
@@ -93,21 +93,21 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
   @override
   Future<List<ActivityFeed>> retrieve(String profileId) async {
 
-    AppUtilities.logger.t("");
+    AppConfig.logger.t("");
     List<ActivityFeed> feedItems=[];
 
     try {
       QuerySnapshot querySnapshot = await activityFeedReference.doc(profileId)
           .collection(AppFirestoreCollectionConstants.activityFeedItems)
           .orderBy(AppFirestoreConstants.createdTime, descending: true)
-          .limit(AppConstants.activityFeedLimit)
+          .limit(CoreConstants.activityFeedLimit)
           .get();
 
       for (var doc in querySnapshot.docs) {
         feedItems.add(ActivityFeed.fromJSON(doc.data())..id = doc.id);
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return feedItems;
@@ -116,7 +116,7 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
 
   @override
   Future<bool> removePostActivity(String postId) async {
-    AppUtilities.logger.t("Removing post $postId");
+    AppConfig.logger.t("Removing post $postId");
     bool postActivityFeedRemoved = false;
     QuerySnapshot querySnapshot = await feedItemsReference
         .where(AppFirestoreConstants.activityFeedId, isEqualTo: postId)
@@ -124,14 +124,14 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
 
     int activityFeedCounter = 0;
     if (querySnapshot.docs.isNotEmpty) {
-      AppUtilities.logger.d("Snapshot is not empty ${querySnapshot.docs.length} results found");
+      AppConfig.logger.d("Snapshot is not empty ${querySnapshot.docs.length} results found");
       for (var snapshot in querySnapshot.docs) {
         await snapshot.reference.delete();
         activityFeedCounter++;
       }
 
       postActivityFeedRemoved = true;
-      AppUtilities.logger.d("$activityFeedCounter were removed from feed Collection");
+      AppConfig.logger.d("$activityFeedCounter were removed from feed Collection");
     }
 
     return postActivityFeedRemoved;
@@ -141,7 +141,7 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
 
   @override
   Future<bool> removeEventActivity(String eventId) async {
-    AppUtilities.logger.t("Remove event activity for $eventId");
+    AppConfig.logger.t("Remove event activity for $eventId");
     bool eventActivityFeedRemoved = false;
     QuerySnapshot querySnapshot = await feedItemsReference
         .where(AppFirestoreConstants.activityFeedId, isEqualTo: eventId)
@@ -149,14 +149,14 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
 
     int activityFeedCounter = 0;
     if (querySnapshot.docs.isNotEmpty) {
-      AppUtilities.logger.d("Snapshot is not empty ${querySnapshot.docs.length} results found");
+      AppConfig.logger.d("Snapshot is not empty ${querySnapshot.docs.length} results found");
       for (var snapshot in querySnapshot.docs) {
         await snapshot.reference.delete();
         activityFeedCounter++;
       }
 
       eventActivityFeedRemoved = true;
-      AppUtilities.logger.d("$activityFeedCounter were removed from feed Collection");
+      AppConfig.logger.d("$activityFeedCounter were removed from feed Collection");
     }
 
     return eventActivityFeedRemoved;
@@ -165,7 +165,7 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
 
   @override
   Future<bool> removeRequestActivity(String requestId) async {
-    AppUtilities.logger.d("");
+    AppConfig.logger.d("");
     bool eventActivityFeedRemoved = false;
     QuerySnapshot querySnapshot = await feedItemsReference
         .where(AppFirestoreConstants.activityFeedId, isEqualTo: requestId)
@@ -173,7 +173,7 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
 
     int activityFeedCounter = 0;
     if (querySnapshot.docs.isNotEmpty) {
-      AppUtilities.logger.d("Snapshot is not empty ${querySnapshot.docs.length} results found");
+      AppConfig.logger.d("Snapshot is not empty ${querySnapshot.docs.length} results found");
 
       for (var snapshot in querySnapshot.docs) {
         await snapshot.reference.delete();
@@ -181,7 +181,7 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
       }
 
       eventActivityFeedRemoved = true;
-      AppUtilities.logger.d("$activityFeedCounter were removed from feed Collection");
+      AppConfig.logger.d("$activityFeedCounter were removed from feed Collection");
     }
 
     return eventActivityFeedRemoved;
@@ -203,7 +203,7 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
 
   @override
   Future<void> setAsRead({required String ownerId, required String activityFeedId}) async {
-    AppUtilities.logger.d("");
+    AppConfig.logger.d("");
 
     try {
       activityFeedReference.doc(ownerId)
@@ -212,7 +212,7 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
             AppFirestoreConstants.unread: false
           });
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
   }
 

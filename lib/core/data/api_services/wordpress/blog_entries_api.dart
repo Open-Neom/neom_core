@@ -2,16 +2,16 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
-import '../../../app_flavour.dart';
+import '../../../app_config.dart';
+import '../../../app_properties.dart';
 import '../../../domain/model/wordpress/blog_entry.dart';
-import '../../../utils/app_utilities.dart';
 
 class BlogEntriesApi {
 
   static Future<List<BlogEntry>> getBlogEntries({int perPage = 10, int page = 1}) async {
 
     List<BlogEntry> entries = [];
-    final String url = '${AppFlavour.getWordpressUrl()}/posts?page=$page&per_page=$perPage';
+    final String url = '${AppProperties.getWordpressUrl()}/posts?page=$page&per_page=$perPage';
 
     try {
       final response = await http.get(
@@ -27,13 +27,13 @@ class BlogEntriesApi {
         entries = data
             .map((item) => BlogEntry.fromJson(item as Map<String, dynamic>))
             .toList();
-        AppUtilities.logger.d('${entries.length} blog entries retrieved.');
+        AppConfig.logger.d('${entries.length} blog entries retrieved.');
       } else {
-        AppUtilities.logger.w('Failed to load blog entries: ${response.body}');
+        AppConfig.logger.w('Failed to load blog entries: ${response.body}');
         throw Exception('Error loading blog entries');
       }
     } catch (e) {
-      AppUtilities.logger.e('Error retrieving blog entries: $e');
+      AppConfig.logger.e('Error retrieving blog entries: $e');
     }
 
     return entries;

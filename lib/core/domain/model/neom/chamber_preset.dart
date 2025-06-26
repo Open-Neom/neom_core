@@ -1,4 +1,4 @@
-import '../../../utils/constants/app_constants.dart';
+import '../../../utils/constants/core_constants.dart';
 import 'neom_frequency.dart';
 import 'neom_parameter.dart';
 
@@ -74,7 +74,7 @@ class ChamberPreset {
   //   neomFrequency = NeomFrequency();
 
   ChamberPreset.custom({String name = "", String imgUrl = "", NeomParameter? parameter, NeomFrequency? frequency}) :
-        id = "${AppConstants.customPreset}_${frequency?.frequency}",
+        id = "${CoreConstants.customPreset}_${frequency?.frequency}",
         name = "",
         description = "",
         ownerId = "",

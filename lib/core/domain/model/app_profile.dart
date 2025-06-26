@@ -3,16 +3,16 @@ import 'dart:convert';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:geolocator/geolocator.dart';
 
-import '../../utils/app_utilities.dart';
+import '../../app_config.dart';
 import '../../utils/core_utilities.dart';
 import '../../utils/enums/profile_type.dart';
 import '../../utils/enums/usage_reason.dart';
 import '../../utils/enums/verification_level.dart';
-import 'chamber.dart';
 import 'facility.dart';
 import 'genre.dart';
 import 'instrument.dart';
 import 'item_list.dart';
+import 'neom/chamber.dart';
 import 'neom/neom_frequency.dart';
 import 'place.dart';
 import 'review.dart';
@@ -109,7 +109,7 @@ class AppProfile {
   }
 
   Map<String, dynamic> toJSON() {
-    AppUtilities.logger.t("Profile toJSON");
+    AppConfig.logger.t("Profile toJSON");
     return <String, dynamic> {
       'id': id,
       'name': name,
@@ -159,7 +159,7 @@ class AppProfile {
   }
 
   Map<String, dynamic> toJSONWithFacilities() {
-    AppUtilities.logger.t("Profile toJSON");
+    AppConfig.logger.t("Profile toJSON");
     return <String, dynamic> {
       'id': id,
       'name': name,
@@ -285,7 +285,7 @@ class AppProfile {
 
 
   Map<String, dynamic> toProfileInstrumentsJSON() {
-    AppUtilities.logger.d("Profile toJSON for Firestore with no Id");
+    AppConfig.logger.d("Profile toJSON for Firestore with no Id");
     return <String, dynamic>{
       'id': id,
       'name': name,

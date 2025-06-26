@@ -1,14 +1,8 @@
 import 'package:enum_to_string/enum_to_string.dart';
 
-import '../../utils/app_utilities.dart';
+import '../../app_config.dart';
 import '../../utils/enums/app_media_source.dart';
 import '../../utils/enums/media_item_type.dart';
-import '../../utils/enums/release_type.dart';
-import 'app_release_item.dart';
-import 'genre.dart';
-import 'google_book.dart';
-import 'item_list.dart';
-import 'neom/chamber_preset.dart';
 
 class AppMediaItem {
   
@@ -91,7 +85,7 @@ class AppMediaItem {
 
   factory AppMediaItem.fromJSON(map) {
     try {
-      AppUtilities.logger.t("AppMediaItem fromJSON: ${map['name'] ?? ''} with id ${map['id'] ?? ''}");
+      AppConfig.logger.t("AppMediaItem fromJSON: ${map['name'] ?? ''} with id ${map['id'] ?? ''}");
       int dur = 30;
 
       if(map['duration'] is String && map['duration'].toString().contains(":")) {
@@ -134,7 +128,7 @@ class AppMediaItem {
       );
       return appMediaItem;
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
       throw Exception('Error parsing song item: $e');
     }
   }
@@ -172,160 +166,5 @@ class AppMediaItem {
       'type': type?.value,
     };
   }
-
-
-  static List<AppMediaItem> listFromMap(Map<String, List<dynamic>> map) {
-    List<AppMediaItem> items = [];
-    try {
-
-    } catch (e) {
-      throw Exception('Error parsing song item: $e');
-    }
-
-    return items;
-  }
-
-  static List<AppMediaItem> listFromList(List<dynamic>? list) {
-    List<AppMediaItem> items = [];
-    try {
-
-    } catch (e) {
-      throw Exception('Error parsing song item: $e');
-    }
-
-    return items;
-  }
-
-  static AppMediaItem fromAppReleaseItem(AppReleaseItem releaseItem, {MediaItemType itemType = MediaItemType.song}) {
-    try {
-      return AppMediaItem(
-        id: releaseItem.id,
-        name: releaseItem.name,
-        description: releaseItem.description,
-        lyrics: releaseItem.lyrics ?? '',
-        language: releaseItem.language,
-        album: releaseItem.metaName ?? AppUtilities.getMediaName(releaseItem.ownerName),
-        albumId: releaseItem.metaId,
-        externalArtists: releaseItem.featInternalArtists?.values.toList(),
-        duration: releaseItem.duration,
-        genres: releaseItem.tags,
-        imgUrl: releaseItem.imgUrl,
-        allImgs: releaseItem.galleryUrls,
-        url: releaseItem.previewUrl,
-        publisher: releaseItem.publisher,
-        publishedYear: releaseItem.publishedYear,
-        releaseDate: releaseItem.createdTime,
-        permaUrl: releaseItem.externalUrl ?? '',
-        featInternalArtists: releaseItem.featInternalArtists,
-        artist: AppUtilities.getArtistName(releaseItem.ownerName),
-        artistId: releaseItem.ownerEmail,
-        likes: releaseItem.likedProfiles?.length ?? 0,
-        state: releaseItem.state,
-        mediaSource: AppMediaSource.internal,
-        type: releaseItem.type == ReleaseType.episode ? MediaItemType.podcast : releaseItem.type == ReleaseType.chapter ? MediaItemType.audiobook : itemType
-      );
-    } catch (e) {
-      throw Exception('Error parsing song item: $e');
-    }
-  }
-
-  static List<AppMediaItem> mapItemsFromItemlist(Itemlist itemlist) {
-
-    List<AppMediaItem> appMediaItems = [];
-
-    if(itemlist.appMediaItems != null) {
-      appMediaItems.addAll(itemlist.appMediaItems!);
-    }
-
-    if(itemlist.appReleaseItems != null) {
-      for (var element in itemlist.appReleaseItems!) {
-        appMediaItems.add(AppMediaItem.fromAppReleaseItem(element));
-      }
-    }
-
-    // if(itemlist.chamberPresets != null) {
-    //   itemlist.chamberPresets!.forEach((element) {
-    //     appMediaItems.add(AppMediaItem.fromAppItem(element));
-    //   });
-    // }
-
-    AppUtilities.logger.t("Retrieving ${appMediaItems.length} total AppMediaItems.");
-    return appMediaItems;
-  }
-
-  AppMediaItem.fromChamberPreset(ChamberPreset chamberPreset) :
-        id = chamberPreset.id,
-        name = chamberPreset.name,
-        artist = "",
-        artistId = chamberPreset.ownerId,
-        album = "",
-        imgUrl = chamberPreset.imgUrl,
-        duration =  chamberPreset.neomFrequency?.frequency.ceil() ?? 0,
-        url = "",
-        description = chamberPreset.description.isNotEmpty ? chamberPreset.description : chamberPreset.neomFrequency?.description ?? "",
-        publisher = "",
-        state = chamberPreset.state,
-        genres = [],
-        mediaSource = AppMediaSource.internal,
-        releaseDate = 0,
-        is320Kbps = true,
-        likes = 0,
-        lyrics = '',
-        permaUrl = chamberPreset.imgUrl,
-        publishedYear = 0,
-        type = MediaItemType.neomPreset;
-
-  static AppMediaItem fromGoogleBook(GoogleBook googleBook) {
-
-    AppMediaItem appItem = AppMediaItem();
-    List<Genre> genres = [];
-
-    try {
-      String authors = "";
-
-      if(googleBook.volumeInfo?.authors?.isNotEmpty ?? false) {
-        googleBook.volumeInfo?.authors?.forEach((element) {
-          if(authors.isNotEmpty) {
-            authors = "$authors, ";
-          }
-
-          if(authors.isEmpty) {
-            authors = element;
-          } else {
-            authors = "$authors$element";
-          }
-        });
-      }
-
-      if(googleBook.volumeInfo?.categories?.isNotEmpty ?? false) {
-        googleBook.volumeInfo?.categories?.forEach((element) {
-          genres.add(Genre(id: element, name: element));
-        });
-      }
-
-      appItem =  AppMediaItem(
-        id: googleBook.id ?? "",
-        name: googleBook.volumeInfo?.title ?? "",
-        album: googleBook.volumeInfo?.publisher ?? "",
-        artist: authors,
-        allImgs: [googleBook.volumeInfo?.imageLinks?.smallThumbnail ?? ""],
-        duration: googleBook.volumeInfo?.pageCount ?? 0, ///NUMBER OF PAGES
-        imgUrl: googleBook.volumeInfo?.imageLinks?.thumbnail ?? "",
-        permaUrl: googleBook.volumeInfo?.infoLink ?? "",
-        url: googleBook.volumeInfo?.previewLink ?? "",
-        state: 0,
-        genres: genres.map((e) => e.name).toList(),
-        description: googleBook.volumeInfo?.description ?? "",
-        mediaSource: AppMediaSource.google,
-        publishedYear: 0, ///VERIFY HOW TO HANDLE THIS DATE TO SINCEEPOCH googleBook.volumeInfo?.publishedDate ?? ""
-      );
-    } catch (e) {
-      AppUtilities.logger.e(e.toString());
-    }
-
-    return appItem;
-  }
-
-
 
 }

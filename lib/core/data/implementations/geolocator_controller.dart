@@ -3,9 +3,10 @@ import 'dart:async';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 
+import '../../app_config.dart';
 import '../../domain/use_cases/geolocator_service.dart';
-import '../../utils/app_utilities.dart';
-import '../../utils/constants/app_constants.dart';
+import '../../utils/constants/core_constants.dart';
+import '../../utils/position_utilities.dart';
 import '../firestore/profile_firestore.dart';
 
 class GeoLocatorController implements GeoLocatorService {
@@ -23,7 +24,7 @@ class GeoLocatorController implements GeoLocatorService {
         }
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return placeMark;
@@ -38,7 +39,7 @@ class GeoLocatorController implements GeoLocatorService {
 
   @override
   Future<String> getAddressSimple(Position currentPos) async {
-    AppUtilities.logger.t(currentPos.toString());
+    AppConfig.logger.t(currentPos.toString());
     String address = "";
     List<Placemark> placeMarks = [];
 
@@ -57,11 +58,11 @@ class GeoLocatorController implements GeoLocatorService {
         }
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
 
-    AppUtilities.logger.t(address);
+    AppConfig.logger.t(address);
     return address;
   }
 
@@ -81,13 +82,13 @@ class GeoLocatorController implements GeoLocatorService {
       }
 
       permission = await Geolocator.checkPermission();
-      AppUtilities.logger.d('Current LocationPermission is: ${permission.name}');
+      AppConfig.logger.d('Current LocationPermission is: ${permission.name}');
 
       permission = await Geolocator.requestPermission();
-      AppUtilities.logger.d('New LocationPermission is: ${permission.name}');
+      AppConfig.logger.d('New LocationPermission is: ${permission.name}');
 
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return permission;
@@ -132,9 +133,9 @@ class GeoLocatorController implements GeoLocatorService {
         position = await Geolocator.getCurrentPosition();
       }
 
-      AppUtilities.logger.t("Position: ${position.toString()}");
+      AppConfig.logger.t("Position: ${position.toString()}");
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return position;
@@ -143,7 +144,7 @@ class GeoLocatorController implements GeoLocatorService {
 
   @override
   Future<Position?> updateLocation(String profileId, Position? currentPosition) async {
-    AppUtilities.logger.t("Updating Location for ProfileId $profileId");
+    AppConfig.logger.t("Updating Location for ProfileId $profileId");
 
     Position? newPosition = Position(longitude: 0, latitude: 0, timestamp: DateTime.now(),
         accuracy: 0, altitude: 0, heading: 0, speed: 0, speedAccuracy: 0, altitudeAccuracy: 1, headingAccuracy: 1);
@@ -151,25 +152,25 @@ class GeoLocatorController implements GeoLocatorService {
     try {
       newPosition =  (await getCurrentPosition());
       if(currentPosition != null && newPosition != null) {
-        int distance = AppUtilities.distanceBetweenPositionsRounded(currentPosition, newPosition);
-        if(distance > AppConstants.significantDistanceKM){
-          AppUtilities.logger.t("GpsLocation would be updated as distance difference is significant");
+        int distance = PositionUtilities.distanceBetweenPositionsRounded(currentPosition, newPosition);
+        if(distance > CoreConstants.significantDistanceKM){
+          AppConfig.logger.t("GpsLocation would be updated as distance difference is significant");
           if(await ProfileFirestore().updatePosition(profileId, newPosition)){
-            AppUtilities.logger.i("GpsLocation was updated as distance was significant ${distance}Kms");
+            AppConfig.logger.i("GpsLocation was updated as distance was significant ${distance}Kms");
           }
         } else {
           return currentPosition;
         }
       } else if(newPosition != null) {
         if(await ProfileFirestore().updatePosition(profileId, newPosition)){
-          AppUtilities.logger.i("GpsLocation was updated as there was no data for it");
+          AppConfig.logger.i("GpsLocation was updated as there was no data for it");
         }
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
-    AppUtilities.logger.d("updateLocation method Exit");
+    AppConfig.logger.d("updateLocation method Exit");
     return newPosition;
   }
 
@@ -208,7 +209,7 @@ class GeoLocatorController implements GeoLocatorService {
       addresses = addresses.toSet().toList();
 
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return addresses;

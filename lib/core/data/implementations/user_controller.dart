@@ -3,18 +3,16 @@ import 'package:firebase_auth/firebase_auth.dart' as fba;
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:get/get.dart';
 
-import '../../../auth/ui/login/login_controller.dart';
+import '../../app_config.dart';
 import '../../domain/model/app_profile.dart';
 import '../../domain/model/app_user.dart';
 import '../../domain/model/band.dart';
 import '../../domain/model/item_list.dart';
 import '../../domain/model/user_subscription.dart';
+import '../../domain/use_cases/login_service.dart';
 import '../../domain/use_cases/user_service.dart';
-import '../../utils/app_utilities.dart';
-import '../../utils/constants/app_page_id_constants.dart';
 import '../../utils/constants/app_route_constants.dart';
-import '../../utils/constants/app_translation_constants.dart';
-import '../../utils/constants/message_translation_constants.dart';
+import '../../utils/constants/core_constants.dart';
 import '../../utils/core_utilities.dart';
 import '../../utils/enums/itemlist_type.dart';
 import '../../utils/enums/owner_type.dart';
@@ -48,7 +46,6 @@ class UserController extends GetxController implements UserService {
   UserSubscription? userSubscription;
   SubscriptionLevel subscriptionLevel = SubscriptionLevel.freemium;
 
-
   //Move to other global Controller to get ReleaseItemList on AudioPlayerHome
   ItemlistType defaultItemlistType  = ItemlistType.playlist;
   Map<String, Itemlist> releaseItemlists = {};
@@ -56,18 +53,18 @@ class UserController extends GetxController implements UserService {
   @override
   void onInit() {
     super.onInit();
-    AppUtilities.logger.t("onInit User Controller");
+    AppConfig.logger.t("onInit User Controller");
     AppHiveController().fetchProfileInfo();
   }
 
   @override
   void onReady() {
     super.onReady();
-    AppUtilities.logger.t("onReady User Controller");
+    AppConfig.logger.t("onReady User Controller");
     try {
       getFcmToken();
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
   }
@@ -77,16 +74,16 @@ class UserController extends GetxController implements UserService {
 
     if(fcmToken.isNotEmpty) {
       await FirebaseMessaging.instance.subscribeToTopic(AppFirestoreConstants.allUsers);
-      AppUtilities.logger.i("User ${user.id} subscribed to topic ${AppFirestoreConstants.allUsers}.");
+      AppConfig.logger.i("User ${user.id} subscribed to topic ${AppFirestoreConstants.allUsers}.");
     } else {
-      AppUtilities.logger.w("FCM Token is empty");
+      AppConfig.logger.w("FCM Token is empty");
     }
 
   }
 
   @override
   Future<void> removeAccount() async {
-    AppUtilities.logger.d("removeAccount method Started");
+    AppConfig.logger.d("removeAccount method Started");
     try {
 
       if(user.id.isNotEmpty && user.profiles.isNotEmpty) {
@@ -96,46 +93,44 @@ class UserController extends GetxController implements UserService {
         await userFirestore.remove(user.id);
       }
 
-      LoginController loginController = Get.find<LoginController>();
+      final loginController = Get.find<LoginService>();
       fba.AuthCredential? authCredential;
 
-      if(loginController.credentials == null) {
+      if(loginController.getAuthCredentials() == null) {
         await loginController.setAuthCredentials();
-        authCredential = loginController.credentials;
-      } else {
-        authCredential = loginController.credentials;
       }
 
+      authCredential = loginController.getAuthCredentials();
+
       if(authCredential != null) {
-        await loginController.fbaUser.value?.reauthenticateWithCredential(authCredential);
-        await loginController.fbaUser.value?.delete();
-        await loginController.signOut();
+        await loginController.deleteFbaUser(authCredential);
         clear();
       } else {
-        AppUtilities.logger.e("AuthCredentials to reauthenticate were null");
+        AppConfig.logger.e("AuthCredentials to reauthenticate were null");
         Get.offAndToNamed(AppRouteConstants.login);
       }
 
     } catch (e) {
       Get.snackbar(
-        MessageTranslationConstants.errorSigningOut.tr,
+        CoreConstants.errorSigningOut.tr,
         e.toString(),
         snackPosition: SnackPosition.bottom,
       );
+
       Get.toNamed(AppRouteConstants.logout);
     }
 
-    AppUtilities.logger.i("removeAccount method Finished");
+    AppConfig.logger.i("removeAccount method Finished");
     update();
   }
 
   /// Create user profile from google login
   @override
   void getUserFromFirebase(fba.User fbaUser) {
-    AppUtilities.logger.d("Getting User Info From Firebase Authentication");
+    AppConfig.logger.d("Getting User Info From Firebase Authentication");
     user =  AppUser(
       dateOfBirth: 0,
-      homeTown: AppTranslationConstants.somewhereUniverse.tr,
+      homeTown: CoreConstants.somewhereUniverse.tr,
       photoUrl: fbaUser.photoURL ?? "",
       name: fbaUser.displayName ?? "",
       firstName: "",
@@ -147,12 +142,12 @@ class UserController extends GetxController implements UserService {
       password: "",
       );
 
-    AppUtilities.logger.d('Last login at: ${fbaUser.metadata.lastSignInTime}');
-    AppUtilities.logger.d(user.toString());
+    AppConfig.logger.d('Last login at: ${fbaUser.metadata.lastSignInTime}');
+    AppConfig.logger.d(user.toString());
   }
 
   void clear() {
-    AppUtilities.logger.d("Clearing User");
+    AppConfig.logger.d("Clearing User");
     user = AppUser();
   }
 
@@ -160,7 +155,7 @@ class UserController extends GetxController implements UserService {
   @override
   Future<void> createUser() async {
 
-    AppUtilities.logger.d("User to create ${user.name}");
+    AppConfig.logger.d("User to create ${user.name}");
     AppUser newUser = user;
     setNewProfileInfo();
 
@@ -188,21 +183,28 @@ class UserController extends GetxController implements UserService {
           Get.offAllNamed(AppRouteConstants.home);
         } else {
           userFirestore.remove(newUser.id);
-          AppUtilities.showSnackBar(
-            title: MessageTranslationConstants.errorCreatingAccount.tr,
+          Get.snackbar(
+            CoreConstants.errorCreatingAccount.tr,
+            '',
+            snackPosition: SnackPosition.bottom,
           );
+
           Get.offAllNamed(AppRouteConstants.login);
         }
       } else {
-        AppUtilities.showSnackBar(
-          title: MessageTranslationConstants.errorCreatingAccount.tr,
+        Get.snackbar(
+          CoreConstants.errorCreatingAccount.tr,
+          '',
+          snackPosition: SnackPosition.bottom,
         );
+
         Get.offAllNamed(AppRouteConstants.login);
       }
     } catch (e) {
-      AppUtilities.showSnackBar(
-        title: MessageTranslationConstants.errorCreatingAccount.tr,
-        message: e.toString(),
+      Get.snackbar(
+        CoreConstants.errorCreatingAccount.tr,
+        e.toString(),
+        snackPosition: SnackPosition.bottom,
       );
     }
   }
@@ -237,7 +239,7 @@ class UserController extends GetxController implements UserService {
   @override
   Future<void> createProfile() async {
 
-    AppUtilities.logger.d("Profile to create ${newProfile.name}");
+    AppConfig.logger.d("Profile to create ${newProfile.name}");
 
     if(newProfile.photoUrl.isEmpty) {
       newProfile.photoUrl = user.photoUrl;
@@ -281,43 +283,43 @@ class UserController extends GetxController implements UserService {
 
         if(profileId.isNotEmpty) {
           userFirestore.updateCurrentProfile(user.id, profileId);
-          AppUtilities.logger.i("Additional profile created successfully.");
+          AppConfig.logger.i("Additional profile created successfully.");
           Get.offAllNamed(AppRouteConstants.home);
         } else {
-          AppUtilities.logger.e("Something wrong creating account.");
+          AppConfig.logger.e("Something wrong creating account.");
           Get.offAllNamed(AppRouteConstants.login);
         }
       }
     } catch (e) {
       Get.snackbar(
-        MessageTranslationConstants.errorCreatingAccount.tr,
+        CoreConstants.errorCreatingAccount.tr,
         e.toString(),
         snackPosition: SnackPosition.bottom,
       );
-      AppUtilities.logger.e("Something wrong creating account.");
+      AppConfig.logger.e("Something wrong creating account.");
       Get.offAllNamed(AppRouteConstants.login);
       update();
     }
 
-    AppUtilities.logger.d("");
+    AppConfig.logger.d("Profile created: ${newProfile.name} with id: ${newProfile.id}");
     AppHiveController().writeProfileInfo();
-    update([AppPageIdConstants.login, AppPageIdConstants.home]);
+    update();
   }
 
   @override
   Future<void> getProfiles() async {
-    AppUtilities.logger.d("User looked up by ${user.id}");
+    AppConfig.logger.d("User looked up by ${user.id}");
 
     try {
       user.profiles = await ProfileFirestore().retrieveByUserId(user.id);
     } catch (e) {
       Get.snackbar(
-        MessageTranslationConstants.errorRetrievingProfiles.tr,
+        CoreConstants.errorRetrievingProfiles.tr,
         e.toString(),
         snackPosition: SnackPosition.bottom,
       );
     }
-    update([AppPageIdConstants.login]);
+    update();
   }
 
 
@@ -327,17 +329,17 @@ class UserController extends GetxController implements UserService {
     try {
       AppUser userFromFirestore = await userFirestore.getById(userId);
       if(userFromFirestore.id.isNotEmpty){
-        AppUtilities.logger.i("User $userId exists!!");
+        AppConfig.logger.i("User $userId exists!!");
         user = userFromFirestore;
         profile = user.profiles.first;
         isNewUser = false;
         // Future.microtask(() => getUserSubscription());
       } else {
-        AppUtilities.logger.w("User $userId not exists!!");
+        AppConfig.logger.w("User $userId not exists!!");
         isNewUser = true;
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
   }
 
@@ -347,28 +349,28 @@ class UserController extends GetxController implements UserService {
     try {
       AppUser? userFromEmail = await userFirestore.getByEmail(userEmail, getProfile: true);
       if(userFromEmail?.id.isNotEmpty ?? false) {
-        AppUtilities.logger.t("User $userEmail exists!!");
+        AppConfig.logger.t("User $userEmail exists!!");
         user = userFromEmail!;
         profile = user.profiles.first;
         isNewUser = false;
       } else {
-        AppUtilities.logger.w("User $userEmail not exists!!");
+        AppConfig.logger.w("User $userEmail not exists!!");
         isNewUser = true;
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
   }
 
   Future<void> changeProfile(AppProfile selectedProfile) async {
-    AppUtilities.logger.i("Changing profile to ${selectedProfile.id}");
+    AppConfig.logger.i("Changing profile to ${selectedProfile.id}");
 
     try {
       profile = selectedProfile;
       Get.toNamed(AppRouteConstants.splashScreen, arguments: [AppRouteConstants.refresh]);
       profile = await userFirestore.updateCurrentProfile(user.id, selectedProfile.id);
     } catch(e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     update();
@@ -376,7 +378,7 @@ class UserController extends GetxController implements UserService {
 
   @override
   Future<void> removeProfile() async {
-    AppUtilities.logger.d("removeProfile method Started");
+    AppConfig.logger.d("removeProfile method Started");
     try {
 
       if(await ProfileFirestore().remove(userId: user.id, profileId: profile.id)) {
@@ -389,14 +391,14 @@ class UserController extends GetxController implements UserService {
 
     } catch (e) {
       Get.snackbar(
-        MessageTranslationConstants.errorSigningOut.tr,
+        CoreConstants.errorSigningOut.tr,
         e.toString(),
         snackPosition: SnackPosition.bottom,
       );
       Get.toNamed(AppRouteConstants.logout);
     }
 
-    AppUtilities.logger.i("removeProfile method Finished");
+    AppConfig.logger.i("removeProfile method Finished");
     update();
   }
 
@@ -420,7 +422,7 @@ class UserController extends GetxController implements UserService {
         profile.favoriteItems!.add(key);
       });
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     update([]);
@@ -438,7 +440,7 @@ class UserController extends GetxController implements UserService {
       });
 
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     update();
@@ -450,9 +452,9 @@ class UserController extends GetxController implements UserService {
     try {
       //Get.find<EventDetailsController>().stopGoingToEvent();
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
-    update([AppPageIdConstants.timeline]);
+    update();
   }
 
   @override
@@ -461,29 +463,29 @@ class UserController extends GetxController implements UserService {
     try {
       //Get.find<EventDetailsController>().stopGoingToEvent();
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
-    update([AppPageIdConstants.timeline]);
+    update();
   }
 
   @override
   Future<void> addOrderId(String orderId) async {
-    AppUtilities.logger.d("addOrderId $orderId");
+    AppConfig.logger.d("addOrderId $orderId");
     try {
       if(await userFirestore.addOrderId(userId: user.id, orderId: orderId)) {
         user.orderIds.add(orderId);
       } else {
-        AppUtilities.logger.w("Something occurred while adding order to User ${user.id}");
+        AppConfig.logger.w("Something occurred while adding order to User ${user.id}");
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
     update();
   }
 
   @override
   Future<void> addBoughtItem(String itemId) async {
-    AppUtilities.logger.d("addBoughtItem $itemId");
+    AppConfig.logger.d("addBoughtItem $itemId");
     try {
       if(itemId.isNotEmpty) {
         if(await userFirestore.addBoughtItem(userId: user.id, itemId: itemId)) {
@@ -494,20 +496,20 @@ class UserController extends GetxController implements UserService {
         AppReleaseItemFirestore().addBoughtUser(releaseItemId: itemId, userId: user.id);
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
     update();
   }
 
   @override
   Future<void> updateCustomerId(String customerId) async {
-    AppUtilities.logger.d("updateCustomerId $customerId");
+    AppConfig.logger.d("updateCustomerId $customerId");
 
     try {
       user.customerId = customerId;
       userFirestore.updateCustomerId(user.id, customerId);
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     update();
@@ -515,13 +517,13 @@ class UserController extends GetxController implements UserService {
 
   @override
   Future<void> updateSubscriptionId(String subscriptionId) async {
-    AppUtilities.logger.d("updateSubscriptionId $subscriptionId");
+    AppConfig.logger.d("updateSubscriptionId $subscriptionId");
 
     try {
       user.subscriptionId = subscriptionId;
       userFirestore.updateSubscriptionId(user.id, subscriptionId);
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     update();
@@ -529,44 +531,43 @@ class UserController extends GetxController implements UserService {
 
   @override
   Future<bool> updatePhoneNumber(String phone, String countryCode) async {
-    AppUtilities.logger.d("updatePhoneNumber Phone: $phone & countryCode $countryCode");
+    AppConfig.logger.d("updatePhoneNumber Phone: $phone & countryCode $countryCode");
     bool wasUpdated = false;
     try {
       if(user.phoneNumber != phone) {
         if(await userFirestore.isAvailablePhone(phone)) {
-          user.phoneNumber = phone;
+
+          if(user.countryCode != countryCode) {
+            userFirestore.updateCountryCode(user.id, countryCode);
+            user.countryCode = countryCode;
+          } else {
+            AppConfig.logger.d("Same Country Code");
+          }
+
           userFirestore.updatePhoneNumber(user.id, phone);
+          user.phoneNumber = phone;
           wasUpdated = true;
         } else {
-          AppUtilities.logger.e("Phone number is not available");
-          Get.snackbar(AppTranslationConstants.updatePhone.tr,
-            MessageTranslationConstants.phoneNotAvailable.tr,
+          AppConfig.logger.e("Phone number is not available");
+          Get.snackbar(CoreConstants.updatePhone.tr,
+            CoreConstants.phoneNotAvailable.tr,
             snackPosition: SnackPosition.bottom,
           );
         }
       } else {
-        AppUtilities.logger.d("Same Phone number");
-      }
-
-      if(user.countryCode != countryCode) {
-        user.countryCode = countryCode;
-        userFirestore.updateCountryCode(user.id, countryCode);
-        wasUpdated = true;
-      } else {
-        AppUtilities.logger.d("Same Country Code");
+        AppConfig.logger.d("Same Phone number");
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     update();
-
     return wasUpdated;
   }
 
   @override
   Future<void> getUserSubscription() async {
-    AppUtilities.logger.d('getUserSubscription');
+    AppConfig.logger.d('getUserSubscription');
 
     try {
       List<UserSubscription> subscriptions = await UserSubscriptionFirestore().getByUserId(user.id);
@@ -575,37 +576,37 @@ class UserController extends GetxController implements UserService {
         userSubscription = subscriptions.firstWhereOrNull((subscription) => subscription.status == SubscriptionStatus.active);
         if(userSubscription?.subscriptionId == user.subscriptionId) {
           subscriptionLevel = userSubscription?.level ?? SubscriptionLevel.freemium;
-          AppUtilities.logger.d('User subscriptionId is the same as user.subscriptionId for ${subscriptionLevel.name}');
+          AppConfig.logger.d('User subscriptionId is the same as user.subscriptionId for ${subscriptionLevel.name}');
         } else if(userSubscription?.subscriptionId.isNotEmpty ?? false) {
           user.subscriptionId = userSubscription?.subscriptionId ?? '';
-          AppUtilities.logger.d('User subscription is different from user.subscriptionId');
+          AppConfig.logger.d('User subscription is different from user.subscriptionId');
         }
       } else if(user.subscriptionId.isNotEmpty) {
-        if (AppUtilities.isWithinFirstMonth(user.createdDate)) {
+        if (CoreUtilities.isWithinFirstMonth(user.createdDate)) {
           subscriptionLevel = SubscriptionLevel.freeMonth;
-          AppUtilities.logger.i('User subscriptionId ${user.subscriptionId} is still within free month for SubscriptionLevel ${subscriptionLevel.name}');
+          AppConfig.logger.i('User subscriptionId ${user.subscriptionId} is still within free month for SubscriptionLevel ${subscriptionLevel.name}');
         } else {
-          AppUtilities.logger.w('User subscriptionId ${user.subscriptionId} is out of free month');
+          AppConfig.logger.w('User subscriptionId ${user.subscriptionId} is out of free month');
           user.subscriptionId = "";
         }
       } else if(user.userRole.value > UserRole.subscriber.value){
-        AppUtilities.logger.d('No user subscription found');
+        AppConfig.logger.d('No user subscription found');
         subscriptionLevel = SubscriptionLevel.ambassador;
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
   }
 
   @override
   Future<void> setUserSubscription(UserSubscription subscription) async {
-    AppUtilities.logger.d('Setting userSubscription with subscriptionId: ${subscription.subscriptionId}');
+    AppConfig.logger.d('Setting userSubscription with subscriptionId: ${subscription.subscriptionId}');
 
     try {
       userSubscription = subscription;
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     // update();
@@ -613,13 +614,13 @@ class UserController extends GetxController implements UserService {
 
   @override
   Future<void> setIsVerified(bool isVerified) async {
-    AppUtilities.logger.d('Setting isVerified value $isVerified for: ${user.id}');
+    AppConfig.logger.d('Setting isVerified value $isVerified for: ${user.id}');
 
     try {
       await userFirestore.setIsVerified(user.id, isVerified);
       user.isVerified = isVerified;
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     // update();

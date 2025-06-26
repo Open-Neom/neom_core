@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../app_config.dart';
 import '../../domain/model/app_profile.dart';
 import '../../domain/repository/mate_repository.dart';
-import '../../utils/app_utilities.dart';
 import '../../utils/enums/profile_type.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
@@ -15,7 +15,7 @@ import 'place_firestore.dart';
 
 class MateFirestore implements MateRepository {
 
-  var logger = AppUtilities.logger;
+  var logger = AppConfig.logger;
   final usersReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.users);
   final profileReference = FirebaseFirestore.instance.collectionGroup(AppFirestoreCollectionConstants.profiles);
 

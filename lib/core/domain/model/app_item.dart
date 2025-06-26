@@ -129,7 +129,7 @@
 //       artistImgUrl = track.artists!.first.images?.first.url ?? "";
 //
 //     } catch (e) {
-//       AppUtilities.logger.e("");
+//       AppConfig.logger.e("");
 //     }
 //
 //     return AppItem(
@@ -183,7 +183,7 @@
 //         );
 //       }
 //     } catch (e) {
-//       AppUtilities.logger.e(e.toString());
+//       AppConfig.logger.e(e.toString());
 //     }
 //
 //     return songs;

@@ -1,6 +1,7 @@
 import 'package:enum_to_string/enum_to_string.dart';
 
-import '../../utils/app_utilities.dart';
+
+import '../../app_config.dart';
 import '../../utils/enums/request_decision.dart';
 import 'event_offer.dart';
 import 'instrument.dart';
@@ -63,7 +64,7 @@ class AppRequest {
       distanceKm = data["distanceKm"] ?? 0;
       requestDecision = EnumToString.fromString(RequestDecision.values, data["requestDecision"] ?? RequestDecision.pending.name) ?? RequestDecision.pending;
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
   }

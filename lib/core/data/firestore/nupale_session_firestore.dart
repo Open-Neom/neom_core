@@ -1,8 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../app_config.dart';
 import '../../domain/model/nupale/nupale_session.dart';
 import '../../domain/use_cases/nupale_session_service.dart';
-import '../../utils/app_utilities.dart';
+
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
 
@@ -12,7 +13,7 @@ class NupaleSessionFirestore implements NupaleSessionService {
 
   @override
   Future<String> insert(NupaleSession session) async {
-    AppUtilities.logger.d("Inserting session ${session.id}");
+    AppConfig.logger.d("Inserting session ${session.id}");
 
     try {
 
@@ -22,9 +23,9 @@ class NupaleSessionFirestore implements NupaleSessionService {
         DocumentReference documentReference = await nupaleSessionsReference.add(session.toJSON());
         session.id = documentReference.id;
       }
-      AppUtilities.logger.d("NupaleSession for ${session.itemName} was added with id ${session.id}");
+      AppConfig.logger.d("NupaleSession for ${session.itemName} was added with id ${session.id}");
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return session.id;
@@ -34,15 +35,15 @@ class NupaleSessionFirestore implements NupaleSessionService {
 
   @override
   Future<bool> remove(String sessionId) async {
-    AppUtilities.logger.d("Removing product $sessionId");
+    AppConfig.logger.d("Removing product $sessionId");
 
     try {
       await nupaleSessionsReference.doc(sessionId).delete();
-      AppUtilities.logger.d("session $sessionId was removed");
+      AppConfig.logger.d("session $sessionId was removed");
       return true;
 
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
     return false;
   }
@@ -50,7 +51,7 @@ class NupaleSessionFirestore implements NupaleSessionService {
 
   @override
   Future<NupaleSession> retrieveSession(String orderId) async {
-    AppUtilities.logger.d("Retrieving session for id $orderId");
+    AppConfig.logger.d("Retrieving session for id $orderId");
     NupaleSession session = NupaleSession();
 
     try {
@@ -58,17 +59,17 @@ class NupaleSessionFirestore implements NupaleSessionService {
       DocumentSnapshot documentSnapshot = await nupaleSessionsReference.doc(orderId).get();
 
       if (documentSnapshot.exists) {
-        AppUtilities.logger.d("Snapshot is not empty");
+        AppConfig.logger.d("Snapshot is not empty");
           session = NupaleSession.fromJSON(documentSnapshot.data());
           session.id = documentSnapshot.id;
-          AppUtilities.logger.d(session.toString());
-        AppUtilities.logger.d("session ${session.id} was retrieved");
+          AppConfig.logger.d(session.toString());
+        AppConfig.logger.d("session ${session.id} was retrieved");
       } else {
-        AppUtilities.logger.w("session ${session.id} was not found");
+        AppConfig.logger.w("session ${session.id} was not found");
       }
 
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
     return session;
   }
@@ -76,7 +77,7 @@ class NupaleSessionFirestore implements NupaleSessionService {
 
   @override
   Future<Map<String, NupaleSession>> retrieveFromList(List<String> sessionIds) async {
-    AppUtilities.logger.d("Getting sessions from list");
+    AppConfig.logger.d("Getting sessions from list");
 
     Map<String, NupaleSession> sessions = {};
 
@@ -84,27 +85,27 @@ class NupaleSessionFirestore implements NupaleSessionService {
       QuerySnapshot querySnapshot = await nupaleSessionsReference.get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        AppUtilities.logger.d("QuerySnapshot is not empty");
+        AppConfig.logger.d("QuerySnapshot is not empty");
         for (var documentSnapshot in querySnapshot.docs) {
           if(sessionIds.contains(documentSnapshot.id)){
             NupaleSession session = NupaleSession.fromJSON(documentSnapshot.data());
             session.id = documentSnapshot.id;
-            AppUtilities.logger.d("session ${session.id} was retrieved with details");
+            AppConfig.logger.d("session ${session.id} was retrieved with details");
             sessions[session.id] = session;
           }
         }
       }
 
-      AppUtilities.logger.d("${sessions.length} sessions were retrieved");
+      AppConfig.logger.d("${sessions.length} sessions were retrieved");
     } catch (e) {
-      AppUtilities.logger.e(e);
+      AppConfig.logger.e(e);
     }
     return sessions;
   }
 
   @override
   Future<Map<String, NupaleSession>> fetchAll({String? itemId, bool skipTest = true}) async {
-    AppUtilities.logger.d("Getting sessions from list");
+    AppConfig.logger.d("Getting sessions from list");
 
     Map<String, NupaleSession> sessions = {};
 
@@ -112,32 +113,32 @@ class NupaleSessionFirestore implements NupaleSessionService {
       QuerySnapshot querySnapshot = await nupaleSessionsReference.get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        AppUtilities.logger.d("QuerySnapshot is not empty");
+        AppConfig.logger.d("QuerySnapshot is not empty");
         for (var documentSnapshot in querySnapshot.docs) {
 
           if(itemId == null || itemId == documentSnapshot.id){
             NupaleSession session = NupaleSession.fromJSON(documentSnapshot.data());
             if(skipTest && session.isTest) {
-              AppUtilities.logger.d("session ${session.id} is a test session");
+              AppConfig.logger.d("session ${session.id} is a test session");
               continue;
             }
             session.id = documentSnapshot.id;
-            AppUtilities.logger.t("session ${session.id} was retrieved with details");
+            AppConfig.logger.t("session ${session.id} was retrieved with details");
             sessions[session.id] = session;
           }
         }
       }
 
-      AppUtilities.logger.d("${sessions.length} sessions were retrieved");
+      AppConfig.logger.d("${sessions.length} sessions were retrieved");
     } catch (e) {
-      AppUtilities.logger.e(e);
+      AppConfig.logger.e(e);
     }
     return sessions;
   }
 
   /// Elimina todos los documentos en la colección 'nupaleSessions' cuya ID tenga exactamente 4 caracteres.
   Future<int> removeSessionsWithShortIds() async {
-    AppUtilities.logger.d("Starting removal of sessions with 4-character IDs");
+    AppConfig.logger.d("Starting removal of sessions with 4-character IDs");
     int deletedCount = 0;
 
     try {
@@ -147,12 +148,12 @@ class NupaleSessionFirestore implements NupaleSessionService {
       QuerySnapshot querySnapshot = await nupaleSessionsReference.get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        AppUtilities.logger.d("Found ${querySnapshot.docs.length} sessions. Checking IDs...");
+        AppConfig.logger.d("Found ${querySnapshot.docs.length} sessions. Checking IDs...");
         // Iterar a través de los documentos
         for (var documentSnapshot in querySnapshot.docs) {
           // Verificar la longitud del ID del documento
           if (documentSnapshot.id.length == 4) {
-            AppUtilities.logger.d("Deleting session with short ID: ${documentSnapshot.id}");
+            AppConfig.logger.d("Deleting session with short ID: ${documentSnapshot.id}");
             // Eliminar el documento usando su referencia
             await documentSnapshot.reference.delete();
             deletedCount++;
@@ -160,13 +161,13 @@ class NupaleSessionFirestore implements NupaleSessionService {
 
           }
         }
-        AppUtilities.logger.d("Finished checking sessions. $deletedCount sessions with 4-character IDs were deleted.");
+        AppConfig.logger.d("Finished checking sessions. $deletedCount sessions with 4-character IDs were deleted.");
       } else {
-        AppUtilities.logger.d("No sessions found in the collection.");
+        AppConfig.logger.d("No sessions found in the collection.");
       }
 
     } catch (e) {
-      AppUtilities.logger.e("Error removing sessions with short IDs: ${e.toString()}");
+      AppConfig.logger.e("Error removing sessions with short IDs: ${e.toString()}");
       // Considera cómo manejar este error, quizás lanzando la excepción
       // rethrow;
     }
@@ -176,7 +177,7 @@ class NupaleSessionFirestore implements NupaleSessionService {
 
   /// Elimina todos los documentos en la colección 'nupaleSessions' donde el campo 'isTest' sea true.
   Future<int> removeTestSessions() async {
-    AppUtilities.logger.d("Starting removal of test sessions");
+    AppConfig.logger.d("Starting removal of test sessions");
     int deletedCount = 0;
 
     try {
@@ -187,21 +188,21 @@ class NupaleSessionFirestore implements NupaleSessionService {
       QuerySnapshot querySnapshot = await query.get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        AppUtilities.logger.d("Found ${querySnapshot.docs.length} test sessions to delete.");
+        AppConfig.logger.d("Found ${querySnapshot.docs.length} test sessions to delete.");
         // Iterar a través de los documentos encontrados
         for (var documentSnapshot in querySnapshot.docs) {
-          AppUtilities.logger.d("Deleting test session with ID: ${documentSnapshot.id}");
+          AppConfig.logger.d("Deleting test session with ID: ${documentSnapshot.id}");
           // Eliminar el documento usando su referencia
           await documentSnapshot.reference.delete();
           deletedCount++;
         }
-        AppUtilities.logger.d("Finished deleting test sessions. $deletedCount test sessions were deleted.");
+        AppConfig.logger.d("Finished deleting test sessions. $deletedCount test sessions were deleted.");
       } else {
-        AppUtilities.logger.d("No test sessions found in the collection.");
+        AppConfig.logger.d("No test sessions found in the collection.");
       }
 
     } catch (e) {
-      AppUtilities.logger.e("Error removing test sessions: ${e.toString()}");
+      AppConfig.logger.e("Error removing test sessions: ${e.toString()}");
       // Considera cómo manejar este error, quizás lanzando la excepción
       // rethrow;
     }

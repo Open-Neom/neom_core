@@ -3,10 +3,10 @@ import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../app_config.dart';
 import '../../domain/model/app_media_item.dart';
 import '../../domain/model/item_list.dart';
 import '../../domain/repository/app_media_item_repository.dart';
-import '../../utils/app_utilities.dart';
 import '../../utils/enums/app_media_source.dart';
 import '../../utils/enums/media_item_type.dart';
 import 'constants/app_firestore_collection_constants.dart';
@@ -18,19 +18,19 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
 
   @override
   Future<AppMediaItem> retrieve(String itemId) async {
-    AppUtilities.logger.d("Getting item $itemId");
+    AppConfig.logger.d("Getting item $itemId");
     AppMediaItem appMediaItem = AppMediaItem();
     try {
       await appMediaItemReference.doc(itemId).get().then((doc) {
         if (doc.exists) {
           appMediaItem = AppMediaItem.fromJSON(jsonEncode(doc.data()));
-          AppUtilities.logger.d("AppMediaItem ${appMediaItem.name} was retrieved with details");
+          AppConfig.logger.d("AppMediaItem ${appMediaItem.name} was retrieved with details");
         } else {
-          AppUtilities.logger.d("AppMediaItem not found");
+          AppConfig.logger.d("AppMediaItem not found");
         }
       });
     } catch (e) {
-      AppUtilities.logger.d(e);
+      AppConfig.logger.d(e);
       rethrow;
     }
     return appMediaItem;
@@ -40,7 +40,7 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
   @override
   Future<Map<String, AppMediaItem>> fetchAll({ int minItems = 0, int maxLength = 100,
     MediaItemType? type, List<MediaItemType>? excludeTypes}) async {
-    AppUtilities.logger.t("Getting appMediaItems from list");
+    AppConfig.logger.t("Getting appMediaItems from list");
 
     Map<String, AppMediaItem> appMediaItems = {};
 
@@ -48,7 +48,7 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
       QuerySnapshot querySnapshot = await appMediaItemReference.get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        AppUtilities.logger.t("QuerySnapshot is not empty");
+        AppConfig.logger.t("QuerySnapshot is not empty");
         for (var documentSnapshot in querySnapshot.docs) {
           AppMediaItem appMediaItem = AppMediaItem.fromJSON(documentSnapshot.data());
           appMediaItem.id = documentSnapshot.id;
@@ -57,18 +57,18 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
               && (excludeTypes == null || !excludeTypes.contains(appMediaItem.type))) {
             appMediaItems[appMediaItem.id] = appMediaItem;
           }
-          AppUtilities.logger.t("Add ${appMediaItem.name} to fetchAll list");
+          AppConfig.logger.t("Add ${appMediaItem.name} to fetchAll list");
         }
       }
     } catch (e) {
-      AppUtilities.logger.d(e);
+      AppConfig.logger.d(e);
     }
     return appMediaItems;
   }
 
   @override
   Future<Map<String, AppMediaItem>> retrieveFromList(List<String> appMediaItemIds) async {
-    AppUtilities.logger.t("Getting ${appMediaItemIds.length} appMediaItems from firestore");
+    AppConfig.logger.t("Getting ${appMediaItemIds.length} appMediaItems from firestore");
 
     Map<String, AppMediaItem> appMediaItems = {};
 
@@ -79,39 +79,39 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
         for (var documentSnapshot in querySnapshot.docs) {
           if(appMediaItemIds.contains(documentSnapshot.id)){
             AppMediaItem appMediaItemm = AppMediaItem.fromJSON(documentSnapshot.data());
-            AppUtilities.logger.d("AppMediaItem ${appMediaItemm.name} was retrieved with details");
+            AppConfig.logger.d("AppMediaItem ${appMediaItemm.name} was retrieved with details");
             appMediaItems[documentSnapshot.id] = appMediaItemm;
           }
         }
       }
 
     } catch (e) {
-      AppUtilities.logger.d(e);
+      AppConfig.logger.d(e);
     }
     return appMediaItems;
   }
 
   @override
   Future<bool> exists(String appMediaItemId) async {
-    AppUtilities.logger.d("Getting appMediaItem $appMediaItemId");
+    AppConfig.logger.d("Getting appMediaItem $appMediaItemId");
 
     try {
       await appMediaItemReference.doc(appMediaItemId).get().then((doc) {
         if (doc.exists) {
-          AppUtilities.logger.d("AppMediaItem found");
+          AppConfig.logger.d("AppMediaItem found");
           return true;
         }
       });
     } catch (e) {
-      AppUtilities.logger.e(e);
+      AppConfig.logger.e(e);
     }
-    AppUtilities.logger.d("AppMediaItem not found");
+    AppConfig.logger.d("AppMediaItem not found");
     return false;
   }
 
   @override
   Future<void> insert(AppMediaItem appMediaItem) async {
-    AppUtilities.logger.t("Adding appMediaItem to database collection");
+    AppConfig.logger.t("Adding appMediaItem to database collection");
     try {
       if(
       (!appMediaItem.url.contains("gig-me-out") && !appMediaItem.url.contains("gigmeout") && !appMediaItem.url.contains("firebasestorage.googleapis.com"))
@@ -128,28 +128,28 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
     }
 
       await appMediaItemReference.doc(appMediaItem.id).set(appMediaItem.toJSON());
-      AppUtilities.logger.d("AppMediaItem inserted into Firestore");
+      AppConfig.logger.d("AppMediaItem inserted into Firestore");
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
-      AppUtilities.logger.i("AppMediaItem not inserted into Firestore");
+      AppConfig.logger.e(e.toString());
+      AppConfig.logger.i("AppMediaItem not inserted into Firestore");
     }
   }
 
   @override
   Future<bool> remove(AppMediaItem appMediaItem) async {
-    AppUtilities.logger.d("Removing appMediaItem from database collection");
+    AppConfig.logger.d("Removing appMediaItem from database collection");
     try {
       await appMediaItemReference.doc(appMediaItem.id).delete();
       return true;
     } catch (e) {
-      AppUtilities.logger.d(e.toString());
+      AppConfig.logger.d(e.toString());
       return false;
     }
   }
 
   @override
   Future<bool> removeItemFromList(String profileId, String itemlistId, AppMediaItem appMediaItem) async {
-    AppUtilities.logger.d("Removing ItemlistItem for user $profileId");
+    AppConfig.logger.d("Removing ItemlistItem for user $profileId");
 
     try {
 
@@ -169,31 +169,31 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
         }
       });
 
-      AppUtilities.logger.i("ItemlistItem ${appMediaItem.name} was updated to ${appMediaItem.state}");
+      AppConfig.logger.i("ItemlistItem ${appMediaItem.name} was updated to ${appMediaItem.state}");
       return true;
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
-    AppUtilities.logger.d("ItemlistItem ${appMediaItem.name} was not updated");
+    AppConfig.logger.d("ItemlistItem ${appMediaItem.name} was not updated");
     return false;
   }
 
   @override
   Future<void> existsOrInsert(AppMediaItem appMediaItem) async {
-    AppUtilities.logger.t("existsOrInsert appMediaItem ${appMediaItem.id}");
+    AppConfig.logger.t("existsOrInsert appMediaItem ${appMediaItem.id}");
 
     try {
       appMediaItemReference.doc(appMediaItem.id).get().then((doc) {
         if (doc.exists) {
-          AppUtilities.logger.t("AppMediaItem found");
+          AppConfig.logger.t("AppMediaItem found");
         } else {
-          AppUtilities.logger.d("AppMediaItem ${appMediaItem.id}. ${appMediaItem.name} not found. Inserting");
+          AppConfig.logger.d("AppMediaItem ${appMediaItem.id}. ${appMediaItem.name} not found. Inserting");
           insert(appMediaItem);
         }
       });
     } catch (e) {
-      AppUtilities.logger.e(e);
+      AppConfig.logger.e(e);
     }
 
   }

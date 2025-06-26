@@ -1,9 +1,10 @@
 import 'package:enum_to_string/enum_to_string.dart';
 
-import '../../../neom_commons.dart';
+import '../../utils/enums/owner_type.dart';
 import '../../utils/enums/release_status.dart';
 import '../../utils/enums/release_type.dart';
-import 'woo/woo_product.dart';
+import 'place.dart';
+import 'price.dart';
 
 class AppReleaseItem {
 
@@ -45,10 +46,6 @@ class AppReleaseItem {
   Place? place; ///PLACE OR LOCATION FOR PUBLISHER IF ABLE.
 
   List<String>? boughtUsers; ///PROFILEID OR EMAIL OF USERS WHO BOUGHT THIS ITEM - IT ALSO IS USEFUL TO KNOW TOTAL SALES WITH LIST.LENGHT
-
-  ///DEPRECATED
-  /// List<String>? followingProfiles;
-  /// List<BandFulfillment> bandsFulfillment;
 
   int createdTime; ///CREATED TIME ON PLATFORM
   int? modifiedTime; ///TIME OF LAST MODIFICATION
@@ -183,45 +180,5 @@ class AppReleaseItem {
     'externalUrl': externalUrl,
     'webPreviewUrl': webPreviewUrl,
   };
-
-  AppReleaseItem.fromWooProduct(WooProduct product) :
-        id = product.id.toString(),
-        name = product.name,
-        description = product.description.isNotEmpty ? product.description : product.shortDescription.isNotEmpty ? product.shortDescription : '',
-        imgUrl = product.images.isNotEmpty ? product.images.first.src : '',
-        galleryUrls = product.images.map<String>((img)=> img.src).toList(),
-        previewUrl = (product.attributes?.containsKey('previewUrl') ?? false) ? product.attributes!['previewUrl']!.options.first : '',
-        duration = (product.attributes?.containsKey('duration') ?? false) ? int.tryParse(product.attributes!['duration']!.options.first) ?? 0 : 0,
-        type = (product.attributes?.containsKey('type') ?? false) ? EnumToString.fromString(ReleaseType.values, product.attributes!['type']!.options.first) ?? ReleaseType.single : ReleaseType.single,
-        status = EnumToString.fromString(ReleaseStatus.values, product.status.name) ?? ReleaseStatus.draft,
-        ownerEmail = (product.attributes?.containsKey('ownerEmail') ?? false) ? product.attributes!['ownerEmail']!.options.first : '',
-        ownerName = (product.attributes?.containsKey('ownerName') ?? false) ? product.attributes!['ownerName']!.options.first : AppUtilities.getArtistName(product.name),
-        ownerType = OwnerType.woo,
-        categories = List.from(product.categories.map((c) => c.name).toList()),
-        tags = List.from(product.tags.map((t) => t.name).toList()),
-        // metaName = null,
-        // metaId = null,
-        // metaOwnerId = null,
-        // appMediaItemIds = null,
-        // instruments = null,
-        lyrics = product.shortDescription,
-        language = (product.attributes?.containsKey('language') ?? false) ? product.attributes!['language']!.options.first : '',
-        digitalPrice = product.virtual ? Price(amount: product.regularPrice, currency: AppCurrency.mxn) : null,
-        physicalPrice = !product.virtual ? Price(amount: product.regularPrice, currency: AppCurrency.mxn) : null,
-        salePrice = Price(amount: product.salePrice, currency: AppCurrency.mxn),
-        variations = product.variations,
-        isRental = (product.attributes?.containsKey('isRental') ?? true) ? bool.parse(product.attributes!['isRental']!.options.first) : true,
-        publishedYear = (product.attributes?.containsKey('publishedYear') ?? false) ? int.tryParse(product.attributes!['publishedYear']!.options.first) : null,
-        publisher = (product.attributes?.containsKey('publisher') ?? false) ? product.attributes!['publisher']!.options.first : null,
-        // place =  null,
-        // boughtUsers = null,
-        createdTime = product.dateCreated?.millisecondsSinceEpoch ?? 0,
-        modifiedTime = product.dateModified?.millisecondsSinceEpoch,
-        state = 0,
-        // externalArtists = null,
-        // featInternalArtists = null,
-        // likedProfiles = null
-        externalUrl = product.permalink,
-        webPreviewUrl = (product.attributes?.containsKey('webPreviewUrl') ?? false) ? product.attributes!['webPreviewUrl']!.options.first : null;
 
 }

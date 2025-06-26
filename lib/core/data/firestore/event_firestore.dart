@@ -1,13 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../app_config.dart';
 import '../../domain/model/app_profile.dart';
 import '../../domain/model/app_request.dart';
 import '../../domain/model/band_fulfillment.dart';
 import '../../domain/model/event.dart';
 import '../../domain/model/instrument_fulfillment.dart';
 import '../../domain/repository/event_repository.dart';
-import '../../utils/app_utilities.dart';
-import '../../utils/constants/app_constants.dart';
+import '../../utils/constants/core_constants.dart';
 import '../../utils/enums/event_action.dart';
 import 'activity_feed_firestore.dart';
 import 'band_firestore.dart';
@@ -24,19 +24,19 @@ class EventFirestore implements EventRepository {
 
   @override
   Future<Event> retrieve(String eventId) async {
-    AppUtilities.logger.t("Retrieving Event by ID: $eventId");
+    AppConfig.logger.t("Retrieving Event by ID: $eventId");
     Event event = Event();
 
     try {
       DocumentSnapshot documentSnapshot = await eventsReference.doc(eventId).get();
       if (documentSnapshot.exists) {
-        AppUtilities.logger.t("Snapshot is not empty");
+        AppConfig.logger.t("Snapshot is not empty");
         event = Event.fromJSON(documentSnapshot.data());
         event.id = documentSnapshot.id;
-        AppUtilities.logger.t(event.toString());
+        AppConfig.logger.t(event.toString());
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
 
@@ -45,33 +45,33 @@ class EventFirestore implements EventRepository {
 
   @override
   Future<List<Event>> retrieveEvents() async {
-    AppUtilities.logger.d("Retrieving Events");
+    AppConfig.logger.d("Retrieving Events");
     List<Event> events = [];
     QuerySnapshot querySnapshot = await eventsReference.get();
 
     try {
       if (querySnapshot.docs.isNotEmpty) {
-        AppUtilities.logger.d("Snapshot is not empty");
+        AppConfig.logger.d("Snapshot is not empty");
         for (var postSnapshot in querySnapshot.docs) {
           Event event = Event.fromJSON(postSnapshot.data());
           event.id = postSnapshot.id;
-          AppUtilities.logger.d(event.toString());
+          AppConfig.logger.d(event.toString());
           events.add(event);
         }
-        AppUtilities.logger.d("${events.length} events found");
+        AppConfig.logger.d("${events.length} events found");
         return events;
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
-    AppUtilities.logger.d("No Events Found");
+    AppConfig.logger.d("No Events Found");
     return events;
   }
 
   @override
   Future<String> insert(Event event,{String eventId = ""}) async {
-    AppUtilities.logger.t("insert");
+    AppConfig.logger.t("insert");
     try {
       DocumentReference documentReference;
       if(eventId.isEmpty) {
@@ -82,10 +82,10 @@ class EventFirestore implements EventRepository {
       }
 
       if(await ProfileFirestore().addEvent(event.ownerId, eventId, EventAction.organize)){
-        AppUtilities.logger.d("Event added to Profile");
+        AppConfig.logger.d("Event added to Profile");
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return eventId;
@@ -94,7 +94,7 @@ class EventFirestore implements EventRepository {
 
   @override
   Future<bool> remove(Event event) async {
-    AppUtilities.logger.t("Remove from firestore");
+    AppConfig.logger.t("Remove from firestore");
     bool wasDeleted = false;
     try {
       await eventsReference.doc(event.id).delete();
@@ -110,7 +110,7 @@ class EventFirestore implements EventRepository {
         }
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return wasDeleted;
@@ -119,13 +119,13 @@ class EventFirestore implements EventRepository {
 
   @override
   Future<Map<String, Event>> getEvents() async {
-    AppUtilities.logger.t("getEvents");
+    AppConfig.logger.t("getEvents");
     Map<String, Event> events = {};
 
     try {
       QuerySnapshot snapshot = await eventsReference
           .orderBy(AppFirestoreConstants.createdTime, descending: true)
-          .limit(AppConstants.eventsLimit)
+          .limit(CoreConstants.eventsLimit)
           .get();
 
       for (var documentSnapshot in snapshot.docs) {
@@ -135,9 +135,9 @@ class EventFirestore implements EventRepository {
       }
 
 
-      AppUtilities.logger.d("${events.length} Events Found");
+      AppConfig.logger.d("${events.length} Events Found");
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return events;
@@ -145,7 +145,7 @@ class EventFirestore implements EventRepository {
 
   @override
   Future<Map<String, Event>> getEventsById(List<String> eventIds) async {
-    AppUtilities.logger.t("Retrieving ${eventIds.length} events By id from firestore");
+    AppConfig.logger.t("Retrieving ${eventIds.length} events By id from firestore");
     Map<String, Event> events = {};
 
     try {
@@ -156,24 +156,24 @@ class EventFirestore implements EventRepository {
           if(eventIds.contains(documentSnapshot.id)){
             Event event = Event.fromJSON(documentSnapshot.data());
             event.id = documentSnapshot.id;
-            AppUtilities.logger.t('Event ${event.name} retrieved');
+            AppConfig.logger.t('Event ${event.name} retrieved');
             events[event.id] = event;
           }
         }
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
 
-    AppUtilities.logger.t("${events.length} events found");
+    AppConfig.logger.t("${events.length} events found");
     return events;
   }
 
 
   @override
   Future<bool> fulfillInstrument(AppRequest appRequest, AppProfile mate, Event event) async {
-    AppUtilities.logger.d("Fulfilling instrument ${appRequest.instrument?.name ?? ""} for event ${event.id}");
+    AppConfig.logger.d("Fulfilling instrument ${appRequest.instrument?.name ?? ""} for event ${event.id}");
 
     try {
 
@@ -211,9 +211,9 @@ class EventFirestore implements EventRepository {
         }
       );
 
-      AppUtilities.logger.i("Instrument ${appRequest.instrument?.name ?? ""} has been fulfilled");
+      AppConfig.logger.i("Instrument ${appRequest.instrument?.name ?? ""} has been fulfilled");
     } catch (e) {
-      AppUtilities.logger.e.toString();
+      AppConfig.logger.e.toString();
       return false;
     }
 
@@ -223,7 +223,7 @@ class EventFirestore implements EventRepository {
 
   @override
   Future<bool> unfulfillInstrument(AppRequest appRequest, AppProfile mate, Event event) async {
-    AppUtilities.logger.d("Unfulfilling instrument ${appRequest.instrument?.name ?? ""} for event ${event.id}");
+    AppConfig.logger.d("Unfulfilling instrument ${appRequest.instrument?.name ?? ""} for event ${event.id}");
 
     try {
 
@@ -262,9 +262,9 @@ class EventFirestore implements EventRepository {
       }
       );
 
-      AppUtilities.logger.i("Instrument ${appRequest.instrument?.name ?? ""} has been unfulfilled");
+      AppConfig.logger.i("Instrument ${appRequest.instrument?.name ?? ""} has been unfulfilled");
     } catch (e) {
-      AppUtilities.logger.e.toString();
+      AppConfig.logger.e.toString();
       return false;
     }
 
@@ -274,7 +274,7 @@ class EventFirestore implements EventRepository {
 
   @override
   Future<List<Event>> retrievePlayingEvents(String profileId) async {
-    AppUtilities.logger.d("Retrieving PlayingEvents");
+    AppConfig.logger.d("Retrieving PlayingEvents");
 
     List<Event> events = <Event>[];
     bool isPlaying = false;
@@ -283,11 +283,11 @@ class EventFirestore implements EventRepository {
       QuerySnapshot querySnapshot = await eventsReference.get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        AppUtilities.logger.d("Snapshot is not empty");
+        AppConfig.logger.d("Snapshot is not empty");
         for (var documentSnapshot in querySnapshot.docs) {
           Event event = Event.fromJSON(documentSnapshot.data());
           event.id = documentSnapshot.id;
-          AppUtilities.logger.d(event.toString());
+          AppConfig.logger.d(event.toString());
 
           if(event.ownerId == profileId) {
             isPlaying = true;
@@ -304,17 +304,17 @@ class EventFirestore implements EventRepository {
         }
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
-    AppUtilities.logger.d("${events.length} events found");
+    AppConfig.logger.d("${events.length} events found");
     return events;
   }
 
 
   @override
   Future<bool> fulfilled(String eventId) async {
-    AppUtilities.logger.d("Event $eventId fulfilled");
+    AppConfig.logger.d("Event $eventId fulfilled");
 
     try {
 
@@ -327,9 +327,9 @@ class EventFirestore implements EventRepository {
       //TODO Create Band Algorithm
       //BandFirestore().insert(band)
 
-      AppUtilities.logger.i("Event $eventId has been fulfilled");
+      AppConfig.logger.i("Event $eventId has been fulfilled");
     } catch (e) {
-      AppUtilities.logger.e.toString();
+      AppConfig.logger.e.toString();
       return false;
     }
 
@@ -339,7 +339,7 @@ class EventFirestore implements EventRepository {
 
   @override
   Future<bool> unFulfilled(String eventId) async {
-    AppUtilities.logger.d("Event $eventId unfulfilled");
+    AppConfig.logger.d("Event $eventId unfulfilled");
 
     try {
 
@@ -350,9 +350,9 @@ class EventFirestore implements EventRepository {
         });
       });
 
-      AppUtilities.logger.i("Event $eventId has been unfulfilled");
+      AppConfig.logger.i("Event $eventId has been unfulfilled");
     } catch (e) {
-      AppUtilities.logger.e.toString();
+      AppConfig.logger.e.toString();
       return false;
     }
 
@@ -362,7 +362,7 @@ class EventFirestore implements EventRepository {
 
   @override
   Future<bool> addGoingProfile({required String eventId, required String profileId}) async {
-    AppUtilities.logger.t("$profileId would be added as going to Event $eventId");
+    AppConfig.logger.t("$profileId would be added as going to Event $eventId");
 
     try {
 
@@ -377,10 +377,10 @@ class EventFirestore implements EventRepository {
         }
       });
 
-      AppUtilities.logger.d("Profile $profileId has been added as going to event $eventId");
+      AppConfig.logger.d("Profile $profileId has been added as going to event $eventId");
       return true;
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
     return false;
   }
@@ -388,7 +388,7 @@ class EventFirestore implements EventRepository {
 
   @override
   Future<bool> removeGoingProfile({required String eventId, required String profileId}) async {
-    AppUtilities.logger.d("$profileId would be removed from going to Event $eventId");
+    AppConfig.logger.d("$profileId would be removed from going to Event $eventId");
 
     try {
 
@@ -403,10 +403,10 @@ class EventFirestore implements EventRepository {
         }
       });
 
-      AppUtilities.logger.d("Profile $profileId has been removed from going to event $eventId");
+      AppConfig.logger.d("Profile $profileId has been removed from going to event $eventId");
       return true;
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
     return false;
   }
@@ -414,7 +414,7 @@ class EventFirestore implements EventRepository {
 
   @override
   Future<bool> fulfillBand(String bandId, AppProfile itemmate, Event event) async {
-  AppUtilities.logger.d("Fulfilling band $bandId for event ${event.id}");
+  AppConfig.logger.d("Fulfilling band $bandId for event ${event.id}");
 
   try {
 
@@ -448,9 +448,9 @@ class EventFirestore implements EventRepository {
     }
     );
 
-    AppUtilities.logger.i("Band ${bandFulfillment.bandName} has been fulfilled");
+    AppConfig.logger.i("Band ${bandFulfillment.bandName} has been fulfilled");
   } catch (e) {
-    AppUtilities.logger.e.toString();
+    AppConfig.logger.e.toString();
     return false;
   }
 

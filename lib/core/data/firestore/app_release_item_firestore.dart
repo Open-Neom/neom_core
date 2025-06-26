@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../app_config.dart';
 import '../../domain/model/app_release_item.dart';
 import '../../domain/repository/app_release_item_repository.dart';
-import '../../utils/app_utilities.dart';
 import '../../utils/enums/release_status.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
@@ -17,7 +17,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
 
   @override
   Future<String> insert(AppReleaseItem appReleaseItem) async {
-    AppUtilities.logger.d("Adding appReleaseItem to database collection");
+    AppConfig.logger.d("Adding appReleaseItem to database collection");
     String releaseItemId = appReleaseItem.id;
     try {
       if(releaseItemId.isNotEmpty) {
@@ -27,10 +27,10 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
         releaseItemId = documentReference.id;
       }
 
-      AppUtilities.logger.d("AppReleaseItem inserted into Firestore with id: $releaseItemId");
+      AppConfig.logger.d("AppReleaseItem inserted into Firestore with id: $releaseItemId");
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
-      AppUtilities.logger.i("AppReleaseItem not inserted into Firestore");
+      AppConfig.logger.e(e.toString());
+      AppConfig.logger.i("AppReleaseItem not inserted into Firestore");
     }
 
     return releaseItemId;
@@ -38,7 +38,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
 
   @override
   Future<Map<String, AppReleaseItem>> retrieveAll() async {
-    AppUtilities.logger.t("Get all AppReleaseItem");
+    AppConfig.logger.t("Get all AppReleaseItem");
 
     Map<String, AppReleaseItem> releaseItems = {};
     try {
@@ -54,29 +54,29 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
         }
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
-    AppUtilities.logger.t("${releaseItems.length} releaseItems found");
+    AppConfig.logger.t("${releaseItems.length} releaseItems found");
     return releaseItems;
   }
 
   @override
   Future<AppReleaseItem> retrieve(String releaseItemId) async {
-    AppUtilities.logger.d("Getting item $releaseItemId");
+    AppConfig.logger.d("Getting item $releaseItemId");
     AppReleaseItem appReleaseItem = AppReleaseItem();
     try {
       await appReleaseItemReference.doc(releaseItemId).get().then((doc) {
         if (doc.exists) {
           appReleaseItem = AppReleaseItem.fromJSON(doc.data());
           appReleaseItem.id = doc.id;
-          AppUtilities.logger.d("AppReleaseItem ${appReleaseItem.name} was retrieved with details");
+          AppConfig.logger.d("AppReleaseItem ${appReleaseItem.name} was retrieved with details");
         } else {
-          AppUtilities.logger.d("AppReleaseItem not found");
+          AppConfig.logger.d("AppReleaseItem not found");
         }
       });
     } catch (e) {
-      AppUtilities.logger.d(e);
+      AppConfig.logger.d(e);
       rethrow;
     }
     return appReleaseItem;
@@ -84,7 +84,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
 
   @override
   Future<Map<String, AppReleaseItem>> retrieveFromList(List<String> releaseItemIds) async {
-    AppUtilities.logger.t("Getting ${releaseItemIds}appReleaseItems from list");
+    AppConfig.logger.t("Getting ${releaseItemIds}appReleaseItems from list");
 
     Map<String, AppReleaseItem> appItems = {};
 
@@ -95,33 +95,33 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
         for (var documentSnapshot in querySnapshot.docs) {
           if(releaseItemIds.contains(documentSnapshot.id)){
             AppReleaseItem releaseItem = AppReleaseItem.fromJSON(documentSnapshot.data());
-            AppUtilities.logger.d("AppReleaseItem ${releaseItem.name} was retrieved with details");
+            AppConfig.logger.d("AppReleaseItem ${releaseItem.name} was retrieved with details");
             appItems[documentSnapshot.id] = releaseItem;
           }
         }
       }
 
     } catch (e) {
-      AppUtilities.logger.d(e);
+      AppConfig.logger.d(e);
     }
     return appItems;
   }
 
   @override
   Future<bool> remove(AppReleaseItem appReleaseItem) async {
-    AppUtilities.logger.d("Removing appReleaseItem ${appReleaseItem.name} with id ${appReleaseItem.id} from database collection");
+    AppConfig.logger.d("Removing appReleaseItem ${appReleaseItem.name} with id ${appReleaseItem.id} from database collection");
     try {
       await appReleaseItemReference.doc(appReleaseItem.id).delete();
       return true;
     } catch (e) {
-      AppUtilities.logger.d(e.toString());
+      AppConfig.logger.d(e.toString());
       return false;
     }
   }
 
   @override
   Future<bool> addBoughtUser({required String releaseItemId, required String userId}) async {
-    AppUtilities.logger.t("$releaseItemId would add user $userId");
+    AppConfig.logger.t("$releaseItemId would add user $userId");
 
     try {
       await appReleaseItemReference.get()
@@ -129,33 +129,33 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
         for (var document in querySnapshot.docs) {
           if(document.id == releaseItemId) {
             await document.reference.update({AppFirestoreConstants.boughtUsers: FieldValue.arrayUnion([userId])});
-            AppUtilities.logger.d("$releaseItemId has added user $userId");
+            AppConfig.logger.d("$releaseItemId has added user $userId");
             return true;
           }
         }
       });
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
     return false;
   }
 
   @override
   Future<bool> exists(String releaseItemId) async {
-    AppUtilities.logger.d("Getting releaseItem $releaseItemId");
+    AppConfig.logger.d("Getting releaseItem $releaseItemId");
 
     try {
       if(releaseItemId.isEmpty) false;
       await appReleaseItemReference.doc(releaseItemId).get().then((doc) {
         if (doc.exists) {
-          AppUtilities.logger.d("AppMediaItem found");
+          AppConfig.logger.d("AppMediaItem found");
           return true;
         }
       });
     } catch (e) {
-      AppUtilities.logger.e(e);
+      AppConfig.logger.e(e);
     }
-    AppUtilities.logger.d("AppMediaItem not found");
+    AppConfig.logger.d("AppMediaItem not found");
     return false;
   }
 

@@ -1,6 +1,13 @@
 import 'package:enum_to_string/enum_to_string.dart';
 
-import '../../../neom_commons.dart';
+import '../../app_properties.dart';
+import '../../utils/constants/core_constants.dart';
+import '../../utils/enums/activity_feed_type.dart';
+import 'app_profile.dart';
+import 'app_request.dart';
+import 'event.dart';
+import 'post.dart';
+import 'post_comment.dart';
 
 class ActivityFeed {
 
@@ -133,9 +140,9 @@ class ActivityFeed {
         id = '',
         ownerId = toProfileId,
         activityReferenceId = referenceId,
-        profileId = AppConstants.appBot,
-        profileName = "${AppFlavour.getAppName()} ${AppConstants.appBotName}",
-        profileImgUrl = AppFlavour.getAppLogoUrl(),
+        profileId = CoreConstants.appBot,
+        profileName = "${AppProperties.getAppName()} ${AppProperties.getAppBotName()}",
+        profileImgUrl = AppProperties.getAppLogoUrl(),
         activityFeedType = type,
         createdTime = DateTime.now().millisecondsSinceEpoch,
         unread = true;

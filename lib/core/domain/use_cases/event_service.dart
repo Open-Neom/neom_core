@@ -65,7 +65,6 @@ abstract class EventService {
   void filterEventsBy({EventType eventType = EventType.any});
 
   void setMessage(String text);
-  ///DEPRECATED Future<void> sendEventInvitation(AppProfile mate, Instrument instrument);
   void goWithFlyer();
 
   void addActivity(int index);

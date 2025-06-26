@@ -1,6 +1,6 @@
 
-import 'constants/app_constants.dart';
-import 'constants/message_translation_constants.dart';
+import 'constants/core_constants.dart';
+import 'enums/validation_error.dart';
 
 class Validator {
 
@@ -9,9 +9,9 @@ class Validator {
         r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
     RegExp regex = RegExp(pattern);
     if(email.isEmpty) {
-      return MessageTranslationConstants.pleaseEnterEmail;
+      return ValidationError.pleaseEnterEmail.name;
     } else if (!regex.hasMatch(email)) {
-      return MessageTranslationConstants.invalidEmailFormat;
+      return ValidationError.invalidEmailFormat.name;
     }
 
     return "";
@@ -26,13 +26,13 @@ class Validator {
 
   static String validateName(String name) {
     if (name.isEmpty) {
-      return MessageTranslationConstants.pleaseEnterFullName;
+      return ValidationError.pleaseEnterFullName.name;
     } else if (_isNumeric(name)) {
-      return MessageTranslationConstants.invalidName;
-    } else if (name.length < AppConstants.nameMinimumLength) {
-      return MessageTranslationConstants.usernameAtLeast;
-    } else if (name.length > AppConstants.usernameMaximumLength) {
-      return MessageTranslationConstants.usernameCantExceed;
+      return ValidationError.invalidName.name;
+    } else if (name.length < CoreConstants.nameMinimumLength) {
+      return ValidationError.usernameTooShort.name;
+    } else if (name.length > CoreConstants.usernameMaximumLength) {
+      return ValidationError.usernameTooLong.name;
     }
 
     return "";
@@ -41,13 +41,13 @@ class Validator {
 
   static String validateUsername(String username) {
     if (username.isEmpty) {
-      return MessageTranslationConstants.pleaseEnterUsername;
+      return ValidationError.pleaseEnterUsername.name;
     } else if (_isNumericOnly(username)) {
-      return MessageTranslationConstants.invalidUsername;
-    } else if (username.length < AppConstants.usernameMinimumLength) {
-      return MessageTranslationConstants.usernameAtLeast;
-    } else if (username.length > AppConstants.usernameMaximumLength) {
-      return MessageTranslationConstants.usernameCantExceed;
+      return ValidationError.invalidUsername.name;
+    } else if (username.length < CoreConstants.usernameMinimumLength) {
+      return ValidationError.usernameTooShort.name;
+    } else if (username.length > CoreConstants.usernameMaximumLength) {
+      return ValidationError.usernameTooLong.name;
     }
 
     return "";
@@ -78,13 +78,13 @@ class Validator {
 
   static String validatePassword(String password, String confirmation) {
     if (password.isEmpty) {
-      return MessageTranslationConstants.pleaseEnterPassword;
-    } else if (password.length < 6) {
-      return MessageTranslationConstants.passwordAtLeast;
-    } else if (password.length > 15) {
-      return MessageTranslationConstants.passwordCantExceed;
+      return ValidationError.pleaseEnterPassword.name;
+    } else if (password.length < CoreConstants.passwordMinimumLength) {
+      return ValidationError.passwordTooShort.name;
+    } else if (password.length > CoreConstants.passwordMaximumLength) {
+      return ValidationError.passwordTooLong.name;
     } else if (password != confirmation) {
-      return MessageTranslationConstants.passwordConfirmNotMatch;
+      return ValidationError.passwordsNotMatch.name;
     }
 
     return "";

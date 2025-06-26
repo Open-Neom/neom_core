@@ -3,15 +3,14 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
 
-import '../../app_flavour.dart';
+import '../../app_config.dart';
 import '../../domain/model/app_profile.dart';
 import '../../domain/model/app_user.dart';
 import '../../domain/model/facility.dart';
 import '../../domain/model/place.dart';
 import '../../domain/model/post.dart';
 import '../../domain/repository/profile_repository.dart';
-import '../../utils/app_utilities.dart';
-import '../../utils/constants/app_constants.dart';
+import '../../utils/constants/core_constants.dart';
 import '../../utils/core_utilities.dart';
 import '../../utils/enums/app_in_use.dart';
 import '../../utils/enums/event_action.dart';
@@ -21,6 +20,7 @@ import '../../utils/enums/profile_type.dart';
 import '../../utils/enums/request_type.dart';
 import '../../utils/enums/usage_reason.dart';
 import '../../utils/enums/verification_level.dart';
+import '../../utils/position_utilities.dart';
 import 'chamber_firestore.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
@@ -47,11 +47,11 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<String> insert(String userId, AppProfile profile) async {
-    AppUtilities.logger.d("Inserting profile ${profile.id} to Firestore");
+    AppConfig.logger.d("Inserting profile ${profile.id} to Firestore");
     String profileId = "";
 
     try {
-      AppUtilities.logger.t(profile.toJSON());
+      AppConfig.logger.t(profile.toJSON());
 
       DocumentReference documentReference = await usersReference
           .doc(userId)
@@ -79,7 +79,7 @@ class ProfileFirestore implements ProfileRepository {
       if (profile.genres != null) {
         profile.genres!.forEach((name, genre) async {
           Map<String, dynamic> genresJSON = genre.toJSON();
-          AppUtilities.logger.d(genresJSON.toString());
+          AppConfig.logger.d(genresJSON.toString());
           await GenreFirestore().addGenre(
               profileId: profileId,
               genreId: name);
@@ -106,13 +106,13 @@ class ProfileFirestore implements ProfileRepository {
       // Itemlist firstlist = profile.itemlists!.values.first;
       // firstlist.ownerId = profileId;
       // await ItemlistFirestore().insert(firstlist);
-      // AppUtilities.logger.i("Profile ${profile.toString()} inserted successfully.");
+      // AppConfig.logger.i("Profile ${profile.toString()} inserted successfully.");
     } catch (e) {
       if (await remove(userId: userId, profileId: profileId)) {
-        AppUtilities.logger.i("Profile Rollback");
+        AppConfig.logger.i("Profile Rollback");
         profileId = "";
       } else {
-        AppUtilities.logger.e(e.toString());
+        AppConfig.logger.e(e.toString());
       }
     }
 
@@ -121,7 +121,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<AppProfile> retrieve(String profileId) async {
-    AppUtilities.logger.t("Retrieving Profile $profileId");
+    AppConfig.logger.t("Retrieving Profile $profileId");
     AppProfile profile = AppProfile();
 
     try {
@@ -135,12 +135,12 @@ class ProfileFirestore implements ProfileRepository {
         }
       }
 
-      AppUtilities.logger.t(profile.id.isNotEmpty
+      AppConfig.logger.t(profile.id.isNotEmpty
           ? "Profile ${profile.toString()}"
           : "Profile not found"
       );
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
       rethrow;
     }
 
@@ -150,14 +150,14 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<AppProfile?> retrieveSimple(String profileId) async {
-    AppUtilities.logger.d("Retrieving Profile $profileId");
+    AppConfig.logger.d("Retrieving Profile $profileId");
     AppProfile? profile;
 
     try {
       QuerySnapshot querySnapshot = await profileReference.get();
 
       for (var profileDocument in querySnapshot.docs) {
-        AppUtilities.logger.d("Profile Document: ${profileDocument.id}");
+        AppConfig.logger.d("Profile Document: ${profileDocument.id}");
         if (profileDocument.id == profileId) {
           profile = AppProfile.fromJSON(profileDocument.data());
           profile.id = profileDocument.id;
@@ -166,12 +166,12 @@ class ProfileFirestore implements ProfileRepository {
       }
 
       if (profile?.id.isNotEmpty ?? false) {
-        AppUtilities.logger.d("Profile ${profile.toString()}");
+        AppConfig.logger.d("Profile ${profile.toString()}");
       } else {
-        AppUtilities.logger.d("Profile not found $profileId");
+        AppConfig.logger.d("Profile not found $profileId");
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
       rethrow;
     }
 
@@ -185,7 +185,7 @@ class ProfileFirestore implements ProfileRepository {
         ProfileType>? profileTypes, FacilityType? facilityType, PlaceType? placeType,
     List<
         UsageReason>? usageReasons, Position? currentPosition, int maxDistance = 150, int? limit, bool isFirstCall = true}) async {
-    AppUtilities.logger.d("Get profiles by parameters");
+    AppConfig.logger.d("Get profiles by parameters");
 
     List<AppProfile> profiles = [];
 
@@ -226,14 +226,14 @@ class ProfileFirestore implements ProfileRepository {
         // profile.id = queryDocumentSnapshot.id;
 
         if (needsPhone && profile.phoneNumber.isEmpty) {
-          AppUtilities.logger.t(
+          AppConfig.logger.t(
               "Profile ${profile.id} ${profile.name} - ${profile.type
                   .name} has no phoneNumber");
           continue;
         }
 
         if (profileTypes != null && !profileTypes.contains(profile.type)) {
-          AppUtilities.logger.t(
+          AppConfig.logger.t(
               "Profile ${profile.id} ${profile.name} - ${profile.type
                   .name} is not profile type ${profileTypes
                   .toString()} required");
@@ -243,7 +243,7 @@ class ProfileFirestore implements ProfileRepository {
         if (usageReasons != null &&
             (!usageReasons.contains(profile.usageReason) &&
                 profile.usageReason != UsageReason.any)) {
-          AppUtilities.logger.t(
+          AppConfig.logger.t(
               "Profile ${profile.id} ${profile.name} - ${profile.usageReason
                   .name} has not the usage reason ${usageReasons
                   .toString()} required");
@@ -251,15 +251,15 @@ class ProfileFirestore implements ProfileRepository {
         }
 
         if (needsPosts && (profile.posts?.isEmpty ?? true)) {
-          AppUtilities.logger.t(
+          AppConfig.logger.t(
               "Profile ${profile.id} ${profile.name} has not posts");
           continue;
         }
 
         if (currentPosition != null && (profile.position != null
-            && AppUtilities.distanceBetweenPositionsRounded(
+            && PositionUtilities.distanceBetweenPositionsRounded(
                 profile.position!, currentPosition) > maxDistance)) {
-          AppUtilities.logger.t(
+          AppConfig.logger.t(
               "Profile ${profile.id} ${profile.name} is out of max distance");
           continue;
         }
@@ -285,7 +285,7 @@ class ProfileFirestore implements ProfileRepository {
         }
 
         if (facilityType != null) {
-          AppUtilities.logger.d(
+          AppConfig.logger.d(
               "Retrieving Facility for ${profile.name} - ${profile.id}");
           profile.facilities =
           await FacilityFirestore().retrieveFacilities(profile.id);
@@ -304,7 +304,7 @@ class ProfileFirestore implements ProfileRepository {
         }
 
         if (placeType != null) {
-          AppUtilities.logger.d(
+          AppConfig.logger.d(
               "Retrieving Places for ${profile.name} - ${profile.id}");
           profile.places = await PlaceFirestore().retrievePlaces(profile.id);
           if (profile.places!.keys.contains(placeType.value)) {
@@ -323,7 +323,7 @@ class ProfileFirestore implements ProfileRepository {
 
         if (profile.address.isEmpty) {
           profile.address =
-          await AppUtilities.getAddressFromPlacerMark(profile.position!);
+          await PositionUtilities.getAddressFromPlacerMark(profile.position!);
           if (profile.address.isNotEmpty) {
             ProfileFirestore().updateAddress(
               profile.id, profile.address);
@@ -335,7 +335,7 @@ class ProfileFirestore implements ProfileRepository {
         if (limit != null && profiles.length >= limit) break;
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return profiles;
@@ -344,15 +344,15 @@ class ProfileFirestore implements ProfileRepository {
   @override
   Future<bool> remove(
       {required String userId, required String profileId}) async {
-    AppUtilities.logger.d("Removing profile $profileId from Firestore");
+    AppConfig.logger.d("Removing profile $profileId from Firestore");
 
     try {
       await usersReference.doc(userId).collection(
           AppFirestoreCollectionConstants.profiles).doc(profileId).delete();
-      AppUtilities.logger.d(
+      AppConfig.logger.d(
           "Profile $profileId removed successfully from User $userId.");
     } catch (e) {
-      AppUtilities.logger.e(e);
+      AppConfig.logger.e(e);
       return false;
     }
 
@@ -361,7 +361,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<AppProfile> retrieveFull(String profileId) async {
-    AppUtilities.logger.d("Retrieving Profile $profileId");
+    AppConfig.logger.d("Retrieving Profile $profileId");
     AppProfile profile = AppProfile();
 
     try {
@@ -377,10 +377,10 @@ class ProfileFirestore implements ProfileRepository {
       if (profile.id.isNotEmpty) {
         profile = await getProfileFeatures(profile);
       } else {
-        AppUtilities.logger.d("Profile not found");
+        AppConfig.logger.d("Profile not found");
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
       rethrow;
     }
 
@@ -390,7 +390,7 @@ class ProfileFirestore implements ProfileRepository {
   @override
   Future<List<AppProfile>> retrieveByUserId(String userId,
       {ProfileType? profileType}) async {
-    AppUtilities.logger.d("RetrievingProfiles for $userId");
+    AppConfig.logger.d("RetrievingProfiles for $userId");
     List<AppProfile> profiles = <AppProfile>[];
 
     try {
@@ -398,21 +398,21 @@ class ProfileFirestore implements ProfileRepository {
           .collection(AppFirestoreCollectionConstants.profiles).get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        AppUtilities.logger.t("Snapshot is not empty");
+        AppConfig.logger.t("Snapshot is not empty");
         for (var profileSnapshot in querySnapshot.docs) {
           AppProfile profile = AppProfile.fromJSON(profileSnapshot.data());
           if (profileType == null || profile.type == profileType) {
             profile.id = profileSnapshot.id;
-            AppUtilities.logger.t(profile.toString());
+            AppConfig.logger.t(profile.toString());
             profiles.add(profile);
           }
         }
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
-    AppUtilities.logger.t("${profiles.length} profiles found");
+    AppConfig.logger.t("${profiles.length} profiles found");
     return profiles;
   }
 
@@ -425,7 +425,7 @@ class ProfileFirestore implements ProfileRepository {
     int maxDistance = 20,
     int maxProfiles = 10,
   }) async {
-    AppUtilities.logger.d("RetrievingProfiles by instrument");
+    AppConfig.logger.d("RetrievingProfiles by instrument");
 
     Map<String, AppProfile> mainInstrumentProfiles = <String, AppProfile>{};
     Map<String, AppProfile> noMainInstrumentProfiles = <String, AppProfile>{};
@@ -441,7 +441,7 @@ class ProfileFirestore implements ProfileRepository {
               profile.type == ProfileType.appArtist
               && mainInstrumentProfiles.length < maxProfiles
           ) {
-            if (AppUtilities.distanceBetweenPositionsRounded(
+            if (PositionUtilities.distanceBetweenPositionsRounded(
                 profile.position!, currentPosition!) < maxDistance) {
               profile.instruments =
               await InstrumentFirestore().retrieveInstruments(profile.id);
@@ -453,7 +453,7 @@ class ProfileFirestore implements ProfileRepository {
                 }
               }
             } else {
-              AppUtilities.logger.d(
+              AppConfig.logger.d(
                   "Profile ${profile.id} is out of max distance");
             }
           }
@@ -469,10 +469,10 @@ class ProfileFirestore implements ProfileRepository {
         }
       });
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
-    AppUtilities.logger.d("${mainInstrumentProfiles.length} Profiles found");
+    AppConfig.logger.d("${mainInstrumentProfiles.length} Profiles found");
     return mainInstrumentProfiles;
   }
 
@@ -480,7 +480,7 @@ class ProfileFirestore implements ProfileRepository {
   @override
   Future<Map<String, AppProfile>> retrieveFromList(
       List<String> profileIds) async {
-    AppUtilities.logger.t("RetrievingProfiles");
+    AppConfig.logger.t("RetrievingProfiles");
 
     try {
       QuerySnapshot querySnapshot = await profileReference.get();
@@ -492,18 +492,18 @@ class ProfileFirestore implements ProfileRepository {
         }
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
 
-    AppUtilities.logger.d("${profiles.length} profiles found");
+    AppConfig.logger.d("${profiles.length} profiles found");
     return profiles;
   }
 
   @override
   Future<bool> followProfile(
       {required String profileId, required String followedProfileId}) async {
-    AppUtilities.logger.t("$profileId would be following $followedProfileId");
+    AppConfig.logger.t("$profileId would be following $followedProfileId");
 
     try {
       await profileReference.get().then((querySnapshot) async {
@@ -513,7 +513,7 @@ class ProfileFirestore implements ProfileRepository {
               AppFirestoreConstants.following: FieldValue.arrayUnion(
                   [followedProfileId])
             });
-            AppUtilities.logger.d(
+            AppConfig.logger.d(
                 "$profileId is now following $followedProfileId");
           }
 
@@ -522,7 +522,7 @@ class ProfileFirestore implements ProfileRepository {
               AppFirestoreConstants.followers: FieldValue.arrayUnion(
                   [profileId])
             });
-            AppUtilities.logger.d(
+            AppConfig.logger.d(
                 "$followedProfileId is now followed by $profileId");
           }
         }
@@ -531,7 +531,7 @@ class ProfileFirestore implements ProfileRepository {
 
       return true;
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
     return false;
   }
@@ -540,7 +540,7 @@ class ProfileFirestore implements ProfileRepository {
   @override
   Future<bool> unfollowProfile(
       {required String profileId, required String unfollowProfileId}) async {
-    AppUtilities.logger.t("$profileId would be unfollowing $unfollowProfileId");
+    AppConfig.logger.t("$profileId would be unfollowing $unfollowProfileId");
 
     try {
       await profileReference.get().then((querySnapshot) async {
@@ -550,7 +550,7 @@ class ProfileFirestore implements ProfileRepository {
               AppFirestoreConstants.following: FieldValue.arrayRemove(
                   [unfollowProfileId])
             });
-            AppUtilities.logger.d(
+            AppConfig.logger.d(
                 "$profileId is now unfollowing $unfollowProfileId");
           }
 
@@ -559,7 +559,7 @@ class ProfileFirestore implements ProfileRepository {
               AppFirestoreConstants.followers: FieldValue.arrayRemove(
                   [profileId])
             });
-            AppUtilities.logger.d(
+            AppConfig.logger.d(
                 "$unfollowProfileId is now unfollowed by $profileId");
           }
         }
@@ -568,7 +568,7 @@ class ProfileFirestore implements ProfileRepository {
 
       return true;
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
     return false;
   }
@@ -577,7 +577,7 @@ class ProfileFirestore implements ProfileRepository {
   @override
   Future<bool> blockProfile(
       {required String profileId, required String profileToBlock}) async {
-    AppUtilities.logger.d("$profileId would be unfollowing $profileToBlock");
+    AppConfig.logger.d("$profileId would be unfollowing $profileToBlock");
 
     try {
       await profileReference.get().then((querySnapshot) async {
@@ -589,7 +589,7 @@ class ProfileFirestore implements ProfileRepository {
               AppFirestoreConstants.blockTo: FieldValue.arrayUnion(
                   [profileToBlock])
             });
-            AppUtilities.logger.d("$profileId has blocked $profileToBlock");
+            AppConfig.logger.d("$profileId has blocked $profileToBlock");
           }
 
           if (document.id == profileToBlock) {
@@ -599,7 +599,7 @@ class ProfileFirestore implements ProfileRepository {
               AppFirestoreConstants.blockedBy: FieldValue.arrayUnion(
                   [profileId])
             });
-            AppUtilities.logger.d(
+            AppConfig.logger.d(
                 "$profileToBlock is now blocked by $profileId");
           }
         }
@@ -608,7 +608,7 @@ class ProfileFirestore implements ProfileRepository {
 
       return true;
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
     return false;
   }
@@ -617,7 +617,7 @@ class ProfileFirestore implements ProfileRepository {
   @override
   Future<bool> unblockProfile(
       {required String profileId, required String profileToUnblock}) async {
-    AppUtilities.logger.d("$profileId would unblock $profileToUnblock");
+    AppConfig.logger.d("$profileId would unblock $profileToUnblock");
 
     try {
       await profileReference.get().then((querySnapshot) async {
@@ -627,7 +627,7 @@ class ProfileFirestore implements ProfileRepository {
               AppFirestoreConstants.blockTo: FieldValue.arrayRemove(
                   [profileToUnblock]),
             });
-            AppUtilities.logger.d("$profileId has unblocked $profileToUnblock");
+            AppConfig.logger.d("$profileId has unblocked $profileToUnblock");
           }
 
           if (document.id == profileToUnblock) {
@@ -635,7 +635,7 @@ class ProfileFirestore implements ProfileRepository {
               AppFirestoreConstants.blockedBy: FieldValue.arrayRemove(
                   [profileId])
             });
-            AppUtilities.logger.d(
+            AppConfig.logger.d(
                 "$profileToUnblock is now unblocked by $profileId");
           }
         }
@@ -644,7 +644,7 @@ class ProfileFirestore implements ProfileRepository {
 
       return true;
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
     return false;
   }
@@ -652,9 +652,9 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> updatePosition(String profileId, Position newPosition) async {
-    AppUtilities.logger.d("$profileId updating location");
+    AppConfig.logger.d("$profileId updating location");
 
-    String address = await AppUtilities.getAddressFromPlacerMark(newPosition);
+    String address = await PositionUtilities.getAddressFromPlacerMark(newPosition);
 
     try {
       await profileReference.get().then((querySnapshot) async {
@@ -668,10 +668,10 @@ class ProfileFirestore implements ProfileRepository {
         }
       });
 
-      AppUtilities.logger.d("$profileId location updated");
+      AppConfig.logger.d("$profileId location updated");
       return true;
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return false;
@@ -680,7 +680,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> addPost(String profileId, String postId) async {
-    AppUtilities.logger.d("$profileId would add $postId");
+    AppConfig.logger.d("$profileId would add $postId");
 
     try {
       await profileReference.get()
@@ -694,10 +694,10 @@ class ProfileFirestore implements ProfileRepository {
         }
       });
 
-      AppUtilities.logger.d("Profile $profileId has post $postId");
+      AppConfig.logger.d("Profile $profileId has post $postId");
       return true;
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
     return false;
   }
@@ -705,7 +705,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> removePost(String profileId, String postId) async {
-    AppUtilities.logger.t("$profileId would remove $postId");
+    AppConfig.logger.t("$profileId would remove $postId");
 
     try {
       await profileReference.get()
@@ -719,10 +719,10 @@ class ProfileFirestore implements ProfileRepository {
         }
       });
 
-      AppUtilities.logger.d("$profileId has removed post $postId");
+      AppConfig.logger.d("$profileId has removed post $postId");
       return true;
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
     return false;
   }
@@ -730,7 +730,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> hidePost(String profileId, String postId) async {
-    AppUtilities.logger.d("$profileId would hide $postId");
+    AppConfig.logger.d("$profileId would hide $postId");
 
     try {
       await profileReference.get()
@@ -745,9 +745,9 @@ class ProfileFirestore implements ProfileRepository {
         }
       });
 
-      AppUtilities.logger.d("Profile $profileId has hidden $postId");
+      AppConfig.logger.d("Profile $profileId has hidden $postId");
     } catch (e) {
-      AppUtilities.logger.e.toString();
+      AppConfig.logger.e.toString();
       return false;
     }
 
@@ -757,7 +757,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> addComment(String profileId, String commentId) async {
-    AppUtilities.logger.d("$profileId would add $commentId");
+    AppConfig.logger.d("$profileId would add $commentId");
 
     try {
       await profileReference.get()
@@ -775,9 +775,9 @@ class ProfileFirestore implements ProfileRepository {
         }
       });
 
-      AppUtilities.logger.d("Profile $profileId has added $commentId");
+      AppConfig.logger.d("Profile $profileId has added $commentId");
     } catch (e) {
-      AppUtilities.logger.e.toString();
+      AppConfig.logger.e.toString();
       return false;
     }
 
@@ -787,7 +787,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> removeComment(String profileId, String commentId) async {
-    AppUtilities.logger.d("$profileId would remove $commentId");
+    AppConfig.logger.d("$profileId would remove $commentId");
 
     try {
       await profileReference.get()
@@ -805,9 +805,9 @@ class ProfileFirestore implements ProfileRepository {
         }
       });
 
-      AppUtilities.logger.d("Profile $profileId has removed $commentId");
+      AppConfig.logger.d("Profile $profileId has removed $commentId");
     } catch (e) {
-      AppUtilities.logger.e.toString();
+      AppConfig.logger.e.toString();
       return false;
     }
 
@@ -817,7 +817,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> hideComment(String profileId, String commentId) async {
-    AppUtilities.logger.d("$profileId would hide $commentId");
+    AppConfig.logger.d("$profileId would hide $commentId");
 
     try {
       await profileReference.get()
@@ -835,9 +835,9 @@ class ProfileFirestore implements ProfileRepository {
         }
       });
 
-      AppUtilities.logger.d("Profile $profileId has hidden $commentId");
+      AppConfig.logger.d("Profile $profileId has hidden $commentId");
     } catch (e) {
-      AppUtilities.logger.e.toString();
+      AppConfig.logger.e.toString();
       return false;
     }
 
@@ -847,7 +847,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> updateName(String profileId, String profileName) async {
-    AppUtilities.logger.d("Updating profile $profileId to name $profileName}");
+    AppConfig.logger.d("Updating profile $profileId to name $profileName}");
 
     try {
       await profileReference.get()
@@ -865,7 +865,7 @@ class ProfileFirestore implements ProfileRepository {
       });
       return true;
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return false;
@@ -874,7 +874,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> updateAboutMe(String profileId, String aboutMe) async {
-    AppUtilities.logger.d(
+    AppConfig.logger.d(
         "Updating profile $profileId to description $aboutMe}");
 
     try {
@@ -890,7 +890,7 @@ class ProfileFirestore implements ProfileRepository {
       });
       return true;
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return false;
@@ -898,7 +898,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> updateAddress(String profileId, String address) async {
-    AppUtilities.logger.i(
+    AppConfig.logger.i(
         "Updating Profile $profileId with new address as $address");
 
     try {
@@ -914,7 +914,7 @@ class ProfileFirestore implements ProfileRepository {
       });
       return true;
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return false;
@@ -922,7 +922,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> updatePhoneNumber(String profileId, String phoneNumber) async {
-    AppUtilities.logger.i(
+    AppConfig.logger.i(
         "Updating Profile $profileId with new phoneNumber as $phoneNumber");
 
     try {
@@ -938,7 +938,7 @@ class ProfileFirestore implements ProfileRepository {
       });
       return true;
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return false;
@@ -946,7 +946,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> updateType(String profileId, ProfileType type) async {
-    AppUtilities.logger.i(
+    AppConfig.logger.i(
         "Updating Profile $profileId with new type as ${type.name}");
 
     try {
@@ -962,14 +962,14 @@ class ProfileFirestore implements ProfileRepository {
       });
       return true;
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return false;
   }
 
   Future<bool> updateUsageReason(String profileId, UsageReason reason) async {
-    AppUtilities.logger.i(
+    AppConfig.logger.i(
         "Updating Profile $profileId with new type as ${reason.name}");
 
     try {
@@ -985,7 +985,7 @@ class ProfileFirestore implements ProfileRepository {
       });
       return true;
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return false;
@@ -994,7 +994,7 @@ class ProfileFirestore implements ProfileRepository {
   @override
   Future<bool> updateVerificationLevel(String profileId,
       VerificationLevel verificationLevel) async {
-    AppUtilities.logger.i(
+    AppConfig.logger.i(
         "Updating Profile $profileId with VerificationLevel as ${verificationLevel
             .name}");
 
@@ -1011,7 +1011,7 @@ class ProfileFirestore implements ProfileRepository {
       });
       return true;
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return false;
@@ -1021,7 +1021,7 @@ class ProfileFirestore implements ProfileRepository {
   @override
   Future<bool> addEvent(String profileId, String eventId,
       EventAction eventAction) async {
-    AppUtilities.logger.t("$profileId would add $eventId");
+    AppConfig.logger.t("$profileId would add $eventId");
 
     try {
       await profileReference.get()
@@ -1050,10 +1050,10 @@ class ProfileFirestore implements ProfileRepository {
         }
       });
 
-      AppUtilities.logger.d("$profileId has added event $eventId");
+      AppConfig.logger.d("$profileId has added event $eventId");
       return true;
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
     return false;
   }
@@ -1062,7 +1062,7 @@ class ProfileFirestore implements ProfileRepository {
   @override
   Future<bool> removeEvent(String profileId, String eventId,
       EventAction eventAction) async {
-    AppUtilities.logger.t("$profileId would remove $eventId");
+    AppConfig.logger.t("$profileId would remove $eventId");
 
     try {
       await profileReference.get()
@@ -1092,10 +1092,10 @@ class ProfileFirestore implements ProfileRepository {
         }
       });
 
-      AppUtilities.logger.t("$profileId has removed event $eventId");
+      AppConfig.logger.t("$profileId has removed event $eventId");
       return true;
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
     return false;
   }
@@ -1103,7 +1103,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> addFavoriteItem(String profileId, String itemId) async {
-    AppUtilities.logger.t(
+    AppConfig.logger.t(
         "Adding item $itemId to Profile $profileId favorites");
     try {
       await profileReference.get()
@@ -1118,7 +1118,7 @@ class ProfileFirestore implements ProfileRepository {
         }
       });
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
       return false;
     }
 
@@ -1127,7 +1127,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> addFavoriteItems(String profileId, List<String> itemIds) async {
-    AppUtilities.logger.t(
+    AppConfig.logger.t(
         "Adding ${itemIds.length} items to Profile $profileId favorites");
 
     try {
@@ -1148,7 +1148,7 @@ class ProfileFirestore implements ProfileRepository {
         }
       });
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
       return false;
     }
 
@@ -1157,7 +1157,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> removeFavoriteItem(String profileId, String itemId) async {
-    AppUtilities.logger.t(
+    AppConfig.logger.t(
         "Removing item $itemId from Profile $profileId favorites");
 
     try {
@@ -1173,7 +1173,7 @@ class ProfileFirestore implements ProfileRepository {
         }
       });
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
       return false;
     }
 
@@ -1183,7 +1183,7 @@ class ProfileFirestore implements ProfileRepository {
   @override
   Future<bool> removeFavoriteItems(String profileId,
       List<String> itemIds) async {
-    AppUtilities.logger.t(
+    AppConfig.logger.t(
         "Removing ${itemIds.length} items from Profile $profileId favorites");
 
     try {
@@ -1208,7 +1208,7 @@ class ProfileFirestore implements ProfileRepository {
         }
       });
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
       return false;
     }
 
@@ -1218,7 +1218,7 @@ class ProfileFirestore implements ProfileRepository {
   @override
   Future<bool> addChamberPreset(
       {required String profileId, required String chamberPresetId}) async {
-    AppUtilities.logger.d(
+    AppConfig.logger.d(
         "Adding preset $chamberPresetId to Profile $profileId");
     try {
       await profileReference.get()
@@ -1233,7 +1233,7 @@ class ProfileFirestore implements ProfileRepository {
         }
       });
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
       return false;
     }
 
@@ -1243,7 +1243,7 @@ class ProfileFirestore implements ProfileRepository {
   @override
   Future<bool> addBand(
       {required String profileId, required String bandId}) async {
-    AppUtilities.logger.t(
+    AppConfig.logger.t(
         "Add band $bandId for profile $profileId from firestore");
     try {
       await profileReference.get()
@@ -1257,7 +1257,7 @@ class ProfileFirestore implements ProfileRepository {
         }
       });
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
       return false;
     }
 
@@ -1268,7 +1268,7 @@ class ProfileFirestore implements ProfileRepository {
   @override
   Future<bool> removeBand(
       {required String profileId, required String bandId}) async {
-    AppUtilities.logger.t(
+    AppConfig.logger.t(
         "Remove band $bandId for profile $profileId from firestore");
 
     try {
@@ -1283,7 +1283,7 @@ class ProfileFirestore implements ProfileRepository {
         }
       });
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
       return false;
     }
 
@@ -1293,7 +1293,7 @@ class ProfileFirestore implements ProfileRepository {
   ///DEPRECATED
   // @override
   // Future<bool> addAllAppMediaItemIds(String profileId, List<String> itemIds) async {
-  //   AppUtilities.logger.d("");
+  //   AppConfig.logger.d("");
   //   try {
   //
   //     await profileReference.get()
@@ -1308,7 +1308,7 @@ class ProfileFirestore implements ProfileRepository {
   //     });
   //
   //   } catch (e) {
-  //     AppUtilities.logger.e(e.toString());
+  //     AppConfig.logger.e(e.toString());
   //     return false;
   //   }
   //
@@ -1318,10 +1318,10 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<Map<String, AppProfile>> retrieveAllProfiles({int limit = 0}) async {
-    AppUtilities.logger.d("RetrievingProfiles");
+    AppConfig.logger.d("RetrievingProfiles");
 
     try {
-      if (limit <= 0) limit = AppConstants.profilesLimit;
+      if (limit <= 0) limit = CoreConstants.profilesLimit;
       final querySnapshot = await profileReference.limit(limit).get();
 
       profiles = {
@@ -1332,10 +1332,10 @@ class ProfileFirestore implements ProfileRepository {
       };
 
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
-    AppUtilities.logger.d("${profiles.length} profiles found");
+    AppConfig.logger.t("${profiles.length} profiles found");
     return profiles;
   }
 
@@ -1343,7 +1343,7 @@ class ProfileFirestore implements ProfileRepository {
   @override
   Future<bool> addRequest(String profileId, String requestId,
       RequestType requestType) async {
-    AppUtilities.logger.t("$profileId would add $requestId");
+    AppConfig.logger.t("$profileId would add $requestId");
 
     try {
       await profileReference.get()
@@ -1372,11 +1372,11 @@ class ProfileFirestore implements ProfileRepository {
         }
       });
 
-      AppUtilities.logger.d(
+      AppConfig.logger.d(
           "Profile $profileId has added request $requestId as type ${requestType
               .name}");
     } catch (e) {
-      AppUtilities.logger.e.toString();
+      AppConfig.logger.e.toString();
       return false;
     }
 
@@ -1387,7 +1387,7 @@ class ProfileFirestore implements ProfileRepository {
   @override
   Future<bool> removeRequest(String profileId, String requestId,
       RequestType requestType) async {
-    AppUtilities.logger.d("$profileId would remove $requestId");
+    AppConfig.logger.d("$profileId would remove $requestId");
 
     try {
       await profileReference.get()
@@ -1415,10 +1415,10 @@ class ProfileFirestore implements ProfileRepository {
         }
       });
 
-      AppUtilities.logger.d(
+      AppConfig.logger.d(
           "Profile $profileId has removed request $requestId");
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
       return false;
     }
 
@@ -1428,7 +1428,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<Map<String, AppProfile>> getFollowers(String profileId) async {
-    AppUtilities.logger.d("Start getFollowers for $profileId");
+    AppConfig.logger.d("Start getFollowers for $profileId");
 
     AppProfile profile = AppProfile();
     Map<String, AppProfile> followersMap = {};
@@ -1449,9 +1449,9 @@ class ProfileFirestore implements ProfileRepository {
         followersMap[followerId] = follower;
       }
 
-      AppUtilities.logger.d("${followersMap.length} Followers found");
+      AppConfig.logger.d("${followersMap.length} Followers found");
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
       rethrow;
     }
     return followersMap;
@@ -1460,7 +1460,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<Map<String, AppProfile>> getFollowed(String profileId) async {
-    AppUtilities.logger.d("Start getFollowed for $profileId");
+    AppConfig.logger.d("Start getFollowed for $profileId");
 
     AppProfile profile = AppProfile();
     Map<String, AppProfile> followedMap = {};
@@ -1481,9 +1481,9 @@ class ProfileFirestore implements ProfileRepository {
         followedMap[followedId] = followed;
       }
 
-      AppUtilities.logger.d("${followedMap.length} Followed found");
+      AppConfig.logger.d("${followedMap.length} Followed found");
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
       rethrow;
     }
     return followedMap;
@@ -1492,7 +1492,7 @@ class ProfileFirestore implements ProfileRepository {
   // @override
   // Future<bool> addToWallet(String profileId, double amount,
   //     {AppCurrency appCurrency = AppCurrency.appCoin}) async {
-  //   AppUtilities.logger.d(
+  //   AppConfig.logger.d(
   //       "addToWallet from ProfileFirestore for profileID $profileId");
   //   String userId = "";
   //   AppUser user = AppUser();
@@ -1504,7 +1504,7 @@ class ProfileFirestore implements ProfileRepository {
   //
   //     for (var profile in querySnapshot.docs) {
   //       if (profile.id == profileId) {
-  //         AppUtilities.logger.i(
+  //         AppConfig.logger.i(
   //             "Reference id: ${profile.reference.parent.parent!.id}");
   //         DocumentReference documentReference = profile.reference;
   //         userId = documentReference.parent.parent!.id;
@@ -1512,7 +1512,7 @@ class ProfileFirestore implements ProfileRepository {
   //         userQuerySnapshot =
   //         await usersReference.where(FieldPath.documentId, isEqualTo: userId)
   //             .get();
-  //         AppUtilities.logger.i("${userQuerySnapshot.docs.length} users found");
+  //         AppConfig.logger.i("${userQuerySnapshot.docs.length} users found");
   //
   //         for (var doc in userQuerySnapshot.docs) {
   //           user = AppUser.fromJSON(doc.data());
@@ -1531,11 +1531,11 @@ class ProfileFirestore implements ProfileRepository {
   //               .get();
   //
   //           if (profileQuerySnapshot.docs.isNotEmpty) {
-  //             AppUtilities.logger.d("Profiles were found for userId ${doc.id}");
+  //             AppConfig.logger.d("Profiles were found for userId ${doc.id}");
   //
   //             for (var profileSnapshot in profileQuerySnapshot.docs) {
   //               if (profileSnapshot.id == profileId) {
-  //                 AppUtilities.logger.d(
+  //                 AppConfig.logger.d(
   //                     "Profile $profileId was found for userId ${doc.id} ");
   //                 user = AppUser.fromJSON(doc.data());
   //                 user.id = doc.id;
@@ -1543,7 +1543,7 @@ class ProfileFirestore implements ProfileRepository {
   //               }
   //             }
   //           } else {
-  //             AppUtilities.logger.i("No user found");
+  //             AppConfig.logger.i("No user found");
   //           }
   //         }
   //       }
@@ -1552,17 +1552,17 @@ class ProfileFirestore implements ProfileRepository {
   //     if (userQueryDocumentSnapshot?.exists ?? false) {
   //       if (user.id.isNotEmpty) {
   //         double newAmount = user.wallet.amount + amount;
-  //         AppUtilities.logger.i("Updating UserWallet from ${user.wallet.amount} to $newAmount");
+  //         AppConfig.logger.i("Updating UserWallet from ${user.wallet.amount} to $newAmount");
   //         user.wallet.amount = newAmount;
   //         await userQueryDocumentSnapshot!.reference.update({
   //           AppFirestoreConstants.wallet: user.wallet.toJSON()
   //         });
-  //         AppUtilities.logger.d("User Wallet updated");
+  //         AppConfig.logger.d("User Wallet updated");
   //         return true;
   //       }
   //     }
   //   } catch (e) {
-  //     AppUtilities.logger.e(e.toString());
+  //     AppConfig.logger.e(e.toString());
   //   }
   //
   //   return false;
@@ -1572,7 +1572,7 @@ class ProfileFirestore implements ProfileRepository {
   // @override
   // Future<bool> subtractFromWallet(String profileId, double amount,
   //     {AppCurrency appCurrency = AppCurrency.appCoin}) async {
-  //   AppUtilities.logger.d(
+  //   AppConfig.logger.d(
   //       "Entering substractToWallet method from ProfileFirestore");
   //   String userId = "";
   //   AppUser user = AppUser();
@@ -1584,7 +1584,7 @@ class ProfileFirestore implements ProfileRepository {
   //
   //     for (var profile in querySnapshot.docs) {
   //       if (profile.id == profileId) {
-  //         AppUtilities.logger.i(
+  //         AppConfig.logger.i(
   //             "Reference id: ${profile.reference.parent.parent!.id}");
   //         DocumentReference documentReference = profile.reference;
   //         userId = documentReference.parent.parent!.id;
@@ -1592,7 +1592,7 @@ class ProfileFirestore implements ProfileRepository {
   //         userQuerySnapshot =
   //         await usersReference.where(FieldPath.documentId, isEqualTo: userId)
   //             .get();
-  //         AppUtilities.logger.i("${userQuerySnapshot.docs.length} users found");
+  //         AppConfig.logger.i("${userQuerySnapshot.docs.length} users found");
   //
   //         for (var doc in userQuerySnapshot.docs) {
   //           user = AppUser.fromJSON(doc.data());
@@ -1611,11 +1611,11 @@ class ProfileFirestore implements ProfileRepository {
   //               .get();
   //
   //           if (profileQuerySnapshot.docs.isNotEmpty) {
-  //             AppUtilities.logger.d("Profiles were found for userId ${doc.id}");
+  //             AppConfig.logger.d("Profiles were found for userId ${doc.id}");
   //
   //             for (var profileSnapshot in profileQuerySnapshot.docs) {
   //               if (profileSnapshot.id == profileId) {
-  //                 AppUtilities.logger.d(
+  //                 AppConfig.logger.d(
   //                     "Profile $profileId was found for userId ${doc.id} ");
   //                 user = AppUser.fromJSON(doc.data());
   //                 user.id = doc.id;
@@ -1623,7 +1623,7 @@ class ProfileFirestore implements ProfileRepository {
   //               }
   //             }
   //           } else {
-  //             AppUtilities.logger.i("No user found");
+  //             AppConfig.logger.i("No user found");
   //           }
   //         }
   //       }
@@ -1635,12 +1635,12 @@ class ProfileFirestore implements ProfileRepository {
   //         await userQueryDocumentSnapshot!.reference.update({
   //           AppFirestoreConstants.wallet: user.wallet.toJSON()
   //         });
-  //         AppUtilities.logger.d("User Wallet updated");
+  //         AppConfig.logger.d("User Wallet updated");
   //         return true;
   //       }
   //     }
   //   } catch (e) {
-  //     AppUtilities.logger.e(e.toString());
+  //     AppConfig.logger.e(e.toString());
   //   }
   //
   //   return false;
@@ -1649,7 +1649,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> updatePhotoUrl(String profileId, String photoUrl) async {
-    AppUtilities.logger.d("");
+    AppConfig.logger.d("");
 
     try {
       await profileReference.get()
@@ -1663,7 +1663,7 @@ class ProfileFirestore implements ProfileRepository {
         }
       });
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
       return false;
     }
 
@@ -1673,7 +1673,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> updateCoverImgUrl(String profileId, String coverImgUrl) async {
-    AppUtilities.logger.d("");
+    AppConfig.logger.d("");
 
     try {
       await profileReference.get()
@@ -1687,7 +1687,7 @@ class ProfileFirestore implements ProfileRepository {
         }
       });
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
       return false;
     }
 
@@ -1702,7 +1702,7 @@ class ProfileFirestore implements ProfileRepository {
 
 
   Future<String> retrievedFcmToken(String profileId) async {
-    AppUtilities.logger.t("Retrieving FCM Token for Profile $profileId");
+    AppConfig.logger.t("Retrieving FCM Token for Profile $profileId");
 
     String userId = "";
     String fcmToken = "";
@@ -1713,7 +1713,7 @@ class ProfileFirestore implements ProfileRepository {
 
       for (var profile in querySnapshot.docs) {
         if (profile.id == profileId) {
-          AppUtilities.logger.t(
+          AppConfig.logger.t(
               "Reference id: ${profile.reference.parent.parent?.id ?? ""}");
           DocumentReference documentReference = profile.reference;
           userId = documentReference.parent.parent?.id ?? "";
@@ -1722,24 +1722,24 @@ class ProfileFirestore implements ProfileRepository {
             userQuerySnapshot = await usersReference.where(
                 FieldPath.documentId, isEqualTo: userId).get();
             if (userQuerySnapshot.docs.isNotEmpty) {
-              AppUtilities.logger.t(
+              AppConfig.logger.t(
                   "${userQuerySnapshot.docs.length} users found");
               fcmToken = AppUser
                   .fromJSON(userQuerySnapshot.docs.first.data())
                   .fcmToken;
-              AppUtilities.logger.t("FCM Token $fcmToken");
+              AppConfig.logger.t("FCM Token $fcmToken");
             } else {
-              AppUtilities.logger.w("No user found for id $userId");
+              AppConfig.logger.w("No user found for id $userId");
             }
           }
         }
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     if (fcmToken.isEmpty) {
-      AppUtilities.logger.w(
+      AppConfig.logger.w(
           "Push Notification not send as FCM Token was not found for users device");
     }
 
@@ -1749,8 +1749,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> isAvailableName(String profileName) async {
-    AppUtilities.logger.d(
-        "Verify if name $profileName is available to create this profile");
+    AppConfig.logger.d("Verify if name $profileName is available to create this profile");
 
     try {
       QuerySnapshot querySnapshot = await profileReference
@@ -1760,15 +1759,15 @@ class ProfileFirestore implements ProfileRepository {
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        AppUtilities.logger.w("Profile Name '$profileName' already in use");
+        AppConfig.logger.w("Profile Name '$profileName' already in use");
         return false; // No disponible
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
       return false;
     }
 
-    AppUtilities.logger.d("No profiles found");
+    AppConfig.logger.d("No profiles found");
     return true;
   }
 
@@ -1778,14 +1777,14 @@ class ProfileFirestore implements ProfileRepository {
         profile.instruments =
         await InstrumentFirestore().retrieveInstruments(profile.id);
         if (profile.instruments!.isEmpty) {
-          AppUtilities.logger.w("Instruments not found");
+          AppConfig.logger.w("Instruments not found");
         }
       }
 
       if (profile.type == ProfileType.host) {
         profile.places = await PlaceFirestore().retrievePlaces(profile.id);
         if (profile.places!.isEmpty) {
-          AppUtilities.logger.t("Places not found");
+          AppConfig.logger.t("Places not found");
         }
       }
 
@@ -1793,11 +1792,11 @@ class ProfileFirestore implements ProfileRepository {
         profile.facilities =
         await FacilityFirestore().retrieveFacilities(profile.id);
         if (profile.facilities!.isEmpty) {
-          AppUtilities.logger.w("Facilities not found");
+          AppConfig.logger.w("Facilities not found");
         }
       }
 
-      if(AppFlavour.appInUse == AppInUse.c) {
+      if(AppConfig.appInUse == AppInUse.c) {
         profile.chambers = await ChamberFirestore().fetchAll(ownerId: profile.id);
         profile.chamberPresets?.clear();
 
@@ -1808,13 +1807,13 @@ class ProfileFirestore implements ProfileRepository {
 
       profile.genres = await GenreFirestore().retrieveGenres(profile.id);
       profile.itemlists = await ItemlistFirestore().getByOwnerId(profile.id);
-      if (profile.genres!.isEmpty) AppUtilities.logger.t("Genres not found");
+      if (profile.genres!.isEmpty) AppConfig.logger.t("Genres not found");
       if (profile.itemlists!.isEmpty) {
-        AppUtilities.logger.t(
+        AppConfig.logger.t(
           "Itemlists not found");
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return profile;
@@ -1822,7 +1821,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> updateLastSpotifySync(String profileId) async {
-    AppUtilities.logger.d("Updating Spotify Last Sync for profile $profileId");
+    AppConfig.logger.d("Updating Spotify Last Sync for profile $profileId");
 
     try {
       await profileReference.get()
@@ -1839,7 +1838,7 @@ class ProfileFirestore implements ProfileRepository {
       });
       return true;
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return false;
@@ -1847,7 +1846,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> addBlogEntry(String profileId, String blogEntryId) async {
-    AppUtilities.logger.d("$profileId would add $blogEntryId");
+    AppConfig.logger.d("$profileId would add $blogEntryId");
 
     try {
       await profileReference.get()
@@ -1862,10 +1861,10 @@ class ProfileFirestore implements ProfileRepository {
         }
       });
 
-      AppUtilities.logger.d("Profile $profileId has blogEntry $blogEntryId");
+      AppConfig.logger.d("Profile $profileId has blogEntry $blogEntryId");
       return true;
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
     return false;
   }
@@ -1873,7 +1872,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> removeBlogEntry(String profileId, String blogEntryId) async {
-    AppUtilities.logger.d("$profileId would remove $blogEntryId");
+    AppConfig.logger.d("$profileId would remove $blogEntryId");
 
     try {
       await profileReference.get()
@@ -1888,17 +1887,17 @@ class ProfileFirestore implements ProfileRepository {
         }
       });
 
-      AppUtilities.logger.d("$profileId has removed blogEntry $blogEntryId");
+      AppConfig.logger.d("$profileId has removed blogEntry $blogEntryId");
       return true;
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
     return false;
   }
 
   @override
   Future<bool> removeAllFavoriteItems(String profileId) async {
-    AppUtilities.logger.d("");
+    AppConfig.logger.d("");
 
     try {
       await profileReference.get()
@@ -1908,12 +1907,12 @@ class ProfileFirestore implements ProfileRepository {
           await document.reference.update({
             AppFirestoreConstants.favoriteItems: FieldValue.delete()
           });
-          AppUtilities.logger.w("Deleting");
+          AppConfig.logger.w("Deleting");
           // }
         }
       });
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
       return false;
     }
 
@@ -1929,7 +1928,7 @@ class ProfileFirestore implements ProfileRepository {
     FacilityType? facilityType,
     int maxDistance = 30,
     int maxProfiles = 30}) async {
-    AppUtilities.logger.d("RetrievingProfiles by facility");
+    AppConfig.logger.d("RetrievingProfiles by facility");
 
     Map<String, AppProfile> facilityProfiles = <String, AppProfile>{};
     Map<String, AppProfile> noMainFacilityProfiles = <String, AppProfile>{};
@@ -1943,11 +1942,11 @@ class ProfileFirestore implements ProfileRepository {
               profile.type == ProfileType.facilitator
               && facilityProfiles.length < maxProfiles
           ) {
-            if (AppUtilities.distanceBetweenPositionsRounded(
+            if (PositionUtilities.distanceBetweenPositionsRounded(
                 profile.position!, currentPosition!) < maxDistance) {
               if (profile.address.isEmpty && profile.position != null) {
                 profile.address =
-                await AppUtilities.getAddressFromPlacerMark(profile.position!);
+                await PositionUtilities.getAddressFromPlacerMark(profile.position!);
               }
               if (profile.posts?.isNotEmpty ?? false) {
                 List<Post> profilePosts = await PostFirestore().getProfilePosts(
@@ -1977,11 +1976,11 @@ class ProfileFirestore implements ProfileRepository {
                   facilityProfiles[profile.id] = profile;
                 }
               } else {
-                AppUtilities.logger.d(
+                AppConfig.logger.d(
                     "Profile ${profile.id} ${profile.name} has not posts");
               }
             } else {
-              AppUtilities.logger.d("Profile ${profile.id} ${profile
+              AppConfig.logger.d("Profile ${profile.id} ${profile
                   .name} is out of max distance");
             }
           }
@@ -1997,10 +1996,10 @@ class ProfileFirestore implements ProfileRepository {
         }
       });
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
-    AppUtilities.logger.d("${facilityProfiles.length} Profiles found");
+    AppConfig.logger.d("${facilityProfiles.length} Profiles found");
     return facilityProfiles;
   }
 
@@ -2009,7 +2008,7 @@ class ProfileFirestore implements ProfileRepository {
     required String selfProfileId, required Position? currentPosition,
     PlaceType? placeType, int maxDistance = 30, int maxProfiles = 30}) async {
 
-    AppUtilities.logger.d("RetrievingProfiles by place");
+    AppConfig.logger.d("RetrievingProfiles by place");
 
     Map<String, AppProfile> hostProfiles = <String, AppProfile>{};
     Map<String, AppProfile> noMainPlaceProfiles = <String, AppProfile>{};
@@ -2022,11 +2021,11 @@ class ProfileFirestore implements ProfileRepository {
           if (profile.id != selfProfileId && profile.type == ProfileType.host
               && hostProfiles.length < maxProfiles
           ) {
-            if (AppUtilities.distanceBetweenPositionsRounded(
+            if (PositionUtilities.distanceBetweenPositionsRounded(
                 profile.position!, currentPosition!) < maxDistance) {
               if (profile.address.isEmpty && profile.position != null) {
                 profile.address =
-                await AppUtilities.getAddressFromPlacerMark(profile.position!);
+                await PositionUtilities.getAddressFromPlacerMark(profile.position!);
               }
               if (profile.posts?.isNotEmpty ?? false) {
                 List<Post> profilePosts = await PostFirestore().getProfilePosts(
@@ -2056,11 +2055,11 @@ class ProfileFirestore implements ProfileRepository {
                   hostProfiles[profile.id] = profile;
                 }
               } else {
-                AppUtilities.logger.d(
+                AppConfig.logger.d(
                     "Profile ${profile.id} ${profile.name} has not posts");
               }
             } else {
-              AppUtilities.logger.d("Profile ${profile.id} ${profile
+              AppConfig.logger.d("Profile ${profile.id} ${profile
                   .name} is out of max distance");
             }
           }
@@ -2076,22 +2075,22 @@ class ProfileFirestore implements ProfileRepository {
         }
       });
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
-    AppUtilities.logger.d("${hostProfiles.length} Profiles found");
+    AppConfig.logger.d("${hostProfiles.length} Profiles found");
     return hostProfiles;
   }
 
   ///getByEmail
   @override
   Future<AppProfile?> getByEmail(String email) async {
-    AppUtilities.logger.d("Retrieving profile by email $email");
+    AppConfig.logger.d("Retrieving profile by email $email");
 
     AppUser? user;
     AppProfile? profile;
     if (email.isEmpty) {
-      AppUtilities.logger.w("Email is empty");
+      AppConfig.logger.w("Email is empty");
       return null;
     }
 
@@ -2103,13 +2102,13 @@ class ProfileFirestore implements ProfileRepository {
         if(profile.id.isNotEmpty) {
           return profile;
         } else {
-          AppUtilities.logger.d("Profile for userId ${user.id} not found");
+          AppConfig.logger.d("Profile for userId ${user.id} not found");
         }
       } else {
         user?.profiles = await retrieveByUserId(user.id);
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return (user?.profiles.isNotEmpty ?? false) ? user!.profiles.first : null;

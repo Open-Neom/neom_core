@@ -3,11 +3,12 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../app_config.dart';
 import '../../domain/model/band.dart';
 import '../../domain/model/band_member.dart';
 import '../../domain/model/genre.dart';
 import '../../domain/repository/band_repository.dart';
-import '../../utils/app_utilities.dart';
+
 import '../../utils/enums/owner_type.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
@@ -17,7 +18,7 @@ import 'request_firestore.dart';
 
 class BandFirestore implements BandRepository {
 
-  var logger = AppUtilities.logger;
+  var logger = AppConfig.logger;
   final bandsReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.bands);
 
   @override

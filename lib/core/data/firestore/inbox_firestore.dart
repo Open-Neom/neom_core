@@ -2,12 +2,13 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../app_config.dart';
 import '../../domain/model/app_profile.dart';
 import '../../domain/model/inbox.dart';
 import '../../domain/model/inbox_message.dart';
 import '../../domain/repository/inbox_repository.dart';
-import '../../utils/app_utilities.dart';
-import '../../utils/constants/app_constants.dart';
+
+import '../../utils/constants/core_constants.dart';
 import '../../utils/enums/inbox_room_type.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
@@ -21,31 +22,31 @@ class InboxFirestore implements InboxRepository {
   @override
   Future<bool> addMessage(String inboxRoomId, InboxMessage message,
       {InboxRoomType inboxRoomType = InboxRoomType.profile}) async {
-    AppUtilities.logger.t("Adding Message to inbox $inboxRoomId");
+    AppConfig.logger.t("Adding Message to inbox $inboxRoomId");
 
     try {
       await inboxReference.doc(inboxRoomId).collection(AppFirestoreCollectionConstants.messages)
           .add(message.toJSON());
-      AppUtilities.logger.d("${message.text} message added");
+      AppConfig.logger.d("${message.text} message added");
 
       if(inboxRoomType == InboxRoomType.profile) {
         await inboxReference.doc(inboxRoomId)
             .update({AppFirestoreConstants.lastMessage: message.toJSON()});
       }
 
-      AppUtilities.logger.i("${message.text} last message added");
+      AppConfig.logger.i("${message.text} last message added");
       return true;
     } catch (e) {
-      AppUtilities.logger.e("Something occurred.");
+      AppConfig.logger.e("Something occurred.");
     }
 
-    AppUtilities.logger.d("Message not send");
+    AppConfig.logger.d("Message not send");
     return false;
   }
 
   @override
   Future<bool> handleLikeMessage(String profileId, String messageId, bool isLiked) async {
-    AppUtilities.logger.d("");
+    AppConfig.logger.d("");
     try {
       await messageReference.get()
           .then((querySnapshot) async {
@@ -59,7 +60,7 @@ class InboxFirestore implements InboxRepository {
 
       return true;
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
       return false;
     }
   }
@@ -67,7 +68,7 @@ class InboxFirestore implements InboxRepository {
 
   @override
   Future<bool> inboxExists(String inboxId) async {
-    AppUtilities.logger.d("");
+    AppConfig.logger.d("");
 
     try {
       DocumentSnapshot documentSnapshot = await inboxReference.doc(inboxId).get();
@@ -75,17 +76,17 @@ class InboxFirestore implements InboxRepository {
         return true;
       }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
-    AppUtilities.logger.d("");
+    AppConfig.logger.d("");
     return false;
   }
 
 
   @override
   Future<List<InboxMessage>> retrieveMessages(String inboxId) async {
-    AppUtilities.logger.t("Retrieving messages for inbox room $inboxId from firestore");
+    AppConfig.logger.t("Retrieving messages for inbox room $inboxId from firestore");
     List<InboxMessage> messages = [];
 
     try {
@@ -96,16 +97,16 @@ class InboxFirestore implements InboxRepository {
         for (var messageSnapshot in querySnapshot.docs) {
           InboxMessage message = InboxMessage.fromJSON(messageSnapshot.data());
           message.id = messageSnapshot.id;
-          AppUtilities.logger.t('Message text ${message.text}');
+          AppConfig.logger.t('Message text ${message.text}');
           messages.add(message);
         }
-        AppUtilities.logger.t("${messages.length} messages retrieved");
+        AppConfig.logger.t("${messages.length} messages retrieved");
       } else {
-        AppUtilities.logger.t("No messages found Found");
+        AppConfig.logger.t("No messages found Found");
       }
 
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return messages;
@@ -114,14 +115,14 @@ class InboxFirestore implements InboxRepository {
 
   @override
   Future<bool> addInbox(Inbox inbox) async {
-    AppUtilities.logger.d("");
+    AppConfig.logger.d("");
 
     try {
       await inboxReference.doc(inbox.id).set(inbox.toJSON());
-      AppUtilities.logger.d("");
+      AppConfig.logger.d("");
       return true;
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return false;
@@ -129,7 +130,7 @@ class InboxFirestore implements InboxRepository {
 
   @override
   Future<List<Inbox>> getProfileInbox(String profileId) async {
-    AppUtilities.logger.t("Getting Inbox for Profile $profileId from firestore");
+    AppConfig.logger.t("Getting Inbox for Profile $profileId from firestore");
 
     List<Inbox> inboxs = [];
 
@@ -167,13 +168,13 @@ class InboxFirestore implements InboxRepository {
           //   }
           // }
 
-            AppUtilities.logger.i('Inbox ${inbox.id} found');
+            AppConfig.logger.i('Inbox ${inbox.id} found');
             inboxs.add(inbox);
           }
         }
-      AppUtilities.logger.i("${inboxs.length} inboxRoom retrieved");
+      AppConfig.logger.i("${inboxs.length} inboxRoom retrieved");
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return inboxs;
@@ -182,7 +183,7 @@ class InboxFirestore implements InboxRepository {
 
   @override
   Future<Inbox> getOrCreateInboxRoom(AppProfile profile, AppProfile itemmate) async {
-    AppUtilities.logger.d("Getting or creating InboxRoom for profile ${profile.id}");
+    AppConfig.logger.d("Getting or creating InboxRoom for profile ${profile.id}");
 
     Inbox inbox = Inbox();
 
@@ -192,17 +193,17 @@ class InboxFirestore implements InboxRepository {
     try {
       DocumentSnapshot documentSnapshot = await inboxReference.doc(inboxRoomId).get();
       if(documentSnapshot.exists){
-        AppUtilities.logger.d("Retrieving inbox from main user");
+        AppConfig.logger.d("Retrieving inbox from main user");
         inbox = Inbox.fromJSON(documentSnapshot.data());
         inbox.id = documentSnapshot.id;
       } else {
         DocumentSnapshot itemmateDocumentSnapshot = await inboxReference.doc(mateInboxRoomId).get();
         if(itemmateDocumentSnapshot.exists){
-          AppUtilities.logger.i("Retrieving inbox from itemmate");          
+          AppConfig.logger.i("Retrieving inbox from itemmate");
           inbox = Inbox.fromJSON(itemmateDocumentSnapshot.data());
           inbox.id = documentSnapshot.id;
         } else {
-          AppUtilities.logger.i("Creating inbox from main user");
+          AppConfig.logger.i("Creating inbox from main user");
           inbox.id = inboxRoomId;
           List<String> profileIds = [];
           profileIds.add(profile.id);
@@ -223,11 +224,11 @@ class InboxFirestore implements InboxRepository {
       //   }
       // }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
       rethrow;
     }
 
-    AppUtilities.logger.d(inbox.toString());
+    AppConfig.logger.d(inbox.toString());
     return inbox;
   }
 
@@ -246,21 +247,21 @@ class InboxFirestore implements InboxRepository {
 
 
   Future<Inbox> getOrCreateAppBotRoom(String profileId) async {
-    AppUtilities.logger.t("getOrCreateAppBotRoom for profile $profileId");
+    AppConfig.logger.t("getOrCreateAppBotRoom for profile $profileId");
 
     Inbox inbox = Inbox();
 
-    String inboxRoomId = "${profileId}_${AppConstants.appBot}";
+    String inboxRoomId = "${profileId}_${CoreConstants.appBot}";
 
     try {
       DocumentSnapshot documentSnapshot = await inboxReference.doc(inboxRoomId).get();
       if(documentSnapshot.exists){
-        AppUtilities.logger.d("Retrieving inbox from main user");
+        AppConfig.logger.d("Retrieving inbox from main user");
         inbox = Inbox.fromJSON(documentSnapshot.data());
         inbox.id = documentSnapshot.id;
         
       } else {
-        AppUtilities.logger.d("Creating inbox for AppBot");
+        AppConfig.logger.d("Creating inbox for AppBot");
         inbox.id = inboxRoomId;
         List<String> profileIds = [];
         profileIds.add(profileId);
@@ -277,10 +278,10 @@ class InboxFirestore implements InboxRepository {
       //   }
       // }
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
-    AppUtilities.logger.d(inbox.toString());
+    AppConfig.logger.d(inbox.toString());
     return inbox;
   }
 

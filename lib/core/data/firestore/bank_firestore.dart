@@ -14,7 +14,7 @@
 //   @override
 //   Future<bool> addAmount(String fromEmail, double amount, String orderId, {AppCurrency appCurrency = AppCurrency.appCoin, String reason = ''}) async {
 //
-//     AppUtilities.logger.d("addToWallet BankFirestore from profileID $fromEmail");
+//     AppConfig.logger.d("addToWallet BankFirestore from profileID $fromEmail");
 //
 //     try {
 //       DocumentSnapshot coinsDoc = await bankReference.doc("appCoins").get();
@@ -22,7 +22,7 @@
 //       double bankAmount = data['amount'] ?? 0;
 //       bankAmount = bankAmount + amount;
 //
-//       AppUtilities.logger.i("Updating Bankto $bankAmount");
+//       AppConfig.logger.i("Updating Bankto $bankAmount");
 //       await coinsDoc.reference.update({
 //         AppFirestoreConstants.amount: bankAmount,
 //         AppFirestoreConstants.transactions: FieldValue.arrayUnion([{
@@ -34,10 +34,10 @@
 //           'date': DateTime.now().millisecondsSinceEpoch,
 //         }])
 //       });
-//       AppUtilities.logger.d("Bank Wallet updated");
+//       AppConfig.logger.d("Bank Wallet updated");
 //       return true;
 //     } catch (e) {
-//       AppUtilities.logger.e(e.toString());
+//       AppConfig.logger.e(e.toString());
 //     }
 //
 //     return false;
@@ -46,7 +46,7 @@
 //   @override
 //   Future<bool> subtractAmount(String fromEmail, double amount, {AppCurrency appCurrency = AppCurrency.appCoin, String? orderId, String reason = ''}) async {
 //
-//     AppUtilities.logger.d("subtractAmount BankFirestore from profileID $fromEmail");
+//     AppConfig.logger.d("subtractAmount BankFirestore from profileID $fromEmail");
 //
 //     try {
 //       DocumentSnapshot coinsDoc = await bankReference.doc("appCoins").get();
@@ -54,7 +54,7 @@
 //       double bankAmount = data['amount'] ?? 0;
 //       bankAmount = bankAmount - amount;
 //
-//       AppUtilities.logger.i("Updating Bankto $bankAmount");
+//       AppConfig.logger.i("Updating Bankto $bankAmount");
 //       await coinsDoc.reference.update({
 //         AppFirestoreConstants.amount: bankAmount,
 //         AppFirestoreConstants.transactions: FieldValue.arrayUnion([{
@@ -66,10 +66,10 @@
 //           'date': DateTime.now().millisecondsSinceEpoch
 //         }])
 //       });
-//       AppUtilities.logger.d("Bank Wallet updated");
+//       AppConfig.logger.d("Bank Wallet updated");
 //       return true;
 //     } catch (e) {
-//       AppUtilities.logger.e(e.toString());
+//       AppConfig.logger.e(e.toString());
 //     }
 //
 //     return false;

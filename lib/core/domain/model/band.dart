@@ -7,9 +7,9 @@ import 'package:get/get.dart';
 import '../../utils/core_utilities.dart';
 import '../../utils/enums/usage_reason.dart';
 import 'band_member.dart';
-import 'chamber.dart';
 import 'genre.dart';
 import 'item_list.dart';
+import 'neom/chamber.dart';
 import 'price.dart';
 import 'review.dart';
 

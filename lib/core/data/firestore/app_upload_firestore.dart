@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
+import '../../app_config.dart';
 import '../../domain/repository/app_upload_repository.dart';
-import '../../utils/app_utilities.dart';
 import '../../utils/enums/app_media_type.dart';
 import '../../utils/enums/upload_image_type.dart';
 import 'constants/app_firestore_collection_constants.dart';
@@ -20,7 +20,7 @@ class AppUploadFirestore implements AppUploadRepository {
     String imgUrl = "";
     try {
       if (!file.existsSync()) {
-        AppUtilities.logger.e('El archivo no existe en la ruta: ${file.path}');
+        AppConfig.logger.e('El archivo no existe en la ruta: ${file.path}');
         return "";
       }
 
@@ -30,7 +30,7 @@ class AppUploadFirestore implements AppUploadRepository {
 
       imgUrl = await storageSnap.ref.getDownloadURL();
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return imgUrl;
@@ -45,7 +45,7 @@ class AppUploadFirestore implements AppUploadRepository {
       TaskSnapshot storageSnap = await uploadTask;
       downloadURL = await storageSnap.ref.getDownloadURL();
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return downloadURL;
@@ -60,7 +60,7 @@ class AppUploadFirestore implements AppUploadRepository {
       TaskSnapshot storageSnap = await uploadTask;
       downloadURL = await storageSnap.ref.getDownloadURL();
     } catch (e) {
-      AppUtilities.logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
     }
 
     return downloadURL;
