@@ -139,7 +139,7 @@ class UserFirestore implements UserRepository {
             if(user.currentProfileId.isNotEmpty) {
               profile = await ProfileFirestore().retrieve(user.currentProfileId);
               if(profile.id.isNotEmpty) {
-                if(AppConfig.appInUse == AppInUse.c) {
+                if(AppConfig.instance.appInUse == AppInUse.c) {
                   profile.chambers = await ChamberFirestore().fetchAll(ownerId: profile.id);
                   profile.chamberPresets?.clear();
 

@@ -21,7 +21,7 @@ class AppConfig {
 
   bool _isInitialized = false;
 
-  static AppInUse appInUse = AppInUse.o;
+  AppInUse appInUse = AppInUse.o;
   String appVersion = '';
   int buildNumber = 0;
 

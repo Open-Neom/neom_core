@@ -1796,7 +1796,7 @@ class ProfileFirestore implements ProfileRepository {
         }
       }
 
-      if(AppConfig.appInUse == AppInUse.c) {
+      if(AppConfig.instance.appInUse == AppInUse.c) {
         profile.chambers = await ChamberFirestore().fetchAll(ownerId: profile.id);
         profile.chamberPresets?.clear();
 

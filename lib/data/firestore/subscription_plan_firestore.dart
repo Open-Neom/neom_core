@@ -114,7 +114,7 @@ class SubscriptionPlanFirestore {
     SubscriptionPlanFirestore subscriptionPlanFirestore = SubscriptionPlanFirestore();
     List<SubscriptionPlan> subscriptionPlans = [];
 
-    if(AppConfig.appInUse == AppInUse.e) {
+    if(AppConfig.instance.appInUse == AppInUse.e) {
       // Lista de planes de suscripción con sus datos hardcodeados desde la imagen
       subscriptionPlans = [
         SubscriptionPlan(
