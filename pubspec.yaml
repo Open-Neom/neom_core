@@ -47,6 +47,7 @@ dependencies:
   upgrader: ^11.4.0
   package_info_plus: ^8.3.0
 
+  in_app_purchase: ^3.2.3
 dev_dependencies:
   flutter_test:
     sdk: flutter
