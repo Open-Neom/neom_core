@@ -216,26 +216,10 @@ class AppProperties {
 
   static String getInstagram() {
     return appProperties['instagramUrl'];
-    // switch (appInUse) {
-    //   case AppInUse.g:
-    //     return 'https://instagram.com/gigmeoutmx';
-    //   case AppInUse.e:
-    //     return 'https://instagram.com/escritoresmxi';
-    //   case AppInUse.c:
-    //     return 'https://www.instagram.com/cyberneomia/';
-    // }
   }
 
   static String getEmail() {
     return appProperties['contactEmail'];
-    // switch (appInUse) {
-    //   case AppInUse.g:
-    //     return 'gigmeoutmx@gmail.com';
-    //   case AppInUse.e:
-    //     return 'escritoresmxi@gmail.com';
-    //   case AppInUse.c:
-    //     return 'cyberneom.om@gmail.com';
-    // }
   }
 
   static String getSubscriptionPlansUrl() {
@@ -269,6 +253,14 @@ class AppProperties {
 
   static String getWooSecondaryCategoryId() {
     return appProperties['wooSecondaryCategoryId'];
+  }
+
+  static String getWooAccount() {
+    return appProperties['wooAccount'];
+  }
+
+  static String getWooPass() {
+    return appProperties['wooPass'];
   }
 
   static Price getSubscriptionPrice() {

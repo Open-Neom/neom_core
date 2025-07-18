@@ -56,11 +56,11 @@ class AppRouteConstants {
   static const String postDetailsFullScreen = '/post/details/fullscreen';
   static const String post = '/post';
   static const String postComments = '/post/comments';
-  static const String postUpload = '/post/upload';
   static const String postUploadDescription = '/post/upload/description';
   static const String createPostText = '/createPost/text';
 
-  static const String mediaFullScreen = '/media/fullscreen';
+  static const String mediaUpload = '/media/upload';
+  static const String imageFullScreen = '/image/fullscreen';
   static const String videoFullScreen = '/video/fullscreen';
   static const String videoEditor = '/video/editor';
 

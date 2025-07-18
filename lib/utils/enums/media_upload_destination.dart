@@ -1,4 +1,4 @@
-enum UploadImageType {
+enum MediaUploadDestination {
   post,
   thumbnail,
   event,

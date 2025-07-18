@@ -1,4 +1,3 @@
-//For fun and professionally
 enum AppMediaType {
   text('pdf'),
   image('jpg'),

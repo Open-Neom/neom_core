@@ -1,14 +1,7 @@
 
 class CoreConstants {
 
-  // static const String appTitle = "appTitle";
-  //TO HOME CONSTANTS
-  // static const List<String> choices = ["settings", "logout", 'toShareApp'];
-  // static const String logout = "logout";
-  // static const String myFavorites = "myFavorites";
-
   static const String appBank = 'appBank';
-
   static const String firstChamberPreset = "firstChamberPreset";
   static const String customPreset = "customPreset";
 
@@ -115,4 +108,8 @@ class CoreConstants {
 
   static const List<String> imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
   static const List<String> videoExtensions = ['mp4', 'mov', 'avi', 'mkv', 'flv', 'wmv'];
+  static const List<String> documentExtensions = ['pdf'];
+  static const List<String> audioExtensions = ['mp3', 'wav', 'aac', 'flac', 'ogg', 'm4a'];
+
+  static const String transparentImageBase64 = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 }

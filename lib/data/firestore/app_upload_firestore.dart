@@ -6,7 +6,8 @@ import 'package:firebase_storage/firebase_storage.dart';
 import '../../app_config.dart';
 import '../../domain/repository/app_upload_repository.dart';
 import '../../utils/enums/app_media_type.dart';
-import '../../utils/enums/upload_image_type.dart';
+import '../../utils/enums/media_type.dart';
+import '../../utils/enums/media_upload_destination.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
 
@@ -16,54 +17,60 @@ class AppUploadFirestore implements AppUploadRepository {
   final Reference storageRef = FirebaseStorage.instance.ref();
 
   @override
-  Future<String> uploadImage(String mediaId, File file, UploadImageType uploadImageType) async {
-    String imgUrl = "";
+  Future<String> uploadMediaFile(String mediaId, File file, MediaType mediaType, MediaUploadDestination uploadDestination) async {
+    String fileUrl = "";
     try {
       if (!file.existsSync()) {
         AppConfig.logger.e('El archivo no existe en la ruta: ${file.path}');
         return "";
       }
 
-      UploadTask uploadTask = storageRef.child("${uploadImageType.name.toLowerCase()}_imgs")
-          .child("${uploadImageType.name.toLowerCase()}_$mediaId.jpg").putFile(file);
+      String folderName = '';
+      String extension = '';
+      switch(mediaType) {
+        case MediaType.image:
+          folderName = AppFirestoreConstants.imagesFolder;
+          extension = '.jpg';
+        case MediaType.video:
+          folderName = AppFirestoreConstants.videosFolder;
+          extension = '.mp4';
+        case MediaType.audio:
+          folderName = AppFirestoreConstants.audiosFolder;
+          extension = '.mp3';
+        case MediaType.document:
+          folderName = AppFirestoreConstants.documentsFolder;
+          extension = '.pdf';
+        case MediaType.unknown:
+          folderName = AppFirestoreConstants.miscFolder;
+        default:
+          break;
+      }
+
+      UploadTask uploadTask = storageRef.child(folderName)
+          .child("${uploadDestination.name.toLowerCase()}_$mediaId$extension").putFile(file);
       TaskSnapshot storageSnap = await uploadTask;
 
-      imgUrl = await storageSnap.ref.getDownloadURL();
+      fileUrl = await storageSnap.ref.getDownloadURL();
     } catch (e) {
       AppConfig.logger.e(e.toString());
     }
 
-    return imgUrl;
-  }
-
-  @override
-  Future<String> uploadVideo(String mediaId, File file) async {
-    String downloadURL = '';
-    try {
-      UploadTask uploadTask = storageRef.child(AppFirestoreConstants.videoMediaFolder)
-          .child('video_$mediaId.mp4').putFile(file);
-      TaskSnapshot storageSnap = await uploadTask;
-      downloadURL = await storageSnap.ref.getDownloadURL();
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
-    }
-
-    return downloadURL;
+    return fileUrl;
   }
 
   @override
   Future<String> uploadReleaseItem(String fileName, File file, AppMediaType type) async {
 
-    String downloadURL = '';
+    String releaseItemUrl = '';
     try {
       UploadTask uploadTask = storageRef.child(AppFirestoreConstants.releaseItemsFolder).child('$fileName.${type.value}').putFile(file);
       TaskSnapshot storageSnap = await uploadTask;
-      downloadURL = await storageSnap.ref.getDownloadURL();
+      releaseItemUrl = await storageSnap.ref.getDownloadURL();
     } catch (e) {
       AppConfig.logger.e(e.toString());
     }
 
-    return downloadURL;
+    return releaseItemUrl;
   }
 
 }

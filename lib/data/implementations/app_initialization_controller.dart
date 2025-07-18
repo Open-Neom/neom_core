@@ -13,7 +13,7 @@ class AppInitializationController {
     AppConfig.logger.i("Running post-login initialization tasks...");
 
     final userController = Get.find<UserController>();
-    // Todas tus microtareas van aquí
+    // Todas las microtareas van aquí
     userController.getUserSubscription();
     Future.microtask(() => UserFirestore().updateLastTimeOn(userController.user.id));
     Future.microtask(() => AppHiveController().fetchCachedData());
