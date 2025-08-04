@@ -2,7 +2,7 @@ name: neom_core
 description: Core for Open Neom Modules.
 version: 1.4.1-dev
 homepage: https://github.com/Open-Neom/neom_core
-publish_to: 'https://pub.dev/publishers/openneom.dev/packages'
+publish_to: 'https://pub.dev/publishers/openneom.dev/'
 
 
 environment:
