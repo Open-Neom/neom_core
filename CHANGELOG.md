@@ -1,3 +1,5 @@
+## 1.4.1-dev - Adding to openneom.dev publisher
+
 ## 1.4.0-dev - Architectural Changes and Major Refactoring
 
 Dependency Inversion Principle (DIP) and Testability:

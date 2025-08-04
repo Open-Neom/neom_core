@@ -1,7 +1,8 @@
 name: neom_core
 description: Core for Open Neom Modules.
-version: 1.4.0-dev
+version: 1.4.1-dev
 homepage: https://github.com/Open-Neom/neom_core
+publish_to: 'openneom.dev'
 
 environment:
   sdk: ">=3.8.0 <4.0.0"
@@ -20,40 +21,32 @@ dependencies:
   firebase_auth: ^6.0.0
   firebase_messaging: ^16.0.0
   firebase_crashlytics: ^5.0.0
-  google_sign_in: ^7.1.1
-  sign_in_with_apple: ^7.0.1
   googleapis_auth: ^2.0.0
-  permission_handler: ^12.0.0+1
 
   logger: ^2.6.1
-  url_launcher: ^6.3.2
   http: ^1.4.0
   hive_flutter: ^1.1.0
 
-  rflutter_alert: ^2.0.7
   enum_to_string: ^2.2.1
   path_provider: ^2.1.5
-
-  cached_network_image: ^3.4.1
 
   geolocator: ^14.0.2
   geocoding: ^4.0.0
   google_maps_flutter: ^2.12.3
   google_api_headers: ^4.5.7
-  neom_maps_services: ^1.0.3
-  neom_google_places: ^1.0.1
+  neom_maps_services: ^1.1.0
+  neom_google_places: ^1.1.0
 
   upgrader: ^11.4.0
   package_info_plus: ^8.3.0
 
   in_app_purchase: ^3.2.3
 
-  # --- Dependencias que Faltaban (Añadidas) ---
-  rxdart: ^0.28.0 # Requerido para StreamBuilder y BehaviorSubject
-  in_app_purchase_android: ^0.4.0+2 # Requerido por app_order.dart
-  in_app_purchase_storekit: ^0.4.3 # Requerido por app_order.dart
-  html: ^0.15.6 # Requerido por blog_entry.dart
-  uuid: ^4.5.1 # Requerido por order_firestore.dart
+  rxdart: ^0.28.0
+  in_app_purchase_android: ^0.4.0+2
+  in_app_purchase_storekit: ^0.4.3
+  html: ^0.15.6
+  uuid: ^4.5.1
 
 dev_dependencies:
   flutter_test:
