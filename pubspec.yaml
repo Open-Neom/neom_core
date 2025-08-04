@@ -1,11 +1,10 @@
 name: neom_core
 description: Core for Open Neom Modules.
-version: 1.4.0
+version: 1.4.0-dev
 homepage: https://github.com/Open-Neom/neom_core
-publish_to: 'none'
 
 environment:
-  sdk: ">=3.4.0 <4.0.0"
+  sdk: ">=3.8.0 <4.0.0"
   flutter: ">=3.19.0"
 
 dependencies:
@@ -14,20 +13,20 @@ dependencies:
 
   get: ^5.0.0-release-candidate-9.3.2
 
-  firebase_core: ^3.13.1
-  cloud_firestore: ^5.6.8
-  cloud_functions: ^5.5.1
-  firebase_storage: ^12.4.6
-  firebase_auth: ^5.5.4
-  firebase_messaging: ^15.2.6
-  firebase_crashlytics: ^4.3.6
-  google_sign_in: ^6.3.0
+  firebase_core: ^4.0.0
+  cloud_firestore: ^6.0.0
+  cloud_functions: ^6.0.0
+  firebase_storage: ^13.0.0
+  firebase_auth: ^6.0.0
+  firebase_messaging: ^16.0.0
+  firebase_crashlytics: ^5.0.0
+  google_sign_in: ^7.1.1
   sign_in_with_apple: ^7.0.1
   googleapis_auth: ^2.0.0
   permission_handler: ^12.0.0+1
 
-  logger: ^2.5.0
-  url_launcher: ^6.3.1
+  logger: ^2.6.1
+  url_launcher: ^6.3.2
   http: ^1.4.0
   hive_flutter: ^1.1.0
 
@@ -37,10 +36,10 @@ dependencies:
 
   cached_network_image: ^3.4.1
 
-  geolocator: ^14.0.0
-  geocoding: ^3.0.0
-  google_maps_flutter: ^2.12.1
-  google_api_headers: ^4.4.5
+  geolocator: ^14.0.2
+  geocoding: ^4.0.0
+  google_maps_flutter: ^2.12.3
+  google_api_headers: ^4.5.7
   neom_maps_services: ^1.0.3
   neom_google_places: ^1.0.1
 
@@ -48,6 +47,14 @@ dependencies:
   package_info_plus: ^8.3.0
 
   in_app_purchase: ^3.2.3
+
+  # --- Dependencias que Faltaban (Añadidas) ---
+  rxdart: ^0.28.0 # Requerido para StreamBuilder y BehaviorSubject
+  in_app_purchase_android: ^0.4.0+2 # Requerido por app_order.dart
+  in_app_purchase_storekit: ^0.4.3 # Requerido por app_order.dart
+  html: ^0.15.6 # Requerido por blog_entry.dart
+  uuid: ^4.5.1 # Requerido por order_firestore.dart
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

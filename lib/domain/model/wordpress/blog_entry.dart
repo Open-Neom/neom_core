@@ -1,4 +1,3 @@
-// blog_entry.dart
 import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart' as html_parser;
 

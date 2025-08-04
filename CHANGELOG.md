@@ -1,4 +1,4 @@
-## 1.4.0 - Architectural Changes and Major Refactoring
+## 1.4.0-dev - Architectural Changes and Major Refactoring
 
 Dependency Inversion Principle (DIP) and Testability:
 
