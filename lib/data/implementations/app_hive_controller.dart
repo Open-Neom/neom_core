@@ -11,17 +11,18 @@ import 'package:path_provider/path_provider.dart';
 import '../../app_config.dart';
 import '../../domain/model/app_release_item.dart';
 import '../../domain/model/item_list.dart';
+import '../../domain/use_cases/app_hive_service.dart';
+import '../../domain/use_cases/user_service.dart';
 import '../../utils/constants/app_hive_constants.dart';
 import '../../utils/enums/app_hive_box.dart';
 import '../../utils/enums/app_locale.dart';
-import 'user_controller.dart';
 
-
-class AppHiveController {
+class AppHiveController implements AppHiveService {
 
   static final AppHiveController _instance = AppHiveController._internal();
+
   factory AppHiveController() {
-    _instance._init();
+    _instance.init();
     return _instance;
   }
 
@@ -29,8 +30,23 @@ class AppHiveController {
 
   bool _isInitialized = false;
 
-  /// Inicialización manual para controlar mejor el ciclo de vida
-  Future<void> _init() async {
+  final userServiceImpl = Get.find<UserService>();
+  bool firstTime = false;
+  int lastNotificationCheckDate = 0;
+
+  //SEARCH Cache
+  List searchedList = [];
+  List searchQueries = [];
+
+  //RELEASES CACHE
+  Map<String, AppReleaseItem> mainItems = {};
+  Map<String, AppReleaseItem> secondaryItems = {};
+  Map<String, Itemlist> releaseItemlists = {};
+  String _releaseLastUpdate = '';
+  String directoryLastUpdate = '';
+
+  @override
+  Future<void> init() async {
     if (_isInitialized) return;
     _isInitialized = true;
 
@@ -43,25 +59,14 @@ class AppHiveController {
     }
   }
 
-  final userController = Get.find<UserController>();
-  bool firstTime = false;
-  int lastNotificationCheckDate = 0;
 
-  //SEARCH Cache
-  List searchedList = [];
-  List searchQueries = [];
 
-  //RELEASES CACHE
-  Map<String, AppReleaseItem> mainItems = {};
-  Map<String, AppReleaseItem> secondaryItems = {};
-  Map<String, Itemlist> releaseItemlists = {};
-  String releaseLastUpdate = '';
-  String directoryLastUpdate = '';
-
+  @override
   Future<Box> getBox(String boxName, {bool limit = false}) async {
     return Hive.isBoxOpen(boxName) ? Hive.box(boxName) : await openHiveBox(boxName, limit: limit);
   }
 
+  @override
   Future<Box> openHiveBox(String boxName, {bool limit = false}) async {
     AppConfig.logger.t('openHiveBox $boxName');
     final box = await Hive.openBox(boxName).onError((error, stackTrace) async {
@@ -85,23 +90,26 @@ class AppHiveController {
     return box;
   }
 
+  @override
   Future<void> clearBox(String boxName) async {
     Box box = await getBox(boxName);
     box.clear();
   }
 
-  // Shared Preference Migration to Hive
+  @override
   Future<void> fetchProfileInfo() async {
     AppConfig.logger.d('fetchProfileInfo');
 
     final profileBox = await getBox(AppHiveBox.profile.name);
-    userController.user.id = profileBox.get(AppHiveConstants.userId, defaultValue: '');
-    userController.user.name = profileBox.get(AppHiveConstants.username, defaultValue: '');
-    userController.profile.id = profileBox.get(AppHiveConstants.profileId, defaultValue: '');
-    userController.profile.aboutMe = profileBox.get(AppHiveConstants.aboutMe, defaultValue: '');
-    userController.profile.photoUrl = profileBox.get(AppHiveConstants.photoUrl, defaultValue: '');
-    firstTime = profileBox.get(AppHiveConstants.firstTime, defaultValue: true);
+    userServiceImpl.user.id = profileBox.get(AppHiveConstants.userId, defaultValue: '');
+    userServiceImpl.user.name = profileBox.get(AppHiveConstants.username, defaultValue: '');
+    userServiceImpl.profile.id = profileBox.get(AppHiveConstants.profileId, defaultValue: '');
+    userServiceImpl.profile.aboutMe = profileBox.get(AppHiveConstants.aboutMe, defaultValue: '');
+    userServiceImpl.profile.photoUrl = profileBox.get(AppHiveConstants.photoUrl, defaultValue: '');
+    firstTime = profileBox.get(AppHiveConstants.firstTime, defaultValue: false);
     lastNotificationCheckDate = profileBox.get(AppHiveConstants.lastNotificationCheckDate, defaultValue: 0);
+
+    await userServiceImpl.getProfiles();
 
     final savedLocale = profileBox.get(AppHiveConstants.appLocale, defaultValue: 'spanish');
     if(savedLocale.isNotEmpty) {
@@ -124,20 +132,30 @@ class AppHiveController {
       updateLocale(appLocale);
     }
 
-    // await profileBox.close();
+  }
+
+  @override
+  Future<void> writeProfileInfo({bool overwrite = false}) async {
+    AppConfig.logger.d('writeProfileInfo');
+    try {
+      final box = await getBox(AppHiveBox.profile.name);
+
+      String userId = box.get(AppHiveConstants.userId, defaultValue: '');
+
+      if(userId.isEmpty || overwrite) {
+        await box.put(AppHiveConstants.userId, userServiceImpl.user.id);
+        await box.put(AppHiveConstants.username, userServiceImpl.user.name);
+        await box.put(AppHiveConstants.profileId, userServiceImpl.profile.id);
+        await box.put(AppHiveConstants.photoUrl, userServiceImpl.user.photoUrl);
+        await box.put(AppHiveConstants.firstTime, false);
+      }
+    } catch (e) {
+      AppConfig.logger.e('Error writing profile info: $e');
+    }
 
   }
 
-  Future<void> writeProfileInfo() async {
-    final box = await getBox(AppHiveBox.profile.name);
-    await box.put(AppHiveConstants.userId, userController.user.id);
-    await box.put(AppHiveConstants.username, userController.user.name);
-    await box.put(AppHiveConstants.profileId, userController.profile.id);
-    await box.put(AppHiveConstants.photoUrl, userController.user.photoUrl);
-    await box.put(AppHiveConstants.firstTime, false);
-    // await box.close();
-  }
-
+  @override
   Future<void> fetchCachedData() async {
     AppConfig.logger.d('fetchCachedData');
     // Usa un cast seguro (as Map<dynamic, dynamic>?) y el operador ?.
@@ -153,14 +171,6 @@ class AppHiveController {
         Map<String, dynamic>.from(releasesBox.get(AppHiveConstants.secondaryItems) ?? {})
     );
 
-    // final rawMainItems = releasesBox.get(AppHiveConstants.mainItems) as Map<dynamic, dynamic>?;
-    // mainItems = rawMainItems?.map((key, value) => MapEntry(key, AppReleaseItem.fromJSON(value))) ?? {};
-    //
-    // final rawSecondaryItems = releasesBox.get(AppHiveConstants.secondaryItems) as Map<dynamic, dynamic>?;
-    // secondaryItems = rawSecondaryItems?.map((key, value) => MapEntry(key, AppReleaseItem.fromJSON(value))) ?? {};
-
-
-// De igual forma para releaseItemlists:
     final rawReleaseItemLists = releasesBox.get(AppHiveConstants.releaseItemLists) as Map<dynamic, dynamic>?;
     releaseItemlists = rawReleaseItemLists?.map((key, value) => MapEntry(key, Itemlist.fromJSON(value))) ?? {};
 
@@ -172,28 +182,27 @@ class AppHiveController {
     final rawDirectoryLastUpdate = directoryBox.get(AppHiveConstants.lastUpdate) as String?;
     directoryLastUpdate = rawDirectoryLastUpdate ?? '';
 
-    // await releasesBox.close();
-    // await directoryBox.close();
   }
 
   Map<String, AppReleaseItem> _mapToReleaseItem(Map<dynamic, dynamic> rawItems) {
     return rawItems.map((key, value) => MapEntry(key.toString(), AppReleaseItem.fromJSON(value)));
   }
 
+  @override
   Future<void> fetchSettingsData() async {
     AppConfig.logger.d('fetchSettingsData');
     final settingsBox = await getBox(AppHiveBox.settings.name);
     searchQueries = settingsBox.get(AppHiveConstants.searchQueries, defaultValue: []) as List;
-    // await settingsBox.close();
   }
 
+  @override
   Future<void> setSearchQueries(List searchQueries) async {
     AppConfig.logger.d('setSearchQueries');
     final settingsBox = await getBox(AppHiveBox.settings.name);
     await settingsBox.put(AppHiveConstants.searchQueries, searchQueries);
-    // await settingsBox.close();
   }
 
+  @override
   Future<void> addQuery(String query) async {
     try {
       final settingsBox = await getBox(AppHiveBox.settings.name);
@@ -207,9 +216,9 @@ class AppHiveController {
     } catch(e) {
       AppConfig.logger.e(e.toString());
     }
-
   }
 
+  @override
   Future<void> saveMainItem(AppReleaseItem item) async {
     mainItems[item.id] = item;
     final releaseBox = await getBox(AppHiveBox.releases.name);
@@ -218,6 +227,7 @@ class AppHiveController {
 
   }
 
+  @override
   Future<File?> getCachedPdf(String id) async {
     final pdfCacheBox = await getBox(AppHiveBox.pdfCache.name);
     final String? cachedPath = pdfCacheBox.get(id);
@@ -227,12 +237,13 @@ class AppHiveController {
       return null;
   }
 
-  /// Guarda la ruta del archivo PDF en el caché usando la URL como key
+  @override
   Future<void> cachePdf(String id, File file) async {
     final pdfCacheBox = await getBox(AppHiveBox.pdfCache.name);
     await pdfCacheBox.put(id, file.path);
-    }
+  }
 
+  @override
   Future<void> updateLocale(AppLocale appLocale) async {
     AppConfig.logger.d("Setting locale preference to ${appLocale.name}");
 
@@ -245,6 +256,7 @@ class AppHiveController {
 
   }
 
+  @override
   void setLocale(AppLocale appLocale) {
     AppConfig.logger.d("Updating GetX locale to ${appLocale.name}");
 
@@ -268,6 +280,7 @@ class AppHiveController {
     Get.updateLocale(locale);
   }
 
+  @override
   Future<void> setFirstTime(bool fTime) async {
     AppConfig.logger.t("Setting firsTime to $firstTime");
 
@@ -280,6 +293,7 @@ class AppHiveController {
     }
   }
 
+  @override
   Future<void> setLastNotificationCheckDate(int lastNotificationCheckDate) async {
     AppConfig.logger.d("Setting last time notification were checked");
 
@@ -291,6 +305,7 @@ class AppHiveController {
     }
   }
 
+  @override
   Future<void> setLastIndexPos({required int? lastIndex, required int lastPos}) async {
     AppConfig.logger.d("Setting last time notification were checked");
 
@@ -302,6 +317,14 @@ class AppHiveController {
       AppConfig.logger.e(e.toString());
     }
 
+  }
+
+  @override
+  String get releaseLastUpdate => _releaseLastUpdate;
+
+  @override
+  set releaseLastUpdate(String update) {
+    _releaseLastUpdate = update;
   }
 
 }

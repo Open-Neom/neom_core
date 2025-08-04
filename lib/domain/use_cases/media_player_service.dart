@@ -8,6 +8,10 @@ abstract class MediaPlayerService {
   bool get isVideoPlayerPlaying;
   double get aspectRatio;
 
+  Map<String, GlobalKey> get youtubeKeys;
+  Map<String, GlobalKey> get videoKeys;
+  Map<String, String> get spotifyTrackImgUrls;
+
   Future<void> initializeVideoPlayerController(File file);
   Future<void> playPauseVideo();
   void setIsPlaying({bool value = true});

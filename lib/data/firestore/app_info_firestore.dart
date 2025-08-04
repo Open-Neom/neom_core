@@ -10,12 +10,11 @@ import 'constants/app_firestore_collection_constants.dart';
 
 class AppInfoFirestore implements AppInfoRepository {
 
-  final logger = AppConfig.logger;
   final appReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.app);
 
   @override
   Future<AppInfo> retrieve() async {
-    logger.t("Retrieving App Info from Firestore");
+    AppConfig.logger.t("Retrieving App Info from Firestore");
     AppInfo appInfo = AppInfo();
 
     try {
@@ -23,10 +22,10 @@ class AppInfoFirestore implements AppInfoRepository {
           .doc(AppFirestoreCollectionConstants.app).get();
       if (documentSnapshot.exists) {
         appInfo = AppInfo.fromJSON(documentSnapshot.data());
-        logger.t("App Info Found: ${appInfo.toString()}");
+        AppConfig.logger.t("App Info Found: ${appInfo.toString()}");
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppConfig.logger.e(e.toString());
       rethrow;
     }
 

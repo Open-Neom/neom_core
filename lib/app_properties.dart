@@ -34,15 +34,26 @@ class AppProperties {
 
   static Future<void> readProperties() async {
     AppConfig.logger.t("readProperties");
-    String jsonString = await rootBundle.loadString(DataAssets.propertiesJsonPath);
-    appProperties = jsonDecode(jsonString);
+
+    try {
+      String jsonString = await rootBundle.loadString(DataAssets.propertiesJsonPath);
+      appProperties = jsonDecode(jsonString);
+    } catch (e) {
+      AppConfig.logger.e("Error reading properties: $e");
+      return;
+    }
   }
 
   static Future<void> readServiceAccount() async {
     AppConfig.logger.t("readServiceAccount");
-    String jsonString = await rootBundle.loadString(DataAssets.serviceAccountJsonPath);
-    serviceAccount = jsonDecode(jsonString);
-    AppConfig.logger.t("Service Account Loaded as: $serviceAccount");
+    try {
+      String jsonString = await rootBundle.loadString(DataAssets.serviceAccountJsonPath);
+      serviceAccount = jsonDecode(jsonString);
+      AppConfig.logger.t("Service Account Loaded as: $serviceAccount");
+    } catch (e) {
+      AppConfig.logger.e("Error reading service account: $e");
+      return;
+    }
   }
 
   static String getAppName() {    
@@ -313,5 +324,31 @@ class AppProperties {
   static String getCcoName() {
     return appProperties['ccoName'];
   }
+
+  static String getWooPhysicalItemCategory() {
+    return appProperties['wooPhysicalItemCategory'];
+  }
+
+  static String getWooDigitalItemCategory() {
+    return appProperties['wooDigitalItemCategory'];
+  }
+
+  static String getWooStreamingCategory() {
+    return appProperties['wooStreamingItemCategory'];
+  }
+
+  static String getWooSubscriptionItemCategory() {
+    return appProperties['wooSubscriptionItemCategory'];
+  }
+
+  static String getWooNupaleProdutId() {
+    return appProperties['wooNupaleProductId'];
+  }
+
+  static String getWooCaseteProdutId() {
+    return appProperties['wooCaseteProductId'];
+  }
+
+
 
 }

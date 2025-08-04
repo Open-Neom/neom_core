@@ -16,4 +16,6 @@ abstract class MapsService {
   CameraPosition getCameraPosition(Position position);
   Future<Place> predictionToGooglePlace(Prediction p);
 
+  Completer<GoogleMapController> get googleMapController;
+
 }

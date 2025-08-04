@@ -6,6 +6,9 @@ import '../../domain/model/price.dart';
 import '../../domain/model/stripe/stripe_price.dart';
 import '../../domain/model/subscription_plan.dart';
 import '../../domain/model/user_subscription.dart';
+import '../../domain/use_cases/stripe_api_service.dart';
+import '../../domain/use_cases/subscription_service.dart';
+import '../../domain/use_cases/user_service.dart';
 import '../../utils/constants/app_route_constants.dart';
 import '../../utils/constants/core_constants.dart';
 import '../../utils/enums/facilitator_type.dart';
@@ -13,29 +16,25 @@ import '../../utils/enums/place_type.dart';
 import '../../utils/enums/profile_type.dart';
 import '../../utils/enums/subscription_level.dart';
 import '../../utils/enums/subscription_status.dart';
-import '../api_services/stripe/stripe_service.dart';
 import '../firestore/profile_firestore.dart';
 import '../firestore/subscription_plan_firestore.dart';
 import '../firestore/user_subscription_firestore.dart';
-import 'user_controller.dart';
 
-class SubscriptionController extends GetxController with GetTickerProviderStateMixin {
+class SubscriptionController extends GetxController implements SubscriptionService {
 
-  final userController = Get.find<UserController>();
-  // AppProfileController appProfileController = Get.put(AppProfileController());
+  final userServiceImpl = Get.find<UserService>();
   AppProfile profile = AppProfile();
 
-  RxBool isLoading = true.obs;
-  // Rx<SubscriptionLevel> selectedLevel = SubscriptionLevel.basic.obs;
-  Rx<String> selectedPlanName = ''.obs;
-  Rx<String> selectedPlanImgUrl = ''.obs;
-  Rx<Price> selectedPrice = Price().obs;
-  SubscriptionPlan selectedPlan = SubscriptionPlan();
-  Map<String, SubscriptionPlan> subscriptionPlans = {};
-  RxMap<String, SubscriptionPlan> profilePlans = <String, SubscriptionPlan>{}.obs;
-  RxMap<SubscriptionLevel,List<UserSubscription>> activeSubscriptions = <SubscriptionLevel,List<UserSubscription>>{}.obs;
+  final RxBool _isLoading = true.obs;
+  final Rx<String> _selectedPlanName = ''.obs;
+  final Rx<String> _selectedPlanImgUrl = ''.obs;
+  final Rx<Price> _selectedPrice = Price().obs;
+  SubscriptionPlan _selectedPlan = SubscriptionPlan();
+  Map<String, SubscriptionPlan> _subscriptionPlans = {};
+  final RxMap<String, SubscriptionPlan> _profilePlans = <String, SubscriptionPlan>{}.obs;
+  final Rx<ProfileType>  _profileType = ProfileType.general.obs;
 
-  Rx<ProfileType>  profileType = ProfileType.general.obs;
+  final RxMap<SubscriptionLevel,List<UserSubscription>> _activeSubscriptions = <SubscriptionLevel,List<UserSubscription>>{}.obs;
   Rx<FacilityType>  facilityType = FacilityType.general.obs;
   Rx<PlaceType>  placeType = PlaceType.general.obs;
 
@@ -43,17 +42,18 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
   @override
   void onInit() {
     super.onInit();
-    // Map<String, List<StripePrice>> recurringPrices = await StripeService.getRecurringPricesFromStripe();
-    profile = userController.profile;
-    profileType.value = profile.type;
+    profile = userServiceImpl.profile;
+    _profileType.value = profile.type;
     initializeSubscriptions();
   }
 
+  @override
   Future<void> initializeSubscriptions() async {
-    subscriptionPlans = await SubscriptionPlanFirestore().getAll();
-    if(subscriptionPlans.isNotEmpty) {
-      for(SubscriptionPlan plan in subscriptionPlans.values) {
-        StripePrice? stripePrice = await StripeService.getPrice(plan.priceId);
+    AppConfig.logger.t("Initializing Subscriptions");
+    _subscriptionPlans = await SubscriptionPlanFirestore().getAll();
+    if(_subscriptionPlans.isNotEmpty) {
+      for(SubscriptionPlan plan in _subscriptionPlans.values) {
+        StripePrice? stripePrice = await Get.find<StripeApiService>().getPrice(plan.priceId);
         if(stripePrice != null) {
           plan.price = Price.fromStripe(stripePrice);
         }
@@ -66,16 +66,18 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
   @override
   void onReady() async {
     setActiveSubscriptions();
-    isLoading.value = false;
+    _isLoading.value = false;
     update();
   }
 
+  @override
   void setProfileTypePlans() {
-    profilePlans.clear();
-    profilePlans.addAll(subscriptionPlans);
-    switch(profileType.value) {
+    AppConfig.logger.d("Setting Profile Type Plans for: ${_profileType.value.name}");
+    _profilePlans.clear();
+    _profilePlans.addAll(_subscriptionPlans);
+    switch(_profileType.value) {
       case ProfileType.general:
-        profilePlans.removeWhere((s, p) =>
+        _profilePlans.removeWhere((s, p) =>
         p.level == SubscriptionLevel.creator
             || p.level == SubscriptionLevel.connect
             || p.level == SubscriptionLevel.artist
@@ -84,7 +86,7 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
             || p.level == SubscriptionLevel.publish
         );
       case ProfileType.appArtist:
-        profilePlans.removeWhere((s, p) =>
+        _profilePlans.removeWhere((s, p) =>
         p.level == SubscriptionLevel.basic
             || p.level == SubscriptionLevel.connect
         );
@@ -92,7 +94,7 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
       case ProfileType.host:
       // case ProfileType.researcher:
       case ProfileType.band:
-      profilePlans.removeWhere((s, p) =>
+      _profilePlans.removeWhere((s, p) =>
       p.level == SubscriptionLevel.creator
           || p.level == SubscriptionLevel.artist
           || p.level == SubscriptionLevel.publish
@@ -101,16 +103,17 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
         break;
     }
 
-    selectedPlan = profilePlans.values.first;
-    selectedPlanName.value = selectedPlan.name;
-    selectedPlanImgUrl.value = selectedPlan.imgUrl;
+    _selectedPlan = _profilePlans.values.first;
+    _selectedPlanName.value = selectedPlan.name;
+    _selectedPlanImgUrl.value = selectedPlan.imgUrl;
     if(selectedPlan.price != null) {
-      selectedPrice.value = selectedPlan.price!;
+      _selectedPrice.value = selectedPlan.price!;
     }
   }
 
+  @override
   Future<void> paySubscription(SubscriptionPlan subscriptionPlan, String fromRoute) async {
-    AppConfig.logger.d("Entering paySusbscription Method");
+    AppConfig.logger.d("Paying Subscription for: ${subscriptionPlan.name} from route: $fromRoute");
 
     try {
       Get.toNamed(AppRouteConstants.orderConfirmation, arguments: [subscriptionPlan, fromRoute, profileType.value]);
@@ -121,19 +124,20 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
     update();
   }
 
+  @override
   Future<void> cancelSubscription() async {
-    AppConfig.logger.d("Entering paySusbscription Method");
+    AppConfig.logger.d("Cancelling Subscription");
 
     try {
-      if(userController.userSubscription?.subscriptionId.isNotEmpty ?? false) {
-        if(await StripeService.cancelSubscription(userController.userSubscription!.subscriptionId)) {
-          userController.updateSubscriptionId('');
-          UserSubscriptionFirestore().cancel(userController.userSubscription!.subscriptionId);
-          userController.userSubscription = null;
+      if(userServiceImpl.userSubscription?.subscriptionId.isNotEmpty ?? false) {
+        if(await Get.find<StripeApiService>().cancelSubscription(userServiceImpl.userSubscription!.subscriptionId)) {
+          userServiceImpl.updateSubscriptionId('');
+          UserSubscriptionFirestore().cancel(userServiceImpl.userSubscription!.subscriptionId);
+          userServiceImpl.userSubscription = null;
           Get.offAllNamed(AppRouteConstants.home);
           Get.snackbar(
               'Suscripción Cancelada Satisfactoriamente',
-              'Tu suscripción a ${('${userController.userSubscription?.level?.name ?? ''} Plan').tr} fue cancelada.',
+              'Tu suscripción a ${('${userServiceImpl.userSubscription?.level?.name ?? ''} Plan').tr} fue cancelada.',
               snackPosition: SnackPosition.bottom,
           );
         } else {
@@ -147,49 +151,64 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
     update();
   }
 
+  @override
   void changeSubscriptionPlan(String planId) {
     AppConfig.logger.d("Changing Subscription PLan to: $planId");
 
     if(selectedPlan.price != null) {
-      selectedPlan = subscriptionPlans[planId]!;
-      selectedPlanName.value = selectedPlan.name;
-      selectedPlanImgUrl.value = selectedPlan.imgUrl;
-      selectedPrice.value = selectedPlan.price!;
+      _selectedPlan = _subscriptionPlans[planId]!;
+      _selectedPlanName.value = selectedPlan.name;
+      _selectedPlanImgUrl.value = selectedPlan.imgUrl;
+      _selectedPrice.value = selectedPlan.price!;
     }
 
     update();
   }
 
+  @override
   void selectProfileType(ProfileType type) {
+    AppConfig.logger.d("Selecting Profile Type: ${type.name}");
+
     try {
-      profileType.value = type;
+      _profileType.value = type;
       setProfileTypePlans();
     } catch (e) {
       AppConfig.logger.e(e.toString());
     }
   }
 
+  @override
   void selectFacilityType(FacilityType type) {
+    AppConfig.logger.d("Selecting Facility Type: ${type.name}");
+
     try {
       facilityType.value = type;
     } catch (e) {
       AppConfig.logger.e(e.toString());
     }
+
   }
 
+  @override
   void selectPlaceType(PlaceType type) {
+    AppConfig.logger.d("Selecting Place Type: ${type.name}");
+
     try {
       placeType.value = type;
       setProfileTypePlans();
     } catch (e) {
       AppConfig.logger.e(e.toString());
     }
+
   }
 
+  @override
   Future<void> updateProfileType() async {
+    AppConfig.logger.d("Updating Profile Type to: ${_profileType.value.name}");
+
     try {
-      if(profileType.value != profile.type && profile.id.isNotEmpty) {
-        if(await ProfileFirestore().updateType(profile.id, profileType.value)) {
+      if(_profileType.value != profile.type && profile.id.isNotEmpty) {
+        if(await ProfileFirestore().updateType(profile.id, _profileType.value)) {
           Get.back();
           Get.snackbar(
             CoreConstants.updateProfileType.tr,
@@ -197,8 +216,8 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
             snackPosition: SnackPosition.bottom,
           );
 
-          userController.profile.type = profileType.value;
-          profile.type = profileType.value;
+          userServiceImpl.profile.type = _profileType.value;
+          profile.type = _profileType.value;
         }
 
       } else {
@@ -213,23 +232,29 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
     } catch (e) {
       AppConfig.logger.e(e.toString());
     }
+
   }
 
+  @override
   double getSubscriptionPrice(SubscriptionLevel level) {
+    AppConfig.logger.d("Getting Subscription Price for Level: ${level.name}");
 
-    subscriptionPlans.forEach((key, plan) {
+    _subscriptionPlans.forEach((key, plan) {
       if(plan.level == level) {
-        selectedPlan = plan;
-        selectedPlanName.value = selectedPlan.name;
-        selectedPlanImgUrl.value = selectedPlan.imgUrl;
-        selectedPrice.value = selectedPlan.price!;
+        _selectedPlan = plan;
+        _selectedPlanName.value = selectedPlan.name;
+        _selectedPlanImgUrl.value = selectedPlan.imgUrl;
+        _selectedPrice.value = selectedPlan.price!;
       }
     });
 
-    return selectedPrice.value.amount;
+    return _selectedPrice.value.amount;
   }
 
+  @override
   Future<void> setActiveSubscriptions() async {
+    AppConfig.logger.d("Setting Active Subscriptions");
+
     if(activeSubscriptions.isEmpty) {
       List<UserSubscription> subscriptions = await UserSubscriptionFirestore().getAll();
       if(subscriptions.isNotEmpty) {
@@ -246,5 +271,32 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
       AppConfig.logger.d("Active Subscriptions already loaded");
     }
   }
+
+  @override
+  Map<String, SubscriptionPlan> get subscriptionPlans => _subscriptionPlans;
+
+  @override
+  SubscriptionPlan get selectedPlan => _selectedPlan;
+
+  @override
+  String get selectedPlanImgUrl => _selectedPlanImgUrl.value;
+
+  @override
+  String get selectedPlanName => _selectedPlanName.value;
+
+  @override
+  Price get selectedPrice => _selectedPrice.value;
+
+  @override
+  bool get isLoading => _isLoading.value;
+
+  @override
+  ProfileType get profileType => _profileType.value;
+
+  @override
+  Map<String, SubscriptionPlan> get profilePlans => _profilePlans;
+
+  @override
+  Map<SubscriptionLevel, List<UserSubscription>> get activeSubscriptions => _activeSubscriptions.value;
 
 }

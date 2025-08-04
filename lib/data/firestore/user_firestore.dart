@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:get/get.dart';
 
 import '../../app_config.dart';
 import '../../domain/model/app_profile.dart';
@@ -9,6 +10,7 @@ import '../../domain/model/app_user.dart';
 import '../../domain/model/facility.dart';
 import '../../domain/model/place.dart';
 import '../../domain/model/post.dart';
+import '../../domain/repository/chamber_repository.dart';
 import '../../domain/repository/user_repository.dart';
 import '../../utils/core_utilities.dart';
 import '../../utils/enums/app_in_use.dart';
@@ -18,7 +20,6 @@ import '../../utils/enums/profile_type.dart';
 import '../../utils/enums/usage_reason.dart';
 import '../../utils/enums/user_role.dart';
 import '../../utils/position_utilities.dart';
-import 'chamber_firestore.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
 import 'facility_firestore.dart';
@@ -140,7 +141,7 @@ class UserFirestore implements UserRepository {
               profile = await ProfileFirestore().retrieve(user.currentProfileId);
               if(profile.id.isNotEmpty) {
                 if(AppConfig.instance.appInUse == AppInUse.c) {
-                  profile.chambers = await ChamberFirestore().fetchAll(ownerId: profile.id);
+                  profile.chambers = await Get.find<ChamberRepository>().fetchAll(ownerId: profile.id);
                   profile.chamberPresets?.clear();
 
                   CoreUtilities.getTotalPresets(profile.chambers!).forEach((key, value) {

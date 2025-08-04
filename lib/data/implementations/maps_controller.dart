@@ -14,16 +14,15 @@ import '../../domain/model/address.dart';
 import '../../domain/model/app_profile.dart';
 import '../../domain/model/place.dart';
 import '../../domain/use_cases/maps_service.dart';
+import '../../domain/use_cases/user_service.dart';
 import '../../utils/constants/core_constants.dart';
-import 'user_controller.dart';
 
 //TODO Move to neom_maps_service or something specific out of neom_core
 class MapsController extends GetxController implements MapsService {
 
-  final userController = Get.find<UserController>();
+  final userServiceImpl = Get.find<UserService>();
 
-  final Completer<GoogleMapController> _controller = Completer();
-  Completer<GoogleMapController> get controller => _controller;
+  final Completer<GoogleMapController> _googleMapController = Completer();
 
   AppProfile profile = AppProfile();
   Location location = Location(lat: 37.42796133580664, lng: -122.085749655962);
@@ -34,7 +33,7 @@ class MapsController extends GetxController implements MapsService {
     super.onInit();
     AppConfig.logger.t("Maps Controller Init");
 
-    profile = userController.profile;
+    profile = userServiceImpl.profile;
     if(profile.position != null) {
       location = Location(lat: profile.position!.latitude, lng: profile.position!.longitude);
     } else {
@@ -43,7 +42,7 @@ class MapsController extends GetxController implements MapsService {
           locationSettings: LocationSettings(accuracy: LocationAccuracy.high,)
         );
         profile.position = position;
-        userController.profile = profile;
+        userServiceImpl.profile = profile;
       } catch (e) {
         AppConfig.logger.e(e.toString());
       }
@@ -57,7 +56,7 @@ class MapsController extends GetxController implements MapsService {
     AppConfig.logger.d("Go to position on Maps Controller");
 
     try {
-      final GoogleMapController controller = await _controller.future;
+      final GoogleMapController controller = await _googleMapController.future;
       controller.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
           target: LatLng(placePosition.latitude, placePosition.longitude),
           zoom: CoreConstants.cameraPositionZoom
@@ -74,7 +73,7 @@ class MapsController extends GetxController implements MapsService {
     AppConfig.logger.t("goToHomePosition");
 
     try {
-      GoogleMapController controller = await _controller.future;
+      GoogleMapController controller = await _googleMapController.future;
       Position position = profile.position!;
 
       controller.animateCamera(
@@ -201,5 +200,8 @@ class MapsController extends GetxController implements MapsService {
 
     return place;
   }
+
+  @override
+  Completer<GoogleMapController> get googleMapController => _googleMapController;
 
 }

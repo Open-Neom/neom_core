@@ -1,27 +1,23 @@
 
 import 'package:firebase_auth/firebase_auth.dart' as fba;
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:get/get.dart';
 
 import '../../app_config.dart';
 import '../../domain/model/app_profile.dart';
 import '../../domain/model/app_user.dart';
 import '../../domain/model/band.dart';
-import '../../domain/model/item_list.dart';
 import '../../domain/model/user_subscription.dart';
+import '../../domain/repository/chamber_repository.dart';
 import '../../domain/use_cases/login_service.dart';
 import '../../domain/use_cases/user_service.dart';
 import '../../utils/constants/app_route_constants.dart';
 import '../../utils/constants/core_constants.dart';
 import '../../utils/core_utilities.dart';
-import '../../utils/enums/itemlist_type.dart';
 import '../../utils/enums/owner_type.dart';
 import '../../utils/enums/subscription_level.dart';
 import '../../utils/enums/subscription_status.dart';
 import '../../utils/enums/user_role.dart';
 import '../firestore/app_release_item_firestore.dart';
-import '../firestore/chamber_firestore.dart';
-import '../firestore/constants/app_firestore_constants.dart';
 import '../firestore/itemlist_firestore.dart';
 import '../firestore/profile_firestore.dart';
 import '../firestore/user_firestore.dart';
@@ -33,29 +29,25 @@ class UserController extends GetxController implements UserService {
 
   UserFirestore userFirestore = UserFirestore();
   
-  AppUser user = AppUser();
-  AppProfile profile = AppProfile();
-  AppProfile newProfile = AppProfile();
-  Band band = Band();
+  AppUser _user = AppUser();
+  AppProfile _profile = AppProfile();
+  AppProfile _newProfile = AppProfile();
+  Band _band = Band();
 
-  bool isNewUser = false;
+  bool _isNewUser = false;
 
-  OwnerType itemlistOwner  = OwnerType.profile;
+  OwnerType _itemlistOwnerType  = OwnerType.profile;
 
   String fcmToken = "";
 
-  UserSubscription? userSubscription;
-  SubscriptionLevel subscriptionLevel = SubscriptionLevel.freemium;
+  UserSubscription? _userSubscription;
+  SubscriptionLevel _subscriptionLevel = SubscriptionLevel.freemium;
 
-  //Move to other global Controller to get ReleaseItemList on AudioPlayerHome
-  ItemlistType defaultItemlistType  = ItemlistType.playlist;
-  Map<String, Itemlist> releaseItemlists = {};
 
   @override
   void onInit() {
     super.onInit();
     AppConfig.logger.t("onInit User Controller");
-    AppHiveController().fetchProfileInfo();
   }
 
   @override
@@ -63,21 +55,9 @@ class UserController extends GetxController implements UserService {
     super.onReady();
     AppConfig.logger.t("onReady User Controller");
     try {
-      getFcmToken();
+      AppHiveController().fetchProfileInfo();
     } catch (e) {
       AppConfig.logger.e(e.toString());
-    }
-
-  }
-
-  Future<void> getFcmToken() async {
-    fcmToken = await FirebaseMessaging.instance.getToken() ?? "";
-
-    if(fcmToken.isNotEmpty) {
-      await FirebaseMessaging.instance.subscribeToTopic(AppFirestoreConstants.allUsers);
-      AppConfig.logger.i("User ${user.id} subscribed to topic ${AppFirestoreConstants.allUsers}.");
-    } else {
-      AppConfig.logger.w("FCM Token is empty");
     }
 
   }
@@ -94,17 +74,17 @@ class UserController extends GetxController implements UserService {
         await userFirestore.remove(user.id);
       }
 
-      final loginController = Get.find<LoginService>();
+      final loginServiceImpl = Get.find<LoginService>();
       fba.AuthCredential? authCredential;
 
-      if(loginController.getAuthCredentials() == null) {
-        await loginController.setAuthCredentials();
+      if(loginServiceImpl.getAuthCredentials() == null) {
+        await loginServiceImpl.setAuthCredentials();
       }
 
-      authCredential = loginController.getAuthCredentials();
+      authCredential = loginServiceImpl.getAuthCredentials();
 
       if(authCredential != null) {
-        await loginController.deleteFbaUser(authCredential);
+        await loginServiceImpl.deleteFbaUser(authCredential);
         clear();
       } else {
         AppConfig.logger.e("AuthCredentials to reauthenticate were null");
@@ -160,17 +140,17 @@ class UserController extends GetxController implements UserService {
     AppUser newUser = user;
     setNewProfileInfo();
 
-    newUser.profiles = [newProfile];
+    newUser.profiles = [_newProfile];
     newUser.userRole = UserRole.subscriber;
 
     try {
 
-      if(newUser.name.isEmpty) newUser.name = newProfile.name;
+      if(newUser.name.isEmpty) newUser.name = _newProfile.name;
 
       newUser.createdDate = DateTime.now().millisecondsSinceEpoch;
 
       if(await userFirestore.insert(newUser)) {
-        isNewUser = false;
+        _isNewUser = false;
 
         String profileId = await ProfileFirestore().insert(newUser.id, newUser.profiles.first);
 
@@ -211,76 +191,76 @@ class UserController extends GetxController implements UserService {
   }
 
   void setNewProfileInfo() {
-    newProfile.photoUrl = user.photoUrl;
-    newProfile.coverImgUrl = user.photoUrl;
-    newProfile.mainFeature = CoreUtilities.getProfileMainFeature(newProfile);
-    newProfile.isActive = true;
-    newProfile.reviewStars = 0;
-    newProfile.bannedGenres = [];
-    newProfile.itemmates = [];
-    newProfile.eventmates = [];
-    newProfile.followers = [];
-    newProfile.following = [];
-    newProfile.unfollowing = [];
-    newProfile.blockTo = [];
-    newProfile.blockedBy = [];
-    newProfile.posts = [];
-    newProfile.hiddenPosts = [];
-    newProfile.reports = [];
-    newProfile.bands = [];
-    newProfile.events = [];
-    newProfile.reviews = [];
-    newProfile.watchingEvents = [];
-    newProfile.goingEvents = [];
-    newProfile.playingEvents = [];
-    newProfile.itemlists = {};
-    newProfile.favoriteItems = [];
+    _newProfile.photoUrl = user.photoUrl;
+    _newProfile.coverImgUrl = user.photoUrl;
+    _newProfile.mainFeature = CoreUtilities.getProfileMainFeature(_newProfile);
+    _newProfile.isActive = true;
+    _newProfile.reviewStars = 0;
+    _newProfile.bannedGenres = [];
+    _newProfile.itemmates = [];
+    _newProfile.eventmates = [];
+    _newProfile.followers = [];
+    _newProfile.following = [];
+    _newProfile.unfollowing = [];
+    _newProfile.blockTo = [];
+    _newProfile.blockedBy = [];
+    _newProfile.posts = [];
+    _newProfile.hiddenPosts = [];
+    _newProfile.reports = [];
+    _newProfile.bands = [];
+    _newProfile.events = [];
+    _newProfile.reviews = [];
+    _newProfile.watchingEvents = [];
+    _newProfile.goingEvents = [];
+    _newProfile.playingEvents = [];
+    _newProfile.itemlists = {};
+    _newProfile.favoriteItems = [];
   }
 
   @override
   Future<void> createProfile() async {
 
-    AppConfig.logger.d("Profile to create ${newProfile.name}");
+    AppConfig.logger.d("Profile to create ${_newProfile.name}");
 
-    if(newProfile.photoUrl.isEmpty) {
-      newProfile.photoUrl = user.photoUrl;
-      newProfile.coverImgUrl = user.photoUrl;
+    if(_newProfile.photoUrl.isEmpty) {
+      _newProfile.photoUrl = user.photoUrl;
+      _newProfile.coverImgUrl = user.photoUrl;
     } else {
-      newProfile.coverImgUrl = newProfile.photoUrl;
+      _newProfile.coverImgUrl = _newProfile.photoUrl;
     }
 
-    newProfile.mainFeature = CoreUtilities.getProfileMainFeature(newProfile);
-    newProfile.isActive = true;
-    newProfile.reviewStars = 0;
-    newProfile.bannedGenres = [];
-    newProfile.itemmates = [];
-    newProfile.eventmates = [];
-    newProfile.followers = [];
-    newProfile.following = [];
-    newProfile.unfollowing = [];
-    newProfile.blockTo = [];
-    newProfile.blockedBy = [];
-    newProfile.posts = [];
-    newProfile.hiddenPosts = [];
-    newProfile.reports = [];
-    newProfile.bands = [];
-    newProfile.events = [];
-    newProfile.reviews = [];
+    _newProfile.mainFeature = CoreUtilities.getProfileMainFeature(_newProfile);
+    _newProfile.isActive = true;
+    _newProfile.reviewStars = 0;
+    _newProfile.bannedGenres = [];
+    _newProfile.itemmates = [];
+    _newProfile.eventmates = [];
+    _newProfile.followers = [];
+    _newProfile.following = [];
+    _newProfile.unfollowing = [];
+    _newProfile.blockTo = [];
+    _newProfile.blockedBy = [];
+    _newProfile.posts = [];
+    _newProfile.hiddenPosts = [];
+    _newProfile.reports = [];
+    _newProfile.bands = [];
+    _newProfile.events = [];
+    _newProfile.reviews = [];
 
-    newProfile.watchingEvents = [];
-    newProfile.goingEvents = [];
-    newProfile.playingEvents = [];
-    newProfile.itemlists = {};
-    newProfile.favoriteItems = [];
+    _newProfile.watchingEvents = [];
+    _newProfile.goingEvents = [];
+    _newProfile.playingEvents = [];
+    _newProfile.itemlists = {};
+    _newProfile.favoriteItems = [];
 
     try {
 
-      String profileId = await ProfileFirestore().insert(user.id, newProfile);
+      String profileId = await ProfileFirestore().insert(user.id, _newProfile);
 
       if(profileId.isNotEmpty) {
-        newProfile.id = profileId;
-        user.profiles.add(newProfile);
-        profile = newProfile;
+        _newProfile.id = profileId;
+        user.profiles.add(_newProfile);
+        profile = _newProfile;
 
         if(profileId.isNotEmpty) {
           userFirestore.updateCurrentProfile(user.id, profileId);
@@ -302,13 +282,15 @@ class UserController extends GetxController implements UserService {
       update();
     }
 
-    AppConfig.logger.d("Profile created: ${newProfile.name} with id: ${newProfile.id}");
+    AppConfig.logger.d("Profile created: ${_newProfile.name} with id: ${_newProfile.id}");
     AppHiveController().writeProfileInfo();
     update();
   }
 
   @override
   Future<void> getProfiles() async {
+    if(user.id.isEmpty) return;
+    
     AppConfig.logger.d("User looked up by ${user.id}");
 
     try {
@@ -333,11 +315,10 @@ class UserController extends GetxController implements UserService {
         AppConfig.logger.i("User $userId exists!!");
         user = userFromFirestore;
         profile = user.profiles.first;
-        isNewUser = false;
-        // Future.microtask(() => getUserSubscription());
+        _isNewUser = false;
       } else {
         AppConfig.logger.w("User $userId not exists!!");
-        isNewUser = true;
+        _isNewUser = true;
       }
     } catch (e) {
       AppConfig.logger.e(e.toString());
@@ -353,16 +334,17 @@ class UserController extends GetxController implements UserService {
         AppConfig.logger.t("User $userEmail exists!!");
         user = userFromEmail!;
         profile = user.profiles.first;
-        isNewUser = false;
+        _isNewUser = false;
       } else {
         AppConfig.logger.w("User $userEmail not exists!!");
-        isNewUser = true;
+        _isNewUser = true;
       }
     } catch (e) {
       AppConfig.logger.e(e.toString());
     }
   }
 
+  @override
   Future<void> changeProfile(AppProfile selectedProfile) async {
     AppConfig.logger.i("Changing profile to ${selectedProfile.id}");
 
@@ -433,7 +415,7 @@ class UserController extends GetxController implements UserService {
   Future<void> loadProfileChambers() async {
 
     try {
-      profile.chambers = await ChamberFirestore().fetchAll(ownerId: profile.id);
+      profile.chambers = await Get.find<ChamberRepository>().fetchAll(ownerId: profile.id);
       profile.chamberPresets?.clear();
 
       CoreUtilities.getTotalPresets(profile.chambers!).forEach((key, value) {
@@ -574,9 +556,9 @@ class UserController extends GetxController implements UserService {
       List<UserSubscription> subscriptions = await UserSubscriptionFirestore().getByUserId(user.id);
 
       if(subscriptions.isNotEmpty) {
-        userSubscription = subscriptions.firstWhereOrNull((subscription) => subscription.status == SubscriptionStatus.active);
+        _userSubscription = subscriptions.firstWhereOrNull((subscription) => subscription.status == SubscriptionStatus.active);
         if(userSubscription?.subscriptionId == user.subscriptionId) {
-          subscriptionLevel = userSubscription?.level ?? SubscriptionLevel.freemium;
+          _subscriptionLevel = userSubscription?.level ?? SubscriptionLevel.freemium;
           AppConfig.logger.d('User subscriptionId is the same as user.subscriptionId for ${subscriptionLevel.name}');
         } else if(userSubscription?.subscriptionId.isNotEmpty ?? false) {
           user.subscriptionId = userSubscription?.subscriptionId ?? '';
@@ -584,7 +566,7 @@ class UserController extends GetxController implements UserService {
         }
       } else if(user.subscriptionId.isNotEmpty) {
         if (CoreUtilities.isWithinFirstMonth(user.createdDate)) {
-          subscriptionLevel = SubscriptionLevel.freeMonth;
+          _subscriptionLevel = SubscriptionLevel.freeMonth;
           AppConfig.logger.i('User subscriptionId ${user.subscriptionId} is still within free month for SubscriptionLevel ${subscriptionLevel.name}');
         } else {
           AppConfig.logger.w('User subscriptionId ${user.subscriptionId} is out of free month');
@@ -592,7 +574,7 @@ class UserController extends GetxController implements UserService {
         }
       } else if(user.userRole.value > UserRole.subscriber.value){
         AppConfig.logger.d('No user subscription found');
-        subscriptionLevel = SubscriptionLevel.ambassador;
+        _subscriptionLevel = SubscriptionLevel.ambassador;
       }
     } catch (e) {
       AppConfig.logger.e(e.toString());
@@ -605,7 +587,7 @@ class UserController extends GetxController implements UserService {
     AppConfig.logger.d('Setting userSubscription with subscriptionId: ${subscription.subscriptionId}');
 
     try {
-      userSubscription = subscription;
+      _userSubscription = subscription;
     } catch (e) {
       AppConfig.logger.e(e.toString());
     }
@@ -633,6 +615,66 @@ class UserController extends GetxController implements UserService {
     } catch (e) {
       AppConfig.logger.e(e.toString());
     }
+  }
+
+  @override
+  Future<void> getUserFromFacebook(String fbAccessToken) {
+    // TODO: implement getUserFromFacebook
+    throw UnimplementedError();
+  }
+
+  @override
+  AppProfile get profile => _profile;
+
+  @override
+  AppUser get user => _user;
+
+  @override
+  set profile(AppProfile appProfile) {
+    _profile = appProfile;
+  }
+
+  @override
+  set user(AppUser appUser) {
+    _user = appUser;
+  }
+
+  @override
+  UserSubscription? get userSubscription => _userSubscription;
+
+  @override
+  set userSubscription(UserSubscription? subscription) {
+    _userSubscription = subscription;
+  }
+
+  @override
+  SubscriptionLevel get subscriptionLevel => _subscriptionLevel;
+
+  @override
+  Band get band => _band;
+
+  @override
+  OwnerType get itemlistOwnerType => _itemlistOwnerType;
+
+  @override
+  set band(Band band) {
+    _band = band;
+  }
+
+  @override
+  set itemlistOwnerType(OwnerType ownerType) {
+    _itemlistOwnerType = ownerType;
+  }
+
+  @override
+  AppProfile get newProfile => _newProfile;
+
+  @override
+  bool get isNewUser => _isNewUser;
+
+  @override
+  set newProfile(AppProfile appProfile) {
+    _newProfile = appProfile;
   }
 
 }

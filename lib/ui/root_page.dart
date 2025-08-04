@@ -4,6 +4,7 @@ import 'package:upgrader/upgrader.dart';
 
 import '../app_config.dart';
 import '../domain/use_cases/home_service.dart';
+import '../domain/use_cases/user_service.dart';
 import '../utils/constants/core_constants.dart';
 import '../utils/core_utilities.dart';
 
@@ -11,8 +12,8 @@ class RootPage extends StatelessWidget {
 
   final Widget rootPage;
   final Widget splashPage;
-  final Widget homePage;
-  final HomeService homeService;
+  final Widget? homePage;
+  final HomeService? homeService;
   final Widget previousVersionPage;
   final Widget onGoingPage;
   final Widget? miniPlayer;
@@ -30,9 +31,9 @@ class RootPage extends StatelessWidget {
         onPopInvokedWithResult: (didPop, result) async {
 
           try {
-            if((homeService.currentIndex != CoreConstants.firstHomeTabIndex)
-                || (homeService.getTimelineScrollOffset() != 0.0)) {
-              homeService.selectPageView(CoreConstants.firstHomeTabIndex);
+            if((homeService?.currentIndex != CoreConstants.firstHomeTabIndex)
+                || (homeService?.getTimelineScrollOffset() != 0.0)) {
+              homeService?.selectPageView(CoreConstants.firstHomeTabIndex);
               return;
             }
           } catch (e) {
@@ -46,7 +47,7 @@ class RootPage extends StatelessWidget {
               upgrader: Upgrader(
                 minAppVersion: AppConfig.instance.lastStableVersion,
               ),
-              child: Obx(() => Stack(
+              child: homePage == null ? rootPage : Stack(
                   children: [
                     AppConfig.instance.selectRootPage(
                         rootPage: rootPage,
@@ -55,13 +56,15 @@ class RootPage extends StatelessWidget {
                         onGoingPage: onGoingPage,
                         previousVersionPage: previousVersionPage
                     ),
-                    if (miniPlayer != null && homeService.timelineReady && homeService.mediaPlayerEnabled) Positioned(
-                      left: 0, right: 0,
-                      bottom: 0,
-                      child: miniPlayer!,
-                    ),
+                    if (Get.isRegistered<UserService>() && Get.find<UserService>().user.id.isNotEmpty && miniPlayer != null
+                        && (homeService?.timelineReady ?? false) && (homeService?.mediaPlayerEnabled ?? false))
+                      Positioned(
+                        left: 0, right: 0,
+                        bottom: 0,
+                        child: miniPlayer!,
+                      ),
                   ]
-              )),
+              )
 
         )
     );

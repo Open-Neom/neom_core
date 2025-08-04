@@ -1,7 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart' as fba;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../utils/enums/auth_status.dart';
+import '../../utils/enums/signed_in_with.dart';
 
 abstract class LoginService {
 
@@ -24,4 +26,13 @@ abstract class LoginService {
   Future<void> verifyPhoneNumber(String phoneNumber);
   Future<bool> validateSmsCode(String smsCode);
   void setIsPhoneAuth(bool value);
+
+  SignedInWith get signedInWith;
+  set signedInWith(SignedInWith signedInWith);
+
+  fba.FirebaseAuth get auth;
+
+  fba.User? get fbaUser;
+  set fbaUser(fba.User? fbaUser);
+
 }

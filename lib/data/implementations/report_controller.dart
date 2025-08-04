@@ -1,27 +1,26 @@
 import 'dart:core';
 
-import 'package:enum_to_string/enum_to_string.dart';
 import 'package:get/get.dart';
 
 import '../../app_config.dart';
 import '../../domain/model/app_profile.dart';
 import '../../domain/model/report.dart';
 import '../../domain/use_cases/report_service.dart';
+import '../../domain/use_cases/user_service.dart';
 import '../../utils/enums/reference_type.dart';
 import '../../utils/enums/report_type.dart';
 import '../firestore/report_firestore.dart';
-import 'user_controller.dart';
 
 class ReportController extends GetxController implements ReportService {
   
-  final userController = Get.find<UserController>();
+  final userServiceImpl = Get.find<UserService>();
 
   AppProfile profile = AppProfile();
 
   final RxBool isLoading = true.obs;
-  final RxBool isButtonDisabled = false.obs;
+  final RxBool _isButtonDisabled = false.obs;
   final RxString message = "".obs;
-  final RxString reportType = ReportType.other.name.obs;
+  final Rx<ReportType> _reportType = ReportType.other.obs;
 
   @override
   void onInit() async {
@@ -29,7 +28,7 @@ class ReportController extends GetxController implements ReportService {
     AppConfig.logger.i("Report Controller Init");
 
     try {
-      profile = userController.user.profiles.first;
+      profile = userServiceImpl.user.profiles.first;
 
     } catch (e) {
       AppConfig.logger.e(e.toString());
@@ -52,8 +51,8 @@ class ReportController extends GetxController implements ReportService {
 
 
   @override
-  void setReportType(String type) {
-    reportType.value = type;
+  void setReportType(ReportType type) {
+    _reportType.value = type;
     update();
   }
 
@@ -64,12 +63,12 @@ class ReportController extends GetxController implements ReportService {
     AppConfig.logger.d("Sending Report from User ${profile.name} ${profile.id}");
     try {
 
-      isButtonDisabled.value = true;
+      _isButtonDisabled.value = true;
       update();
 
       Report report = Report(
         ownerId: profile.id,
-        type: EnumToString.fromString(ReportType.values, reportType.value) ?? ReportType.other,
+        type: _reportType.value,
         createdTime: DateTime.now().millisecondsSinceEpoch,
         message: message.value,
         referenceId: referenceId,
@@ -82,72 +81,14 @@ class ReportController extends GetxController implements ReportService {
       AppConfig.logger.e(e.toString());
     }
 
-    isButtonDisabled.value = false;
+    _isButtonDisabled.value = false;
     update();
   }
 
-  // @override
-  // Future<void> showSendReportAlert(BuildContext context, String referenceId,
-  //     {ReferenceType referenceType = ReferenceType.post}) async {
-  //   Alert(
-  //       context: context,
-  //       style: AlertStyle(
-  //         backgroundColor: AppColor.main50,
-  //         titleStyle: const TextStyle(fontWeight: FontWeight.bold),
-  //       ),
-  //       title: AppTranslationConstants.sendReport.tr,
-  //       content: Column(
-  //         children: <Widget>[
-  //           Obx(()=>
-  //               DropdownButton<String>(
-  //                 dropdownColor: AppColor.getMain(),
-  //                 items: ReportType.values.map((ReportType reportType) {
-  //                   return DropdownMenuItem<String>(
-  //                     value: reportType.name,
-  //                     child: Text(reportType.name.tr),
-  //                   );
-  //                 }).toList(),
-  //                 onChanged: (String? reportType) {
-  //                   setReportType(reportType ?? "");
-  //                 },
-  //                 value: reportType.value,
-  //                 alignment: Alignment.center,
-  //                 icon: const Icon(Icons.arrow_downward),
-  //                 iconSize: 20,
-  //                 elevation: 16,
-  //                 style: const TextStyle(color: Colors.white),
-  //                 underline: Container(height: 1, color: Colors.grey,),
-  //               ),
-  //           ),
-  //           TextField(
-  //             onChanged: (text) {
-  //               setMessage(text);
-  //             },
-  //             decoration: InputDecoration(
-  //                 labelText: AppTranslationConstants.message.tr
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //       buttons: [
-  //         DialogButton(
-  //           color: AppColor.bondiBlue75,
-  //           onPressed: () async {
-  //             if(!isButtonDisabled.value) {
-  //               sendReport(referenceType, referenceId);
-  //               Navigator.pop(context);
-  //               Navigator.pop(context);
-  //               AppUtilities.showSnackBar(message: AppTranslationConstants.hasSentReport);
-  //             }
-  //           },
-  //           child: Text(AppTranslationConstants.send.tr,
-  //             style: const TextStyle(fontSize: 15),
-  //           ),
-  //         )
-  //       ]
-  //   ).show();
-  //   update();
-  // }
+  @override
+  ReportType get reportType => _reportType.value;
 
+  @override
+  bool get isButtonDisabled => _isButtonDisabled.value;
 
 }

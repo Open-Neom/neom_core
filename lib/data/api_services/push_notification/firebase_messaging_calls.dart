@@ -128,59 +128,6 @@ class FirebaseMessagingCalls {
     channelKey = notificationType.name;
 
     try {
-      // switch(notificationType) {
-      //   case PushNotificationType.like:
-      //     notificationTitle = AppTranslationConstants.likedYourPost;
-      //     channelId = PushNotificationType.like.value;
-      //     channelKey = PushNotificationType.like.name;
-      //     break;
-      //   case PushNotificationType.comment:
-      //     notificationTitle = AppTranslationConstants.commentedYourPost;
-      //     channelId = PushNotificationType.comment.value;
-      //     channelKey = PushNotificationType.comment.name;
-      //     break;
-      //   case PushNotificationType.request:
-      //     notificationTitle = AppTranslationConstants.hasSentRequest;
-      //     channelId = PushNotificationType.request.value;
-      //     channelKey = PushNotificationType.request.name;
-      //     break;
-      //   case PushNotificationType.message:
-      //     notificationTitle = AppTranslationConstants.hasSentMessage;
-      //     channelId = PushNotificationType.message.value;
-      //     channelKey = PushNotificationType.message.name;
-      //     break;
-      //   case PushNotificationType.eventCreated:
-      //     notificationTitle = AppTranslationConstants.eventCreated;
-      //     channelId = PushNotificationType.eventCreated.value;
-      //     channelKey = PushNotificationType.eventCreated.name;
-      //     break;
-      //   case PushNotificationType.goingEvent:
-      //     notificationTitle = AppTranslationConstants.goingToYourEvent;
-      //     channelId = PushNotificationType.goingEvent.value;
-      //     channelKey = PushNotificationType.goingEvent.name;
-      //     break;
-      //   case PushNotificationType.viewProfile:
-      //     notificationTitle = AppTranslationConstants.viewedYourProfile;
-      //     channelId = PushNotificationType.viewProfile.value;
-      //     channelKey = PushNotificationType.viewProfile.name;
-      //     break;
-      //   case PushNotificationType.following:
-      //     notificationTitle = AppTranslationConstants.startedFollowingYou;
-      //     channelId = PushNotificationType.following.value;
-      //     channelKey = PushNotificationType.following.name;
-      //     break;
-      //   case PushNotificationType.post:
-      //     break;
-      //   case PushNotificationType.blog:
-      //     break;
-      //   case PushNotificationType.appItemAdded:
-      //     break;
-      //   case PushNotificationType.releaseAppItemAdded:
-      //   // TODO: Handle this case.
-      //     break;
-      //   case PushNotificationType.chamberPresetAdded:
-      //   // TODO: Handle this case.
-      // }
 
       Map<String, dynamic> dataPayload = {
         "title": notificationTitle.tr,
@@ -251,74 +198,6 @@ class FirebaseMessagingCalls {
     notificationTitle = title;
     channelId = notificationType.value;
     channelKey = notificationType.name;
-
-    // switch(notificationType) {
-    //   case PushNotificationType.like:
-    //     notificationTitle = "${AppTranslationConstants.hasReactedToThePostOf.tr} $toProfileName";
-    //     channelId = PushNotificationType.like.value;
-    //     channelKey = PushNotificationType.like.name;
-    //     break;
-    //   case PushNotificationType.comment:
-    //     notificationTitle = "${AppTranslationConstants.commentedThePostOf.tr} $toProfileName";
-    //     channelId = PushNotificationType.comment.value;
-    //     channelKey = PushNotificationType.comment.name;
-    //     break;
-    //   case PushNotificationType.request:
-    //     notificationTitle = "${AppTranslationConstants.sentRequestTo.tr} $toProfileName";
-    //     channelId = PushNotificationType.request.value;
-    //     channelKey = PushNotificationType.request.name;
-    //     break;
-    //   case PushNotificationType.message:
-    //     notificationTitle = "${AppTranslationConstants.sentMessageTo.tr} $toProfileName";
-    //     channelId = PushNotificationType.message.value;
-    //     channelKey = PushNotificationType.message.name;
-    //     break;
-    //   case PushNotificationType.eventCreated:
-    //     notificationTitle = AppTranslationConstants.createdAnEvent;
-    //     channelId = PushNotificationType.eventCreated.value;
-    //     channelKey = PushNotificationType.eventCreated.name;
-    //     break;
-    //   case PushNotificationType.goingEvent:
-    //     notificationTitle = AppTranslationConstants.goingToEvent;
-    //     channelId = PushNotificationType.goingEvent.value;
-    //     channelKey = PushNotificationType.goingEvent.name;
-    //     break;
-    //   case PushNotificationType.viewProfile:
-    //     notificationTitle = "${AppTranslationConstants.viewedProfileOf.tr} $toProfileName";
-    //     channelId = PushNotificationType.viewProfile.value;
-    //     channelKey = PushNotificationType.viewProfile.name;
-    //     break;
-    //   case PushNotificationType.following:
-    //     notificationTitle = "${AppTranslationConstants.isFollowingTo.tr} $toProfileName";
-    //     channelId = PushNotificationType.following.value;
-    //     channelKey = PushNotificationType.following.name;
-    //     break;
-    //   case PushNotificationType.post:
-    //     notificationTitle = AppTranslationConstants.hasPostedSomethingNew;
-    //     channelId = PushNotificationType.post.value;
-    //     channelKey = PushNotificationType.post.name;
-    //     break;
-    //   case PushNotificationType.blog:
-    //     notificationTitle = AppTranslationConstants.hasPostedInBlog;
-    //     channelId = PushNotificationType.blog.value;
-    //     channelKey = PushNotificationType.blog.name;
-    //     break;
-    //   case PushNotificationType.appItemAdded:
-    //     notificationTitle = AppTranslationConstants.addedAppItemToList;
-    //     channelId = PushNotificationType.appItemAdded.value;
-    //     channelKey = PushNotificationType.appItemAdded.name;
-    //     break;
-    //   case PushNotificationType.releaseAppItemAdded:
-    //     notificationTitle = AppTranslationConstants.addedReleaseAppItem;
-    //     channelId = PushNotificationType.appItemAdded.value;
-    //     channelKey = PushNotificationType.appItemAdded.name;
-    //     break;
-    //   case PushNotificationType.chamberPresetAdded:
-    //     notificationTitle = AppTranslationConstants.chamberPresetAdded;
-    //     channelId = PushNotificationType.chamberPresetAdded.value;
-    //     channelKey = PushNotificationType.chamberPresetAdded.name;
-    //     break;
-    // }
 
     Map<String, dynamic> dataPayload = {
       "title": notificationTitle.tr,

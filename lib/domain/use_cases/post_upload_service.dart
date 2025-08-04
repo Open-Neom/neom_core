@@ -3,12 +3,6 @@ import 'package:flutter/cupertino.dart';
 
 abstract class PostUploadService {
 
-
-
-
-
-
-
   Future<void> handleSubmit();
   Future<void> handlePostUpload();
 

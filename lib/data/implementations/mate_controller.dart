@@ -1,36 +1,33 @@
 import 'dart:core';
-
 import 'package:get/get.dart';
-
 import '../../app_config.dart';
-import '../../data/implementations/user_controller.dart';
 import '../../domain/model/app_media_item.dart';
 import '../../domain/model/app_profile.dart';
 import '../../domain/use_cases/geolocator_service.dart';
 import '../../domain/use_cases/mate_service.dart';
+import '../../domain/use_cases/user_service.dart';
 import '../../utils/constants/app_route_constants.dart';
 import '../firestore/mate_firestore.dart';
 import '../firestore/profile_firestore.dart';
-import 'geolocator_controller.dart';
 
 class MateController extends GetxController implements MateService {
   
-  final userController = Get.find<UserController>();
+  final userServiceImpl = Get.find<UserService>();
   AppProfile profile = AppProfile();
 
-  final RxMap<String, AppProfile> mates = <String, AppProfile>{}.obs;
-  final RxMap<String, AppProfile> followingProfiles = <String, AppProfile>{}.obs;
-  final RxMap<String, AppProfile> followerProfiles = <String, AppProfile>{}.obs;
-  final RxMap<String, AppProfile> profiles = <String, AppProfile>{}.obs;
+  final RxMap<String, AppProfile> _mates = <String, AppProfile>{}.obs;
+  final RxMap<String, AppProfile> _followingProfiles = <String, AppProfile>{}.obs;
+  final RxMap<String, AppProfile> _followerProfiles = <String, AppProfile>{}.obs;
+  final RxMap<String, AppProfile> _profiles = <String, AppProfile>{}.obs;
   final RxString address = "".obs;
   final RxDouble distance = 0.0.obs;
   final RxMap<String, AppMediaItem> totalItems = <String, AppMediaItem>{}.obs;
-  final RxMap<String, AppProfile> totalProfiles = <String, AppProfile>{}.obs;
+  final RxMap<String, AppProfile> _totalProfiles = <String, AppProfile>{}.obs;
   final RxBool following = false.obs;
   final RxBool isLoading = true.obs;
   final RxBool isButtonDisabled = false.obs;
 
-  GeoLocatorService geoLocatorService = GeoLocatorController();
+  GeoLocatorService geoLocatorServiceImpl = Get.find<GeoLocatorService>();
 
   List<String> mateIds = [];
   String mateId = "";
@@ -41,7 +38,7 @@ class MateController extends GetxController implements MateService {
     AppConfig.logger.t("onInit Mate Controller");
     try {
 
-      profile = userController.profile;
+      profile = userServiceImpl.profile;
 
       if(Get.arguments != null && Get.arguments is List<String>) {
         if(Get.arguments.isNotEmpty) {
@@ -64,7 +61,7 @@ class MateController extends GetxController implements MateService {
   Future<void> loadMateProfiles() async {
     try {
       if(mateIds.isEmpty) {
-        ///TODO Implement once algorithm of itemmates and eventmates is available.
+        ///TODO Implement once algorithm of mates and eventmates is available.
         //await loadItemmates();
         await loadProfiles();
       } else {
@@ -73,7 +70,7 @@ class MateController extends GetxController implements MateService {
 
       ///TODO Implement once algorithm of itemmates and eventmates is available.
       //totalProfiles.addAll(itemmates);
-      totalProfiles.addAll(profiles);
+      _totalProfiles.addAll(_profiles);
     } catch (e) {
       AppConfig.logger.e(e.toString());
     }
@@ -87,7 +84,7 @@ class MateController extends GetxController implements MateService {
 
     try {
       if(profile.itemmates?.isNotEmpty ?? false) {
-        mates.value = await MateFirestore().getMatesFromList(profile.itemmates!);
+        _mates.value = await MateFirestore().getMatesFromList(profile.itemmates!);
       }
     } catch (e) {
       AppConfig.logger.e(e.toString());
@@ -102,7 +99,7 @@ class MateController extends GetxController implements MateService {
 
     try {
       if(profile.following?.isNotEmpty ?? false) {
-        followingProfiles.value = await MateFirestore().getMatesFromList(profile.following!);
+        _followingProfiles.value = await MateFirestore().getMatesFromList(profile.following!);
       }
 
     } catch (e) {
@@ -110,8 +107,7 @@ class MateController extends GetxController implements MateService {
     }
 
     isLoading.value = false;
-    AppConfig.logger.d("${followingProfiles.length} followingProfiles  found ");
-    update();
+    AppConfig.logger.d("${_followingProfiles.length} followingProfiles  found ");
   }
 
   Future<void> loadFollowersProfiles() async {
@@ -119,15 +115,14 @@ class MateController extends GetxController implements MateService {
 
     try {
       if(profile.followers?.isNotEmpty ?? false) {
-        followerProfiles.value = await MateFirestore().getMatesFromList(profile.followers!);
+        _followerProfiles.value = await MateFirestore().getMatesFromList(profile.followers!);
       }
     } catch (e) {
       AppConfig.logger.e(e.toString());
     }
 
     isLoading.value = false;
-    AppConfig.logger.d("${followingProfiles.length} followingProfiles  found ");
-    update();
+    AppConfig.logger.d("${_followingProfiles.length} followingProfiles  found ");
   }
 
   @override
@@ -135,18 +130,17 @@ class MateController extends GetxController implements MateService {
     AppConfig.logger.t("Load ${mateIds.length} mates from List");
 
     try {
-      mates.value = await MateFirestore().getMatesFromList(mateIds);
+      _mates.value = await MateFirestore().getMatesFromList(mateIds);
     } catch (e) {
       AppConfig.logger.e(e.toString());
     }
 
-    AppConfig.logger.d("${mates.length} mates found ");
+    AppConfig.logger.d("${_mates.length} mates found ");
     isLoading.value = false;
-    update();
   }
 
   void clear() {
-    mates.value = <String, AppProfile>{};
+    _mates.value = <String, AppProfile>{};
   }
 
   @override
@@ -163,12 +157,12 @@ class MateController extends GetxController implements MateService {
   Future<void> loadProfiles({bool includeSelf = false}) async {
     AppConfig.logger.t("loadProfiles");
     try {
-      profiles.value = await ProfileFirestore().retrieveAllProfiles();
+      _profiles.value = await ProfileFirestore().retrieveAllProfiles();
 
-      if(!includeSelf) profiles.remove(profile.id);
+      if(!includeSelf) _profiles.remove(profile.id);
 
-      if((profile.followers?.isNotEmpty ?? false) && profiles.isNotEmpty) {
-        followerProfiles.value = profiles.entries
+      if((profile.followers?.isNotEmpty ?? false) && _profiles.isNotEmpty) {
+        _followerProfiles.value = _profiles.entries
             .where((entry) => profile.followers!.contains(entry.key))
             .fold(<String, AppProfile>{}, (map, entry) {
           map[entry.key] = entry.value;
@@ -176,8 +170,8 @@ class MateController extends GetxController implements MateService {
         });
       }
 
-      if((profile.following?.isNotEmpty ?? false) && profiles.isNotEmpty) {
-        followingProfiles.value = profiles.entries
+      if((profile.following?.isNotEmpty ?? false) && _profiles.isNotEmpty) {
+        _followingProfiles.value = _profiles.entries
             .where((entry) => profile.following!.contains(entry.key))
             .fold(<String, AppProfile>{}, (map, entry) {
           map[entry.key] = entry.value;
@@ -185,8 +179,8 @@ class MateController extends GetxController implements MateService {
         });
       }
 
-      if((profile.itemmates?.isNotEmpty ?? false )&& profiles.isNotEmpty) {
-        mates.value = profiles.entries
+      if((profile.itemmates?.isNotEmpty ?? false )&& _profiles.isNotEmpty) {
+        _mates.value = _profiles.entries
             .where((entry) => profile.following!.contains(entry.key))
             .fold(<String, AppProfile>{}, (map, entry) {
           map[entry.key] = entry.value;
@@ -199,7 +193,7 @@ class MateController extends GetxController implements MateService {
     }
 
     isLoading.value = false;
-    AppConfig.logger.d("${profiles.length} profiles found ");
+    AppConfig.logger.d("${_profiles.length} profiles found ");
     update();
   }
 
@@ -209,9 +203,9 @@ class MateController extends GetxController implements MateService {
     AppConfig.logger.d("Block Mate: $profileId");
     try {
       if (await ProfileFirestore().blockProfile(profileId: profile.id, profileToBlock: mateId)) {
-        userController.profile.following!.remove(profileId);
+        userServiceImpl.profile.following!.remove(profileId);
         following.value = false;
-        userController.profile.blockTo!.add(profileId);
+        userServiceImpl.profile.blockTo!.add(profileId);
 
         AppConfig.logger.i("Profile $profileId blocked successfully. You can unblock it later.");
       } else {
@@ -229,8 +223,8 @@ class MateController extends GetxController implements MateService {
     AppConfig.logger.d("Unblock Mate: $profileId");
 
     try {
-      if (await ProfileFirestore().unblockProfile(profileId: userController.profile.id, profileToUnblock:  profileId)) {
-        userController.profile.blockTo!.remove(profileId);
+      if (await ProfileFirestore().unblockProfile(profileId: userServiceImpl.profile.id, profileToUnblock:  profileId)) {
+        userServiceImpl.profile.blockTo!.remove(profileId);
 
       } else {
         AppConfig.logger.i("Somethnig happened while unblocking profile");
@@ -243,5 +237,18 @@ class MateController extends GetxController implements MateService {
     update();
   }
 
+  @override
+  Map<String, AppProfile> get mates => _mates.value;
 
+  @override
+  Map<String, AppProfile> get followerProfiles => _followerProfiles.value;
+
+  @override
+  Map<String, AppProfile> get followingProfiles => _followingProfiles.value;
+
+  @override
+  Map<String, AppProfile> get profiles => _profiles.value;
+
+  @override
+  Map<String, AppProfile> get totalProfiles => _totalProfiles.value;
 }

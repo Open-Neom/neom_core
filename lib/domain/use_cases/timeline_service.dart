@@ -23,6 +23,7 @@ abstract class TimelineService {
   ScrollController getScrollController();
   double getScrollOffset();
   void setScrollOffset(double offset);
+  Future<void> setMainScrollOffset(double offset);
   bool get showAppBar;
 
 }
