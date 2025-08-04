@@ -43,7 +43,7 @@ Add neom_core as a Git dependency in your pubspec.yaml file:
 dependencies:
     neom_core:
         git:
-            url: https://github.com/Cyberneom/neom_core.git
+            url: https://github.com/Open-Neom/neom_core.git
 
 Then, run flutter pub get in your project's root directory.
 
