@@ -9,6 +9,7 @@ abstract class SearchService {
   void setSearchParam(String param, {bool onlyByName = false});
   Future<void> loadProfiles({bool includeSelf = false});
   void sortByLocation();
-  Future<void> loadItems();
+  Future<void> loadMediaItems();
+  Future<void> loadReleaseItems();
 
 }

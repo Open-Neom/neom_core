@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
 import '../../app_config.dart';
@@ -244,7 +245,12 @@ class SubscriptionController extends GetxController implements SubscriptionServi
         _selectedPlan = plan;
         _selectedPlanName.value = selectedPlan.name;
         _selectedPlanImgUrl.value = selectedPlan.imgUrl;
-        _selectedPrice.value = selectedPlan.price!;
+        if(kDebugMode) {
+          _selectedPrice.value = Price(amount: 59);
+        } else {
+          _selectedPrice.value = selectedPlan.price!;
+        }
+
       }
     });
 
@@ -255,21 +261,79 @@ class SubscriptionController extends GetxController implements SubscriptionServi
   Future<void> setActiveSubscriptions() async {
     AppConfig.logger.d("Setting Active Subscriptions");
 
-    if(activeSubscriptions.isEmpty) {
+    if(_activeSubscriptions.isEmpty) {
       List<UserSubscription> subscriptions = await UserSubscriptionFirestore().getAll();
       if(subscriptions.isNotEmpty) {
         for(UserSubscription subscription in subscriptions) {
           if(subscription.status == SubscriptionStatus.active && subscription.level != null) {
-            if(activeSubscriptions[subscription.level] == null) {
-              activeSubscriptions[subscription.level!] = [];
+            if(_activeSubscriptions[subscription.level] == null) {
+              _activeSubscriptions[subscription.level!] = [];
             }
-            activeSubscriptions[subscription.level]?.add(subscription);
+            _activeSubscriptions[subscription.level]?.add(subscription);
           }
         }
       }
     } else {
       AppConfig.logger.d("Active Subscriptions already loaded");
     }
+  }
+
+  @override
+  List<UserSubscription> getActiveSubscriptions({SubscriptionLevel? targetLevel, int? targetMonth, int? targetYear}) {
+    AppConfig.logger.d("Checking ${targetLevel?.name} Active Subscriptions for: $targetMonth/$targetYear");
+
+    List<UserSubscription> activeSubs = [];
+    int month = targetMonth ?? DateTime.now().month;
+    int year = targetYear ?? DateTime.now().year;
+
+    _activeSubscriptions.forEach((level, subscriptions) {
+      if(targetLevel != null && level != targetLevel) return;
+
+      for(UserSubscription subscription in subscriptions) {
+        int startDateMonth = DateTime.fromMillisecondsSinceEpoch(subscription.startDate).month;
+        int startDateYear = DateTime.fromMillisecondsSinceEpoch(subscription.startDate).year;
+        int endDateMonth = DateTime.fromMillisecondsSinceEpoch(subscription.endDate).month;
+        int endDateYear = DateTime.fromMillisecondsSinceEpoch(subscription.endDate).year;
+
+        if(startDateMonth <= month && startDateYear <= year
+            && (subscription.endDate == 0 || (endDateMonth >= month && endDateYear >= year))) {
+          AppConfig.logger.d("Subscription ${subscription.subscriptionId} of level ${subscription.level?.name} was active in $month/$year");
+          activeSubs.add(subscription);
+        }
+      }
+    });
+
+    
+    // 1. Convertir las fechas de la suscripción de milisegundos a objetos DateTime
+    // final subscriptionStart = DateTime.fromMillisecondsSinceEpoch(startDate);
+    // final subscriptionEnd = DateTime.fromMillisecondsSinceEpoch(endDate);
+    final subscriptionStart = DateTime.fromMillisecondsSinceEpoch(0);
+    final subscriptionEnd = DateTime.fromMillisecondsSinceEpoch(0);
+
+    // 2. Definir el rango del mes objetivo
+    // El primer día del mes objetivo (con hora 00:00:00)
+    final targetMonthStart = DateTime(year, month, 1);
+
+    // El primer día del MES SIGUIENTE (con hora 00:00:00), para incluir todo el último día del mes objetivo
+    // Nota: Si targetMonth es Diciembre (12), el mes siguiente es Enero del año siguiente.
+    final targetMonthEnd = month < 12
+        ? DateTime(year, month + 1, 1)
+        : DateTime(year + 1, 1, 1);
+
+
+    // 3. Verificar si los rangos se superponen (Overlap Check)
+
+    // La suscripción está activa en el mes objetivo si:
+    // A) La suscripción comienza antes del final del mes objetivo (targetMonthEnd)
+    // AND
+    // B) La suscripción termina después del inicio del mes objetivo (targetMonthStart)
+
+    // Las suscripciones que están 'Activas' hasta un punto incluyen ese punto.
+    // Usamos .isBefore y .isAfter para rangos semi-abiertos [inicio, fin)
+
+    // return subscriptionStart.isBefore(targetMonthEnd) &&
+    //     subscriptionEnd.isAfter(targetMonthStart);
+    return [];
   }
 
   @override

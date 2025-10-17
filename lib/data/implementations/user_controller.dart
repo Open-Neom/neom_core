@@ -559,7 +559,7 @@ class UserController extends GetxController implements UserService {
         _userSubscription = subscriptions.firstWhereOrNull((subscription) => subscription.status == SubscriptionStatus.active);
         if(userSubscription?.subscriptionId == user.subscriptionId) {
           _subscriptionLevel = userSubscription?.level ?? SubscriptionLevel.freemium;
-          AppConfig.logger.d('User subscriptionId is the same as user.subscriptionId for ${subscriptionLevel.name}');
+          AppConfig.logger.d('User ${userSubscription?.subscriptionId} is the same as ${user.subscriptionId} for ${subscriptionLevel.name}');
         } else if(userSubscription?.subscriptionId.isNotEmpty ?? false) {
           user.subscriptionId = userSubscription?.subscriptionId ?? '';
           AppConfig.logger.d('User subscription is different from user.subscriptionId');

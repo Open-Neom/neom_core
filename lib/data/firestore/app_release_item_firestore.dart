@@ -57,7 +57,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
       AppConfig.logger.e(e.toString());
     }
 
-    AppConfig.logger.t("${releaseItems.length} releaseItems found");
+    AppConfig.logger.d("${releaseItems.length} releaseItems found");
     return releaseItems;
   }
 

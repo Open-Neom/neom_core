@@ -1,7 +1,8 @@
 enum SearchType {
-  profiles,
+  any,
   bands,
   events,
-  items,
-  any
+  mediaItems,
+  profiles,
+  releaseItems;
 }

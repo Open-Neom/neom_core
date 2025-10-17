@@ -1,13 +1,13 @@
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
-// import 'dart:html' as html;
 import 'dart:math';
 
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 
+import '../../utils/enums/release_type.dart';
 import '../app_config.dart';
 import '../app_properties.dart';
 import '../domain/model/app_media_item.dart';
@@ -28,6 +28,7 @@ import 'constants/data_assets.dart';
 import 'enums/app_currency.dart';
 import 'enums/app_item_state.dart';
 import 'enums/itemlist_type.dart';
+import 'enums/media_item_type.dart';
 import 'enums/profile_type.dart';
 import 'enums/usage_reason.dart';
 import 'position_utilities.dart';
@@ -514,6 +515,27 @@ class CoreUtilities {
     } else if (Platform.isIOS) {
       exit(0);
     }
+  }
+
+  static MediaItemType getMediaItemType(AppReleaseItem releaseItem) {
+
+    MediaItemType itemType = MediaItemType.song;
+
+    switch (releaseItem.type) {
+      case ReleaseType.single:
+        if (releaseItem.previewUrl.toLowerCase().endsWith('.pdf')) {
+          itemType =  MediaItemType.pdf;
+        }
+        break;
+      case ReleaseType.episode:
+        itemType = MediaItemType.podcast;
+      case ReleaseType.chapter:
+        itemType = MediaItemType.audiobook;
+      default:
+        itemType = MediaItemType.song;
+    }
+
+    return itemType;
   }
 
 }

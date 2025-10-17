@@ -47,7 +47,7 @@ class RootPage extends StatelessWidget {
               upgrader: Upgrader(
                 minAppVersion: AppConfig.instance.lastStableVersion,
               ),
-              child: homePage == null ? rootPage : Stack(
+              child: homePage == null ? rootPage : Obx(()=> Stack(
                   children: [
                     AppConfig.instance.selectRootPage(
                         rootPage: rootPage,
@@ -60,11 +60,11 @@ class RootPage extends StatelessWidget {
                         && (homeService?.timelineReady ?? false) && (homeService?.mediaPlayerEnabled ?? false))
                       Positioned(
                         left: 0, right: 0,
-                        bottom: 0,
+                        bottom: 56,
                         child: miniPlayer!,
                       ),
                   ]
-              )
+              ),),
 
         )
     );

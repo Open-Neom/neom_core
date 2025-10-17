@@ -349,6 +349,12 @@ class AppProperties {
     return appProperties['wooCaseteProductId'];
   }
 
+  static String getWebCliendId() {
+    return appProperties['webClientId'];
+  }
 
+  static String getServerCliendId() {
+    return appProperties['serverClientId'];
+  }
 
 }

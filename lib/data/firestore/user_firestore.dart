@@ -405,7 +405,7 @@ class UserFirestore implements UserRepository {
   @override
   Future<bool> updateFcmToken(String userId, String fcmToken) async {
     AppConfig.logger.d("updating Firebase Cloud Messaging Token for User $userId");
-
+    if(userId.isEmpty || fcmToken.isEmpty) return false;
     try {
       DocumentSnapshot documentSnapshot = await userReference.doc(userId).get();
       await documentSnapshot.reference.update({AppFirestoreConstants.fcmToken: fcmToken});
@@ -423,6 +423,9 @@ class UserFirestore implements UserRepository {
   Future<void> updateLastTimeOn(String userId) async {
     AppConfig.logger.t("updating LastTimeOn for user $userId");
 
+
+    if(userId.isEmpty) return;
+
     try {
       DocumentSnapshot documentSnapshot = await userReference.doc(userId).get();
       await documentSnapshot.reference.update({AppFirestoreConstants.lastTimeOn: DateTime.now().millisecondsSinceEpoch});
@@ -438,10 +441,13 @@ class UserFirestore implements UserRepository {
     AppConfig.logger.d("Retrieving Firebase Cloud Messaging Token for User $userId device");
 
     String fcmToken = "";
+
     try {
-      DocumentSnapshot documentSnapshot = await userReference.doc(userId).get();
-      fcmToken = AppUser.fromJSON(documentSnapshot.data()).fcmToken;
-      AppConfig.logger.i("FCM Token $fcmToken retrieved");
+      if(userId.isNotEmpty) {
+        DocumentSnapshot documentSnapshot = await userReference.doc(userId).get();
+        fcmToken = AppUser.fromJSON(documentSnapshot.data()).fcmToken;
+        AppConfig.logger.i("FCM Token $fcmToken retrieved");
+      }
     } catch (e) {
       AppConfig.logger.e(e.toString());
     }

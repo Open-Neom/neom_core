@@ -105,6 +105,7 @@ class CoreConstants {
   static const int secondHomeTabIndex = 1;
   static const int thirdHomeTabIndex = 2;
   static const int forthHomeTabIndex = 3;
+  static const int fifthHomeTabIndex = 4;
 
   static const List<String> imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
   static const List<String> videoExtensions = ['mp4', 'mov', 'avi', 'mkv', 'flv', 'wmv'];

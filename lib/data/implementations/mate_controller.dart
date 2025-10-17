@@ -157,7 +157,9 @@ class MateController extends GetxController implements MateService {
   Future<void> loadProfiles({bool includeSelf = false}) async {
     AppConfig.logger.t("loadProfiles");
     try {
-      _profiles.value = await ProfileFirestore().retrieveAllProfiles();
+      if(_profiles.isEmpty) {
+        _profiles.value = await ProfileFirestore().retrieveAllProfiles();
+      }
 
       if(!includeSelf) _profiles.remove(profile.id);
 

@@ -13,5 +13,6 @@ abstract class HomeService {
 
   bool get timelineReady;
   bool get mediaPlayerEnabled;
+  set mediaPlayerEnabled(bool enabled);
 
 }

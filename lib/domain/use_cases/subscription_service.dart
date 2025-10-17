@@ -19,6 +19,7 @@ abstract class SubscriptionService {
   Future<void> updateProfileType();
   double getSubscriptionPrice(SubscriptionLevel level);
   Future<void> setActiveSubscriptions();
+  List<UserSubscription> getActiveSubscriptions({SubscriptionLevel? targetLevel, int targetMonth, int targetYear});
 
   Map<String, SubscriptionPlan> get subscriptionPlans;
 

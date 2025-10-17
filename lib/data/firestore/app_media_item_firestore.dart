@@ -63,6 +63,8 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
     } catch (e) {
       AppConfig.logger.d(e);
     }
+
+    AppConfig.logger.d("${appMediaItems.length} appMediaItems found");
     return appMediaItems;
   }
 

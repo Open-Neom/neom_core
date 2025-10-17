@@ -1293,7 +1293,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<Map<String, AppProfile>> retrieveAllProfiles({int limit = 0}) async {
-    AppConfig.logger.d("RetrievingProfiles");
+    AppConfig.logger.d("retrieveAllProfiles");
 
     try {
       if (limit <= 0) limit = CoreConstants.profilesLimit;
