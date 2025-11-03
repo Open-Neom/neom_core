@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../app_config.dart';
 import '../../domain/model/app_media_item.dart';
 import '../../domain/model/app_release_item.dart';
+import '../../domain/model/external_item.dart';
 import '../../domain/model/item_list.dart';
 import '../../domain/model/neom/chamber_preset.dart';
 import '../../domain/repository/itemlist_repository.dart';
@@ -43,7 +44,7 @@ class ItemlistFirestore implements ItemlistRepository {
   }
 
   @override
-  Future<bool> addAppMediaItem(AppMediaItem appMediaItem, String itemlistId) async {
+  Future<bool> addMediaItem(String itemlistId, AppMediaItem appMediaItem) async {
     AppConfig.logger.d("Adding item to itemlist $itemlistId");
     bool addedItem = false;
 
@@ -67,7 +68,7 @@ class ItemlistFirestore implements ItemlistRepository {
 
 
   @override
-  Future<bool> deleteItem({required String itemlistId, required AppMediaItem appMediaItem}) async {
+  Future<bool> deleteMediaItem({required String itemlistId, required String itemId}) async {
     AppConfig.logger.d("Removing item from itemlist $itemlistId");
 
     try {
@@ -78,14 +79,10 @@ class ItemlistFirestore implements ItemlistRepository {
         DocumentSnapshot snapshot = await documentReference.get();
         Itemlist itemlist = Itemlist.fromJSON(snapshot.data());
 
-        itemlist.appMediaItems?.removeWhere((item) => item.id == appMediaItem.id);
+        itemlist.appMediaItems?.removeWhere((item) => item.id == itemId);
         await documentReference.update({
           AppFirestoreConstants.appMediaItems: itemlist.appMediaItems?.map((item) => item.toJSON()).toList(),
         });
-
-        // await documentReference.update({
-        //   AppFirestoreConstants.appMediaItems: FieldValue.arrayRemove([appMediaItem.toJSON()])
-        // });
 
       }
 
@@ -152,7 +149,7 @@ class ItemlistFirestore implements ItemlistRepository {
   @override
   Future<Map<String, Itemlist>> getByOwnerId(String ownerId, {bool onlyPublic = false, bool excludeMyFavorites = true,
     int maxLength = 100, OwnerType ownerType = OwnerType.profile, ItemlistType? itemlistType}) async {
-    AppConfig.logger.t("Retrieving Itemlists from firestore");
+    AppConfig.logger.d("Retrieving Itemlists from firestore for owner $ownerId");
     Map<String, Itemlist> itemlists = {};
 
     try {
@@ -181,7 +178,6 @@ class ItemlistFirestore implements ItemlistRepository {
     AppConfig.logger.d("${itemlists.length} itemlists found in total.");
     return itemlists;
   }
-
 
   @override
   Future<bool> delete(itemlistId) async {
@@ -241,26 +237,6 @@ class ItemlistFirestore implements ItemlistRepository {
   }
 
   @override
-  Future<bool> updateItem(String itemlistId, AppMediaItem appMediaItem) async {
-    AppConfig.logger.d("Updating ItemlistItem for Public Itemlist $itemlistId");
-
-    try {
-      DocumentReference documentReference = itemlistReference.doc(itemlistId);
-      await documentReference.update({
-        AppFirestoreConstants.appMediaItems: FieldValue.arrayUnion([appMediaItem.toJSON()])
-      });
-
-      AppConfig.logger.d("ItemlistItem ${appMediaItem.name} was updated to ${appMediaItem.state}");
-      return true;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
-    }
-
-    AppConfig.logger.d("ItemlistItem ${appMediaItem.name} was not updated");
-    return false;
-  }
-
-  @override
   Future<bool> addReleaseItem(String itemlistId, AppReleaseItem releaseItem) async {
     AppConfig.logger.d("Adding item to itemlist $itemlistId");
     bool addedItem = false;
@@ -276,31 +252,31 @@ class ItemlistFirestore implements ItemlistRepository {
       AppConfig.logger.e(e.toString());
     }
 
-    addedItem ? AppConfig.logger.d("AppMediaItem was added to itemlist $itemlistId") :
-    AppConfig.logger.d("AppMediaItem was not added to itemlist $itemlistId");
+    addedItem ? AppConfig.logger.d("AppReleaseItem was added to itemlist $itemlistId") :
+    AppConfig.logger.d("AppReleaseItem was not added to itemlist $itemlistId");
     return addedItem;
   }
 
   @override
-  Future<bool> deleteReleaseItem(String itemlistId, AppReleaseItem releaseItem) async {
+  Future<bool> deleteReleaseItem({required String itemlistId, required String itemId}) async {
       try {
-        if(releaseItem.id.isEmpty || itemlistId.isEmpty) return false;
+        if(itemId.isEmpty || itemlistId.isEmpty) return false;
         DocumentReference documentReference = itemlistReference.doc(itemlistId);
         DocumentSnapshot snapshot = await documentReference.get();
 
         Itemlist itemlist = Itemlist.fromJSON(snapshot.data());
-        itemlist.appReleaseItems?.removeWhere((element) => element.id == releaseItem.id);
+        itemlist.appReleaseItems?.removeWhere((element) => element.id == itemId);
 
         await documentReference.update(itemlist.toJSON());
 
 
-        AppConfig.logger.i("releaseItem ${releaseItem.name} was removed");
+        AppConfig.logger.i("releaseItem $itemId was removed");
         return true;
       } catch (e) {
         AppConfig.logger.e(e.toString());
       }
 
-      AppConfig.logger.d("releaseItem ${releaseItem.name} was not removed");
+      AppConfig.logger.d("releaseItem $itemId was not removed");
       return false;
   }
 
@@ -324,7 +300,6 @@ class ItemlistFirestore implements ItemlistRepository {
     return addedItem;
   }
 
-
   @override
   Future<bool> deletePreset(ChamberPreset preset, String chamberId) async {
     AppConfig.logger.d("Removing preset from chamber $chamberId");
@@ -347,22 +322,46 @@ class ItemlistFirestore implements ItemlistRepository {
   }
 
   @override
-  Future<bool> updatePreset(String chamberId, ChamberPreset preset) async {
-    AppConfig.logger.d("Updating preset for profile $chamberId");
+  Future<bool> addExternalItem(String itemlistId, ExternalItem externalItem) async {
+    AppConfig.logger.d("Adding item to itemlist $itemlistId");
+    bool addedItem = false;
 
     try {
-      DocumentReference documentReference = itemlistReference.doc(chamberId);
+      DocumentReference documentReference = itemlistReference.doc(itemlistId);
       await documentReference.update({
-        AppFirestoreConstants.chamberPresets: FieldValue.arrayUnion([preset.toJSON()])
+        AppFirestoreConstants.externalItems: FieldValue.arrayUnion([externalItem.toJSON()])
       });
 
-      AppConfig.logger.d("Preset ${preset.name} was updated to ${preset.state}");
+      addedItem = true;
+    } catch (e) {
+      AppConfig.logger.e(e.toString());
+    }
+
+    addedItem ? AppConfig.logger.d("ExternalItem was added to itemlist $itemlistId") :
+    AppConfig.logger.d("ExternalItem was not added to itemlist $itemlistId");
+    return addedItem;
+  }
+
+  @override
+  Future<bool> deleteExternalItem({required String itemlistId, required String itemId}) async {
+    try {
+      if(itemId.isEmpty || itemlistId.isEmpty) return false;
+      DocumentReference documentReference = itemlistReference.doc(itemlistId);
+      DocumentSnapshot snapshot = await documentReference.get();
+
+      Itemlist itemlist = Itemlist.fromJSON(snapshot.data());
+      itemlist.externalItems?.removeWhere((element) => element.id == itemId);
+
+      await documentReference.update(itemlist.toJSON());
+
+
+      AppConfig.logger.i("externalItem $itemId was removed");
       return true;
     } catch (e) {
       AppConfig.logger.e(e.toString());
     }
 
-    AppConfig.logger.d("Preset ${preset.name} was not updated");
+    AppConfig.logger.d("externalItem $itemId was not removed");
     return false;
   }
 

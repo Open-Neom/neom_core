@@ -102,12 +102,6 @@ class ProfileFirestore implements ProfileRepository {
               facilityType: facility.type);
         });
       }
-
-      ///DEPRECATED
-      // Itemlist firstlist = profile.itemlists!.values.first;
-      // firstlist.ownerId = profileId;
-      // await ItemlistFirestore().insert(firstlist);
-      // AppConfig.logger.i("Profile ${profile.toString()} inserted successfully.");
     } catch (e) {
       if (await remove(userId: userId, profileId: profileId)) {
         AppConfig.logger.i("Profile Rollback");
@@ -220,24 +214,15 @@ class ProfileFirestore implements ProfileRepository {
       }
 
       for (var profile in sortedProfiles.values) {
-        // for (var queryDocumentSnapshot in _profileDocuments) {
-        //   if(!queryDocumentSnapshot.exists) continue;
         if (currentProfileIds.contains(profile.id)) continue;
-        // AppProfile profile = AppProfile.fromJSON(queryDocumentSnapshot.data());
-        // profile.id = queryDocumentSnapshot.id;
-
         if (needsPhone && profile.phoneNumber.isEmpty) {
-          AppConfig.logger.t(
-              "Profile ${profile.id} ${profile.name} - ${profile.type
-                  .name} has no phoneNumber");
+          AppConfig.logger.t("Profile ${profile.id} ${profile.name} - ${profile.type.name} has no phoneNumber");
           continue;
         }
 
         if (profileTypes != null && !profileTypes.contains(profile.type)) {
-          AppConfig.logger.t(
-              "Profile ${profile.id} ${profile.name} - ${profile.type
-                  .name} is not profile type ${profileTypes
-                  .toString()} required");
+          AppConfig.logger.t("Profile ${profile.id} ${profile.name} - ${profile.type
+              .name} is not profile type ${profileTypes.toString()} required");
           continue;
         }
 
@@ -246,22 +231,19 @@ class ProfileFirestore implements ProfileRepository {
                 profile.usageReason != UsageReason.any)) {
           AppConfig.logger.t(
               "Profile ${profile.id} ${profile.name} - ${profile.usageReason
-                  .name} has not the usage reason ${usageReasons
-                  .toString()} required");
+                  .name} has not the usage reason ${usageReasons.toString()} required");
           continue;
         }
 
         if (needsPosts && (profile.posts?.isEmpty ?? true)) {
-          AppConfig.logger.t(
-              "Profile ${profile.id} ${profile.name} has not posts");
+          AppConfig.logger.t("Profile ${profile.id} ${profile.name} has not posts");
           continue;
         }
 
         if (currentPosition != null && (profile.position != null
             && PositionUtilities.distanceBetweenPositionsRounded(
                 profile.position!, currentPosition) > maxDistance)) {
-          AppConfig.logger.t(
-              "Profile ${profile.id} ${profile.name} is out of max distance");
+          AppConfig.logger.t("Profile ${profile.id} ${profile.name} is out of max distance");
           continue;
         }
 
@@ -275,14 +257,6 @@ class ProfileFirestore implements ProfileRepository {
             }
           }
 
-
-          ///DEPRECATED
-          // List<Post> profilePosts = await PostFirestore().getProfilePosts(profile.id);
-          // for (var profilePost in profilePosts) {
-          //   if(postImgUrls.length < 6 && profilePost.mediaUrl.isNotEmpty) {
-          //     postImgUrls.add(profilePost.mediaUrl);
-          //   }
-          // }
         }
 
         if (facilityType != null) {

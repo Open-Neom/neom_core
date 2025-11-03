@@ -3,15 +3,15 @@ import '../../utils/enums/itemlist_type.dart';
 import '../../utils/enums/owner_type.dart';
 import '../model/app_media_item.dart';
 import '../model/app_release_item.dart';
+import '../model/external_item.dart';
 import '../model/item_list.dart';
 import '../model/neom/chamber_preset.dart';
 
 
 abstract class ItemlistRepository {
 
-  Future<bool> addAppMediaItem(AppMediaItem appMediaItem, String itemlistId);
-  Future<bool> deleteItem({required String itemlistId, required AppMediaItem appMediaItem});
-  Future<bool> updateItem(String itemlistId, AppMediaItem appMediaItem);
+  Future<bool> addMediaItem(String itemlistId, AppMediaItem appMediaItem);
+  Future<bool> deleteMediaItem({required String itemlistId, required String itemId});
 
   Future<Itemlist> retrieve(String itemlistId);
   Future<String> insert(Itemlist itemlist);
@@ -27,10 +27,12 @@ abstract class ItemlistRepository {
     int maxLength = 100, OwnerType ownerType = OwnerType.profile, ItemlistType? itemlistType});
 
   Future<bool> addReleaseItem(String itemlistId, AppReleaseItem releaseItem);
-  Future<bool> deleteReleaseItem(String itemlistId, AppReleaseItem releaseItem);
+  Future<bool> deleteReleaseItem({required String itemlistId, required String itemId});
 
   Future<bool> addPreset(String chamberId, ChamberPreset preset);
   Future<bool> deletePreset(ChamberPreset preset, String chamberId);
-  Future<bool> updatePreset(String chamberId, ChamberPreset preset);
+
+  Future<bool> addExternalItem(String itemlistId, ExternalItem externalItem);
+  Future<bool> deleteExternalItem({required String itemlistId, required String itemId});
 
 }

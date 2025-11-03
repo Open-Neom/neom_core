@@ -159,4 +159,22 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
     return false;
   }
 
+  Future<void> existsOrInsert(AppReleaseItem releaseItem) async {
+    AppConfig.logger.t("existsOrInsert releaseItem ${releaseItem.id}");
+
+    try {
+      appReleaseItemReference.doc(releaseItem.id).get().then((doc) {
+        if (doc.exists) {
+          AppConfig.logger.t("AppReleaseItem found");
+        } else {
+          AppConfig.logger.d("AppReleaseItem ${releaseItem.id}. ${releaseItem.name} not found. Inserting");
+          insert(releaseItem);
+        }
+      });
+    } catch (e) {
+      AppConfig.logger.e(e);
+    }
+
+  }
+
 }

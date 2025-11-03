@@ -113,4 +113,10 @@ class CoreConstants {
   static const List<String> audioExtensions = ['mp3', 'wav', 'aac', 'flac', 'ogg', 'm4a'];
 
   static const String transparentImageBase64 = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
+  static const String en = 'en';
+  static const String es = 'es';
+  static const String fr = 'fr';
+  static const String de = 'de';
+
 }

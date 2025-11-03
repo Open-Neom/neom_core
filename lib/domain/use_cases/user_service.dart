@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../../utils/enums/itemlist_type.dart';
 import '../../utils/enums/owner_type.dart';
 import '../../utils/enums/subscription_level.dart';
 import '../model/app_profile.dart';
@@ -54,5 +55,8 @@ abstract class UserService {
 
   OwnerType get itemlistOwnerType;
   set itemlistOwnerType(OwnerType ownerType);
+
+  ItemlistType? get currentItemlistType;
+  void setCurrentItemlistType(ItemlistType? type);
 
 }

@@ -1,9 +1,8 @@
 import 'dart:async';
-import '../model/app_media_item.dart';
+import '../model/external_item.dart';
 
 abstract class GoogleBookGatewayService {
 
-  Future<Map<String, AppMediaItem>> searchBooksAsMediaItem(String param);
-
+  Future<Map<String, ExternalItem>> searchBooksAsExternalItem(String param);
 
 }

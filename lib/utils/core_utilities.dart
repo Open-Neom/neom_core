@@ -16,6 +16,7 @@ import '../domain/model/app_release_item.dart';
 import '../domain/model/band.dart';
 import '../domain/model/band_member.dart';
 import '../domain/model/event.dart';
+import '../domain/model/external_item.dart';
 import '../domain/model/facility.dart';
 import '../domain/model/genre.dart';
 import '../domain/model/instrument.dart';
@@ -172,6 +173,18 @@ class CoreUtilities {
     return totalPresets;
   }
 
+  static Map<String, ExternalItem> getTotalExternalItems(Map<String, Itemlist> itemlists){
+    Map<String, ExternalItem> totalItems = {};
+
+    itemlists.forEach((key, itemlist) {
+      for (var externalItem in itemlist.externalItems ?? []) {
+        totalItems[externalItem.id] = externalItem;
+      }
+    });
+
+    return totalItems;
+  }
+
   static int getTotalItemsQty(Map<String, Itemlist> itemlists){
     int totalItems = 0;
 
@@ -287,22 +300,22 @@ class CoreUtilities {
   }
 
 
-  static Map<String, AppMediaItem> getItemMatches(Map<String, AppMediaItem> totalItems, List<String> profileItems) {
+  static Map<String, AppItemState> getItemMatches(Map<String, AppMediaItem> totalItems, List<String> profileItems) {
     AppConfig.logger.t("Get Item Matches for ${totalItems.length} total items");
-    Map<String, AppMediaItem> matchedItemms = <String,AppMediaItem>{};
+    Map<String, AppItemState> matchedItems = <String, AppItemState>{};
 
     try {
       totalItems.forEach((itemId, item) {
         if(profileItems.contains(itemId)) {
-          matchedItemms[itemId] = item;
+          matchedItems[itemId] = getItemState(item.state);
           AppConfig.logger.t("Adding Item Id: $itemId - Name: ${item.name}");
         }
       });
     } catch (e) {
       AppConfig.logger.e(e.toString());
     }
-    AppConfig.logger.d("Total ItemmMatches: ${matchedItemms.length}");
-    return matchedItemms;
+    AppConfig.logger.d("Total ItemmMatches: ${matchedItems.length}");
+    return matchedItems;
   }
 
   static Map<String, Instrument> getInstrumentMatches(Event event, Map<String,Instrument> profileInstruments) {
@@ -361,7 +374,7 @@ class CoreUtilities {
   static bool fulfillmentMatchedRequirements({
     required Event event,
     required  Map<String, AppMediaItem> requiredItems,
-    required  Map<String, AppMediaItem> matchedItems,
+    required  Map<String, AppItemState> matchedItems,
     required Map<String,Instrument> matchedInstruments,
     UsageReason profileReason = UsageReason.any,
     int profileDistanceKm = 0})
@@ -372,8 +385,7 @@ class CoreUtilities {
 
     try {
 
-      if(matchedInstruments.isNotEmpty
-          && event.distanceKm >= profileDistanceKm) {
+      if(matchedInstruments.isNotEmpty && event.distanceKm >= profileDistanceKm) {
         if(requiredItems.isNotEmpty && matchedItems.isNotEmpty || requiredItems.isEmpty) {
           requirementsMatched = true;
         }

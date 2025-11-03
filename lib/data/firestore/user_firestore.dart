@@ -103,7 +103,6 @@ class UserFirestore implements UserRepository {
              }
           } else {
              user.profiles = await ProfileFirestore().retrieveByUserId(userId);
-
           }
 
           if(getProfileFeatures) {

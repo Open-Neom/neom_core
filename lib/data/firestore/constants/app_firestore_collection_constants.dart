@@ -27,9 +27,9 @@ class AppFirestoreCollectionConstants {
   static const String facilities = "facilities";
 
   static const String hashtags = "hashtags";
-  // static const String appItems = "appItems"; ///DEPRECATED
   static const String appReleaseItems = "appReleaseItems";
   static const String appMediaItems = "appMediaItems";
+  static const String externalItems = "externalItems";
   static const String profileInstruments = "profileInstruments";
 
   static const String users = "users";
@@ -49,9 +49,6 @@ class AppFirestoreCollectionConstants {
   static const String bank = "bank";
 
   static const String nupaleSessions = "nupaleSessions";
-  ///DEPRECATED
-  // static const String authorsNupaleSessions = "authorsNupaleSessions";
-  // static const String freemiumNupaleSessions = "freemiumNupaleSessions";
   static const String caseteSessions = "caseteSessions";
   static const String authorsCaseteSessions = "authorsCaseteSessions";
   static const String freemiumCaseteSessions = "freemiumCaseteSessions";
@@ -65,6 +62,5 @@ class AppFirestoreCollectionConstants {
 
   static const String wallets = "wallets";
   static const String transactions = "transactions";
-
 
 }

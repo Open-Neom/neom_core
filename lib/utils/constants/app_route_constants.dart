@@ -124,11 +124,9 @@ class AppRouteConstants {
   static const String orderDetails = '/order/details';
   static const String paymentGateway = '/payment/gateway';
 
-  static const String readlists  = '/readlists';
-  // ignore: constant_identifier_names
+  ///DEPRECATED static const String readlists  = '/readlists';
   static const String pdfViewer  = '/PDFViewer';
-  // ignore: constant_identifier_names
-  static const String EPUBViewer  = '/EPUBViewer';
+  static const String epubViewer  = '/EPUBViewer';
   static const String digitalLibrary  = '/digitalLibrary';
   static const String libraryHome  = '/library/';
   static const String bookDetails  = '/book/details';
@@ -177,6 +175,7 @@ class AppRouteConstants {
 
   static const String nupaleHome  = '/nupale/home';
   static const String nupaleItemDetails  = '/nupale/item/details';
+  static const String nupaleMonthlyDetails  = '/nupale/monthly/details';
   static const String nupaleStats1  = '/stats/nupale1';
   static const String nupaleStats2  = '/stats/nupale2';
   static const String nupaleStats3  = '/stats/nupale3';

@@ -15,6 +15,7 @@ class AppInitializationController {
     AppConfig.logger.i("Running post-login initialization tasks...");
 
     final userServiceImpl = Get.find<UserService>();
+
     // Todas las microtareas van aquí
     String deviceFcmToken = await getFcmToken();
 

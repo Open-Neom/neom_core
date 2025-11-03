@@ -1,13 +1,14 @@
 enum MediaItemType {
-  song('song'),
-  video('video'),
+  audiobook('audiobook'),
+  binaural('binaural'),
+  book('book'),
+  frequency('meditative'),
+  nature('nature'),
+  neomPreset('neomPreset'),
   pdf('pdf'),
   podcast('podcast'),
-  audiobook('audiobook'),
-  neomPreset('neomPreset'),
-  binaural('binaural'),
-  frequency('meditative'),
-  nature('nature');
+  song('song'),
+  video('video');
 
   final String value;
   const MediaItemType(this.value);

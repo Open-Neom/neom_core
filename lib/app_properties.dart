@@ -274,6 +274,10 @@ class AppProperties {
     return appProperties['wooPass'];
   }
 
+  static String getGeneralSubscriptionName() {
+    return appProperties['generalSubscriptionName'];
+  }
+
   static Price getSubscriptionPrice() {
     double amount = appProperties['subscriptionPrice'];
     String currency = appProperties['subscriptionCurrency'] ?? 'MXN';
@@ -294,7 +298,7 @@ class AppProperties {
   }
 
   static String getWhatsappUrl() {
-    return appProperties['whatsAppURL'];
+    return appProperties['whatsappURL'];
   }
 
   static String getMainWhatsGroupUrl() {
@@ -355,6 +359,10 @@ class AppProperties {
 
   static String getServerCliendId() {
     return appProperties['serverClientId'];
+  }
+
+  static String getAppCoinValue() {
+    return appProperties['appCoinValue'];
   }
 
 }

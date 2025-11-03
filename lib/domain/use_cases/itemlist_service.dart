@@ -10,9 +10,7 @@ abstract class ItemlistService {
   Future<void> updateItemlist(String itemlistId, Itemlist itemlist);
   Future<void> deleteItemlist(Itemlist itemlist);
   void clearNewItemlist();
-  Future<void> gotoItemlistItems(Itemlist itemlist);
   Future<void> setPrivacyOption();
-  Future<void> gotoPlaylistSongs(Itemlist itemlist);
 
   List<Itemlist> getItemlists();
   void setAppMediaItem(AppMediaItem item);

@@ -6,6 +6,7 @@ class AppFirestoreConstants {
   static const String favoriteItems = 'favoriteItems';
   static const String chamberPresets = 'chamberPresets';
   static const String appReleaseItems = 'appReleaseItems';
+  static const String externalItems = 'externalItems';
 
   ///DEPRECATED
   /// static const String productSales = "productSales";

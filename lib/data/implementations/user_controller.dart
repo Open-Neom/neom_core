@@ -13,6 +13,7 @@ import '../../domain/use_cases/user_service.dart';
 import '../../utils/constants/app_route_constants.dart';
 import '../../utils/constants/core_constants.dart';
 import '../../utils/core_utilities.dart';
+import '../../utils/enums/itemlist_type.dart';
 import '../../utils/enums/owner_type.dart';
 import '../../utils/enums/subscription_level.dart';
 import '../../utils/enums/subscription_status.dart';
@@ -55,7 +56,7 @@ class UserController extends GetxController implements UserService {
     super.onReady();
     AppConfig.logger.t("onReady User Controller");
     try {
-      AppHiveController().fetchProfileInfo();
+      // AppHiveController().fetchProfileInfo();
     } catch (e) {
       AppConfig.logger.e(e.toString());
     }
@@ -675,6 +676,17 @@ class UserController extends GetxController implements UserService {
   @override
   set newProfile(AppProfile appProfile) {
     _newProfile = appProfile;
+  }
+
+
+  ItemlistType? _currentItemlistType;
+
+  @override
+  ItemlistType? get currentItemlistType => _currentItemlistType;
+
+  @override
+  void setCurrentItemlistType(ItemlistType? type) {
+    _currentItemlistType = type;
   }
 
 }

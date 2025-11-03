@@ -1,3 +1,4 @@
+import '../../utils/enums/app_item_state.dart';
 import '../model/app_media_item.dart';
 
 abstract class EventDetailsService {
@@ -8,6 +9,6 @@ abstract class EventDetailsService {
   void setNewOffer(String newAmount);
   void sendRequest();
   void setInstrumentToFulfill(String selectedInstrument);
-  void addToMatchedItems(AppMediaItem appMediaItem);
+  void addToMatchedItems(String itemId, AppItemState state);
 
-  }
+}

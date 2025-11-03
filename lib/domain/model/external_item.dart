@@ -1,22 +1,21 @@
 import 'package:enum_to_string/enum_to_string.dart';
 
 import '../../app_config.dart';
-import '../../utils/enums/app_media_source.dart';
+import '../../utils/enums/external_media_source.dart';
 import '../../utils/enums/media_item_type.dart';
 
-class AppMediaItem {
+class ExternalItem {
   
   String id;
   String name;
   String? description;
   String ownerName;
-  String? ownerId; ///IF ARTIST IS INTERNAL
+  String? ownerId;
   String album;
-  String? albumId; ///IF ALBUM IS INTERNAL
-  int duration; ///DURATION IN SECONDS
-  
-  Map<String, String>? featInternalArtists; //key: ownerId - value: ownerName name
-  List<String>? externalArtists; ///
+  String? albumId;
+  int duration;
+
+  List<String>? externalArtists;
 
   List<String>? categories;
   String lyrics;  
@@ -27,7 +26,7 @@ class AppMediaItem {
 
   String? metaOwner;
   int? publishedYear; ///YEAR RELEASE TO PUBLIC
-  int releaseDate; ///INTERNAL RELEASED
+  int releaseDate;
 
   String url; ///URL FOR STREAMING PURPOSE
   String? path; ///IN CASE IS OFFLINE
@@ -42,18 +41,17 @@ class AppMediaItem {
   bool is320Kbps;
   int likes;
   int state; ///STATE FOR USERS WHEN THE SAVE ITEM ON ITEMLISTS - FROM O to 5
-  
   MediaItemType? type;
-  AppMediaSource mediaSource;
 
-  AppMediaItem({
+  ExternalSource source;
+
+  ExternalItem({
     this.id = '',
     this.album = '',
     this.albumId,
     this.ownerName = '',
     this.ownerId,
     this.externalArtists,
-    this.featInternalArtists,
     this.duration = 0,
     this.categories,
     this.imgUrl = '',
@@ -71,7 +69,7 @@ class AppMediaItem {
     this.lyrics = '',
     this.trackNumber,
     this.discNumber,
-    this.mediaSource = AppMediaSource.internal,
+    this.source = ExternalSource.unknown,
     this.is320Kbps = false,
     this.likes = 0,
     this.path,
@@ -81,12 +79,12 @@ class AppMediaItem {
 
   @override
   String toString() {
-    return 'AppMediaItem{id: $id, name: $name, description: $description, ownerName: $ownerName, ownerId: $ownerId, album: $album, albumId: $albumId, duration: $duration, featInternalArtists: $featInternalArtists, externalArtists: $externalArtists, categories: $categories, lyrics: $lyrics, language: $language, imgUrl: $imgUrl, galleryUrls: $galleryUrls, metaOwner: $metaOwner, publishedYear: $publishedYear, releaseDate: $releaseDate, url: $url, path: $path, permaUrl: $permaUrl, allUrls: $allUrls, trackNumber: $trackNumber, discNumber: $discNumber, quality: $quality, is320Kbps: $is320Kbps, likes: $likes, state: $state, type: $type, mediaSource: $mediaSource';
+    return 'ExternalItem{id: $id, name: $name, description: $description, ownerName: $ownerName, ownerId: $ownerId, album: $album, albumId: $albumId, duration: $duration, externalArtists: $externalArtists, categories: $categories, lyrics: $lyrics, language: $language, imgUrl: $imgUrl, galleryUrls: $galleryUrls, metaOwner: $metaOwner, publishedYear: $publishedYear, releaseDate: $releaseDate, url: $url, path: $path, permaUrl: $permaUrl, allUrls: $allUrls, trackNumber: $trackNumber, discNumber: $discNumber, quality: $quality, is320Kbps: $is320Kbps, likes: $likes, state: $state, type: $type, source: $source';
   }
 
-  factory AppMediaItem.fromJSON(map) {
+  factory ExternalItem.fromJSON(map) {
     try {
-      AppConfig.logger.t("AppMediaItem fromJSON: ${map['name'] ?? ''} with id ${map['id'] ?? ''}");
+      AppConfig.logger.t("ExternalItem fromJSON: ${map['name'] ?? ''} with id ${map['id'] ?? ''}");
       int dur = 30;
 
       if(map['duration'] is String && map['duration'].toString().contains(":")) {
@@ -98,11 +96,10 @@ class AppMediaItem {
         dur = map['duration'];
       }
 
-      final appMediaItem = AppMediaItem(
+      final externalItem = ExternalItem(
         id: map['id'] ?? '',
         type: EnumToString.fromString(MediaItemType.values, map['type'].toString()) ?? MediaItemType.song,
         album: map['album'] ?? '',
-        metaOwner: map['metaOwner'] ?? '',
         publishedYear: map['publishedYear'] ?? 0,
         duration: dur,
         language: map['language'] ?? '',
@@ -112,7 +109,6 @@ class AppMediaItem {
         description: map['description'] ?? '',
         name: map['name'] ?? '',
         ownerName: map['ownerName'] ?? '',
-        featInternalArtists: map['featInternalArtists'] as Map<String, String>?,
         externalArtists: (map['externalArtists'] as List<dynamic>?)?.map((e) => e.toString()).toList(),
         imgUrl: map['imgUrl'] ?? '',
         galleryUrls: (map['galleryUrls'] as List<dynamic>?)?.map((e) => e.toString()).toList(),
@@ -123,12 +119,12 @@ class AppMediaItem {
         releaseDate: map['releaseDate'] ?? 0,
         trackNumber: map['trackNumber'],
         discNumber: map['discNumber'],
-        mediaSource: EnumToString.fromString(AppMediaSource.values, map["mediaSource"] ?? AppMediaSource.internal.name) ?? AppMediaSource.internal,
+        source: EnumToString.fromString(ExternalSource.values, map["source"] ?? ExternalSource.unknown.name) ?? ExternalSource.unknown,
         likes: map['likes'] ?? 0,
         path: map['path'] ?? '',
         state: map['state'] ?? 0,
       );
-      return appMediaItem;
+      return externalItem;
     } catch (e) {
       AppConfig.logger.e(e.toString());
       throw Exception('Error parsing song item: $e');
@@ -149,7 +145,6 @@ class AppMediaItem {
       'name': name,
       'url': url,
       'allUrls': allUrls,
-      'metaOwner': metaOwner,
       'publishedYear': publishedYear,
       'quality': quality,
       'permaUrl': permaUrl,
@@ -158,8 +153,7 @@ class AppMediaItem {
       'discNumber': discNumber,
       'albumId': albumId,
       'externalArtists': externalArtists,
-      'featInternalArtists': featInternalArtists,
-      'mediaSource': mediaSource.name,
+      'source': source.name,
       'is320Kbps': is320Kbps,
       'ownerName': ownerName,
       'ownerId': ownerId,

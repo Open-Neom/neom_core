@@ -9,6 +9,7 @@ import '../../utils/enums/itemlist_type.dart';
 import '../../utils/enums/owner_type.dart';
 import 'app_media_item.dart';
 import 'app_release_item.dart';
+import 'external_item.dart';
 
 class Itemlist {
 
@@ -26,6 +27,7 @@ class Itemlist {
 
   List<AppReleaseItem>? appReleaseItems;
   List<AppMediaItem>? appMediaItems;
+  List<ExternalItem>? externalItems;
   String uri; /// A link to the Web API endpoint providing full details of the external list.
   ItemlistType type;
 
@@ -50,6 +52,7 @@ class Itemlist {
     this.isModifiable = true,
     this.appReleaseItems,
     this.appMediaItems,
+    this.externalItems,
     this.uri = "",
     this.type = ItemlistType.playlist,
     this.createdTime,
@@ -61,7 +64,7 @@ class Itemlist {
 
   @override
   String toString() {
-    return 'Itemlist{id: $id, name: $name, description: $description, ownerId: $ownerId, ownerName: $ownerName, ownerType: $ownerType, href: $href, imgUrl: $imgUrl, public: $public, position: $position, isModifiable: $isModifiable, appReleaseItems: $appReleaseItems, appMediaItems: $appMediaItems, uri: $uri, type: $type}';
+    return 'Itemlist{id: $id, name: $name, description: $description, ownerId: $ownerId, ownerName: $ownerName, ownerType: $ownerType, href: $href, imgUrl: $imgUrl, public: $public, position: $position, isModifiable: $isModifiable, appReleaseItems: $appReleaseItems, appMediaItems: $appMediaItems, externalItems: $externalItems, uri: $uri, type: $type}';
   }
 
   Itemlist.createBasic(this.name, desc, this.ownerId, this.ownerName, this.type) :
@@ -72,6 +75,7 @@ class Itemlist {
     public = true,
     uri = "",
     ownerType = OwnerType.profile,
+    appReleaseItems = [],
     appMediaItems = [],
     isModifiable = true;
 
@@ -86,11 +90,14 @@ class Itemlist {
     ownerId = data["ownerId"] ?? "",
     ownerName = data["ownerName"] ?? "",
     uri = data["uri"],
+    appReleaseItems = data["appReleaseItems"]?.map<AppReleaseItem>((item) {
+      return AppReleaseItem.fromJSON(item);
+    }).toList() ?? [],
     appMediaItems =  data["appMediaItems"]?.map<AppMediaItem>((item) {
       return AppMediaItem.fromJSON(item);
     }).toList(),
-    appReleaseItems = data["appReleaseItems"]?.map<AppReleaseItem>((item) {
-      return AppReleaseItem.fromJSON(item);
+    externalItems = data["externalItems"]?.map<ExternalItem>((item) {
+      return ExternalItem.fromJSON(item);
     }).toList() ?? [],
     position = CoreUtilities.JSONtoPosition(data["position"]),
     type = EnumToString.fromString(ItemlistType.values, data["type"] ?? ItemlistType.playlist.name) ?? ItemlistType.playlist,
@@ -107,8 +114,9 @@ class Itemlist {
     'ownerId': ownerId,
     'public': public,
     'uri': uri,
-    'appMediaItems': appMediaItems?.map((appMediaItem) => appMediaItem.toJSON()).toList() ?? [],
     'appReleaseItems': appReleaseItems?.map((appReleaseItem) => appReleaseItem.toJSON()).toList() ?? [],
+    'appMediaItems': appMediaItems?.map((appMediaItem) => appMediaItem.toJSON()).toList() ?? [],
+    'externalItems': externalItems?.map((externalItem) => externalItem.toJSON()).toList() ?? [],
     'position': jsonEncode(position),
     'type': type.name,
     'ownerType': ownerType.name,
@@ -128,16 +136,25 @@ class Itemlist {
     'uri': uri,
     'appMediaItems': appMediaItems?.map((appMediaItem) => appMediaItem.toJSON()).toList() ?? [],
     'appReleaseItems': appReleaseItems?.map((appReleaseItem) => appReleaseItem.toJSON()).toList() ?? [],
+    'externalItems': externalItems?.map((externalItem) => externalItem.toJSON()).toList() ?? [],
     'position': position != null ? jsonEncode(position) : null,
     'type': type.name,
     'ownerType': ownerType.name,
     'isModifiable': isModifiable
   };
 
+  List<dynamic> get allItems {
+    final List<dynamic> combinedList = [];
+
+    if (appReleaseItems != null) combinedList.addAll(appReleaseItems!);
+    if (appMediaItems != null) combinedList.addAll(appMediaItems!);
+    if (externalItems != null) combinedList.addAll(externalItems!);
+
+    return combinedList;
+  }
+
   int getTotalItems() {
-    int totalItems = 0;
-    if(appMediaItems != null) totalItems = totalItems + (appMediaItems?.length ?? 0);
-    if(appReleaseItems != null) totalItems = totalItems + (appReleaseItems?.length ?? 0);
+    int totalItems = allItems.length;
     AppConfig.logger.t("Retrieving $totalItems Total Items.");
     return totalItems;
   }
@@ -148,29 +165,43 @@ class Itemlist {
 
     if(imgUrl.isNotEmpty) imgUrls.add(imgUrl);
 
-    if(appMediaItems != null) {
-      for (var element in appMediaItems!) {
-        if(element.imgUrl.isNotEmpty) {
-          imgUrls.add(element.imgUrl);
-        } else if(element.allUrls?.isNotEmpty ?? false) {
-          imgUrls.add(element.allUrls!.first);
-        }
-      }
-    }
+    for (var item in allItems) {
+      String currentImgUrl = '';
+      List<String>? galleryUrls;
 
-    if(appReleaseItems != null) {
-      for (var element in appReleaseItems!) {
-        if(element.imgUrl.isNotEmpty) {
-          imgUrls.add(element.imgUrl);
-        } else if(element.galleryUrls?.isNotEmpty ?? false) {
-          imgUrls.add(element.galleryUrls!.first);
-        }
+      if (item is AppReleaseItem) {
+        currentImgUrl = item.imgUrl;
+        galleryUrls = item.galleryUrls;
+      } else if (item is AppMediaItem) {
+        currentImgUrl = item.imgUrl;
+        galleryUrls = item.galleryUrls;
+      } else if (item is ExternalItem) {
+        currentImgUrl = item.imgUrl;
+        galleryUrls = item.galleryUrls;
       }
 
+      if(currentImgUrl.isNotEmpty) {
+        imgUrls.add(currentImgUrl);
+      } else if(galleryUrls?.isNotEmpty ?? false) {
+        imgUrls.add(galleryUrls!.first);
+      }
     }
 
     AppConfig.logger.t("Retrieving ${imgUrls.length} total Images for itemlist $name.");
     return imgUrls.toList();
+  }
+
+  dynamic getItem(String itemId) {
+    if (itemId.isEmpty) {
+      AppConfig.logger.w("Item ID cannot be empty when searching itemlist: $name");
+      return null;
+    }
+
+    dynamic foundItem = allItems.firstWhere((item) {
+      return item.id == itemId;
+    });
+
+    return foundItem;
   }
 
 }

@@ -14,6 +14,7 @@ import '../../domain/model/item_list.dart';
 import '../../domain/use_cases/app_hive_service.dart';
 import '../../domain/use_cases/user_service.dart';
 import '../../utils/constants/app_hive_constants.dart';
+import '../../utils/constants/core_constants.dart';
 import '../../utils/enums/app_hive_box.dart';
 import '../../utils/enums/app_locale.dart';
 
@@ -118,16 +119,22 @@ class AppHiveController implements AppHiveService {
       AppLocale appLocale = AppLocale.spanish;
 
       switch(Get.locale?.languageCode ?? "") {
-        case "es":
-          appLocale = AppLocale.spanish;
-          break;
-        case "en":
+        case CoreConstants.en:
           appLocale = AppLocale.english;
           break;
-        case "":
+        case CoreConstants.es:
+          appLocale = AppLocale.spanish;
           break;
-
+        case CoreConstants.fr:
+          appLocale = AppLocale.french;
+          break;
+        case CoreConstants.de:
+          appLocale = AppLocale.deutsch;
+          break;
+        default:
+          break;
       }
+
       setLocale(appLocale);
       updateLocale(appLocale);
     }

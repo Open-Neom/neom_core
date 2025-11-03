@@ -7,7 +7,6 @@ import '../../app_config.dart';
 import '../../domain/model/app_media_item.dart';
 import '../../domain/model/item_list.dart';
 import '../../domain/repository/app_media_item_repository.dart';
-import '../../utils/enums/app_media_source.dart';
 import '../../utils/enums/media_item_type.dart';
 import 'constants/app_firestore_collection_constants.dart';
 
@@ -114,27 +113,15 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
   @override
   Future<void> insert(AppMediaItem appMediaItem) async {
     AppConfig.logger.t("Adding appMediaItem to database collection");
-    try {
-      if(
-      (!appMediaItem.url.contains("gig-me-out") && !appMediaItem.url.contains("gigmeout") && !appMediaItem.url.contains("firebasestorage.googleapis.com"))
-      && !appMediaItem.url.contains("emxi") && !appMediaItem.url.contains("escritoresmxi") && !appMediaItem.url.contains("cyberneom") && !appMediaItem.url.contains("neom")
-          && appMediaItem.mediaSource == AppMediaSource.internal
-      ) {
-        if(appMediaItem.url.contains("spotify") || appMediaItem.url.contains("p.scdn.co")) {
-          appMediaItem.mediaSource = AppMediaSource.spotify;
-        } else if(appMediaItem.url.contains("youtube")) {
-          appMediaItem.mediaSource = AppMediaSource.youtube;
-        } else {
-          appMediaItem.mediaSource = AppMediaSource.other;
-        }
-    }
 
+    try {
       await appMediaItemReference.doc(appMediaItem.id).set(appMediaItem.toJSON());
       AppConfig.logger.d("AppMediaItem inserted into Firestore");
     } catch (e) {
       AppConfig.logger.e(e.toString());
       AppConfig.logger.i("AppMediaItem not inserted into Firestore");
     }
+
   }
 
   @override

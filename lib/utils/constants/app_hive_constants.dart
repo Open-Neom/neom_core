@@ -1,7 +1,7 @@
 
 class AppHiveConstants {
 
-  //TODO Migrateto ENUM
+  //TODO Migrate to ENUM
   static const String userId = 'userId';
   static const String name = 'name';
   static const String username = 'username';

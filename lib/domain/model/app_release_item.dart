@@ -29,6 +29,7 @@ class AppReleaseItem {
   String? metaId; ///ID OF ITEMLIST CREATED TO INCLUDE ITEMS IN CASE OF INCLUDING MORE ON SAME
   String? metaName; ///ITEMLIST NAME
   String? metaOwnerId; ///EMAIL USED TO UPLOAD ITEM FROM APP OR WC
+  String? metaOwner; ///NAME OF PUBLISHER OR META OWNER
 
   List<String>? instruments; ///INSTRUMENTS USED ON RELEASE - IT DEPENDS OF THE APP
 
@@ -42,8 +43,7 @@ class AppReleaseItem {
   bool isRental; ///Verify if item is elegible for unlimited access for members
 
   int? publishedYear; ///YEAR OF PUBLISHIN FOR ITEMS PUBLISHED PREVIOUSLY OUTSIDE THE PLATFORM.
-  String? publisher; ///IN CASE OF A FORMAL PUBLISHER BESIDES AUTOPUBLISHING
-  Place? place; ///PLACE OR LOCATION FOR PUBLISHER IF ABLE.
+  Place? place; ///PLACE OR LOCATION FOR METAOWNER IF ABLE.
 
   List<String>? boughtUsers; ///PROFILEID OR EMAIL OF USERS WHO BOUGHT THIS ITEM - IT ALSO IS USEFUL TO KNOW TOTAL SALES WITH LIST.LENGHT
 
@@ -86,7 +86,7 @@ class AppReleaseItem {
     this.variations,
     this.isRental = true,
     this.publishedYear,
-    this.publisher,
+    this.metaOwner,
     this.place,
     this.boughtUsers,
     this.createdTime = 0,
@@ -101,7 +101,7 @@ class AppReleaseItem {
 
   @override
   String toString() {
-    return 'AppReleaseItem{id: $id, name: $name, description: $description, imgUrl: $imgUrl, galleryUrls: $galleryUrls, previewUrl: $previewUrl, duration: $duration, type: $type, status: $status, ownerEmail: $ownerEmail, ownerName: $ownerName, ownerType: $ownerType, categories: $categories, metaId: $metaId, metaName: $metaName, metaOwnerId: $metaOwnerId, instruments: $instruments, lyrics: $lyrics, language: $language, digitalPrice: $digitalPrice, physicalPrice: $physicalPrice, variations: $variations, publishedYear: $publishedYear, publisher: $publisher, place: $place, boughtUsers: $boughtUsers, createdTime: $createdTime, modifiedTime: $modifiedTime, state: $state, externalArtists: $externalArtists, featInternalArtists: $featInternalArtists, likedProfiles: $likedProfiles, externalUrl: $externalUrl}';
+    return 'AppReleaseItem{id: $id, name: $name, description: $description, imgUrl: $imgUrl, galleryUrls: $galleryUrls, previewUrl: $previewUrl, duration: $duration, type: $type, status: $status, ownerEmail: $ownerEmail, ownerName: $ownerName, ownerType: $ownerType, categories: $categories, metaId: $metaId, metaName: $metaName, metaOwnerId: $metaOwnerId, instruments: $instruments, lyrics: $lyrics, language: $language, digitalPrice: $digitalPrice, physicalPrice: $physicalPrice, variations: $variations, publishedYear: $publishedYear, metaOwner: $metaOwner, place: $place, boughtUsers: $boughtUsers, createdTime: $createdTime, modifiedTime: $modifiedTime, state: $state, externalArtists: $externalArtists, featInternalArtists: $featInternalArtists, likedProfiles: $likedProfiles, externalUrl: $externalUrl}';
   }
 
   AppReleaseItem.fromJSON(data) :
@@ -130,7 +130,7 @@ class AppReleaseItem {
         variations = List.from(data["variations"]?.cast<String>() ?? []),
         isRental = data["isRental"] ?? true,
         publishedYear = data["publishedYear"] ?? 0,
-        publisher = data["publisher"] ?? '',
+        metaOwner = data["metaOwner"] ?? '',
         place =  Place.fromJSON(data["place"] ?? {}),
         boughtUsers = List.from(data["boughtUsers"]?.cast<String>() ?? []),
         createdTime = data["createdTime"] ?? 0,
@@ -168,7 +168,7 @@ class AppReleaseItem {
     'salePrice': salePrice?.toJSON(),
     'isRental': isRental,
     'publishedYear': publishedYear,
-    'publisher': publisher,
+    'metaOwner': metaOwner,
     'place': place?.toJSON(),
     'boughtUsers': boughtUsers,
     'createdTime': createdTime,

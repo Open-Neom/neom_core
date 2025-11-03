@@ -1,5 +1,4 @@
 
-
 class AppGoogleUtilities {
 
   static const String projectId = 'projectId';
