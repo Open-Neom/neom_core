@@ -159,7 +159,6 @@ class AppRouteConstants {
   static const String chamberPresets  = '/chamber/presets';
 
   static const String audioPlayer  = '/audioPlayer';
-  static const String audioPlayerHome  = '/audioPlayer/home';
   static const String audioPlayerMedia  = '/audioPlayer/media';
   static const String audioPlayerMini  = '/audioPlayer/mini';
   static const String audioPlayerRecent  = '/audioPlayer/recent';
@@ -187,5 +186,9 @@ class AppRouteConstants {
 
   static const String wallet = '/wallet';
   static const String transactionDetails = '/transaction/details';
+
+  static const String caseteHome  = '/casete/home';
+  static const String caseteItemDetails  = '/casete/item/details';
+  static const String caseteMonthlyDetails  = '/casete/monthly/details';
 
 }

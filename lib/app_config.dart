@@ -32,7 +32,8 @@ class AppConfig {
   String lastStableVersion = '';
   int lastStableBuild = 0;
 
-  Rx<AuthStatus> authStatus = AuthStatus.notDetermined.obs;
+  AuthStatus authStatus = AuthStatus.notDetermined;
+  bool isGuestMode = true;
 
   Map<String, Itemlist> releaseItemlists = {};
   ItemlistType defaultItemlistType = ItemlistType.playlist;
@@ -86,23 +87,24 @@ class AppConfig {
     }
 
     final loginServiceImpl = Get.find<LoginService>();
-    final userServiceImpl = Get.find<UserService>();
+    ///DEPRECATED final userServiceImpl = Get.find<UserService>();
 
-    authStatus.value = loginServiceImpl.getAuthStatus();
-    if(authStatus.value == AuthStatus.waiting) {
+    authStatus = loginServiceImpl.getAuthStatus();
+    if(authStatus == AuthStatus.waiting) {
       return splashPage;
     } else if (lastStableBuild > buildNumber) {
       rootPage = previousVersionPage;
     } else if(AppHiveController().firstTime) {
       rootPage = onGoingPage;
       AppHiveController().setFirstTime(false);
-    } else if(authStatus.value == AuthStatus.loggingIn) {
+    } else if(authStatus == AuthStatus.loggingIn) {
       rootPage = splashPage;
     } else if (homePage != null
-        && authStatus.value == AuthStatus.loggedIn
-        && (userServiceImpl.user.id.isNotEmpty)
-        && ((userServiceImpl.user.profiles.isNotEmpty)
-            && (userServiceImpl.user.profiles.first.id.isNotEmpty))) {
+        && (authStatus == AuthStatus.loggedIn || isGuestMode)
+        /// && (userServiceImpl.user.id.isNotEmpty)
+        /// && (userServiceImpl.user.profiles.isNotEmpty
+        ///     && userServiceImpl.user.profiles.first.id.isNotEmpty)
+    ) {
       rootPage = homePage;
     }
 

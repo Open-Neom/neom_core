@@ -182,7 +182,7 @@ class PostFirestore implements PostRepository {
         if(!post.isDraft && !_diverseDocTimeline.containsKey(doc.id)) {
           post.id = doc.id;
           if(post.location.isEmpty && post.position?.latitude != 0) {
-            post.location = await PositionUtilities.getAddressFromPlacerMark(post.position!);
+            post.location = await PositionUtilities.getFormattedAddressFromPosition(post.position!);
           }
           posts[post.id] = post;
           _diverseDocTimeline[doc.id] = doc;
@@ -213,7 +213,7 @@ class PostFirestore implements PostRepository {
         Post post = Post.fromJSON(_recentDocTimeline.elementAt(i).data());
         post.id = _recentDocTimeline.elementAt(i).id;
         if(post.location.isEmpty && post.position != null) {
-          post.location = await PositionUtilities.getAddressFromPlacerMark(post.position!);
+          post.location = await PositionUtilities.getFormattedAddressFromPosition(post.position!);
         }
 
         if(profileId == post.ownerId || profileId.isEmpty) {
@@ -337,7 +337,7 @@ class PostFirestore implements PostRepository {
 
         if(profileId == post.ownerId || profileId.isEmpty) {
           if(post.location.isEmpty && post.position != null) {
-            post.location = await PositionUtilities.getAddressFromPlacerMark(post.position!);
+            post.location = await PositionUtilities.getFormattedAddressFromPosition(post.position!);
           }
           sortedDrafts.add(post);
         }
@@ -478,7 +478,7 @@ class PostFirestore implements PostRepository {
           Post post = Post.fromJSON(doc.data());
           post.id = doc.id;
           if(post.location.isEmpty && post.position?.latitude != 0) {
-            post.location = await PositionUtilities.getAddressFromPlacerMark(post.position!);
+            post.location = await PositionUtilities.getFormattedAddressFromPosition(post.position!);
           }
           posts[post.id] = post;
           _diverseDocTimeline[doc.id] = doc;

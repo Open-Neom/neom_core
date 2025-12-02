@@ -2,12 +2,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../app_config.dart';
 import '../../domain/model/nupale/nupale_session.dart';
-import '../../domain/use_cases/nupale_session_service.dart';
+import '../../domain/repository/nupale_session_repository.dart';
 
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
 
-class NupaleSessionFirestore implements NupaleSessionService {
+class NupaleSessionFirestore implements NupaleSessionRepository {
 
   final nupaleSessionsReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.nupaleSessions);
 

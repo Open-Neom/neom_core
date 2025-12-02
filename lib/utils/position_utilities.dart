@@ -3,6 +3,7 @@ import 'package:geolocator/geolocator.dart';
 
 import '../app_config.dart';
 import '../data/implementations/geolocator_controller.dart';
+import '../domain/model/address.dart';
 
 class PositionUtilities {
 
@@ -39,8 +40,8 @@ class PositionUtilities {
     return (distanceInMeters / 1000);
   }
 
-  static Future<String> getAddressFromPlacerMark(Position position) async {
-    AppConfig.logger.t("getAddressFromPlacerMark");
+  static Future<String> getFormattedAddressFromPosition(Position position) async {
+    AppConfig.logger.t("getAddressFromPlacerMark for position: $position");
 
     Placemark placeMark = await GeoLocatorController().getPlaceMark(position);
     String country = placeMark.country ?? "";
@@ -84,6 +85,8 @@ class PositionUtilities {
   }
 
   static Future<List<String>> getLocationSuggestions(Position position, {bool includeCurrentPosition = true}) async {
+    AppConfig.logger.d("Getting location suggestions for position: $position");
+
     List<String> suggestions = await GeoLocatorController().getNearbySimpleAddresses(position);
 
     if(includeCurrentPosition) {
@@ -98,6 +101,46 @@ class PositionUtilities {
     }
 
     return suggestions;
+  }
+
+  static Future<Address> getAddressFromPosition(Position position) async {
+    AppConfig.logger.d("Getting address from position: $position");
+
+    Placemark placeMark = await GeoLocatorController().getPlaceMark(position);
+
+    return Address(
+        country: placeMark.country ?? "",
+        state: placeMark.locality ?? "",
+        zipCode: placeMark.postalCode ?? "",
+        city: placeMark.subLocality ?? "",
+        street: placeMark.street ?? ""
+    );
+  }
+
+  static Future<Address> getAddressFromFormattedAddress(String formattedAddress) async {
+    AppConfig.logger.d("Getting address from formatted address: $formattedAddress");
+
+    List<Location> locations = await locationFromAddress(formattedAddress);
+
+    if (locations.isEmpty) {
+      return Address();
+    }
+
+    Location firstLocation = locations.first;
+    Position position = Position(
+      latitude: firstLocation.latitude,
+      longitude: firstLocation.longitude,
+      timestamp: DateTime.now(),
+      accuracy: 0.0,
+      altitude: 0.0,
+      heading: 0.0,
+      speed: 0.0,
+      speedAccuracy: 0.0,
+      altitudeAccuracy: 0,
+      headingAccuracy: 0.0,
+    );
+
+    return await getAddressFromPosition(position);
   }
 
 }

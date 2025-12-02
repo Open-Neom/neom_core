@@ -17,20 +17,21 @@ class AppInitializationController {
     final userServiceImpl = Get.find<UserService>();
 
     // Todas las microtareas van aquí
+    await AppHiveController().fetchSettingsData();
     String deviceFcmToken = await getFcmToken();
 
     userServiceImpl.getUserSubscription();
-    Future.microtask(() => UserFirestore().updateLastTimeOn(userServiceImpl.user.id));
     Future.microtask(() => AppHiveController().fetchCachedData());
-    Future.microtask(() => AppHiveController().fetchSettingsData());
 
     if(userServiceImpl.user.fcmToken.isEmpty || userServiceImpl.user.fcmToken != deviceFcmToken) {
-      Future.microtask(() => UserFirestore().updateFcmToken(userServiceImpl.user.id, deviceFcmToken));
+      UserFirestore().updateFcmToken(userServiceImpl.user.id, deviceFcmToken);
     }
 
     Future.microtask(() => userServiceImpl.verifyLocation());
     Future.microtask(() => Get.find<NotificationService>().init());
-    Future.microtask(() => AppHiveController().setFirstTime(false));
+
+    AppHiveController().setFirstTime(false);
+    UserFirestore().updateLastTimeOn(userServiceImpl.user.id);
 
   }
 

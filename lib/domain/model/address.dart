@@ -1,7 +1,4 @@
-import 'package:geocoding/geocoding.dart';
-import 'package:geolocator/geolocator.dart';
 import '../../app_config.dart';
-import '../../data/implementations/geolocator_controller.dart';
 
 
 class Address {
@@ -43,22 +40,8 @@ class Address {
         placeNumber = data["placeNumber"] ?? "",
         zipCode = data["zipCode"] ?? "";
 
-  static Future<Address> getAddressFromPosition(Position position) async {
-    AppConfig.logger.d("");
-
-    Placemark placeMark = await GeoLocatorController().getPlaceMark(position);
-
-    return Address(
-        country: placeMark.country ?? "",
-        state: placeMark.locality ?? "",
-        zipCode: placeMark.postalCode ?? "",
-        city: placeMark.subLocality ?? "",
-        street: placeMark.street ?? ""
-    );
-  }
-
-
   String getAddressSimple()  {
+    AppConfig.logger.d("Getting address simple from address: ${toJSON().toString()}");
 
     String address = "";
 

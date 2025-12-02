@@ -62,6 +62,7 @@ class AppHiveConstants {
   static const String cacheDate = 'cacheDate';
   static const String lastUpdate = 'lastUpdate';
   static const String directoryProfiles = 'directoryProfiles';
+  static const String adminDirectoryProfiles = 'adminDirectoryProfiles';
 
   static const String getLyricsOnline = 'getLyricsOnline';
   static const String enableGesture = 'enableGesture';

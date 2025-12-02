@@ -1,6 +1,6 @@
 import '../model/nupale/nupale_session.dart';
 
-abstract class NupaleSessionService {
+abstract class NupaleSessionRepository {
 
   Future<String> insert(NupaleSession session);
   Future<bool> remove(String sessionId);

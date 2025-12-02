@@ -55,6 +55,8 @@ class Event {
   List<String>? goingProfiles;
   int participantsLimit;
   bool isOnline;
+  String? url;
+  bool isOutdoor;
   bool isTest;
   
   Event({
@@ -80,9 +82,14 @@ class Event {
       this.place,
       this.position,
       this.isFulfilled = false,
+      this.appMediaItems,
       this.instrumentsFulfillment,
       this.bandsFulfillment,
+      this.watchingProfiles,
+      this.goingProfiles,
       this.isOnline = false,
+      this.url,
+      this.isOutdoor = false,
       this.isTest = false,
       this.participantsLimit = 0
   });
@@ -109,6 +116,7 @@ class Event {
     type = EventType.rehearsal,
     status = EventStatus.draft,
     isOnline = false,
+    isOutdoor = false,
     isTest = false,
     participantsLimit = 0;
 
@@ -147,6 +155,8 @@ class Event {
       watchingProfiles = List.from(data["watchingProfiles"]?.cast<String>() ?? []),
       goingProfiles = List.from(data["goingProfiles"]?.cast<String>() ?? []),
       isOnline = data["isOnline"] ?? false,
+      url = data["url"],
+      isOutdoor = data["isOutdoor"] ?? false,
       isTest = data["isTest"] ?? false,
       participantsLimit = data["participantsLimit"] ?? 0;
 
@@ -179,7 +189,9 @@ class Event {
     'watchingProfiles': [],
     'goingProfiles': [],
     'isOnline': isOnline,
+    'url': url,
     'isTest': isTest,
+    'isOutdoor': isOutdoor,
     'participantsLimit': participantsLimit,
   };
 

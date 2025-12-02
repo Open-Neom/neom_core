@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 
 abstract class HomeService {
 
-  void selectPageView(int index, {BuildContext context});
-  Future<void> modalBottomSheetMenu(BuildContext context);
+  void selectTab(int index, {BuildContext? context});
+  Future<void> modalBottomAddMenu(BuildContext context);
   void timelineIsReady({bool isReady = true});
   double getTimelineScrollOffset();
 

@@ -62,7 +62,7 @@ abstract class EventService {
   Future<void> sendProfileEventInvitations();
   void addInvitedProfile(AppProfile mate, Instrument instr);
   void setCurrency(String chosenCurrency);
-  void filterEventsBy({EventType eventType = EventType.any});
+  void filterEventsBy({EventType? eventType});
 
   void setMessage(String text);
   void goWithFlyer();

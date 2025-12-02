@@ -14,6 +14,7 @@ class NupaleSession {
   Map<int, int> pagesDuration;
   int nupale; ///REAL Number of Pages Read
   int createdTime; ///CREATED SESSION TIME IN MILISECONDSSINCEEPOCH
+  int totalPages; /// TOTAL PAGES IN THE ITEM
 
   SubscriptionLevel? subscriptionLevel;
   bool isTest;
@@ -32,6 +33,7 @@ class NupaleSession {
     this.pagesDuration = const {},
     this.nupale = 0,
     this.createdTime = 0,
+    this.totalPages = 0,
     this.subscriptionLevel,
     this.isTest = false,
   });
@@ -47,6 +49,7 @@ class NupaleSession {
       'pagesDuration': pagesDuration.map((key, value) => MapEntry(key.toString(), value)),
       'nupale': nupale,
       'createdTime': createdTime,
+      'totalPages': totalPages,
       'subscriptionLevel': subscriptionLevel?.name,
       'isTest': isTest,
     };
@@ -65,6 +68,7 @@ class NupaleSession {
           : {},
       nupale: json['nupale'] ?? 0,
       createdTime: json['createdTime'] ?? 0,
+      totalPages: json['totalPages'] ?? 0,
       subscriptionLevel: EnumToString.fromString(SubscriptionLevel.values, json["subscriptionLevel"].toString()),
       isTest: json['isTest'] ?? false,
     );

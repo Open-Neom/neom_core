@@ -33,7 +33,7 @@ class RootPage extends StatelessWidget {
           try {
             if((homeService?.currentIndex != CoreConstants.firstHomeTabIndex)
                 || (homeService?.getTimelineScrollOffset() != 0.0)) {
-              homeService?.selectPageView(CoreConstants.firstHomeTabIndex);
+              homeService?.selectTab(CoreConstants.firstHomeTabIndex);
               return;
             }
           } catch (e) {

@@ -5,27 +5,41 @@ import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:google_api_headers/google_api_headers.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:neom_google_places/neom_google_places.dart';
-import 'package:neom_maps_services/places.dart';
+import 'package:neom_google_places/ui/places_autocomplete.dart';
+import 'package:neom_google_places/utils/enums/mode.dart';
+import 'package:neom_maps_services/data/google_maps_places.dart';
+import 'package:neom_maps_services/domain/models/location.dart';
+import 'package:neom_maps_services/domain/models/place_autocomplete_response.dart';
+import 'package:neom_maps_services/domain/models/place_details.dart';
+import 'package:neom_maps_services/domain/models/prediction.dart';
+import 'package:neom_maps_services/utils/component.dart';
 
 import '../../app_config.dart';
 import '../../app_properties.dart';
-import '../../domain/model/address.dart';
 import '../../domain/model/app_profile.dart';
 import '../../domain/model/place.dart';
 import '../../domain/use_cases/maps_service.dart';
 import '../../domain/use_cases/user_service.dart';
 import '../../utils/constants/core_constants.dart';
+import '../../utils/position_utilities.dart';
 
 //TODO Move to neom_maps_service or something specific out of neom_core
 class MapsController extends GetxController implements MapsService {
 
   final userServiceImpl = Get.find<UserService>();
 
-  final Completer<GoogleMapController> _googleMapController = Completer();
+  GoogleMapController? _googleMapController;
+  final RxSet<Marker> _markers = <Marker>{}.obs;
 
   AppProfile profile = AppProfile();
-  Location location = Location(lat: 37.42796133580664, lng: -122.085749655962);
+  Position? referencePosition;
+  final Rx<Position> _placePosition = Position(
+      latitude: 0,
+      longitude: 0,
+      timestamp: DateTime.now(), accuracy: 0, altitude: 0, heading: 0, speed: 0, speedAccuracy: 0,
+      altitudeAccuracy: 1, headingAccuracy: 1
+  ).obs;
+  Location location = Location(latitude: 0, longitude: 0);
   final Rx<Prediction> prediction = Prediction().obs;
 
   @override
@@ -34,33 +48,50 @@ class MapsController extends GetxController implements MapsService {
     AppConfig.logger.t("Maps Controller Init");
 
     profile = userServiceImpl.profile;
+
+    referencePosition = await Geolocator.getCurrentPosition(
+        locationSettings: LocationSettings(accuracy: LocationAccuracy.high,)
+    );
+
     if(profile.position != null) {
-      location = Location(lat: profile.position!.latitude, lng: profile.position!.longitude);
+      referencePosition = profile.position!;
     } else {
-      try {
-        Position position = await Geolocator.getCurrentPosition(
+      referencePosition = await Geolocator.getCurrentPosition(
           locationSettings: LocationSettings(accuracy: LocationAccuracy.high,)
-        );
-        profile.position = position;
-        userServiceImpl.profile = profile;
-      } catch (e) {
-        AppConfig.logger.e(e.toString());
-      }
+      );
+      profile.position = referencePosition;
+      userServiceImpl.profile = profile;
+    }
+
+    if(referencePosition != null) {
+      _placePosition.value = referencePosition!;
+      location = Location(
+          latitude: referencePosition!.latitude,
+          longitude: referencePosition!.longitude);
     }
 
     await goToHomePosition();
   }
 
   @override
-  Future<void> goToPosition(Position placePosition) async {
+  Future<void> goToPosition(Position position) async {
     AppConfig.logger.d("Go to position on Maps Controller");
 
     try {
-      final GoogleMapController controller = await _googleMapController.future;
-      controller.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
-          target: LatLng(placePosition.latitude, placePosition.longitude),
+      _placePosition.value = position;
+      _googleMapController?.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
+          target: LatLng(_placePosition.value.latitude, _placePosition.value.longitude),
           zoom: CoreConstants.cameraPositionZoom
       )));
+
+      _markers.clear();
+      _markers.add(
+          Marker(
+            markerId: const MarkerId("selectedPlace"),
+            position: LatLng(position.latitude, position.longitude),
+          )
+      );
+
     } catch (e) {
       AppConfig.logger.e(e.toString());
     }
@@ -70,19 +101,21 @@ class MapsController extends GetxController implements MapsService {
 
   @override
   Future<void> goToHomePosition() async {
-    AppConfig.logger.t("goToHomePosition");
+    AppConfig.logger.t("goToHomePosition on Maps Controller");
 
     try {
-      GoogleMapController controller = await _googleMapController.future;
-      Position position = profile.position!;
+      if(referencePosition == null) {
+        AppConfig.logger.d("Profile position is null, cannot go to home position");
+        return;
+      }
 
-      controller.animateCamera(
-          CameraUpdate.newCameraPosition(
-              CameraPosition(
-                  target: LatLng(position.latitude, position.longitude),
-                  zoom: CoreConstants.cameraPositionZoom,
-              )
+      _googleMapController?.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(
+            target: LatLng(referencePosition!.latitude, referencePosition!.longitude),
+            zoom: CoreConstants.cameraPositionZoom,
           )
+        )
       );
     } catch (e) {
       AppConfig.logger.d(e.toString());
@@ -92,7 +125,7 @@ class MapsController extends GetxController implements MapsService {
   @override
   void onError(PlacesAutocompleteResponse response) {
     try {
-      AppConfig.logger.d(response.toString());
+      AppConfig.logger.d(response.errorMessage);
     } catch (e) {
       AppConfig.logger.d(e.toString());
     }
@@ -100,7 +133,7 @@ class MapsController extends GetxController implements MapsService {
 
   @override
   Future<Prediction> placeAutoComplete(BuildContext context, String startText) async {
-    AppConfig.logger.d("Entering placeAutocomplate method");
+    AppConfig.logger.d("Entering placeAutoComplete with startText: $startText");
 
     Prediction prediction = Prediction();
 
@@ -111,12 +144,12 @@ class MapsController extends GetxController implements MapsService {
         radius: 1000,
         types: [],
         location: location,
-        strictbounds: false,
+        strictBounds: false,
         mode: Mode.fullscreen,
         context: context,
         apiKey: AppProperties.getGoogleApiKey(),
         onError: onError,
-        language: "mx",
+        language: "es-MX",
         decoration: InputDecoration(
           hintText: CoreConstants.search.tr,
           fillColor: Colors.yellow
@@ -135,6 +168,14 @@ class MapsController extends GetxController implements MapsService {
   }
 
   @override
+  CameraPosition initialCameraPosition(){
+    return CameraPosition(
+      target: LatLng(referencePosition!.latitude, referencePosition!.longitude),
+      zoom: CoreConstants.cameraPositionZoom,
+    );
+  }
+
+  @override
   CameraPosition getCameraPosition(Position position){
     return CameraPosition(
       target: LatLng(position.latitude, position.longitude),
@@ -143,39 +184,39 @@ class MapsController extends GetxController implements MapsService {
   }
 
   @override
-  Future<Place> predictionToGooglePlace(Prediction p) async {
-    AppConfig.logger.d("");
+  Future<Place> predictionToGooglePlace(Prediction prediction) async {
+    AppConfig.logger.d("Entering predictionToGooglePlace with prediction: ${prediction.toString()}");
 
     Place place = Place();
-    String placeName = "";
-    Address address = Address();
-    if(p.terms.isNotEmpty) {
-      placeName = p.terms.elementAt(0).value;
 
-      if(p.terms.length == 4) {
-        address = Address(
-          city: p.terms.elementAt(1).value,
-          state: p.terms.elementAt(2).value,
-          country: p.terms.elementAt(3).value,
-        );
-      } else if(p.terms.length == 5) {
-        address = Address(
-          street: p.terms.elementAt(1).value,
-          city: p.terms.elementAt(2).value,
-          state: p.terms.elementAt(3).value,
-          country: p.terms.elementAt(4).value,
-        );
-      } else if(p.terms.length == 6) {
-        address = Address(
-          street: p.terms.elementAt(1).value,
-          neighborhood: p.terms.elementAt(2).value,
-          city: p.terms.elementAt(3).value,
-          state: p.terms.elementAt(4).value,
-          country: p.terms.elementAt(5).value,
-        );
-      }
-
-    }
+    ///DEPRECATED
+    // if(p.terms?.isNotEmpty ?? false) {
+    //   placeName = p.terms!.elementAt(0).value;
+    //
+    //   if(p.terms!.length == 4) {
+    //     address = Address(
+    //       city: p.terms!.elementAt(1).value,
+    //       state: p.terms!.elementAt(2).value,
+    //       country: p.terms!.elementAt(3).value,
+    //     );
+    //   } else if(p.terms!.length == 5) {
+    //     address = Address(
+    //       street: p.terms!.elementAt(1).value,
+    //       city: p.terms!.elementAt(2).value,
+    //       state: p.terms!.elementAt(3).value,
+    //       country: p.terms!.elementAt(4).value,
+    //     );
+    //   } else if(p.terms!.length == 6) {
+    //     address = Address(
+    //       street: p.terms!.elementAt(1).value,
+    //       neighborhood: p.terms!.elementAt(2).value,
+    //       city: p.terms!.elementAt(3).value,
+    //       state: p.terms!.elementAt(4).value,
+    //       country: p.terms!.elementAt(5).value,
+    //     );
+    //   }
+    //
+    // }
 
     try {
       GoogleMapsPlaces places = GoogleMapsPlaces(
@@ -183,13 +224,16 @@ class MapsController extends GetxController implements MapsService {
         apiHeaders: await const GoogleApiHeaders().getHeaders(),
       );
 
-      PlacesDetailsResponse detail = await places.getDetailsByPlaceId(p.placeId!);
+      PlaceDetails placeDetails = await places.getDetailsByPlaceId(
+          prediction.placeId ?? '',
+          language: Get.locale?.languageCode
+      );
 
-      place.name = placeName;
-      place.address = address;
+      place.name = placeDetails.displayName?.text ?? '' ;
+      place.address = await PositionUtilities.getAddressFromFormattedAddress(placeDetails.formattedAddress ?? '');
       place.position = Position(
-          latitude: detail.result.geometry!.location.lat,
-          longitude: detail.result.geometry!.location.lng,
+          latitude: placeDetails.location?.latitude ?? 0,
+          longitude: placeDetails.location?.longitude ?? 0,
           timestamp: DateTime.now(), accuracy: 0, altitude: 0, heading: 0, speed: 0, speedAccuracy: 0,
           altitudeAccuracy: 1, headingAccuracy: 1
       );
@@ -202,6 +246,18 @@ class MapsController extends GetxController implements MapsService {
   }
 
   @override
-  Completer<GoogleMapController> get googleMapController => _googleMapController;
+  GoogleMapController? get googleMapController => _googleMapController;
+
+  @override
+  set googleMapController(GoogleMapController? controller) {
+    _googleMapController = controller;
+  }
+
+  @override
+  // TODO: implement placePosition
+  Position get placePosition => _placePosition.value;
+
+  @override
+  Set<Marker> get markers => _markers.value;
 
 }

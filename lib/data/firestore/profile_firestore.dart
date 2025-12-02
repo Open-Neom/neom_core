@@ -176,10 +176,8 @@ class ProfileFirestore implements ProfileRepository {
   @override
   Future<List<AppProfile>> getWithParameters({
     bool needsPhone = false, bool needsPosts = false,
-    List<
-        ProfileType>? profileTypes, FacilityType? facilityType, PlaceType? placeType,
-    List<
-        UsageReason>? usageReasons, Position? currentPosition, int maxDistance = 150, int? limit, bool isFirstCall = true}) async {
+    List<ProfileType>? profileTypes, FacilityType? facilityType, PlaceType? placeType,
+    List<UsageReason>? usageReasons, Position? currentPosition, int maxDistance = 150, int? limit, bool isFirstCall = true}) async {
     AppConfig.logger.d("Get profiles by parameters");
 
     List<AppProfile> profiles = [];
@@ -298,7 +296,7 @@ class ProfileFirestore implements ProfileRepository {
 
         if (profile.address.isEmpty) {
           profile.address =
-          await PositionUtilities.getAddressFromPlacerMark(profile.position!);
+          await PositionUtilities.getFormattedAddressFromPosition(profile.position!);
           if (profile.address.isNotEmpty) {
             ProfileFirestore().updateAddress(
               profile.id, profile.address);
@@ -629,7 +627,7 @@ class ProfileFirestore implements ProfileRepository {
   Future<bool> updatePosition(String profileId, Position newPosition) async {
     AppConfig.logger.d("$profileId updating location");
 
-    String address = await PositionUtilities.getAddressFromPlacerMark(newPosition);
+    String address = await PositionUtilities.getFormattedAddressFromPosition(newPosition);
 
     try {
       await profileReference.get().then((querySnapshot) async {
@@ -1737,7 +1735,7 @@ class ProfileFirestore implements ProfileRepository {
                 profile.position!, currentPosition!) < maxDistance) {
               if (profile.address.isEmpty && profile.position != null) {
                 profile.address =
-                await PositionUtilities.getAddressFromPlacerMark(profile.position!);
+                await PositionUtilities.getFormattedAddressFromPosition(profile.position!);
               }
               if (profile.posts?.isNotEmpty ?? false) {
                 List<Post> profilePosts = await PostFirestore().getProfilePosts(
@@ -1816,7 +1814,7 @@ class ProfileFirestore implements ProfileRepository {
                 profile.position!, currentPosition!) < maxDistance) {
               if (profile.address.isEmpty && profile.position != null) {
                 profile.address =
-                await PositionUtilities.getAddressFromPlacerMark(profile.position!);
+                await PositionUtilities.getFormattedAddressFromPosition(profile.position!);
               }
               if (profile.posts?.isNotEmpty ?? false) {
                 List<Post> profilePosts = await PostFirestore().getProfilePosts(

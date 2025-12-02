@@ -35,4 +35,6 @@ abstract class LoginService {
   fba.User? get fbaUser;
   set fbaUser(fba.User? fbaUser);
 
+  void loginAsGuest();
+
 }

@@ -13,7 +13,8 @@ class NeomStopwatch {
   String currentReference = '';
 
   /// Inicia (o reanuda) el stopwatch para la referencia [ref]
-  void start(String ref) {
+  void start({String? ref}) {
+    ref ??= currentReference;
     // Si no existe, se crea un Stopwatch para esta referencia y se inicializa el acumulado
     if (!_stopwatches.containsKey(ref)) {
       _stopwatches[ref] = Stopwatch();
@@ -31,7 +32,8 @@ class NeomStopwatch {
   }
 
   /// Pausa el stopwatch para [ref] y acumula el tiempo transcurrido
-  void pause(String ref) {
+  void pause({String? ref}) {
+    ref ??= currentReference;
     if (_stopwatches.containsKey(ref) && _stopwatches[ref]!.isRunning) {
       _stopwatches[ref]!.stop();
       // Acumula los segundos transcurridos
@@ -42,7 +44,8 @@ class NeomStopwatch {
   }
 
   /// Retorna el tiempo total reproducido para la referencia [ref]
-  int elapsed(String ref) {
+  int elapsed({String? ref}) {
+    ref ??= currentReference;
     if (_stopwatches.containsKey(ref)) {
       // Suma el acumulado más el tiempo actual (si está corriendo)
       return _accumulatedTime[ref]! +
@@ -56,7 +59,7 @@ class NeomStopwatch {
     ref ??= currentReference;
     if (_stopwatches.containsKey(ref)) {
       if (_stopwatches[ref]!.isRunning) {
-        pause(ref);
+        pause(ref: ref);
       }
       AppConfig.logger.i('Stopwatch detenido para $ref; tiempo total: ${_accumulatedTime[ref]} s.');
       return _accumulatedTime[ref]!;
@@ -64,8 +67,10 @@ class NeomStopwatch {
     return 0;
   }
 
-  /// (Opcional) Limpia el stopwatch y el acumulado para [ref]
-  void reset(String ref) {
+  /// (Opcional) Detiene y limpia el stopwatch y el acumulado para [ref]
+  void reset({String? ref}) {
+    ref ??= currentReference;
+    stop(ref: ref);
     if (_stopwatches.containsKey(ref)) {
       _stopwatches[ref]!.reset();
       _accumulatedTime[ref] = 0;
@@ -80,5 +85,9 @@ class NeomStopwatch {
     _accumulatedTime.remove(ref);
     AppConfig.logger.i('Stopwatch limpiado para $ref; tiempo total: $total s.');
     return total;
+  }
+
+  void resume() {
+    start(ref: currentReference);
   }
 }

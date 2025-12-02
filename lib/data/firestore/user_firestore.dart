@@ -590,7 +590,7 @@ class UserFirestore implements UserRepository {
                 }
 
                 if(profile.address.isEmpty) {
-                  profile.address = await PositionUtilities.getAddressFromPlacerMark(profile.position!);
+                  profile.address = await PositionUtilities.getFormattedAddressFromPosition(profile.position!);
                   if(profile.address.isNotEmpty) await ProfileFirestore().updateAddress(profile.id, profile.address);
                 }
 
