@@ -1,6 +1,6 @@
 name: neom_core
 description: Core for Open Neom Modules.
-version: 1.5.1-dev
+version: 2.0.0-dev
 homepage: https://github.com/Open-Neom/neom_core
 
 environment:
@@ -13,7 +13,7 @@ dependencies:
 
   get: ^5.0.0-release-candidate-9.3.2
 
-  firebase_core: ^4.1.1
+  firebase_core: ^4.2.1
   cloud_firestore: ^6.1.0
   cloud_functions: ^6.0.4
   firebase_storage: ^13.0.4
