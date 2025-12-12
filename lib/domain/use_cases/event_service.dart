@@ -32,6 +32,7 @@ abstract class EventService {
   void addInfoToEvent();
   void setEventDate(DateTime date);
   void setCoverFree();
+  void setOnlineEvent();
   void setIsOnlineCheckboxState();
   void setEventTime(context);
   void setPaymentAmount();

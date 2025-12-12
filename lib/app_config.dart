@@ -47,8 +47,8 @@ class AppConfig {
 
     try {
       appInUse = app;
-      getAppInfo();
-      loadPackageInfo();
+      await _getAppInfo();
+      await _loadPackageInfo();
       if(app == AppInUse.e) {
         defaultItemlistType = ItemlistType.readlist;
       }
@@ -57,12 +57,16 @@ class AppConfig {
     }
   }
 
-  Future<void> getAppInfo() async {
-    if(Firebase.apps.isNotEmpty) {
+  Future<void> _getAppInfo() async {
+    AppConfig.logger.d("Retrieving App Info from Firestore...");
+    if(appInfo.version.isNotEmpty) {
+      logger.d("AppInfo already loaded: ${appInfo.toString()}}");
+      return;
+    } else if(Firebase.apps.isNotEmpty) {
       appInfo = await AppInfoFirestore().retrieve();
       lastStableVersion = appInfo.version;
       lastStableBuild = appInfo.build;
-      logger.i(appInfo.toString());
+      logger.d(appInfo.toString());
     } else {
       logger.w("Firebase not initialized, cannot retrieve app info.");
       lastStableVersion = "0.0.0";
@@ -71,7 +75,8 @@ class AppConfig {
 
   }
 
-  Future<void> loadPackageInfo() async {
+  Future<void> _loadPackageInfo() async {
+    AppConfig.logger.d("Loading Package Info...");
     PackageInfo info = await PackageInfo.fromPlatform();
     appVersion = info.version;
     buildNumber = int.parse(info.buildNumber);
@@ -87,7 +92,6 @@ class AppConfig {
     }
 
     final loginServiceImpl = Get.find<LoginService>();
-    ///DEPRECATED final userServiceImpl = Get.find<UserService>();
 
     authStatus = loginServiceImpl.getAuthStatus();
     if(authStatus == AuthStatus.waiting) {
@@ -100,11 +104,7 @@ class AppConfig {
     } else if(authStatus == AuthStatus.loggingIn) {
       rootPage = splashPage;
     } else if (homePage != null
-        && (authStatus == AuthStatus.loggedIn || isGuestMode)
-        /// && (userServiceImpl.user.id.isNotEmpty)
-        /// && (userServiceImpl.user.profiles.isNotEmpty
-        ///     && userServiceImpl.user.profiles.first.id.isNotEmpty)
-    ) {
+        && (authStatus == AuthStatus.loggedIn || isGuestMode)) {
       rootPage = homePage;
     }
 

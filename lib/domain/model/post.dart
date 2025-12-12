@@ -19,6 +19,7 @@ class Post {
   PostType type;
   String mediaUrl ;
   String thumbnailUrl;
+  String externalUrl;
   int createdTime;
   int modifiedTime;
   Position? position;
@@ -54,6 +55,7 @@ class Post {
     this.type = PostType.caption,
     this.mediaUrl = '',
     this.thumbnailUrl = '',
+    this.externalUrl = '',
     this.createdTime = 0,
     this.modifiedTime = 0,
     this.position,
@@ -90,6 +92,7 @@ class Post {
         type = EnumToString.fromString(PostType.values, data["type"] ?? PostType.caption.name) ?? PostType.caption,
         mediaUrl = data["mediaUrl"] ?? "",
         thumbnailUrl = data["thumbnailUrl"] ?? "",
+        externalUrl = data["externalUrl"] ?? "",
         createdTime = data["createdTime"] ?? 0,
         modifiedTime = data["modifiedTime"] ?? 0,
         position = CoreUtilities.JSONtoPosition(data["position"]),
@@ -119,6 +122,7 @@ class Post {
     'type': type.name,
     'mediaUrl': mediaUrl,
     'thumbnailUrl': thumbnailUrl,
+    'externalUrl': externalUrl,
     'createdTime': createdTime,
     'modifiedTime': modifiedTime,
     'position': jsonEncode(position),
@@ -148,6 +152,7 @@ class Post {
     type = post.type,
     mediaUrl = post.mediaUrl,
     thumbnailUrl = post.thumbnailUrl,
+    externalUrl = post.externalUrl,
     createdTime = post.createdTime,
     modifiedTime = post.modifiedTime,
     position = post.position,

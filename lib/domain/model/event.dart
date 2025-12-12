@@ -53,7 +53,7 @@ class Event {
   List<BandFulfillment>? bandsFulfillment;
   List<String>? watchingProfiles;
   List<String>? goingProfiles;
-  int participantsLimit;
+  int guestsLimit;
   bool isOnline;
   String? url;
   bool isOutdoor;
@@ -91,12 +91,12 @@ class Event {
       this.url,
       this.isOutdoor = false,
       this.isTest = false,
-      this.participantsLimit = 0
+      this.guestsLimit = 0
   });
 
   @override
   String toString() {
-    return 'Event{id: $id, name: $name, description: $description, imgUrl: $imgUrl, coverImgUrl: $coverImgUrl, ownerId: $ownerId, ownerName: $ownerName, ownerEmail: $ownerEmail, public: $public, createdTime: $createdTime, eventDate: $eventDate, reason: $reason, genres: $genres, itemPercentageCoverage: $itemPercentageCoverage, distanceKm: $distanceKm, paymentPrice: $paymentPrice, coverPrice: $coverPrice, type: $type, status: $status, isFulfilled: $isFulfilled, place: $place, position: $position, appMediaItems: $appMediaItems, instrumentsFulfillment: $instrumentsFulfillment, bandsFulfillment: $bandsFulfillment, watchingProfiles: $watchingProfiles, goingProfiles: $goingProfiles, participantsLimit: $participantsLimit, isOnline: $isOnline, isTest: $isTest}';
+    return 'Event{id: $id, name: $name, description: $description, imgUrl: $imgUrl, coverImgUrl: $coverImgUrl, ownerId: $ownerId, ownerName: $ownerName, ownerEmail: $ownerEmail, public: $public, createdTime: $createdTime, eventDate: $eventDate, reason: $reason, genres: $genres, itemPercentageCoverage: $itemPercentageCoverage, distanceKm: $distanceKm, paymentPrice: $paymentPrice, coverPrice: $coverPrice, type: $type, status: $status, isFulfilled: $isFulfilled, place: $place, position: $position, appMediaItems: $appMediaItems, instrumentsFulfillment: $instrumentsFulfillment, bandsFulfillment: $bandsFulfillment, watchingProfiles: $watchingProfiles, goingProfiles: $goingProfiles, guestsLimit: $guestsLimit, isOnline: $isOnline, isTest: $isTest}';
   }
 
   Event.createBasic(this.name, desc):
@@ -118,7 +118,7 @@ class Event {
     isOnline = false,
     isOutdoor = false,
     isTest = false,
-    participantsLimit = 0;
+    guestsLimit = 0;
 
   Event.fromJSON(data):
       id = data["id"] ?? "",
@@ -158,7 +158,7 @@ class Event {
       url = data["url"],
       isOutdoor = data["isOutdoor"] ?? false,
       isTest = data["isTest"] ?? false,
-      participantsLimit = data["participantsLimit"] ?? 0;
+      guestsLimit = data["guestsLimit"] ?? 0;
 
   Map<String, dynamic> toJSON() => {
     'id': id,
@@ -192,7 +192,7 @@ class Event {
     'url': url,
     'isTest': isTest,
     'isOutdoor': isOutdoor,
-    'participantsLimit': participantsLimit,
+    'guestsLimit': guestsLimit,
   };
 
 }

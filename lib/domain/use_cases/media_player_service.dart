@@ -14,10 +14,10 @@ abstract class MediaPlayerService {
 
   Future<void> initializeVideoPlayerController(File file);
   Future<void> playPauseVideo();
-  void setIsPlaying({bool value = true});
+  // void setIsPlaying({bool value = true});
   void disposeVideoPlayer();
   void visibleVideoAction();
 
-  Widget getVideoPlayerContainer({required double height, required double width});
+  Widget getVideoPlayerAspectRatio();
 
 }

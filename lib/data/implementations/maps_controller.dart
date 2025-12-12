@@ -154,7 +154,6 @@ class MapsController extends GetxController implements MapsService {
           hintText: CoreConstants.search.tr,
           fillColor: Colors.yellow
         ),
-
         components: [Component(Component.country, "mx")],
       );
 
