@@ -2,7 +2,7 @@ import '../../../utils/constants/core_constants.dart';
 import 'neom_frequency.dart';
 import 'neom_parameter.dart';
 
-class ChamberPreset {
+class NeomChamberPreset {
 
   String id;
   String name;
@@ -11,9 +11,12 @@ class ChamberPreset {
   String imgUrl;
   int state;
   NeomParameter? neomParameter;
-  NeomFrequency? neomFrequency;
+  NeomFrequency? mainFrequency;
+  NeomFrequency? binauralFrequency;
+  List<NeomFrequency> extraFrequencies = [];
 
-  ChamberPreset({
+
+  NeomChamberPreset({
     this.id = "432.0_0.5_0.0_0.0_0.0",
     this.name = "",
     this.description = "",
@@ -21,17 +24,19 @@ class ChamberPreset {
     this.ownerId = "",
     this.state = 0,
     this.neomParameter,
-    this.neomFrequency
+    this.mainFrequency,
+    this.binauralFrequency,
+    this.extraFrequencies = const [],
   });
 
 
   @override
   String toString() {
-    return 'ChamberPreset{id: $id, name: $name, description: $description, imgUrl: $imgUrl, ownerId: $ownerId, neomParameter: $neomParameter, neomFrequencies: $neomFrequency}';
+    return 'ChamberPreset{id: $id, name: $name, description: $description, imgUrl: $imgUrl, ownerId: $ownerId, neomParameter: $neomParameter, mainFrequency: $mainFrequency, binauralFrequency: $binauralFrequency, extraFrequencies: $extraFrequencies}';
   }
 
 
-  ChamberPreset.fromJSON(Map<dynamic, dynamic> data) :
+  NeomChamberPreset.fromJSON(Map<dynamic, dynamic> data) :
     id = data["id"] ?? "",
     name = data["name"] ?? "",
     description = data["description"] ?? "",
@@ -39,7 +44,10 @@ class ChamberPreset {
     imgUrl = data["imgUrl"] ?? "",
     state = data["state"] ?? 0,
     neomParameter = NeomParameter.fromJSON(data["neomParameter"] ?? NeomParameter().toJSON()) ,
-    neomFrequency = NeomFrequency.fromJSON(data["neomFrequency"] ?? NeomFrequency().toJSON());
+    mainFrequency = data["mainFrequency"] != null ? NeomFrequency.fromJSON(data["mainFrequency"]) : null,
+    binauralFrequency = data["binauralFrequency"] != null ? NeomFrequency.fromJSON(data["binauralFrequency"]) : null,
+    extraFrequencies = (data["extraFrequencies"] as List<dynamic>?)
+        ?.map((item) => NeomFrequency.fromJSON(item)).toList() ?? [];
 
 
   Map<String, dynamic>  toJSON()=>{
@@ -50,7 +58,9 @@ class ChamberPreset {
     'imgUrl': imgUrl,
     'state': state,
     'neomParameter': neomParameter?.toJSON(),
-    'neomFrequency': neomFrequency?.toJSON(),
+    'mainFrequency': mainFrequency?.toJSON(),
+    'binauralFrequency': binauralFrequency?.toJSON(),
+    'extraFrequencies': extraFrequencies.map((freq) => freq.toJSON()).toList(),
   };
 
   Map<String, dynamic>  toJsonNoId()=>{
@@ -60,20 +70,12 @@ class ChamberPreset {
     'imgUrl': imgUrl,
     'state': state,
     'neomParameter': neomParameter?.toJSON(),
-    'neomFrequency': neomFrequency?.toJSON(),
+    'mainFrequency': mainFrequency?.toJSON(),
+    'binauralFrequency': binauralFrequency?.toJSON(),
+    'extraFrequencies': extraFrequencies.map((freq) => freq.toJSON()).toList(),
   };
 
-  // ChamberPreset.myFirstNeomChamberPreset() :
-  //   id = AppConstants.firstChamberPreset,
-  //   name = "Frecuencia 432 Hz",
-  //   description = "",
-  //   ownerId = "",
-  //   imgUrl = "https://firebasestorage.googleapis.com/v0/b/cyberneom-edd2d.appspot.com/o/AppStatics%2FCyberneom%20Icono.png?alt=media&token=68bc867f-df6c-40fb-a8fe-e920242c21a1",
-  //   state = 1,
-  //   neomParameter = NeomParameter(),
-  //   neomFrequency = NeomFrequency();
-
-  ChamberPreset.custom({String name = "", String imgUrl = "", NeomParameter? parameter, NeomFrequency? frequency}) :
+  NeomChamberPreset.custom({String name = "", String imgUrl = "", NeomParameter? parameter, NeomFrequency? frequency}) :
         id = "${CoreConstants.customPreset}_${frequency?.frequency}",
         name = "",
         description = "",
@@ -81,10 +83,12 @@ class ChamberPreset {
         imgUrl = imgUrl.isNotEmpty ? imgUrl : "https://firebasestorage.googleapis.com/v0/b/cyberneom-edd2d.appspot.com/o/AppStatics%2FCyberneom%20Icono.png?alt=media&token=68bc867f-df6c-40fb-a8fe-e920242c21a1",
         state = 5,
         neomParameter = parameter,
-        neomFrequency = frequency;
+        mainFrequency = frequency,
+        binauralFrequency = null,
+        extraFrequencies = [];
 
-  ChamberPreset clone() {
-    return ChamberPreset.fromJSON(toJSON());
+  NeomChamberPreset clone() {
+    return NeomChamberPreset.fromJSON(toJSON());
   }
 
 }

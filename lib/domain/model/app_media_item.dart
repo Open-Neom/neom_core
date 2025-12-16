@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:enum_to_string/enum_to_string.dart';
 
 import '../../app_config.dart';
@@ -89,13 +91,20 @@ class AppMediaItem {
       AppConfig.logger.t("AppMediaItem fromJSON: ${map['name'] ?? ''} with id ${map['id'] ?? ''}");
       int dur = 30;
 
-      if(map['duration'] is String && map['duration'].toString().contains(":")) {
+      if (map['duration'] is String && map['duration'].toString().contains(":")) {
         final List<String> parts = map['duration'].toString().split(':');
+        dur = 0; // Reiniciamos para calcular
         for (int i = 0; i < parts.length; i++) {
-          dur += int.parse(parts[i]) * (60 ^ (parts.length - i - 1));
+          int partValue = int.tryParse(parts[i]) ?? 0;
+          // En Dart '^' es XOR bitwise. Para potencia se usa pow(base, exponente)
+          int multiplier = pow(60, parts.length - i - 1).toInt();
+          dur += partValue * multiplier;
         }
-      } else if(map['duration'] is int) {
+      } else if (map['duration'] is int) {
         dur = map['duration'];
+      } else if (map['duration'] is String) {
+        // Por si viene "300" como string sin dos puntos
+        dur = int.tryParse(map['duration']) ?? 30;
       }
 
       final appMediaItem = AppMediaItem(
@@ -103,7 +112,7 @@ class AppMediaItem {
         type: EnumToString.fromString(MediaItemType.values, map['type'].toString()) ?? MediaItemType.song,
         album: map['album'] ?? '',
         metaOwner: map['metaOwner'] ?? '',
-        publishedYear: int.parse(map['publishedYear']?.toString() ?? '0'),
+        publishedYear: int.tryParse(map['publishedYear']?.toString() ?? '') ?? 0,
         duration: dur,
         language: map['language'] ?? '',
         is320Kbps: map['is320Kbps'] ?? false,
@@ -112,7 +121,9 @@ class AppMediaItem {
         description: map['description'] ?? '',
         name: map['name'] ?? '',
         ownerName: map['ownerName'] ?? '',
-        featInternalArtists: map['featInternalArtists'] as Map<String, String>?,
+        featInternalArtists: map['featInternalArtists'] is Map
+            ? Map<String, String>.from(map['featInternalArtists'])
+            : null,
         externalArtists: (map['externalArtists'] as List<dynamic>?)?.map((e) => e.toString()).toList(),
         imgUrl: map['imgUrl'] ?? '',
         galleryUrls: (map['galleryUrls'] as List<dynamic>?)?.map((e) => e.toString()).toList(),
@@ -121,8 +132,8 @@ class AppMediaItem {
         allUrls: (map['allUrls'] as List<dynamic>?)?.map((e) => e.toString()).toList(),
         quality: int.tryParse(map['quality'].toString()),
         releaseDate: map['releaseDate'] ?? 0,
-        trackNumber: int.parse(map['trackNumber']?.toString() ?? '0'),
-        discNumber: int.parse(map['discNumber']?.toString() ?? '0'),
+        trackNumber: int.tryParse(map['trackNumber']?.toString() ?? '') ?? 0,
+        discNumber: int.tryParse(map['discNumber']?.toString() ?? '') ?? 0,
         mediaSource: EnumToString.fromString(AppMediaSource.values, map["mediaSource"] ?? AppMediaSource.internal.name) ?? AppMediaSource.internal,
         likes: map['likes'] ?? 0,
         path: map['path'] ?? '',

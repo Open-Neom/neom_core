@@ -33,5 +33,6 @@ abstract class MediaUploadService {
   String getReleaseFilePath();
   List<File> get releaseFiles;
   String get mediaUrl;
+  MediaType get mediaType;
 
 }

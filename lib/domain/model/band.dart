@@ -9,7 +9,7 @@ import '../../utils/enums/usage_reason.dart';
 import 'band_member.dart';
 import 'genre.dart';
 import 'item_list.dart';
-import 'neom/chamber.dart';
+import 'neom/neom_chamber.dart';
 import 'price.dart';
 import 'review.dart';
 
@@ -55,7 +55,7 @@ class Band {
 
   ///These are retrieved from a Firebase Collection
   Map<String, Itemlist>? itemlists;
-  Map<String, Chamber>? chambers;
+  Map<String, NeomChamber>? chambers;
   Map<String, Genre>? genres;
   Map<String, BandMember>? members;
 

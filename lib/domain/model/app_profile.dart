@@ -12,7 +12,7 @@ import 'facility.dart';
 import 'genre.dart';
 import 'instrument.dart';
 import 'item_list.dart';
-import 'neom/chamber.dart';
+import 'neom/neom_chamber.dart';
 import 'neom/neom_frequency.dart';
 import 'place.dart';
 import 'review.dart';
@@ -72,7 +72,7 @@ class AppProfile {
   ///These are retrieved from a Firebase Collection
   Map<String, Itemlist>? itemlists;
   Map<String, Instrument>? instruments;
-  Map<String, Chamber>? chambers;
+  Map<String, NeomChamber>? chambers;
   Map<String, NeomFrequency>? frequencies;
   Map<String, Genre>? genres;
   Map<String, Facility>? facilities;

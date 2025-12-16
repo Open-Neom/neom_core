@@ -18,7 +18,7 @@ class NeomFrequency {
     this.id = "",
     this.name = "",
     this.description = "",
-    this.frequency = 432,
+    this.frequency = 345,
     this.scaleDegree = ScaleDegree.tonic,
     this.isRoot = false,
     this.isMain = false,
@@ -64,4 +64,25 @@ class NeomFrequency {
         isMain = data["isMain"] ?? false,
         isFav = data["isFav"] ?? false;
 
+  NeomFrequency copyWith({
+    String? id,
+    String? name,
+    String? description,
+    double? frequency,
+    ScaleDegree? scaleDegree,
+    bool? isRoot,
+    bool? isMain,
+    bool? isFav,
+  }) {
+    return NeomFrequency(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      frequency: frequency ?? this.frequency,
+      scaleDegree: scaleDegree ?? this.scaleDegree,
+      isRoot: isRoot ?? this.isRoot,
+      isMain: isMain ?? this.isMain,
+      isFav: isFav ?? this.isFav,
+    );
+  }
 }

@@ -1,12 +1,12 @@
-import '../model/neom/chamber.dart';
+import '../model/neom/neom_chamber.dart';
 
 abstract class ChamberService {
 
   Future<void> createChamber();
-  Future<void> updateChamber(String chamberId, Chamber chamber);
-  Future<void> deleteChamber(Chamber chamber);
+  Future<void> updateChamber(String chamberId, NeomChamber chamber);
+  Future<void> deleteChamber(NeomChamber chamber);
   void clearNewChamber();
-  Future<void> gotoChamberPresets(Chamber chamber);
+  Future<void> gotoChamberPresets(NeomChamber chamber);
   Future<void> setPrivacyOption();
 
 }

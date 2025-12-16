@@ -21,8 +21,8 @@ import '../domain/model/facility.dart';
 import '../domain/model/genre.dart';
 import '../domain/model/instrument.dart';
 import '../domain/model/item_list.dart';
-import '../domain/model/neom/chamber.dart';
-import '../domain/model/neom/chamber_preset.dart';
+import '../domain/model/neom/neom_chamber.dart';
+import '../domain/model/neom/neom_chamber_preset.dart';
 import '../domain/model/place.dart';
 import '../domain/model/post.dart';
 import 'constants/data_assets.dart';
@@ -161,8 +161,8 @@ class CoreUtilities {
     return totalItems;
   }
 
-  static Map<String, ChamberPreset> getTotalPresets(Map<String, Chamber> chambers){
-    Map<String, ChamberPreset> totalPresets = {};
+  static Map<String, NeomChamberPreset> getTotalPresets(Map<String, NeomChamber> chambers){
+    Map<String, NeomChamberPreset> totalPresets = {};
 
     chambers.forEach((key, chamber) {
       for (var preset in chamber.chamberPresets ?? []) {

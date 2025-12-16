@@ -7,7 +7,7 @@ import '../../domain/model/app_media_item.dart';
 import '../../domain/model/app_release_item.dart';
 import '../../domain/model/external_item.dart';
 import '../../domain/model/item_list.dart';
-import '../../domain/model/neom/chamber_preset.dart';
+import '../../domain/model/neom/neom_chamber_preset.dart';
 import '../../domain/repository/itemlist_repository.dart';
 
 import '../../utils/constants/core_constants.dart';
@@ -281,7 +281,7 @@ class ItemlistFirestore implements ItemlistRepository {
   }
 
   @override
-  Future<bool> addPreset(String chamberId, ChamberPreset preset) async {
+  Future<bool> addPreset(String chamberId, NeomChamberPreset preset) async {
     AppConfig.logger.d("Adding preset to chamber $chamberId");
     bool addedItem = false;
 
@@ -301,7 +301,7 @@ class ItemlistFirestore implements ItemlistRepository {
   }
 
   @override
-  Future<bool> deletePreset(ChamberPreset preset, String chamberId) async {
+  Future<bool> deletePreset(NeomChamberPreset preset, String chamberId) async {
     AppConfig.logger.d("Removing preset from chamber $chamberId");
 
     try {

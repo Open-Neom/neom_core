@@ -21,5 +21,6 @@ abstract class AppCameraService {
   Future<File?> stopVideoRecording();
   Future<void> pauseVideoRecording();
   Future<void> resumeVideoRecording();
+  bool get isDisposed;
 
 }

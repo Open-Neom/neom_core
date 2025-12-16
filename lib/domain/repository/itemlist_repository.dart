@@ -5,7 +5,7 @@ import '../model/app_media_item.dart';
 import '../model/app_release_item.dart';
 import '../model/external_item.dart';
 import '../model/item_list.dart';
-import '../model/neom/chamber_preset.dart';
+import '../model/neom/neom_chamber_preset.dart';
 
 
 abstract class ItemlistRepository {
@@ -29,8 +29,8 @@ abstract class ItemlistRepository {
   Future<bool> addReleaseItem(String itemlistId, AppReleaseItem releaseItem);
   Future<bool> deleteReleaseItem({required String itemlistId, required String itemId});
 
-  Future<bool> addPreset(String chamberId, ChamberPreset preset);
-  Future<bool> deletePreset(ChamberPreset preset, String chamberId);
+  Future<bool> addPreset(String chamberId, NeomChamberPreset preset);
+  Future<bool> deletePreset(NeomChamberPreset preset, String chamberId);
 
   Future<bool> addExternalItem(String itemlistId, ExternalItem externalItem);
   Future<bool> deleteExternalItem({required String itemlistId, required String itemId});

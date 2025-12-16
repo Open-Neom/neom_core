@@ -1,19 +1,19 @@
 import 'dart:async';
-import '../model/neom/chamber.dart';
-import '../model/neom/chamber_preset.dart';
+import '../model/neom/neom_chamber.dart';
+import '../model/neom/neom_chamber_preset.dart';
 
 
 abstract class ChamberRepository {
 
-  Future<String> insert(Chamber chamber);
-  Future<Chamber> retrieve(String chamberId);
-  Future<bool> update(Chamber chamber);
+  Future<String> insert(NeomChamber chamber);
+  Future<NeomChamber> retrieve(String chamberId);
+  Future<bool> update(NeomChamber chamber);
   Future<bool> delete(chamberId);
 
-  Future<Map<String, Chamber>> fetchAll({bool onlyPublic = false, bool excludeMyFavorites = true, int minItems = 0, int maxLength = 100, String ownerId = ''});
+  Future<Map<String, NeomChamber>> fetchAll({bool onlyPublic = false, bool excludeMyFavorites = true, int minItems = 0, int maxLength = 100, String ownerId = ''});
 
-  Future<bool> addPreset(String chamberId, ChamberPreset preset);
-  Future<bool> deletePreset(String chamberId, ChamberPreset preset);
-  Future<bool> updatePreset(String chamberId, ChamberPreset preset);
+  Future<bool> addPreset(String chamberId, NeomChamberPreset preset);
+  Future<bool> deletePreset(String chamberId, NeomChamberPreset preset);
+  Future<bool> updatePreset(String chamberId, NeomChamberPreset preset);
 
 }

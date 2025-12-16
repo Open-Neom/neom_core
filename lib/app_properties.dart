@@ -364,5 +364,9 @@ class AppProperties {
   static String getAppCoinValue() {
     return appProperties['appCoinValue'];
   }
+  
+  static Map<String, dynamic> getDeeplinkUrl() {
+    return appProperties['getDeeplinkUrl'] ?? {};
+  }
 
 }
