@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'app_config.dart';
 import 'domain/model/price.dart';
@@ -132,9 +131,8 @@ class AppProperties {
     return appProperties['stripePublishableKey'];
   }
 
-  static String getStripeSecretKey({bool? isDebug}) {
-    isDebug ??= kDebugMode; // Default to debug mode if not specified
-    return isDebug ? appProperties['stripeSecretTestKey'] : appProperties['stripeSecretLiveKey'];
+  static String getStripeSecretKey({required bool isLive}) {
+    return isLive ? appProperties['stripeSecretLiveKey'] : appProperties['stripeSecretTestKey'];
   }
 
   static String getECommerceUrl() {

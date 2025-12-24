@@ -2,7 +2,7 @@ enum SubscriptionLevel {
   freemium(0),
   freeMonth(1),
   basic(2),
-  student(3),
+  plus(3),
   family(4),
   connect(5),
   creator(6),

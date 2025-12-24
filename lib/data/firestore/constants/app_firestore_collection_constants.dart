@@ -62,5 +62,6 @@ class AppFirestoreCollectionConstants {
 
   static const String wallets = "wallets";
   static const String transactions = "transactions";
+  static const String typing = "typing";
 
 }

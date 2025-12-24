@@ -150,6 +150,7 @@ class AppFirestoreConstants {
 
   static const String balance = "balance";
   static const String lastUpdated = "lastUpdated";
-  static const String lastTransactionId = "lastTransactionId";  
+  static const String lastTransactionId = "lastTransactionId";
+  static const String lastTyping = "lastTyping";
 
 }

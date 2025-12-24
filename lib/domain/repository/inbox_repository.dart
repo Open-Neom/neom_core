@@ -20,5 +20,5 @@ abstract class InboxRepository {
 
   Future<Inbox> getOrCreateInboxRoom(AppProfile profile, AppProfile itemmate);
 
-  Stream listenToInboxRealTime(inboxRoomId);
+  Stream<List<InboxMessage>> messageStream(String inboxId);
 }

@@ -6,6 +6,7 @@ import '../../app_config.dart';
 import '../../domain/model/app_profile.dart';
 import '../../domain/model/inbox.dart';
 import '../../domain/model/inbox_message.dart';
+import '../../domain/model/inbox_profile_info.dart';
 import '../../domain/repository/inbox_repository.dart';
 
 import '../../utils/constants/core_constants.dart';
@@ -17,7 +18,6 @@ class InboxFirestore implements InboxRepository {
   
   final inboxReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.inbox);
   final messageReference = FirebaseFirestore.instance.collectionGroup(AppFirestoreCollectionConstants.messages);
-  //final activityFeedReference = FirebaseFirestore.instance.collection(GigConstants.fs_feed);
 
   @override
   Future<bool> addMessage(String inboxRoomId, InboxMessage message,
@@ -144,30 +144,6 @@ class InboxFirestore implements InboxRepository {
           Inbox inbox = Inbox.fromJSON(documentSnapshot.data());
           inbox.id = documentSnapshot.id;
 
-          ///DEPRECATED
-          // inbox.profiles = [];
-          // for (String itemmateId in inbox.profileIds) {
-          //   AppProfile mate = AppProfile();
-          //   if(itemmateId != profileId) {
-          //     if(inbox.lastMessage?.ownerId != profileId) {
-          //       mate.id = inbox.lastMessage!.ownerId;
-          //       mate.name = inbox.lastMessage!.profileName;
-          //       mate.photoUrl = inbox.lastMessage!.profileImgUrl;
-          //     } else {
-          //       //mate =  await GigProfileFirestore().retrieveGigProfileSimple(itemmateId);
-          //     }
-          //
-          //     inbox.profiles!.add(mate);
-          //   } else if (inbox.profileIds.length == 1) {
-          //     mate = AppProfile(
-          //       name: AppConstants.appBotName,
-          //       photoUrl: AppFlavour.getAppLogoUrl()
-          //     );
-          //
-          //     inbox.profiles!.add(mate);
-          //   }
-          // }
-
             AppConfig.logger.i('Inbox ${inbox.id} found');
             inboxs.add(inbox);
           }
@@ -214,15 +190,6 @@ class InboxFirestore implements InboxRepository {
         }
       }
 
-      ///DEPRECATED
-      // inbox.profiles = [];
-      // for(int i = 0; i < inbox.profileIds.length; i++)  {
-      //   String itemmateId = inbox.profileIds.elementAt(i);
-      //   if(itemmateId != profile.id) {
-      //     AppProfile itemmate = await ProfileFirestore().retrieve(itemmateId);
-      //     inbox.profiles!.add(itemmate);
-      //   }
-      // }
     } catch (e) {
       AppConfig.logger.e(e.toString());
       rethrow;
@@ -240,12 +207,24 @@ class InboxFirestore implements InboxRepository {
   }
 
   @override
-  Stream listenToInboxRealTime(inboxRoomId) {
-    // TODO: implement listenToInboxRealTime
-    throw UnimplementedError();
+  Stream<List<InboxMessage>> messageStream(String inboxId) {
+    AppConfig.logger.t("Iniciando stream de mensajes para: $inboxId");
+
+    return inboxReference
+        .doc(inboxId)
+        .collection(AppFirestoreCollectionConstants.messages)
+        .orderBy(AppFirestoreConstants.createdTime, descending: false)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) {
+        InboxMessage message = InboxMessage.fromJSON(doc.data());
+        message.id = doc.id;
+        return message;
+      }).toList();
+    });
   }
 
-
+  @override
   Future<Inbox> getOrCreateAppBotRoom(String profileId) async {
     AppConfig.logger.t("getOrCreateAppBotRoom for profile $profileId");
 
@@ -268,21 +247,27 @@ class InboxFirestore implements InboxRepository {
         inbox.profileIds = profileIds;
           await inboxReference.doc(inboxRoomId).set(inbox.toJSON());
       }
-
-      // inbox.profiles = [];
-      // for(int i = 0; i < inbox.profileIds.length; i++)  {
-      //   String itemmateId = inbox.profileIds.elementAt(i);
-      //   if(itemmateId != profileId) {
-      //     AppProfile itemmate = await ProfileFirestore().retrieve(itemmateId);
-      //     inbox.profiles!.add(itemmate);
-      //   }
-      // }
     } catch (e) {
       AppConfig.logger.e(e.toString());
     }
 
     AppConfig.logger.d(inbox.toString());
     return inbox;
+  }
+
+  @override
+  Stream<InboxProfileInfo> getInboxProfileInfo(String roomId, String profileId) {
+    return inboxReference.doc(roomId).collection(AppFirestoreCollectionConstants.profiles)
+        .doc(profileId).snapshots().map((doc) => InboxProfileInfo.fromJSON(doc.data() ?? {}));
+  }
+
+  @override
+  Future<void> setLastTyping(String roomId, String profileId) {
+    return inboxReference.doc(roomId)
+        .collection(AppFirestoreCollectionConstants.profiles)
+        .doc(profileId).set({
+          AppFirestoreConstants.lastTyping: DateTime.now().millisecondsSinceEpoch,
+        });
   }
 
 }

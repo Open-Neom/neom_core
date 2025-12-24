@@ -2,8 +2,10 @@
 enum UserRole {
   subscriber(0),
   editor(1),
-  admin(2),
-  superAdmin(3);
+  support(2),
+  developer(3),
+  admin(4),
+  superAdmin(5);
 
   final int value;
 

@@ -1,5 +1,6 @@
 import 'package:enum_to_string/enum_to_string.dart';
 
+import '../../utils/enums/media_item_type.dart';
 import '../../utils/enums/owner_type.dart';
 import '../../utils/enums/release_status.dart';
 import '../../utils/enums/release_type.dart';
@@ -18,6 +19,7 @@ class AppReleaseItem {
 
   ReleaseType type; ///RELEASE TYPE TO HANDLE FURTHER FEATURES
   ReleaseStatus status;
+  MediaItemType? mediaType;
 
   String ownerEmail; ///EMAIL OF USER ON APP
   String ownerName; ///NAME OF PROFILE ON APP
@@ -69,6 +71,7 @@ class AppReleaseItem {
     this.duration = 0,
     this.type = ReleaseType.single,
     this.status = ReleaseStatus.draft,
+    this.mediaType,
     this.ownerEmail = '',
     this.ownerName = '',
     this.ownerType = OwnerType.notDefined,
@@ -114,6 +117,7 @@ class AppReleaseItem {
         duration = data["duration"] ?? 0,
         type = EnumToString.fromString(ReleaseType.values, data["type"] ?? ReleaseType.single.name) ?? ReleaseType.single,
         status = EnumToString.fromString(ReleaseStatus.values, data["status"] ?? ReleaseStatus.draft.name) ?? ReleaseStatus.draft,
+        mediaType = EnumToString.fromString(MediaItemType.values, data["mediaType"] ?? ''),
         ownerEmail = data["ownerEmail"] ?? '',
         ownerName = data["ownerName"] ?? '',
         ownerType = EnumToString.fromString(OwnerType.values, data["ownerType"] ?? OwnerType.notDefined.name) ?? OwnerType.notDefined,
@@ -152,6 +156,7 @@ class AppReleaseItem {
     'duration': duration,
     'type': type.name,
     'status': status.name,
+    'mediaType': mediaType?.name,
     'ownerEmail': ownerEmail,
     'ownerName': ownerName,
     'ownerType': ownerType.name,

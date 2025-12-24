@@ -9,7 +9,7 @@ abstract class StripeGatewayService {
     String name = '', String email = '', String phone = '', Address? address
   });
 
-  Future<Map<String, dynamic>> createPaymentIntent(String amount, String currency);
+  // Future<Map<String, dynamic>> createPaymentIntent(String amount, String currency);
   Future<void> confirmIntent(String paymentIntentId);
 
 }
