@@ -12,17 +12,19 @@ class RootPage extends StatelessWidget {
 
   final Widget rootPage;
   final Widget splashPage;
-  final Widget? homePage;
+  final Widget homePage;
   final HomeService? homeService;
   final Widget previousVersionPage;
   final Widget onGoingPage;
-  final Widget? miniPlayer;
+  ///DEPRECATED final Widget? miniPlayer;
   final Future<bool> Function(BuildContext context) showExitConfirmationDialog;
 
   const RootPage({required this.rootPage, required this.splashPage,
     required this.homePage, required this.homeService,
     required this.previousVersionPage, required this.onGoingPage,
-    required this.showExitConfirmationDialog, this.miniPlayer, super.key});
+    required this.showExitConfirmationDialog,
+    ///DEPRECATED this.miniPlayer,
+    super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -47,24 +49,27 @@ class RootPage extends StatelessWidget {
               upgrader: Upgrader(
                 minAppVersion: AppConfig.instance.lastStableVersion,
               ),
-              child: homePage == null ? rootPage : Obx(()=> Stack(
-                  children: [
-                    AppConfig.instance.selectRootPage(
+              child:
+              /// homePage == null ? rootPage : Stack(
+                 /// children: [
+                    Obx(()=>AppConfig.instance.selectRootPage(
                         rootPage: rootPage,
                         homePage: homePage,
                         splashPage: splashPage,
                         onGoingPage: onGoingPage,
                         previousVersionPage: previousVersionPage
-                    ),
-                    if (Get.isRegistered<UserService>() && Get.find<UserService>().user.id.isNotEmpty && miniPlayer != null
-                        && (homeService?.timelineReady ?? false) && (homeService?.mediaPlayerEnabled ?? false))
-                      Positioned(
-                        left: 0, right: 0,
-                        bottom: 56,
-                        child: miniPlayer!,
-                      ),
-                  ]
-              ),),
+                    ),),
+                    ///DEPRECATED
+                    // if (Get.isRegistered<UserService>() && Get.find<UserService>().user.id.isNotEmpty && miniPlayer != null
+                    //     && (homeService?.timelineReady ?? false) && (homeService?.mediaPlayerEnabled ?? false))
+                    //   Positioned(
+                    //     left: 0, right: 0,
+                    //     bottom: 60,
+                    //     child: miniPlayer!,
+                    //   ),
+                  ///]
+              ///),
+          ///),
 
         )
     );

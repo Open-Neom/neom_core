@@ -62,13 +62,14 @@ class SubscriptionController extends GetxController implements SubscriptionServi
 
       setProfileTypePlans();
     }
+
+    await setActiveSubscriptions();
+    _isLoading.value = false;
   }
 
   @override
   void onReady() async {
-    setActiveSubscriptions();
-    _isLoading.value = false;
-    update();
+
   }
 
   @override
@@ -154,7 +155,7 @@ class SubscriptionController extends GetxController implements SubscriptionServi
 
   @override
   void changeSubscriptionPlan(String planId) {
-    AppConfig.logger.d("Changing Subscription PLan to: $planId");
+    AppConfig.logger.d("Changing Subscription Plan to: $planId");
 
     if(selectedPlan.price != null) {
       _selectedPlan = _subscriptionPlans[planId]!;
