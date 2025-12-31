@@ -257,14 +257,14 @@ class InboxFirestore implements InboxRepository {
 
   @override
   Stream<InboxProfileInfo> getInboxProfileInfo(String roomId, String profileId) {
-    return inboxReference.doc(roomId).collection(AppFirestoreCollectionConstants.profiles)
+    return inboxReference.doc(roomId).collection(AppFirestoreCollectionConstants.roomProfiles)
         .doc(profileId).snapshots().map((doc) => InboxProfileInfo.fromJSON(doc.data() ?? {}));
   }
 
   @override
   Future<void> setLastTyping(String roomId, String profileId) {
     return inboxReference.doc(roomId)
-        .collection(AppFirestoreCollectionConstants.profiles)
+        .collection(AppFirestoreCollectionConstants.roomProfiles)
         .doc(profileId).set({
           AppFirestoreConstants.lastTyping: DateTime.now().millisecondsSinceEpoch,
         });

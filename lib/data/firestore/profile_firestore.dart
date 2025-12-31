@@ -38,6 +38,7 @@ class ProfileFirestore implements ProfileRepository {
 
   final usersReference = FirebaseFirestore.instance.collection(
       AppFirestoreCollectionConstants.users);
+  
   final profileReference = FirebaseFirestore.instance.collectionGroup(
       AppFirestoreCollectionConstants.profiles);
 

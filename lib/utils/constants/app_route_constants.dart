@@ -9,8 +9,8 @@ class AppRouteConstants {
   static const String introRequiredPermissions = "/intro/requiredPermissions";
   static const String introLocale = "/intro/locale";
   static const String introProfile = "/intro/profileType";
-  static const String introInstruments = "/intro/instruments";
-  static const String introGenres = "/intro/genres";
+  ///DEPRECATED static const String introInstruments = "/intro/instruments";
+  ///DEPRECATED static const String introGenres = "/intro/genres";
   static const String introFacility = "/intro/facility";
   static const String introPlace = "/intro/place";
   static const String introReason = "/intro/reason";

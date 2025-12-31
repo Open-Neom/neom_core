@@ -14,6 +14,7 @@ class AppFirestoreCollectionConstants {
   static const String analytics = "analytics";
 
   static const String inbox = "inbox";
+  static const String roomProfiles = "roomProfiles";
   static const String messages = "messages";
   static const String reports = "reports";
 
