@@ -157,6 +157,12 @@ class AppRouteConstants {
   static const String generator  = '/generator';
   static const String chamber  = '/chamber';
   static const String chamberPresets  = '/chamber/presets';
+  static const String oscilloscopeFullscreen  = '/oscilloscope/fullscreen';
+  static const String flockingFullscreen  = '/flocking/fullscreen';
+  static const String breathingFullscreen  = '/breathing/fullscreen';
+  static const String spatial360Fullscreen  = '/360/spatial/fullscreen';
+  static const String vr360MonoFullscreen  = '/360/vr/mono/fullscreen';
+  static const String vr360StereoFullscreen  = '/360/vr/stereo/fullscreen';
 
   static const String audioPlayer  = '/audioPlayer';
   static const String audioPlayerMedia  = '/audioPlayer/media';
