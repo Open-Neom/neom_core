@@ -115,8 +115,8 @@ class GeoLocatorController implements GeoLocatorService {
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          // Get.offAndToNamed(AppRouteConstants.introRequiredPermissions);
-          // Get.toNamed(AppRouteConstants.logout,
+          // Sint.offAndToNamed(AppRouteConstants.introRequiredPermissions);
+          // Sint.toNamed(AppRouteConstants.logout,
           //     arguments: [AppRouteConstants.logout, AppRouteConstants.login]);
           // return Future.error('Location permissions are denied');
         }
@@ -125,7 +125,7 @@ class GeoLocatorController implements GeoLocatorService {
       if (permission == LocationPermission.deniedForever) {
         // position = null;
         ///DEPRECATED
-        // Get.toNamed(AppRouteConstants.logout,
+        // Sint.toNamed(AppRouteConstants.logout,
         //     arguments: [AppRouteConstants.logout, AppRouteConstants.login]);
         // return Future.error('Location permissions are permanently denied,'
         //     ' we cannot request permissions.');

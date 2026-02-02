@@ -1,9 +1,11 @@
 import 'dart:async';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:sint/sint.dart';
+
 import 'data/firestore/app_info_firestore.dart';
 import 'data/implementations/app_hive_controller.dart';
 import 'domain/model/app_info.dart';
@@ -87,11 +89,11 @@ class AppConfig {
   Widget selectRootPage({required Widget rootPage, required  Widget? homePage,
     required  Widget splashPage, required  previousVersionPage, required  Widget onGoingPage}) {
 
-    if(!Get.isRegistered<LoginService>() || !Get.isRegistered<UserService>()) {
+    if(!Sint.isRegistered<LoginService>() || !Sint.isRegistered<UserService>()) {
       return rootPage;
     }
 
-    final loginServiceImpl = Get.find<LoginService>();
+    final loginServiceImpl = Sint.find<LoginService>();
 
     authStatus = loginServiceImpl.getAuthStatus();
     if(authStatus == AuthStatus.waiting) {

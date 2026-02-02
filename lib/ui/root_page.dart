@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:sint/sint.dart';
 import 'package:upgrader/upgrader.dart';
 
 import '../app_config.dart';
 import '../domain/use_cases/home_service.dart';
-import '../domain/use_cases/user_service.dart';
 import '../utils/constants/core_constants.dart';
 import '../utils/core_utilities.dart';
 
@@ -60,7 +59,7 @@ class RootPage extends StatelessWidget {
                         previousVersionPage: previousVersionPage
                     ),),
                     ///DEPRECATED
-                    // if (Get.isRegistered<UserService>() && Get.find<UserService>().user.id.isNotEmpty && miniPlayer != null
+                    // if (Sint.isRegistered<UserService>() && Sint.find<UserService>().user.id.isNotEmpty && miniPlayer != null
                     //     && (homeService?.timelineReady ?? false) && (homeService?.mediaPlayerEnabled ?? false))
                     //   Positioned(
                     //     left: 0, right: 0,

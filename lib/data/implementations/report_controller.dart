@@ -1,6 +1,6 @@
 import 'dart:core';
 
-import 'package:get/get.dart';
+import 'package:sint/sint.dart';
 
 import '../../app_config.dart';
 import '../../domain/model/app_profile.dart';
@@ -11,9 +11,9 @@ import '../../utils/enums/reference_type.dart';
 import '../../utils/enums/report_type.dart';
 import '../firestore/report_firestore.dart';
 
-class ReportController extends GetxController implements ReportService {
+class ReportController extends SintController implements ReportService {
   
-  final userServiceImpl = Get.find<UserService>();
+  final userServiceImpl = Sint.find<UserService>();
 
   AppProfile profile = AppProfile();
 

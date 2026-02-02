@@ -1,5 +1,5 @@
 import 'dart:core';
-import 'package:get/get.dart';
+import 'package:sint/sint.dart';
 import '../../app_config.dart';
 import '../../domain/model/app_media_item.dart';
 import '../../domain/model/app_profile.dart';
@@ -10,9 +10,9 @@ import '../../utils/constants/app_route_constants.dart';
 import '../firestore/mate_firestore.dart';
 import '../firestore/profile_firestore.dart';
 
-class MateController extends GetxController implements MateService {
+class MateController extends SintController implements MateService {
   
-  final userServiceImpl = Get.find<UserService>();
+  final userServiceImpl = Sint.find<UserService>();
   AppProfile profile = AppProfile();
 
   final RxMap<String, AppProfile> _mates = <String, AppProfile>{}.obs;
@@ -27,7 +27,7 @@ class MateController extends GetxController implements MateService {
   final RxBool isLoading = true.obs;
   final RxBool isButtonDisabled = false.obs;
 
-  GeoLocatorService geoLocatorServiceImpl = Get.find<GeoLocatorService>();
+  GeoLocatorService geoLocatorServiceImpl = Sint.find<GeoLocatorService>();
 
   List<String> mateIds = [];
   String mateId = "";
@@ -40,9 +40,9 @@ class MateController extends GetxController implements MateService {
 
       profile = userServiceImpl.profile;
 
-      if(Get.arguments != null && Get.arguments is List<String>) {
-        if(Get.arguments.isNotEmpty) {
-          mateIds = Get.arguments;
+      if(Sint.arguments != null && Sint.arguments is List<String>) {
+        if(Sint.arguments.isNotEmpty) {
+          mateIds = Sint.arguments;
         }
       }
 
@@ -147,9 +147,9 @@ class MateController extends GetxController implements MateService {
   Future<void> getMateDetails(AppProfile mate) async {
     AppConfig.logger.t("getMateDetails: ${mate.id} - ${mate.name}");
     if(mate.id != profile.id) {
-      Get.toNamed(AppRouteConstants.mateDetails, arguments: mate.id);
+      Sint.toNamed(AppRouteConstants.mateDetails, arguments: mate.id);
     } else {
-      Get.toNamed(AppRouteConstants.profileDetails, arguments: mate.id);
+      Sint.toNamed(AppRouteConstants.profileDetails, arguments: mate.id);
     }
   }
 
@@ -217,7 +217,7 @@ class MateController extends GetxController implements MateService {
       AppConfig.logger.e(e.toString());
     }
 
-    Get.back();
+    Sint.back();
     update();
   }
 
@@ -235,7 +235,7 @@ class MateController extends GetxController implements MateService {
       AppConfig.logger.e(e.toString());
     }
 
-    Get.back();
+    Sint.back();
     update();
   }
 

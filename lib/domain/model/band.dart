@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:get/get.dart';
+import 'package:sint/sint.dart';
 
 import '../../utils/core_utilities.dart';
 import '../../utils/enums/usage_reason.dart';
@@ -98,7 +98,7 @@ class Band {
   }
 
   Map<String, dynamic> toJSON() {
-    Get.log("Band toJSON");
+    Sint.log("Band toJSON");
     return <String, dynamic> {
       'id': id,
       'email': email,

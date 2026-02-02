@@ -3,6 +3,7 @@ import 'dart:async';
 import '../model/app_profile.dart';
 import '../model/inbox.dart';
 import '../model/inbox_message.dart';
+import '../model/inbox_profile_info.dart';
 
 abstract class InboxRepository {
 
@@ -21,4 +22,8 @@ abstract class InboxRepository {
   Future<Inbox> getOrCreateInboxRoom(AppProfile profile, AppProfile itemmate);
 
   Stream<List<InboxMessage>> messageStream(String inboxId);
+  Future<Inbox> getOrCreateAppBotRoom(String profileId);
+  Stream<InboxProfileInfo> getInboxProfileInfo(String roomId, String profileId);
+  Future<void> setLastTyping(String roomId, String profileId);
+
 }

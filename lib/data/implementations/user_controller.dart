@@ -1,6 +1,6 @@
 
 import 'package:firebase_auth/firebase_auth.dart' as fba;
-import 'package:get/get.dart';
+import 'package:sint/sint.dart';
 
 import '../../app_config.dart';
 import '../../domain/model/app_profile.dart';
@@ -26,7 +26,7 @@ import '../firestore/user_subscription_firestore.dart';
 import 'app_hive_controller.dart';
 import 'geolocator_controller.dart';
 
-class UserController extends GetxController implements UserService {
+class UserController extends SintController implements UserService {
 
   UserFirestore userFirestore = UserFirestore();
   
@@ -75,7 +75,7 @@ class UserController extends GetxController implements UserService {
         await userFirestore.remove(user.id);
       }
 
-      final loginServiceImpl = Get.find<LoginService>();
+      final loginServiceImpl = Sint.find<LoginService>();
       fba.AuthCredential? authCredential;
 
       if(loginServiceImpl.getAuthCredentials() == null) {
@@ -89,17 +89,17 @@ class UserController extends GetxController implements UserService {
         clear();
       } else {
         AppConfig.logger.e("AuthCredentials to reauthenticate were null");
-        Get.offAndToNamed(AppRouteConstants.login);
+        Sint.offAndToNamed(AppRouteConstants.login);
       }
 
     } catch (e) {
-      Get.snackbar(
+      Sint.snackbar(
         CoreConstants.errorSigningOut.tr,
         e.toString(),
         snackPosition: SnackPosition.bottom,
       );
 
-      Get.toNamed(AppRouteConstants.logout);
+      Sint.toNamed(AppRouteConstants.logout);
     }
 
     AppConfig.logger.i("removeAccount method Finished");
@@ -162,28 +162,28 @@ class UserController extends GetxController implements UserService {
           profile = newUser.profiles.first;
           user = newUser;
           AppHiveController().writeProfileInfo();
-          Get.offAllNamed(AppRouteConstants.home);
+          Sint.offAllNamed(AppRouteConstants.home);
         } else {
           userFirestore.remove(newUser.id);
-          Get.snackbar(
+          Sint.snackbar(
             CoreConstants.errorCreatingAccount.tr,
             '',
             snackPosition: SnackPosition.bottom,
           );
 
-          Get.offAllNamed(AppRouteConstants.login);
+          Sint.offAllNamed(AppRouteConstants.login);
         }
       } else {
-        Get.snackbar(
+        Sint.snackbar(
           CoreConstants.errorCreatingAccount.tr,
           '',
           snackPosition: SnackPosition.bottom,
         );
 
-        Get.offAllNamed(AppRouteConstants.login);
+        Sint.offAllNamed(AppRouteConstants.login);
       }
     } catch (e) {
-      Get.snackbar(
+      Sint.snackbar(
         CoreConstants.errorCreatingAccount.tr,
         e.toString(),
         snackPosition: SnackPosition.bottom,
@@ -266,20 +266,20 @@ class UserController extends GetxController implements UserService {
         if(profileId.isNotEmpty) {
           userFirestore.updateCurrentProfile(user.id, profileId);
           AppConfig.logger.i("Additional profile created successfully.");
-          Get.offAllNamed(AppRouteConstants.home);
+          Sint.offAllNamed(AppRouteConstants.home);
         } else {
           AppConfig.logger.e("Something wrong creating account.");
-          Get.offAllNamed(AppRouteConstants.login);
+          Sint.offAllNamed(AppRouteConstants.login);
         }
       }
     } catch (e) {
-      Get.snackbar(
+      Sint.snackbar(
         CoreConstants.errorCreatingAccount.tr,
         e.toString(),
         snackPosition: SnackPosition.bottom,
       );
       AppConfig.logger.e("Something wrong creating account.");
-      Get.offAllNamed(AppRouteConstants.login);
+      Sint.offAllNamed(AppRouteConstants.login);
       update();
     }
 
@@ -297,7 +297,7 @@ class UserController extends GetxController implements UserService {
     try {
       user.profiles = await ProfileFirestore().retrieveByUserId(user.id);
     } catch (e) {
-      Get.snackbar(
+      Sint.snackbar(
         CoreConstants.errorRetrievingProfiles.tr,
         e.toString(),
         snackPosition: SnackPosition.bottom,
@@ -351,7 +351,7 @@ class UserController extends GetxController implements UserService {
 
     try {
       profile = selectedProfile;
-      Get.toNamed(AppRouteConstants.splashScreen, arguments: [AppRouteConstants.home]);
+      Sint.toNamed(AppRouteConstants.splashScreen, arguments: [AppRouteConstants.home]);
       profile = await userFirestore.updateCurrentProfile(user.id, selectedProfile.id);
     } catch(e) {
       AppConfig.logger.e(e.toString());
@@ -374,12 +374,12 @@ class UserController extends GetxController implements UserService {
       }
 
     } catch (e) {
-      Get.snackbar(
+      Sint.snackbar(
         CoreConstants.errorSigningOut.tr,
         e.toString(),
         snackPosition: SnackPosition.bottom,
       );
-      Get.toNamed(AppRouteConstants.logout);
+      Sint.toNamed(AppRouteConstants.logout);
     }
 
     AppConfig.logger.i("removeProfile method Finished");
@@ -416,7 +416,7 @@ class UserController extends GetxController implements UserService {
   Future<void> loadProfileChambers() async {
 
     try {
-      profile.chambers = await Get.find<ChamberRepository>().fetchAll(ownerId: profile.id);
+      profile.chambers = await Sint.find<ChamberRepository>().fetchAll(ownerId: profile.id);
       profile.chamberPresets?.clear();
 
       CoreUtilities.getTotalPresets(profile.chambers!).forEach((key, value) {
@@ -434,7 +434,7 @@ class UserController extends GetxController implements UserService {
   void stopGoingToEvent(String eventId) {
     profile.goingEvents?.remove(eventId);
     try {
-      //Get.find<EventDetailsController>().stopGoingToEvent();
+      //Sint.find<EventDetailsController>().stopGoingToEvent();
     } catch (e) {
       AppConfig.logger.e(e.toString());
     }
@@ -445,7 +445,7 @@ class UserController extends GetxController implements UserService {
   void goingToEvent(String eventId) {
     profile.goingEvents?.add(eventId);
     try {
-      //Get.find<EventDetailsController>().stopGoingToEvent();
+      //Sint.find<EventDetailsController>().stopGoingToEvent();
     } catch (e) {
       AppConfig.logger.e(e.toString());
     }
@@ -533,7 +533,7 @@ class UserController extends GetxController implements UserService {
           wasUpdated = true;
         } else {
           AppConfig.logger.e("Phone number is not available");
-          Get.snackbar(CoreConstants.updatePhone.tr,
+          Sint.snackbar(CoreConstants.updatePhone.tr,
             CoreConstants.phoneNotAvailable.tr,
             snackPosition: SnackPosition.bottom,
           );

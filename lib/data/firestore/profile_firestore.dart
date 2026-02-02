@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:get/get.dart';
+import 'package:sint/sint.dart';
 
 import '../../app_config.dart';
 import '../../domain/model/app_profile.dart';
@@ -1587,7 +1587,7 @@ class ProfileFirestore implements ProfileRepository {
       }
 
       if(AppConfig.instance.appInUse == AppInUse.c) {
-        profile.chambers = await Get.find<ChamberRepository>().fetchAll(ownerId: profile.id);
+        profile.chambers = await Sint.find<ChamberRepository>().fetchAll(ownerId: profile.id);
         profile.chamberPresets?.clear();
 
         CoreUtilities.getTotalPresets(profile.chambers!).forEach((key, value) {

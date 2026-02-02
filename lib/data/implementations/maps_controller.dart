@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:get/get.dart';
+import 'package:sint/sint.dart';
 import 'package:google_api_headers/google_api_headers.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:neom_google_places/ui/places_autocomplete.dart';
@@ -24,9 +24,9 @@ import '../../utils/constants/core_constants.dart';
 import '../../utils/position_utilities.dart';
 
 //TODO Move to neom_maps_service or something specific out of neom_core
-class MapsController extends GetxController implements MapsService {
+class MapsController extends SintController implements MapsService {
 
-  final userServiceImpl = Get.find<UserService>();
+  final userServiceImpl = Sint.find<UserService>();
 
   GoogleMapController? _googleMapController;
   final RxSet<Marker> _markers = <Marker>{}.obs;
@@ -225,7 +225,7 @@ class MapsController extends GetxController implements MapsService {
 
       PlaceDetails placeDetails = await places.getDetailsByPlaceId(
           prediction.placeId ?? '',
-          language: Get.locale?.languageCode
+          language: Sint.locale?.languageCode
       );
 
       place.name = placeDetails.displayName?.text ?? '' ;

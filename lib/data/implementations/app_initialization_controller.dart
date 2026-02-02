@@ -1,5 +1,5 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:get/get.dart';
+import 'package:sint/sint.dart';
 
 import '../../app_config.dart';
 import '../../domain/use_cases/audio_player_invoker_service.dart';
@@ -14,7 +14,7 @@ class AppInitializationController {
   static Future<void> runPostLoginTasks() async {
     AppConfig.logger.i("Running post-login initialization tasks...");
 
-    final userServiceImpl = Get.find<UserService>();
+    final userServiceImpl = Sint.find<UserService>();
 
     // Todas las microtareas van aquí
     await AppHiveController().fetchSettingsData();
@@ -28,7 +28,7 @@ class AppInitializationController {
     }
 
     Future.microtask(() => userServiceImpl.verifyLocation());
-    Future.microtask(() => Get.find<NotificationService>().init());
+    Future.microtask(() => Sint.find<NotificationService>().init());
 
     AppHiveController().setFirstTime(false);
     UserFirestore().updateLastTimeOn(userServiceImpl.user.id);
@@ -36,7 +36,7 @@ class AppInitializationController {
   }
 
   static Future<void> initAudioHandler() async {
-    Future.microtask(() => Get.find<AudioPlayerInvokerService>().initAudioHandler());
+    Future.microtask(() => Sint.find<AudioPlayerInvokerService>().initAudioHandler());
   }
 
   static Future<String> getFcmToken() async {

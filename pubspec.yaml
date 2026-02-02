@@ -1,6 +1,6 @@
 name: neom_core
 description: Core for Open Neom Modules.
-version: 2.2.0-dev
+version: 3.0.0
 homepage: https://github.com/Open-Neom/neom_core
 
 environment:
@@ -11,15 +11,15 @@ dependencies:
   flutter:
     sdk: flutter
 
-  get: ^5.0.0-release-candidate-9.3.2
+  sint: ^1.0.0
 
-  firebase_core: ^4.2.1
-  cloud_firestore: ^6.1.0
-  cloud_functions: ^6.0.5
-  firebase_storage: ^13.0.4
-  firebase_auth: ^6.1.2
-  firebase_messaging: ^16.0.4
-  firebase_crashlytics: ^5.0.5
+  firebase_core: ^4.4.0
+  cloud_firestore: ^6.1.2
+  cloud_functions: ^6.0.6
+  firebase_storage: ^13.0.6
+  firebase_auth: ^6.1.4
+  firebase_messaging: ^16.1.1
+  firebase_crashlytics: ^5.0.7
   googleapis_auth: ^2.0.0
 
   logger: ^2.6.2
@@ -32,18 +32,18 @@ dependencies:
   geolocator: ^14.0.2
   geocoding: ^4.0.0
   google_maps_flutter: ^2.14.0
-  google_api_headers: ^5.0.1
+  google_api_headers: ^5.1.0
   neom_maps_services: ^2.0.0
   neom_google_places: ^2.0.1
 
-  upgrader: ^12.1.0
+  upgrader: ^12.5.0
   package_info_plus: ^9.0.0
 
   in_app_purchase: ^3.2.3
 
-  rxdart: ^0.28.0
-  in_app_purchase_android: ^0.4.0+7
-  in_app_purchase_storekit: ^0.4.6+2
+#  rxdart: ^0.28.0
+  in_app_purchase_android: ^0.4.0+8
+  in_app_purchase_storekit: ^0.4.7
   html: ^0.15.6
   uuid: ^4.5.2
 
@@ -51,6 +51,6 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
 
 flutter:

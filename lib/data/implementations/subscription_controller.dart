@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:get/get.dart';
+import 'package:sint/sint.dart';
 
 import '../../app_config.dart';
 import '../../domain/model/app_profile.dart';
@@ -21,9 +21,9 @@ import '../firestore/profile_firestore.dart';
 import '../firestore/subscription_plan_firestore.dart';
 import '../firestore/user_subscription_firestore.dart';
 
-class SubscriptionController extends GetxController implements SubscriptionService {
+class SubscriptionController extends SintController implements SubscriptionService {
 
-  final userServiceImpl = Get.find<UserService>();
+  final userServiceImpl = Sint.find<UserService>();
   AppProfile profile = AppProfile();
 
   final RxBool _isLoading = true.obs;
@@ -54,7 +54,7 @@ class SubscriptionController extends GetxController implements SubscriptionServi
     _subscriptionPlans = await SubscriptionPlanFirestore().getAll();
     if(_subscriptionPlans.isNotEmpty) {
       for(SubscriptionPlan plan in _subscriptionPlans.values) {
-        StripePrice? stripePrice = await Get.find<StripeApiService>().getPrice(plan.priceId);
+        StripePrice? stripePrice = await Sint.find<StripeApiService>().getPrice(plan.priceId);
         if(stripePrice != null) {
           plan.price = Price.fromStripe(stripePrice);
         }
@@ -118,7 +118,7 @@ class SubscriptionController extends GetxController implements SubscriptionServi
     AppConfig.logger.d("Paying Subscription for: ${subscriptionPlan.name} from route: $fromRoute");
 
     try {
-      Get.toNamed(AppRouteConstants.orderConfirmation, arguments: [subscriptionPlan, fromRoute, profileType.value]);
+      Sint.toNamed(AppRouteConstants.orderConfirmation, arguments: [subscriptionPlan, fromRoute, profileType.value]);
     } catch (e) {
       AppConfig.logger.e(e.toString());
     }
@@ -132,12 +132,12 @@ class SubscriptionController extends GetxController implements SubscriptionServi
 
     try {
       if(userServiceImpl.userSubscription?.subscriptionId.isNotEmpty ?? false) {
-        if(await Get.find<StripeApiService>().cancelSubscription(userServiceImpl.userSubscription!.subscriptionId)) {
+        if(await Sint.find<StripeApiService>().cancelSubscription(userServiceImpl.userSubscription!.subscriptionId)) {
           userServiceImpl.updateSubscriptionId('');
           UserSubscriptionFirestore().cancel(userServiceImpl.userSubscription!.subscriptionId);
           userServiceImpl.userSubscription = null;
-          Get.offAllNamed(AppRouteConstants.home);
-          Get.snackbar(
+          Sint.offAllNamed(AppRouteConstants.home);
+          Sint.snackbar(
               'Suscripción Cancelada Satisfactoriamente',
               'Tu suscripción a ${('${userServiceImpl.userSubscription?.level?.name ?? ''} Plan').tr} fue cancelada.',
               snackPosition: SnackPosition.bottom,
@@ -211,8 +211,8 @@ class SubscriptionController extends GetxController implements SubscriptionServi
     try {
       if(_profileType.value != profile.type && profile.id.isNotEmpty) {
         if(await ProfileFirestore().updateType(profile.id, _profileType.value)) {
-          Get.back();
-          Get.snackbar(
+          Sint.back();
+          Sint.snackbar(
             CoreConstants.updateProfileType.tr,
             CoreConstants.updateProfileTypeSuccess.tr,
             snackPosition: SnackPosition.bottom,
@@ -223,7 +223,7 @@ class SubscriptionController extends GetxController implements SubscriptionServi
         }
 
       } else {
-        Get.snackbar(
+        Sint.snackbar(
           CoreConstants.updateProfileType.tr,
           CoreConstants.updateProfileTypeSuccess.tr,
           snackPosition: SnackPosition.bottom,

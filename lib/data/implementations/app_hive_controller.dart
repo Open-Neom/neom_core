@@ -4,9 +4,9 @@ import 'dart:ui';
 
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/foundation.dart';
-import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:sint/sint.dart';
 
 import '../../app_config.dart';
 import '../../domain/model/app_release_item.dart';
@@ -31,7 +31,7 @@ class AppHiveController implements AppHiveService {
 
   bool _isInitialized = false;
 
-  final userServiceImpl = Get.find<UserService>();
+  final userServiceImpl = Sint.find<UserService>();
   bool firstTime = false;
   int lastNotificationCheckDate = 0;
 
@@ -118,7 +118,7 @@ class AppHiveController implements AppHiveService {
     } else {
       AppLocale appLocale = AppLocale.spanish;
 
-      switch(Get.locale?.languageCode ?? "") {
+      switch(Sint.locale?.languageCode ?? "") {
         case CoreConstants.en:
           appLocale = AppLocale.english;
           break;
@@ -267,7 +267,7 @@ class AppHiveController implements AppHiveService {
   void setLocale(AppLocale appLocale) {
     AppConfig.logger.d("Updating GetX locale to ${appLocale.name}");
 
-    Locale locale = Get.deviceLocale!;
+    Locale locale = Sint.deviceLocale!;
 
     switch(appLocale) {
       case AppLocale.english:
@@ -284,7 +284,7 @@ class AppHiveController implements AppHiveService {
         break;
     }
 
-    Get.updateLocale(locale);
+    Sint.updateLocale(locale);
   }
 
   @override
