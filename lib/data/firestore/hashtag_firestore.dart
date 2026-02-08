@@ -19,14 +19,14 @@ class HashtagFirestore implements HashtagRepository {
     logger.d("Getting hashtag info for $hashtag");
     Hashtag appHashtag = Hashtag();
     try {
-      await hashtagReference.doc(hashtag).get().then((doc) {
-        if (doc.exists) {
-          appHashtag = Hashtag.fromJSON(doc.data()!);
-          logger.d("Hashtag ${appHashtag.id} was retrieved with details");
-        } else {
-          logger.d("Hashtag not found");
-        }
-      });
+      // OPTIMIZED: Use await instead of .then()
+      final doc = await hashtagReference.doc(hashtag).get();
+      if (doc.exists) {
+        appHashtag = Hashtag.fromJSON(doc.data()!);
+        logger.d("Hashtag ${appHashtag.id} was retrieved with details");
+      } else {
+        logger.d("Hashtag not found");
+      }
     } catch (e) {
       logger.d(e);
       rethrow;
@@ -37,22 +37,18 @@ class HashtagFirestore implements HashtagRepository {
   @override
   Future<bool> exists(String hashtag) async {
     logger.d("Getting hashtag $hashtag");
-    bool exists = false;
     try {
-      await hashtagReference.doc(hashtag).get().then((doc) {
-        if (doc.exists) {
-          logger.d("Hashtag found");
-          exists = true;
-        } else {
-          logger.d("Hashtag not found");
-          exists = false;
-        }
-      });
+      // OPTIMIZED: Use await instead of .then()
+      final doc = await hashtagReference.doc(hashtag).get();
+      if (doc.exists) {
+        logger.d("Hashtag found");
+        return true;
+      }
+      logger.d("Hashtag not found");
     } catch (e) {
       logger.e(e);
     }
-
-    return exists;
+    return false;
   }
 
 

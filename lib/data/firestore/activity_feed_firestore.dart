@@ -24,12 +24,12 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
     }
 
     try {
-      activityFeedReference.doc(ownerId)
+      // OPTIMIZED: Use await instead of .then() and direct delete
+      final docRef = activityFeedReference.doc(ownerId)
           .collection(AppFirestoreCollectionConstants.activityFeedItems)
-          .doc(activityFeedId).get()
-          .then((doc) async {
-            if (doc.exists) await doc.reference.delete();
-          });
+          .doc(activityFeedId);
+      final doc = await docRef.get();
+      if (doc.exists) await docRef.delete();
     } catch (e) {
       AppConfig.logger.e(e.toString());
     }

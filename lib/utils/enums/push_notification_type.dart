@@ -11,7 +11,11 @@ enum PushNotificationType {
   blog(10),
   appItemAdded(11),
   releaseAppItemAdded(12),
-  chamberPresetAdded(13);
+  chamberPresetAdded(13),
+  roomReaction(14),
+  gameInvitation(15),
+  gameInvitationAccepted(16),
+  gameInvitationDeclined(17);
 
   final int value;
   const PushNotificationType(this.value);

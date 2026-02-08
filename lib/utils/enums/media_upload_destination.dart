@@ -10,4 +10,5 @@ enum MediaUploadDestination {
   releaseItem,
   sponsor,
   ad,
+  room,
 }

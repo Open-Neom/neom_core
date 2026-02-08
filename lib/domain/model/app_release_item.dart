@@ -4,6 +4,7 @@ import '../../utils/enums/media_item_type.dart';
 import '../../utils/enums/owner_type.dart';
 import '../../utils/enums/release_status.dart';
 import '../../utils/enums/release_type.dart';
+import 'ia_info.dart';
 import 'place.dart';
 import 'price.dart';
 
@@ -61,6 +62,9 @@ class AppReleaseItem {
   String? externalUrl; ///URL FOR ITEM IN WEB
   String? webPreviewUrl; ///URL FOR Preview IN WEB
 
+  /// AI assistant configuration for this item
+  IaInfo? iaInfo;
+
   AppReleaseItem({
     this.id = '',
     this.name = '',
@@ -99,7 +103,8 @@ class AppReleaseItem {
     this.featInternalArtists,
     this.likedProfiles,
     this.externalUrl,
-    this.webPreviewUrl
+    this.webPreviewUrl,
+    this.iaInfo,
   });
 
   @override
@@ -144,8 +149,48 @@ class AppReleaseItem {
         featInternalArtists = data["featInternalArtists"] as Map<String,String>?,
         likedProfiles = List.from(data["likedProfiles"]?.cast<String>() ?? []),
         externalUrl = data["externalUrl"].toString(),
-        webPreviewUrl = data["webPreviewUrl"].toString();
+        webPreviewUrl = data["webPreviewUrl"].toString(),
+        iaInfo = data["iaInfo"] != null ? IaInfo.fromJSON(data["iaInfo"] as Map<String, dynamic>) : null;
   
+  /// Returns true if this release item contains audio content (audiobook, song, podcast, etc.)
+  /// Used to route to audio player instead of book details
+  bool get isAudioContent {
+    // Check by mediaType first
+    if (mediaType != null) {
+      return mediaType == MediaItemType.audiobook ||
+             mediaType == MediaItemType.song ||
+             mediaType == MediaItemType.podcast ||
+             mediaType == MediaItemType.binaural ||
+             mediaType == MediaItemType.frequency ||
+             mediaType == MediaItemType.nature ||
+             mediaType == MediaItemType.neomPreset;
+    }
+
+    // Fallback: check file extension in previewUrl
+    final url = previewUrl.toLowerCase();
+    return url.endsWith('.mp3') ||
+           url.endsWith('.wav') ||
+           url.endsWith('.m4a') ||
+           url.endsWith('.aac') ||
+           url.endsWith('.ogg') ||
+           url.endsWith('.flac');
+  }
+
+  /// Returns true if this release item is a readable book (PDF, EPUB, etc.)
+  bool get isBookContent {
+    // Check by mediaType first
+    if (mediaType != null) {
+      return mediaType == MediaItemType.book ||
+             mediaType == MediaItemType.pdf;
+    }
+
+    // Fallback: check file extension in previewUrl
+    final url = previewUrl.toLowerCase();
+    return url.endsWith('.pdf') ||
+           url.endsWith('.epub') ||
+           url.endsWith('.mobi');
+  }
+
   Map<String, dynamic>  toJSON() => {
     'id': id,
     'name': name,
@@ -184,6 +229,7 @@ class AppReleaseItem {
     'likedProfiles': likedProfiles,
     'externalUrl': externalUrl,
     'webPreviewUrl': webPreviewUrl,
+    'iaInfo': iaInfo?.toJSON(),
   };
 
 }

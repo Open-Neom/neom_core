@@ -66,15 +66,15 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
     AppConfig.logger.d("Getting item $releaseItemId");
     AppReleaseItem appReleaseItem = AppReleaseItem();
     try {
-      await appReleaseItemReference.doc(releaseItemId).get().then((doc) {
-        if (doc.exists) {
-          appReleaseItem = AppReleaseItem.fromJSON(doc.data());
-          appReleaseItem.id = doc.id;
-          AppConfig.logger.d("AppReleaseItem ${appReleaseItem.name} was retrieved with details");
-        } else {
-          AppConfig.logger.d("AppReleaseItem not found");
-        }
-      });
+      // OPTIMIZED: Use await instead of .then()
+      final doc = await appReleaseItemReference.doc(releaseItemId).get();
+      if (doc.exists) {
+        appReleaseItem = AppReleaseItem.fromJSON(doc.data());
+        appReleaseItem.id = doc.id;
+        AppConfig.logger.d("AppReleaseItem ${appReleaseItem.name} was retrieved with details");
+      } else {
+        AppConfig.logger.d("AppReleaseItem not found");
+      }
     } catch (e) {
       AppConfig.logger.d(e);
       rethrow;
@@ -87,20 +87,24 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
     AppConfig.logger.t("Getting ${releaseItemIds}appReleaseItems from list");
 
     Map<String, AppReleaseItem> appItems = {};
+    if (releaseItemIds.isEmpty) return appItems;
 
     try {
-      QuerySnapshot querySnapshot = await appReleaseItemReference.get();
+      // OPTIMIZED: Use whereIn with batching instead of getting all items
+      const batchSize = 30;
+      for (var i = 0; i < releaseItemIds.length; i += batchSize) {
+        final batch = releaseItemIds.skip(i).take(batchSize).toList();
+        final querySnapshot = await appReleaseItemReference
+            .where(FieldPath.documentId, whereIn: batch)
+            .get();
 
-      if (querySnapshot.docs.isNotEmpty) {
         for (var documentSnapshot in querySnapshot.docs) {
-          if(releaseItemIds.contains(documentSnapshot.id)){
-            AppReleaseItem releaseItem = AppReleaseItem.fromJSON(documentSnapshot.data());
-            AppConfig.logger.d("AppReleaseItem ${releaseItem.name} was retrieved with details");
-            appItems[documentSnapshot.id] = releaseItem;
-          }
+          AppReleaseItem releaseItem = AppReleaseItem.fromJSON(documentSnapshot.data());
+          releaseItem.id = documentSnapshot.id;
+          AppConfig.logger.d("AppReleaseItem ${releaseItem.name} was retrieved with details");
+          appItems[documentSnapshot.id] = releaseItem;
         }
       }
-
     } catch (e) {
       AppConfig.logger.d(e);
     }
@@ -124,16 +128,12 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
     AppConfig.logger.t("$releaseItemId would add user $userId");
 
     try {
-      await appReleaseItemReference.get()
-          .then((querySnapshot) async {
-        for (var document in querySnapshot.docs) {
-          if(document.id == releaseItemId) {
-            await document.reference.update({AppFirestoreConstants.boughtUsers: FieldValue.arrayUnion([userId])});
-            AppConfig.logger.d("$releaseItemId has added user $userId");
-            return true;
-          }
-        }
+      // OPTIMIZED: Use direct update instead of iterating all items
+      await appReleaseItemReference.doc(releaseItemId).update({
+        AppFirestoreConstants.boughtUsers: FieldValue.arrayUnion([userId])
       });
+      AppConfig.logger.d("$releaseItemId has added user $userId");
+      return true;
     } catch (e) {
       AppConfig.logger.e(e.toString());
     }
@@ -145,13 +145,13 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
     AppConfig.logger.d("Getting releaseItem $releaseItemId");
 
     try {
-      if(releaseItemId.isEmpty) false;
-      await appReleaseItemReference.doc(releaseItemId).get().then((doc) {
-        if (doc.exists) {
-          AppConfig.logger.d("AppMediaItem found");
-          return true;
-        }
-      });
+      if (releaseItemId.isEmpty) return false;
+      // OPTIMIZED: Use await instead of .then()
+      final doc = await appReleaseItemReference.doc(releaseItemId).get();
+      if (doc.exists) {
+        AppConfig.logger.d("AppMediaItem found");
+        return true;
+      }
     } catch (e) {
       AppConfig.logger.e(e);
     }
@@ -163,18 +163,30 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
     AppConfig.logger.t("existsOrInsert releaseItem ${releaseItem.id}");
 
     try {
-      appReleaseItemReference.doc(releaseItem.id).get().then((doc) {
-        if (doc.exists) {
-          AppConfig.logger.t("AppReleaseItem found");
-        } else {
-          AppConfig.logger.d("AppReleaseItem ${releaseItem.id}. ${releaseItem.name} not found. Inserting");
-          insert(releaseItem);
-        }
-      });
+      // OPTIMIZED: Use await instead of .then()
+      final doc = await appReleaseItemReference.doc(releaseItem.id).get();
+      if (doc.exists) {
+        AppConfig.logger.t("AppReleaseItem found");
+      } else {
+        AppConfig.logger.d("AppReleaseItem ${releaseItem.id}. ${releaseItem.name} not found. Inserting");
+        await insert(releaseItem);
+      }
     } catch (e) {
       AppConfig.logger.e(e);
     }
+  }
 
+  /// Updates specific fields of an AppReleaseItem
+  Future<bool> updateFields(String releaseItemId, Map<String, dynamic> fields) async {
+    AppConfig.logger.d("Updating appReleaseItem $releaseItemId fields");
+    try {
+      await appReleaseItemReference.doc(releaseItemId).update(fields);
+      AppConfig.logger.d("AppReleaseItem $releaseItemId updated successfully");
+      return true;
+    } catch (e) {
+      AppConfig.logger.e("Error updating AppReleaseItem: $e");
+      return false;
+    }
   }
 
 }

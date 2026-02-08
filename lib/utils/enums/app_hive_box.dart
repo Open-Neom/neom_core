@@ -11,7 +11,13 @@ enum AppHiveBox {
   directory(false),
   nupale(false),
   casete(false),
-  profile(false);
+  profile(false),
+  games(false),
+  blog(false),
+  posts(true),         // Feed cache with limit
+  visitedProfiles(true), // Recently visited profiles cache
+  inbox(false),        // Messages cache
+  syncQueue(false);    // Offline actions queue
 
   final bool limit;
   const AppHiveBox(this.limit);

@@ -20,14 +20,14 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
     AppConfig.logger.d("Getting item $itemId");
     AppMediaItem appMediaItem = AppMediaItem();
     try {
-      await appMediaItemReference.doc(itemId).get().then((doc) {
-        if (doc.exists) {
-          appMediaItem = AppMediaItem.fromJSON(jsonEncode(doc.data()));
-          AppConfig.logger.d("AppMediaItem ${appMediaItem.name} was retrieved with details");
-        } else {
-          AppConfig.logger.d("AppMediaItem not found");
-        }
-      });
+      // OPTIMIZED: Use await instead of .then()
+      final doc = await appMediaItemReference.doc(itemId).get();
+      if (doc.exists) {
+        appMediaItem = AppMediaItem.fromJSON(jsonEncode(doc.data()));
+        AppConfig.logger.d("AppMediaItem ${appMediaItem.name} was retrieved with details");
+      } else {
+        AppConfig.logger.d("AppMediaItem not found");
+      }
     } catch (e) {
       AppConfig.logger.d(e);
       rethrow;
@@ -72,20 +72,24 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
     AppConfig.logger.t("Getting ${appMediaItemIds.length} appMediaItems from firestore");
 
     Map<String, AppMediaItem> appMediaItems = {};
+    if (appMediaItemIds.isEmpty) return appMediaItems;
 
     try {
-      QuerySnapshot querySnapshot = await appMediaItemReference.get();
+      // OPTIMIZED: Use whereIn with batching instead of getting all items
+      const batchSize = 30;
+      for (var i = 0; i < appMediaItemIds.length; i += batchSize) {
+        final batch = appMediaItemIds.skip(i).take(batchSize).toList();
+        final querySnapshot = await appMediaItemReference
+            .where(FieldPath.documentId, whereIn: batch)
+            .get();
 
-      if (querySnapshot.docs.isNotEmpty) {
         for (var documentSnapshot in querySnapshot.docs) {
-          if(appMediaItemIds.contains(documentSnapshot.id)){
-            AppMediaItem appMediaItemm = AppMediaItem.fromJSON(documentSnapshot.data());
-            AppConfig.logger.d("AppMediaItem ${appMediaItemm.name} was retrieved with details");
-            appMediaItems[documentSnapshot.id] = appMediaItemm;
-          }
+          AppMediaItem appMediaItem = AppMediaItem.fromJSON(documentSnapshot.data());
+          appMediaItem.id = documentSnapshot.id;
+          AppConfig.logger.d("AppMediaItem ${appMediaItem.name} was retrieved with details");
+          appMediaItems[documentSnapshot.id] = appMediaItem;
         }
       }
-
     } catch (e) {
       AppConfig.logger.d(e);
     }
@@ -97,12 +101,12 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
     AppConfig.logger.d("Getting appMediaItem $appMediaItemId");
 
     try {
-      await appMediaItemReference.doc(appMediaItemId).get().then((doc) {
-        if (doc.exists) {
-          AppConfig.logger.d("AppMediaItem found");
-          return true;
-        }
-      });
+      // OPTIMIZED: Use await instead of .then()
+      final doc = await appMediaItemReference.doc(appMediaItemId).get();
+      if (doc.exists) {
+        AppConfig.logger.d("AppMediaItem found");
+        return true;
+      }
     } catch (e) {
       AppConfig.logger.e(e);
     }
@@ -140,26 +144,36 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
   Future<bool> removeItemFromList(String profileId, String itemlistId, AppMediaItem appMediaItem) async {
     AppConfig.logger.d("Removing ItemlistItem for user $profileId");
 
+    if (profileId.isEmpty) {
+      AppConfig.logger.w('Cannot remove item: profileId is empty');
+      return false;
+    }
+
     try {
+      // OPTIMIZED: Query by 'id' field instead of FieldPath.documentId
+      // (collectionGroup queries don't support FieldPath.documentId with simple IDs)
+      final querySnapshot = await profileReference
+          .where('id', isEqualTo: profileId)
+          .limit(1)
+          .get();
 
-      await profileReference.get()
-          .then((querySnapshot) async {
-        for (var document in querySnapshot.docs) {
-          if(document.id == profileId) {
-            DocumentSnapshot snapshot  = await document.reference.collection(AppFirestoreCollectionConstants.itemlists)
-                .doc(itemlistId).get();
+      if (querySnapshot.docs.isNotEmpty) {
+        final document = querySnapshot.docs.first;
+        final snapshot = await document.reference
+            .collection(AppFirestoreCollectionConstants.itemlists)
+            .doc(itemlistId)
+            .get();
 
-            Itemlist itemlist = Itemlist.fromJSON(snapshot.data());
-            itemlist.appMediaItems?.removeWhere((element) => element.id == appMediaItem.id);
-            await document.reference.collection(AppFirestoreCollectionConstants.itemlists)
-                .doc(itemlistId).update(itemlist.toJSON());
+        Itemlist itemlist = Itemlist.fromJSON(snapshot.data());
+        itemlist.appMediaItems?.removeWhere((element) => element.id == appMediaItem.id);
+        await document.reference
+            .collection(AppFirestoreCollectionConstants.itemlists)
+            .doc(itemlistId)
+            .update(itemlist.toJSON());
 
-          }
-        }
-      });
-
-      AppConfig.logger.i("ItemlistItem ${appMediaItem.name} was updated to ${appMediaItem.state}");
-      return true;
+        AppConfig.logger.i("ItemlistItem ${appMediaItem.name} was updated to ${appMediaItem.state}");
+        return true;
+      }
     } catch (e) {
       AppConfig.logger.e(e.toString());
     }
@@ -173,14 +187,14 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
     AppConfig.logger.t("existsOrInsert appMediaItem ${appMediaItem.id}");
 
     try {
-      appMediaItemReference.doc(appMediaItem.id).get().then((doc) {
-        if (doc.exists) {
-          AppConfig.logger.t("AppMediaItem found");
-        } else {
-          AppConfig.logger.d("AppMediaItem ${appMediaItem.id}. ${appMediaItem.name} not found. Inserting");
-          insert(appMediaItem);
-        }
-      });
+      // OPTIMIZED: Use await instead of .then()
+      final doc = await appMediaItemReference.doc(appMediaItem.id).get();
+      if (doc.exists) {
+        AppConfig.logger.t("AppMediaItem found");
+      } else {
+        AppConfig.logger.d("AppMediaItem ${appMediaItem.id}. ${appMediaItem.name} not found. Inserting");
+        await insert(appMediaItem);
+      }
     } catch (e) {
       AppConfig.logger.e(e);
     }

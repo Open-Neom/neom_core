@@ -20,9 +20,9 @@ class TransactionFirestore implements TransactionRepository {
 
       DocumentSnapshot documentSnapshot = await transactionReference.doc(transactionId).get();
 
-      if (documentSnapshot.exists) {
+      if (documentSnapshot.exists && documentSnapshot.data() != null) {
         AppConfig.logger.d("Snapshot is not empty");
-          transaction = AppTransaction.fromJSON(documentSnapshot.data());
+          transaction = AppTransaction.fromJSON(documentSnapshot.data() as Map<String, dynamic>);
           transaction.id = documentSnapshot.id;
           AppConfig.logger.d(transaction.toString());
         AppConfig.logger.d("AppTransaction ${transaction.id} was retrieved");
@@ -118,7 +118,9 @@ class TransactionFirestore implements TransactionRepository {
         AppConfig.logger.d("QuerySnapshot is not empty");
         for (var documentSnapshot in querySnapshot.docs) {
           if(transactionIds.contains(documentSnapshot.id)){
-            AppTransaction transaction = AppTransaction.fromJSON(documentSnapshot.data());
+            final data = documentSnapshot.data();
+            if (data == null) continue;
+            AppTransaction transaction = AppTransaction.fromJSON(data as Map<String, dynamic>);
             transaction.id = documentSnapshot.id;
             AppConfig.logger.d("AppTransaction ${transaction.id} was retrieved with details");
             if(status != null && transaction.status == status) {
@@ -147,7 +149,9 @@ class TransactionFirestore implements TransactionRepository {
       QuerySnapshot snapshot = await transactionReference.get();
 
       for(var document in snapshot.docs) {
-        AppTransaction transaction = AppTransaction.fromJSON(document.data());
+        final data = document.data();
+        if (data == null) continue;
+        AppTransaction transaction = AppTransaction.fromJSON(data as Map<String, dynamic>);
         if(transaction.orderId == orderId) {
           transaction.id = document.id;
           transactions.add(transaction);
@@ -169,7 +173,9 @@ class TransactionFirestore implements TransactionRepository {
       QuerySnapshot snapshot = await transactionReference.get();
 
       for(var document in snapshot.docs) {
-        AppTransaction transaction = AppTransaction.fromJSON(document.data());
+        final data = document.data();
+        if (data == null) continue;
+        AppTransaction transaction = AppTransaction.fromJSON(data as Map<String, dynamic>);
         if(transaction.senderId == email || transaction.recipientId == email) {
           transaction.id = document.id;
           transactions[transaction.id] = transaction;

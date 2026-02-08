@@ -25,21 +25,41 @@ class PostFirestore implements PostRepository {
   final List<QueryDocumentSnapshot> _followingDocTimeline = [];
   final Map<String, QueryDocumentSnapshot> _diverseDocTimeline = {};
 
+  // Cache for pagination
+  DocumentSnapshot? _lastPostDocument;
+
   @override
-  Future<List<Post>> retrievePosts() async {
-    AppConfig.logger.d("Retrieving Posts");
+  Future<List<Post>> retrievePosts({int limit = 50, bool refresh = false}) async {
+    AppConfig.logger.d("Retrieving Posts with limit: $limit");
     List<Post> posts = <Post>[];
 
     try {
-      QuerySnapshot querySnapshot = await postsReference.get();
+      // Reset pagination on refresh
+      if (refresh) _lastPostDocument = null;
+
+      // OPTIMIZED: Added limit and pagination support
+      Query query = postsReference
+          .orderBy(AppFirestoreConstants.createdTime, descending: true)
+          .limit(limit);
+
+      // Continue from last document for pagination
+      if (_lastPostDocument != null) {
+        query = query.startAfterDocument(_lastPostDocument!);
+      }
+
+      QuerySnapshot querySnapshot = await query.get();
 
       if (querySnapshot.docs.isNotEmpty) {
         AppConfig.logger.t("Snapshot is not empty");
+        _lastPostDocument = querySnapshot.docs.last;
+
         for (var postSnapshot in querySnapshot.docs) {
-          Post post = Post.fromJSON(postSnapshot.data());
-          post.id = postSnapshot.id;
-          AppConfig.logger.t(post.toString());
-          posts.add(post);
+          final data = postSnapshot.data();
+          if (data != null) {
+            Post post = Post.fromJSON(data as Map<String, dynamic>);
+            post.id = postSnapshot.id;
+            posts.add(post);
+          }
         }
         AppConfig.logger.t("${posts.length} posts found");
       }
@@ -89,8 +109,11 @@ class PostFirestore implements PostRepository {
     Post post = Post();
     try {
       DocumentSnapshot postSnapshot = await postsReference.doc(postId).get();
-      post = Post.fromJSON(postSnapshot.data());
-      post.id = postSnapshot.id;
+      // FIXED: Added null check after .data()
+      if (postSnapshot.exists && postSnapshot.data() != null) {
+        post = Post.fromJSON(postSnapshot.data() as Map<String, dynamic>);
+        post.id = postSnapshot.id;
+      }
     } catch (e) {
       AppConfig.logger.e(e.toString());
     }
@@ -127,7 +150,7 @@ class PostFirestore implements PostRepository {
   }
 
   @override
-  Future<List<Post>> getProfilePosts(String profileId) async {
+  Future<List<Post>> getProfilePosts(String profileId, {int limit = 20}) async {
     AppConfig.logger.t("getProfilePosts from Firestore");
 
     List<Post> posts = [];
@@ -135,12 +158,12 @@ class PostFirestore implements PostRepository {
     try {
       Query query = postsReference
           .where(AppFirestoreConstants.ownerId, isEqualTo: profileId)
-          .orderBy(AppFirestoreConstants.createdTime, descending: true);
-          // .limit(AppConstants.profilePostsLimit); //TODO Implement to improve performance on profile tab
+          .orderBy(AppFirestoreConstants.createdTime, descending: true)
+          .limit(limit); // FIXED: Enabled pagination limit
       if (_profileDocPosts.isNotEmpty) {
         query = query.startAfterDocument(_profileDocPosts.last);
       }
-      QuerySnapshot querySnapshot  = await query.get();
+      QuerySnapshot querySnapshot = await query.get();
 
       if (querySnapshot.docs.isNotEmpty) {
         for(var doc in querySnapshot.docs) {

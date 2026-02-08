@@ -7,4 +7,5 @@ enum EventType {
   lesson, /// One-on-one or group instructional session
   meetup, /// Social gathering to network, connect or discuss
   talk, /// Talk event with main speaker or panel - colloqium
+  bookTour, /// Synchronized reading/listening tour — host controls navigation
 }

@@ -239,14 +239,10 @@ class RequestFirestore implements RequestRepository {
 
     try {
 
-      await requestsReference.doc(requestId).get()
-          .then((querySnapshot) {
-        querySnapshot.reference
-            .update({
-          AppFirestoreConstants.requestDecision: RequestDecision.confirmed.name
-        });
-      }
-      );
+      // OPTIMIZED: Use direct update instead of get().then()
+      await requestsReference.doc(requestId).update({
+        AppFirestoreConstants.requestDecision: RequestDecision.confirmed.name
+      });
 
       AppConfig.logger.d("Request $requestId has been change to accepted");
     } catch (e) {
@@ -263,12 +259,9 @@ class RequestFirestore implements RequestRepository {
 
     try {
 
-      await requestsReference.doc(requestId).get()
-          .then((querySnapshot) {
-        querySnapshot.reference
-            .update({
-          AppFirestoreConstants.requestDecision: RequestDecision.declined.name
-        });
+      // OPTIMIZED: Use direct update instead of get().then()
+      await requestsReference.doc(requestId).update({
+        AppFirestoreConstants.requestDecision: RequestDecision.declined.name
       });
 
       AppConfig.logger.d("Request $requestId has been change to declined");
@@ -286,14 +279,10 @@ class RequestFirestore implements RequestRepository {
 
     try {
 
-      await requestsReference.doc(requestId).get()
-          .then((querySnapshot) {
-        querySnapshot.reference
-            .update({
-          AppFirestoreConstants.requestDecision: RequestDecision.pending.name
-        });
-      }
-      );
+      // OPTIMIZED: Use direct update instead of get().then()
+      await requestsReference.doc(requestId).update({
+        AppFirestoreConstants.requestDecision: RequestDecision.pending.name
+      });
 
 
       AppConfig.logger.d("Request $requestId has been change to pending");
@@ -303,6 +292,58 @@ class RequestFirestore implements RequestRepository {
     }
 
     return true;
+  }
+
+  /// Stream a single request by ID for real-time updates
+  Stream<AppRequest?> streamRequest(String requestId) {
+    return requestsReference.doc(requestId).snapshots().map((snapshot) {
+      if (!snapshot.exists) return null;
+      final request = AppRequest.fromJSON(snapshot.data()!);
+      request.id = snapshot.id;
+      return request;
+    });
+  }
+
+  /// Stream sent requests for a profile
+  Stream<List<AppRequest>> streamSentRequests(String profileId) {
+    return requestsReference
+        .where(AppFirestoreConstants.from, isEqualTo: profileId)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) {
+        final request = AppRequest.fromJSON(doc.data());
+        request.id = doc.id;
+        return request;
+      }).toList();
+    });
+  }
+
+  /// Stream received requests for a profile
+  Stream<List<AppRequest>> streamRequests(String profileId) {
+    return requestsReference
+        .where(AppFirestoreConstants.to, isEqualTo: profileId)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) {
+        final request = AppRequest.fromJSON(doc.data());
+        request.id = doc.id;
+        return request;
+      }).toList();
+    });
+  }
+
+  /// Get a single request by ID
+  Future<AppRequest?> getRequest(String requestId) async {
+    try {
+      final doc = await requestsReference.doc(requestId).get();
+      if (!doc.exists) return null;
+      final request = AppRequest.fromJSON(doc.data()!);
+      request.id = doc.id;
+      return request;
+    } catch (e) {
+      AppConfig.logger.e('Error getting request: $e');
+      return null;
+    }
   }
 
 

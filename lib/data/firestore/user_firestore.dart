@@ -88,8 +88,8 @@ class UserFirestore implements UserRepository {
     AppUser user = AppUser();
     try {
         DocumentSnapshot documentSnapshot = await userReference.doc(userId).get();
-        if (documentSnapshot.exists) {
-          user = AppUser.fromJSON(documentSnapshot.data());
+        if (documentSnapshot.exists && documentSnapshot.data() != null) {
+          user = AppUser.fromJSON(documentSnapshot.data() as Map<String, dynamic>);
           user.id = documentSnapshot.id;
 
           AppProfile profile = AppProfile();
@@ -138,21 +138,29 @@ class UserFirestore implements UserRepository {
 
             if(user.currentProfileId.isNotEmpty) {
               profile = await ProfileFirestore().retrieve(user.currentProfileId);
-              if(profile.id.isNotEmpty) {
-                if(AppConfig.instance.appInUse == AppInUse.c) {
-                  profile.chambers = await Sint.find<ChamberRepository>().fetchAll(ownerId: profile.id);
-                  profile.chamberPresets?.clear();
+            }
 
-                  CoreUtilities.getTotalPresets(profile.chambers!).forEach((key, value) {
-                    profile.chamberPresets!.add(key);
-                  });
-                }
-                user.profiles = [profile];
-              } else {
-                AppConfig.logger.d("Profile for userId ${user.id} not found");
-              }
-            } else {
+            // Fallback: si no encontró por currentProfileId, buscar por userId
+            if(profile.id.isEmpty) {
+              AppConfig.logger.d("Profile not found by currentProfileId, trying by userId ${user.id}");
               user.profiles = await ProfileFirestore().retrieveByUserId(user.id);
+              if(user.profiles.isNotEmpty) {
+                profile = user.profiles.first;
+              }
+            }
+
+            if(profile.id.isNotEmpty) {
+              if(AppConfig.instance.appInUse == AppInUse.c) {
+                profile.chambers = await Sint.find<ChamberRepository>().fetchAll(ownerId: profile.id);
+                profile.chamberPresets?.clear();
+
+                CoreUtilities.getTotalPresets(profile.chambers!).forEach((key, value) {
+                  profile.chamberPresets!.add(key);
+                });
+              }
+              user.profiles = [profile];
+            } else {
+              AppConfig.logger.d("Profile for userId ${user.id} not found");
             }
 
             if(getProfileFeatures) {
@@ -178,25 +186,34 @@ class UserFirestore implements UserRepository {
   Future<AppUser> getByProfileId(String profileId) async {
     AppConfig.logger.d("Getting user for ProfileId: $profileId");
     AppUser user = AppUser();
-    String userId = "";
-    QuerySnapshot userQuerySnapshot;
+
+    // Validate profileId is not empty
+    if (profileId.isEmpty) {
+      AppConfig.logger.w('Cannot get user: profileId is empty');
+      return user;
+    }
 
     try {
-      QuerySnapshot querySnapshot = await profileReference.get();
+      // OPTIMIZED: Query profile by 'id' field instead of FieldPath.documentId
+      // (collectionGroup queries don't support FieldPath.documentId with simple IDs)
+      final profileSnapshot = await profileReference
+          .where('id', isEqualTo: profileId)
+          .limit(1)
+          .get();
 
-      for (var profile in querySnapshot.docs) {
-        if(profile.id == profileId) {
-          AppConfig.logger.w("Reference id: ${profile.reference.parent.parent!.id}");
-          DocumentReference documentReference = profile.reference;
-          userId = documentReference.parent.parent!.id;
+      if (profileSnapshot.docs.isNotEmpty) {
+        final profile = profileSnapshot.docs.first;
+        final parentRef = profile.reference.parent.parent;
 
-          userQuerySnapshot = await userReference
-              .where(FieldPath.documentId, isEqualTo: userId)
-              .get();
-          AppConfig.logger.i("${userQuerySnapshot.docs.length} users found");
+        if (parentRef != null) {
+          final userId = parentRef.id;
+          AppConfig.logger.d("Found user ID: $userId for profile: $profileId");
 
-          user = AppUser.fromJSON(userQuerySnapshot.docs.first.data());
-          user.id = userId;
+          final userDoc = await userReference.doc(userId).get();
+          if (userDoc.exists && userDoc.data() != null) {
+            user = AppUser.fromJSON(userDoc.data() as Map<String, dynamic>);
+            user.id = userId;
+          }
         }
       }
     } catch (e) {

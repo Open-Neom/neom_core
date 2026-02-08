@@ -21,6 +21,7 @@ class AppRouteConstants {
   static const String splashScreen = "/splashScreen";
 
   static const String home = "/home";
+  static const String mobility = "/mobility";
   static const String timeline = "/timeline";
   static const String instruments = "/instrument";
   static const String instrumentsFav = '/instrument/fav';
@@ -196,5 +197,18 @@ class AppRouteConstants {
   static const String caseteHome  = '/casete/home';
   static const String caseteItemDetails  = '/casete/item/details';
   static const String caseteMonthlyDetails  = '/casete/monthly/details';
+
+  static const String games = '/games';
+  static const String gamesWordChain = '/games/wordChain';
+  static const String gamesStoryBuilder = '/games/storyBuilder';
+  static const String gamesStories = '/games/stories';
+  static const String gamesQuoteQuest = '/games/quoteQuest';
+  static const String gamesVerseScramble = '/games/verseScramble';
+  static const String gamesLiteraryChess = '/games/literaryChess';
+  static const String gamesFindYourBook = '/games/findYourBook';
+  static const String gamesLibrinder = '/games/librinder';
+  static const String gamesLibroTerapia = '/games/libroTerapia';
+  static const String findOpponent = '/games/findOpponent';
+  static const String multiplayerChess = '/games/multiplayerChess';
 
 }

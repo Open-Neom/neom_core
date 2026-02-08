@@ -68,4 +68,30 @@ class AppHiveConstants {
   static const String enableGesture = 'enableGesture';
   ///PREFERENCES
 
+  // ============ OFFLINE-FIRST SYSTEM ============
+
+  /// Posts Cache
+  static const String feedPosts = 'feedPosts';
+  static const String feedLastUpdate = 'feedLastUpdate';
+  static const String postPrefix = 'post_';
+  static const String pendingPostPrefix = 'pending_post_';
+  static const String pendingLikePrefix = 'pending_like_';
+  static const String pendingCommentPrefix = 'pending_comment_';
+
+  /// Profile Cache
+  static const String visitedProfilePrefix = 'visited_profile_';
+  static const String visitedProfileIds = 'visitedProfileIds';
+  static const String profileCacheLastUpdate = 'profileCacheLastUpdate';
+
+  /// Inbox Cache
+  static const String inboxMessages = 'inboxMessages';
+  static const String inboxLastUpdate = 'inboxLastUpdate';
+  static const String pendingMessagePrefix = 'pending_msg_';
+  static const String conversationPrefix = 'conv_';
+
+  /// Sync Queue
+  static const String syncQueueItems = 'syncQueueItems';
+  static const String lastSyncAttempt = 'lastSyncAttempt';
+  static const String syncFailedItems = 'syncFailedItems';
+
 }

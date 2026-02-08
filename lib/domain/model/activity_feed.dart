@@ -146,4 +146,72 @@ class ActivityFeed {
         activityFeedType = type,
         createdTime = DateTime.now().millisecondsSinceEpoch,
         unread = true;
+
+  /// Factory for game invitations using AppRequest
+  ActivityFeed.fromGameRequest({
+    required AppRequest request,
+    required AppProfile senderProfile,
+    required ActivityFeedType type,
+    this.message = '',
+  }) :
+        id = '',
+        ownerId = request.to, // Receiver of the game request
+        activityReferenceId = request.id,
+        profileId = request.from,
+        profileName = senderProfile.name,
+        profileImgUrl = senderProfile.photoUrl,
+        mediaUrl = '',
+        activityFeedType = type,
+        createdTime = DateTime.now().millisecondsSinceEpoch,
+        unread = true;
+
+  /// Factory for game invitation responses (accepted/declined)
+  ActivityFeed.fromGameRequestResponse({
+    required AppRequest request,
+    required AppProfile responderProfile,
+    required ActivityFeedType type,
+    this.message = '',
+  }) :
+        id = '',
+        ownerId = request.from, // Notify the sender about response
+        activityReferenceId = request.eventId, // roomId for navigation
+        profileId = request.to,
+        profileName = responderProfile.name,
+        profileImgUrl = responderProfile.photoUrl,
+        mediaUrl = '',
+        activityFeedType = type,
+        createdTime = DateTime.now().millisecondsSinceEpoch,
+        unread = true;
+
+  /// Factory for new blog post notifications to followers
+  ActivityFeed.fromNewBlogPost({
+    required Post blogPost,
+    required AppProfile authorProfile,
+    required String followerId,
+  }) :
+        id = '',
+        ownerId = followerId, // Follower receives the notification
+        activityReferenceId = blogPost.id,
+        profileId = authorProfile.id,
+        profileName = authorProfile.name,
+        profileImgUrl = authorProfile.photoUrl,
+        mediaUrl = blogPost.thumbnailUrl.isNotEmpty
+            ? blogPost.thumbnailUrl
+            : blogPost.mediaUrl,
+        activityFeedType = ActivityFeedType.newBlogPost,
+        createdTime = DateTime.now().millisecondsSinceEpoch,
+        message = _extractBlogTitle(blogPost.caption),
+        unread = true;
+
+  /// Extracts the title from blog caption (title|||text format) or first 50 chars.
+  static String _extractBlogTitle(String caption) {
+    if (caption.isEmpty) return '';
+    // Blog entries use "title|||text" format
+    final parts = caption.split('|||');
+    if (parts.isNotEmpty && parts[0].isNotEmpty) {
+      return parts[0].length > 80 ? '${parts[0].substring(0, 80)}...' : parts[0];
+    }
+    // Fallback to first 50 chars of caption
+    return caption.length > 50 ? '${caption.substring(0, 50)}...' : caption;
+  }
 }

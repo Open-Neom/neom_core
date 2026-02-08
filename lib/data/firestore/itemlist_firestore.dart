@@ -77,7 +77,9 @@ class ItemlistFirestore implements ItemlistRepository {
       if (documentReference.id.isNotEmpty) {
         AppConfig.logger.t("Snapshot is not empty");
         DocumentSnapshot snapshot = await documentReference.get();
-        Itemlist itemlist = Itemlist.fromJSON(snapshot.data());
+        final data = snapshot.data();
+        if (data == null) return false;
+        Itemlist itemlist = Itemlist.fromJSON(data as Map<String, dynamic>);
 
         itemlist.appMediaItems?.removeWhere((item) => item.id == itemId);
         await documentReference.update({
@@ -105,7 +107,9 @@ class ItemlistFirestore implements ItemlistRepository {
       DocumentSnapshot documentSnapshot = await itemlistReference.doc(itemlistId).get();
       if (documentSnapshot.exists) {
         AppConfig.logger.t("Snapshot is not empty");
-        itemlist = Itemlist.fromJSON(documentSnapshot.data());
+        final data = documentSnapshot.data();
+        if (data == null) return itemlist;
+        itemlist = Itemlist.fromJSON(data as Map<String, dynamic>);
         itemlist.id = documentSnapshot.id;
         AppConfig.logger.t(itemlist.toString());
       }
@@ -127,7 +131,9 @@ class ItemlistFirestore implements ItemlistRepository {
     try {
       QuerySnapshot querySnapshot = await itemlistReference.limit(maxLength).get();
       for (var document in querySnapshot.docs) {
-        Itemlist itemlist = Itemlist.fromJSON(document.data());
+        final data = document.data();
+        if (data == null) continue;
+        Itemlist itemlist = Itemlist.fromJSON(data as Map<String, dynamic>);
         itemlist.id = document.id;
         if((!onlyPublic || itemlist.public)
             && (ownerId.isEmpty || itemlist.ownerId == ownerId)
@@ -161,7 +167,9 @@ class ItemlistFirestore implements ItemlistRepository {
 
         await query.get().then((querySnapshot) {
           for (var document in querySnapshot.docs) {
-            Itemlist itemlist = Itemlist.fromJSON(document.data());
+            final data = document.data();
+            if (data == null) continue;
+            Itemlist itemlist = Itemlist.fromJSON(data as Map<String, dynamic>);
             itemlist.id = document.id;
             if((!onlyPublic || itemlist.public)
                 && (!excludeMyFavorites || itemlist.id != CoreConstants.myFavorites)
@@ -264,7 +272,9 @@ class ItemlistFirestore implements ItemlistRepository {
         DocumentReference documentReference = itemlistReference.doc(itemlistId);
         DocumentSnapshot snapshot = await documentReference.get();
 
-        Itemlist itemlist = Itemlist.fromJSON(snapshot.data());
+        final data = snapshot.data();
+        if (data == null) return false;
+        Itemlist itemlist = Itemlist.fromJSON(data as Map<String, dynamic>);
         itemlist.appReleaseItems?.removeWhere((element) => element.id == itemId);
 
         await documentReference.update(itemlist.toJSON());
@@ -349,7 +359,9 @@ class ItemlistFirestore implements ItemlistRepository {
       DocumentReference documentReference = itemlistReference.doc(itemlistId);
       DocumentSnapshot snapshot = await documentReference.get();
 
-      Itemlist itemlist = Itemlist.fromJSON(snapshot.data());
+      final data = snapshot.data();
+      if (data == null) return false;
+      Itemlist itemlist = Itemlist.fromJSON(data as Map<String, dynamic>);
       itemlist.externalItems?.removeWhere((element) => element.id == itemId);
 
       await documentReference.update(itemlist.toJSON());

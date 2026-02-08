@@ -29,9 +29,9 @@ class EventFirestore implements EventRepository {
 
     try {
       DocumentSnapshot documentSnapshot = await eventsReference.doc(eventId).get();
-      if (documentSnapshot.exists) {
+      if (documentSnapshot.exists && documentSnapshot.data() != null) {
         AppConfig.logger.t("Snapshot is not empty");
-        event = Event.fromJSON(documentSnapshot.data());
+        event = Event.fromJSON(documentSnapshot.data() as Map<String, dynamic>);
         event.id = documentSnapshot.id;
         AppConfig.logger.t(event.toString());
       }
@@ -53,7 +53,9 @@ class EventFirestore implements EventRepository {
       if (querySnapshot.docs.isNotEmpty) {
         AppConfig.logger.d("Snapshot is not empty");
         for (var postSnapshot in querySnapshot.docs) {
-          Event event = Event.fromJSON(postSnapshot.data());
+          final data = postSnapshot.data();
+          if (data == null) continue;
+          Event event = Event.fromJSON(data as Map<String, dynamic>);
           event.id = postSnapshot.id;
           AppConfig.logger.d(event.toString());
           events.add(event);
@@ -129,7 +131,9 @@ class EventFirestore implements EventRepository {
           .get();
 
       for (var documentSnapshot in snapshot.docs) {
-        Event event = Event.fromJSON(documentSnapshot.data());
+        final data = documentSnapshot.data();
+        if (data == null) continue;
+        Event event = Event.fromJSON(data as Map<String, dynamic>);
         event.id = documentSnapshot.id;
         events[event.id] = event;
       }
@@ -154,7 +158,9 @@ class EventFirestore implements EventRepository {
       if (querySnapshot.docs.isNotEmpty) {
         for (var documentSnapshot in querySnapshot.docs) {
           if(eventIds.contains(documentSnapshot.id)){
-            Event event = Event.fromJSON(documentSnapshot.data());
+            final data = documentSnapshot.data();
+            if (data == null) continue;
+            Event event = Event.fromJSON(data as Map<String, dynamic>);
             event.id = documentSnapshot.id;
             AppConfig.logger.t('Event ${event.name} retrieved');
             events[event.id] = event;
@@ -195,21 +201,16 @@ class EventFirestore implements EventRepository {
           profileName: mate.name,
           isFulfilled: true);
 
-      await eventsReference.doc(event.id).get()
-          .then((querySnapshot) async {
-        await querySnapshot.reference
-            .update({
-              AppFirestoreConstants.instrumentsFulfillment:
-              FieldValue.arrayRemove([previousInstrumentFulfillment.toJSON()])
-            });
-
-        await querySnapshot.reference
-            .update({
-              AppFirestoreConstants.instrumentsFulfillment:
-              FieldValue.arrayUnion([instrumentFulfillment.toJSON()])
-            });
-        }
-      );
+      // OPTIMIZED: Use direct update instead of get().then()
+      final docRef = eventsReference.doc(event.id);
+      await docRef.update({
+        AppFirestoreConstants.instrumentsFulfillment:
+            FieldValue.arrayRemove([previousInstrumentFulfillment.toJSON()])
+      });
+      await docRef.update({
+        AppFirestoreConstants.instrumentsFulfillment:
+            FieldValue.arrayUnion([instrumentFulfillment.toJSON()])
+      });
 
       AppConfig.logger.i("Instrument ${appRequest.instrument?.name ?? ""} has been fulfilled");
     } catch (e) {
@@ -245,22 +246,16 @@ class EventFirestore implements EventRepository {
           profileName: "",
           isFulfilled: false);
 
-      await eventsReference.doc(event.id).get()
-          .then((querySnapshot) async {
-
-        await querySnapshot.reference
-            .update({
-              AppFirestoreConstants.instrumentsFulfillment:
-              FieldValue.arrayRemove([alreadyFulfilledInstrument.toJSON()])
-            });
-
-        await querySnapshot.reference
-            .update({
-          AppFirestoreConstants.instrumentsFulfillment:
-          FieldValue.arrayUnion([instrumentFulfillment.toJSON()])}
-        );
-      }
-      );
+      // OPTIMIZED: Use direct update instead of get().then()
+      final docRef = eventsReference.doc(event.id);
+      await docRef.update({
+        AppFirestoreConstants.instrumentsFulfillment:
+            FieldValue.arrayRemove([alreadyFulfilledInstrument.toJSON()])
+      });
+      await docRef.update({
+        AppFirestoreConstants.instrumentsFulfillment:
+            FieldValue.arrayUnion([instrumentFulfillment.toJSON()])
+      });
 
       AppConfig.logger.i("Instrument ${appRequest.instrument?.name ?? ""} has been unfulfilled");
     } catch (e) {
@@ -285,7 +280,9 @@ class EventFirestore implements EventRepository {
       if (querySnapshot.docs.isNotEmpty) {
         AppConfig.logger.d("Snapshot is not empty");
         for (var documentSnapshot in querySnapshot.docs) {
-          Event event = Event.fromJSON(documentSnapshot.data());
+          final data = documentSnapshot.data();
+          if (data == null) continue;
+          Event event = Event.fromJSON(data as Map<String, dynamic>);
           event.id = documentSnapshot.id;
           AppConfig.logger.d(event.toString());
 
@@ -318,11 +315,10 @@ class EventFirestore implements EventRepository {
 
     try {
 
-      await eventsReference.doc(eventId).get()
-          .then((querySnapshot) {
-            querySnapshot.reference
-            .update({AppFirestoreConstants.isFulfilled: true});
-          });
+      // OPTIMIZED: Use direct update instead of get().then()
+      await eventsReference.doc(eventId).update({
+        AppFirestoreConstants.isFulfilled: true
+      });
 
       //TODO Create Band Algorithm
       //BandFirestore().insert(band)
@@ -343,11 +339,9 @@ class EventFirestore implements EventRepository {
 
     try {
 
-      await eventsReference.doc(eventId).get()
-          .then((querySnapshot) {
-        querySnapshot.reference.update({
-          AppFirestoreConstants.isFulfilled: false
-        });
+      // OPTIMIZED: Use direct update instead of get().then()
+      await eventsReference.doc(eventId).update({
+        AppFirestoreConstants.isFulfilled: false
       });
 
       AppConfig.logger.i("Event $eventId has been unfulfilled");
@@ -366,15 +360,9 @@ class EventFirestore implements EventRepository {
 
     try {
 
-      await eventsReference.get()
-          .then((querySnapshot) async {
-        for (var document in querySnapshot.docs) {
-          if(document.id == eventId) {
-            await document.reference.update({
-              AppFirestoreConstants.goingProfiles: FieldValue.arrayUnion([profileId])
-            });
-          }
-        }
+      // OPTIMIZED: Use direct update instead of iterating all events
+      await eventsReference.doc(eventId).update({
+        AppFirestoreConstants.goingProfiles: FieldValue.arrayUnion([profileId])
       });
 
       AppConfig.logger.d("Profile $profileId has been added as going to event $eventId");
@@ -392,15 +380,9 @@ class EventFirestore implements EventRepository {
 
     try {
 
-      await eventsReference.get()
-          .then((querySnapshot) async {
-        for (var document in querySnapshot.docs) {
-          if(document.id == eventId) {
-            await document.reference.update({
-              AppFirestoreConstants.goingProfiles: FieldValue.arrayRemove([profileId])
-            });
-          }
-        }
+      // OPTIMIZED: Use direct update instead of iterating all events
+      await eventsReference.doc(eventId).update({
+        AppFirestoreConstants.goingProfiles: FieldValue.arrayRemove([profileId])
       });
 
       AppConfig.logger.d("Profile $profileId has been removed from going to event $eventId");
@@ -411,6 +393,32 @@ class EventFirestore implements EventRepository {
     return false;
   }
 
+
+  @override
+  Future<bool> update(Event event) async {
+    AppConfig.logger.t("Updating event ${event.id}");
+    try {
+      await eventsReference.doc(event.id).update(event.toJSON());
+      AppConfig.logger.d("Event ${event.id} updated successfully");
+      return true;
+    } catch (e) {
+      AppConfig.logger.e(e.toString());
+      return false;
+    }
+  }
+
+  /// Updates specific fields of an event
+  Future<bool> updateFields(String eventId, Map<String, dynamic> fields) async {
+    AppConfig.logger.t("Updating event $eventId fields: ${fields.keys}");
+    try {
+      await eventsReference.doc(eventId).update(fields);
+      AppConfig.logger.d("Event $eventId fields updated successfully");
+      return true;
+    } catch (e) {
+      AppConfig.logger.e(e.toString());
+      return false;
+    }
+  }
 
   @override
   Future<bool> fulfillBand(String bandId, AppProfile itemmate, Event event) async {
@@ -432,21 +440,16 @@ class EventFirestore implements EventRepository {
       hasAccepted: true
     );
 
-    await eventsReference.doc(event.id).get()
-        .then((querySnapshot) async {
-      await querySnapshot.reference
-          .update({
-        AppFirestoreConstants.bandsFulfillment:
-        FieldValue.arrayRemove([previousBandFulfillment.toJSON()])
-      });
-
-      await querySnapshot.reference
-          .update({
-        AppFirestoreConstants.bandsFulfillment:
-        FieldValue.arrayUnion([bandFulfillment.toJSON()])
-      });
-    }
-    );
+    // OPTIMIZED: Use direct update instead of get().then()
+    final docRef = eventsReference.doc(event.id);
+    await docRef.update({
+      AppFirestoreConstants.bandsFulfillment:
+          FieldValue.arrayRemove([previousBandFulfillment.toJSON()])
+    });
+    await docRef.update({
+      AppFirestoreConstants.bandsFulfillment:
+          FieldValue.arrayUnion([bandFulfillment.toJSON()])
+    });
 
     AppConfig.logger.i("Band ${bandFulfillment.bandName} has been fulfilled");
   } catch (e) {

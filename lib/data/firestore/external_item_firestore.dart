@@ -21,14 +21,14 @@ class ExternalItemFirestore implements ExternalItemRepository {
     AppConfig.logger.d("Getting item $itemId");
     ExternalItem externalItem = ExternalItem();
     try {
-      await externalItemReference.doc(itemId).get().then((doc) {
-        if (doc.exists) {
-          externalItem = ExternalItem.fromJSON(jsonEncode(doc.data()));
-          AppConfig.logger.d("ExternalItem ${externalItem.name} was retrieved with details");
-        } else {
-          AppConfig.logger.d("ExternalItem not found");
-        }
-      });
+      // OPTIMIZED: Use await instead of .then()
+      final doc = await externalItemReference.doc(itemId).get();
+      if (doc.exists) {
+        externalItem = ExternalItem.fromJSON(jsonEncode(doc.data()));
+        AppConfig.logger.d("ExternalItem ${externalItem.name} was retrieved with details");
+      } else {
+        AppConfig.logger.d("ExternalItem not found");
+      }
     } catch (e) {
       AppConfig.logger.d(e);
       rethrow;

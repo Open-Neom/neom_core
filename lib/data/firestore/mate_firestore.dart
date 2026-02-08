@@ -19,20 +19,68 @@ class MateFirestore implements MateRepository {
   final usersReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.users);
   final profileReference = FirebaseFirestore.instance.collectionGroup(AppFirestoreCollectionConstants.profiles);
 
+  /// OPTIMIZED: Helper method to get a profile document reference by ID
+  /// Uses the 'id' field stored in the document instead of FieldPath.documentId
+  /// (collectionGroup queries don't support FieldPath.documentId with simple IDs)
+  Future<DocumentReference?> _getProfileDocumentReference(String profileId) async {
+    if (profileId.isEmpty) {
+      logger.w('Cannot get profile reference: profileId is empty');
+      return null;
+    }
+
+    try {
+      final querySnapshot = await profileReference
+          .where('id', isEqualTo: profileId)
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        return querySnapshot.docs.first.reference;
+      }
+    } catch (e) {
+      logger.e('Error getting profile reference: $e');
+    }
+    return null;
+  }
+
+  /// OPTIMIZED: Helper to update a profile field
+  Future<bool> _updateProfileField(String profileId, Map<String, dynamic> data) async {
+    try {
+      final docRef = await _getProfileDocumentReference(profileId);
+      if (docRef != null) {
+        await docRef.update(data);
+        return true;
+      }
+      logger.w('Profile $profileId not found for update');
+    } catch (e) {
+      logger.e('Error updating profile: $e');
+    }
+    return false;
+  }
+
   @override
   Future<AppProfile>? getMateSimple(String mateId) async {
     logger.d("Retrieving Itemmate Simple $mateId");
     AppProfile mate = AppProfile();
 
+    if (mateId.isEmpty) {
+      logger.w('Cannot get mate: mateId is empty');
+      return mate;
+    }
+
     try {
-      await profileReference.get().then((querySnapshot) async {
-        for (var document in querySnapshot.docs) {
-          if (document.id == mateId) {
-            mate = AppProfile.fromJSON(document.data());
-            mate.id = mateId;
-          }
-        }
-      });
+      // OPTIMIZED: Query by 'id' field instead of FieldPath.documentId
+      // (collectionGroup queries don't support FieldPath.documentId with simple IDs)
+      final querySnapshot = await profileReference
+          .where('id', isEqualTo: mateId)
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        final document = querySnapshot.docs.first;
+        mate = AppProfile.fromJSON(document.data());
+        mate.id = document.id;
+      }
 
       logger.t("Itemmate ${mate.toString()}");
     } catch (e) {
@@ -48,29 +96,20 @@ class MateFirestore implements MateRepository {
     logger.d("$profileId would be itemmate with $mateId");
 
     try {
+      // OPTIMIZED: Update both profiles in parallel using targeted queries
+      final results = await Future.wait([
+        _updateProfileField(profileId, {
+          AppFirestoreConstants.itemmates: FieldValue.arrayUnion([mateId])
+        }),
+        _updateProfileField(mateId, {
+          AppFirestoreConstants.itemmates: FieldValue.arrayUnion([profileId])
+        }),
+      ]);
 
-      await profileReference.get().then((querySnapshot) async {
-        for (var document in querySnapshot.docs) {
-          if (document.id == profileId) {
-            await document.reference.update({
-              AppFirestoreConstants.itemmates: FieldValue.arrayUnion(
-                  [mateId])
-            });
-            logger.d("$profileId is now itemmate of $mateId");
-          }
-
-          if (document.id == mateId) {
-            await document.reference.update({
-              AppFirestoreConstants.itemmates: FieldValue.arrayUnion(
-                  [profileId])
-            });
-            logger.d("$mateId is now itemmate of $profileId");
-          }
-        }
-      });
-
-      logger.d("$profileId and $mateId are itemmates now");
-      return true;
+      if (results.every((success) => success)) {
+        logger.d("$profileId and $mateId are itemmates now");
+        return true;
+      }
     } catch (e) {
       logger.e(e.toString());
     }
@@ -84,26 +123,20 @@ class MateFirestore implements MateRepository {
     logger.d("$profileId would not be itemmate with $mateId");
 
     try {
-      await profileReference.get().then((querySnapshot) async {
-        for (var document in querySnapshot.docs) {
-          if (document.id == profileId) {
-            await document.reference.update({
-              AppFirestoreConstants.itemmates: FieldValue.arrayRemove(
-                  [mateId])
-            });
-          }
+      // OPTIMIZED: Update both profiles in parallel using targeted queries
+      final results = await Future.wait([
+        _updateProfileField(profileId, {
+          AppFirestoreConstants.itemmates: FieldValue.arrayRemove([mateId])
+        }),
+        _updateProfileField(mateId, {
+          AppFirestoreConstants.itemmates: FieldValue.arrayRemove([profileId])
+        }),
+      ]);
 
-          if (document.id == mateId) {
-            await document.reference.update({
-              AppFirestoreConstants.itemmates: FieldValue.arrayRemove(
-                  [profileId])
-            });
-          }
-        }
-      });
-
-      logger.d("$profileId and $mateId are not mates now");
-      return true;
+      if (results.every((success) => success)) {
+        logger.d("$profileId and $mateId are not mates now");
+        return true;
+      }
     } catch (e) {
       logger.e(e.toString());
     }
@@ -124,16 +157,25 @@ class MateFirestore implements MateRepository {
     Map<String, AppProfile> itemmates = {};
     if(mateIds.isEmpty) return itemmates;
 
+    // Filter out empty IDs
+    final validIds = mateIds.where((id) => id.isNotEmpty).toList();
+    if (validIds.isEmpty) return itemmates;
+
     try {
-      QuerySnapshot querySnapshot = await profileReference.get();
-      if (querySnapshot.docs.isNotEmpty) {
+      // OPTIMIZED: Query by 'id' field using whereIn
+      // (collectionGroup queries don't support FieldPath.documentId with simple IDs)
+      const batchSize = 30;
+      for (var i = 0; i < validIds.length; i += batchSize) {
+        final batch = validIds.skip(i).take(batchSize).toList();
+        final querySnapshot = await profileReference
+            .where('id', whereIn: batch)
+            .get();
+
         for (var documentSnapshot in querySnapshot.docs) {
-          if(mateIds.contains(documentSnapshot.id)){
-            AppProfile mate = AppProfile.fromJSON(documentSnapshot.data());
-            mate.id = documentSnapshot.id;
-            logger.t("Mate ${mate.id} was retrieved");
-            itemmates[mate.id] = mate;
-          }
+          AppProfile mate = AppProfile.fromJSON(documentSnapshot.data());
+          mate.id = documentSnapshot.id;
+          logger.t("Mate ${mate.id} was retrieved");
+          itemmates[mate.id] = mate;
         }
       }
       logger.t("${itemmates.length} Mates found");

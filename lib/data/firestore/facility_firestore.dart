@@ -10,8 +10,32 @@ import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
 
 class FacilityFirestore implements FacilityRepository {
-  
+
   final profileReference = FirebaseFirestore.instance.collectionGroup(AppFirestoreCollectionConstants.profiles);
+
+  /// OPTIMIZED: Helper method to get a profile document reference by ID
+  /// Uses the 'id' field stored in the document instead of FieldPath.documentId
+  /// (collectionGroup queries don't support FieldPath.documentId with simple IDs)
+  Future<DocumentReference?> _getProfileDocumentReference(String profileId) async {
+    if (profileId.isEmpty) {
+      AppConfig.logger.w('Cannot get profile reference: profileId is empty');
+      return null;
+    }
+
+    try {
+      final querySnapshot = await profileReference
+          .where('id', isEqualTo: profileId)
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        return querySnapshot.docs.first.reference;
+      }
+    } catch (e) {
+      AppConfig.logger.e('Error getting profile reference: $e');
+    }
+    return null;
+  }
 
   @override
   Future<Map<String,Facility>> retrieveFacilities(profileId) async {
@@ -20,17 +44,16 @@ class FacilityFirestore implements FacilityRepository {
     Map<String, Facility> facilities = {};
 
     try {
+      // OPTIMIZED: Query only the specific profile instead of all profiles
+      final docRef = await _getProfileDocumentReference(profileId);
+      if (docRef != null) {
+        final qSnapshot = await docRef
+            .collection(AppFirestoreCollectionConstants.facilities)
+            .get();
 
-      QuerySnapshot querySnapshot = await profileReference.get();
-      for (var document in querySnapshot.docs) {
-        if(document.id == profileId) {
-          QuerySnapshot qSnapshot = await document.reference
-              .collection(AppFirestoreCollectionConstants.facilities).get();
-
-          for (var queryDocumentSnapshot in qSnapshot.docs) {
-            Facility facility = Facility.fromQueryDocumentSnapshot(queryDocumentSnapshot: queryDocumentSnapshot);
-            facilities[facility.name] = facility;
-          }
+        for (var queryDocumentSnapshot in qSnapshot.docs) {
+          Facility facility = Facility.fromQueryDocumentSnapshot(queryDocumentSnapshot: queryDocumentSnapshot);
+          facilities[facility.name] = facility;
         }
       }
     } catch (e) {
@@ -45,24 +68,20 @@ class FacilityFirestore implements FacilityRepository {
   Future<bool> removeFacility({required String profileId, required String facilityId}) async {
     AppConfig.logger.d("Removing $facilityId for by $profileId");
     try {
-      await profileReference.get()
-          .then((querySnapshot) async {
-        for (var document in querySnapshot.docs) {
-          if (document.id == profileId) {
-            await document.reference
-                .collection(AppFirestoreCollectionConstants.facilities)
-                .doc(facilityId)
-                .delete();
-          }
-        }
-      });
-
-    AppConfig.logger.d("Facility $facilityId removed");
-    return true;
+      // OPTIMIZED: Query only the specific profile
+      final docRef = await _getProfileDocumentReference(profileId);
+      if (docRef != null) {
+        await docRef
+            .collection(AppFirestoreCollectionConstants.facilities)
+            .doc(facilityId)
+            .delete();
+        AppConfig.logger.d("Facility $facilityId removed");
+        return true;
+      }
     } catch (e) {
       AppConfig.logger.e(e.toString());
-      return false;
     }
+    return false;
   }
 
   @override
@@ -71,23 +90,19 @@ class FacilityFirestore implements FacilityRepository {
 
     Facility facilityBasic = Facility.addBasic(facilityType);
     try {
-      await profileReference.get()
-          .then((querySnapshot) async {
-        for (var document in querySnapshot.docs) {
-          if (document.id == profileId) {
-            await document.reference
-                .collection(AppFirestoreCollectionConstants.facilities)
-                .add(facilityBasic.toJSON());
-          }
-        }
-      });
-
-      AppConfig.logger.d("Facility $facilityType added");
-      return true;
+      // OPTIMIZED: Query only the specific profile
+      final docRef = await _getProfileDocumentReference(profileId);
+      if (docRef != null) {
+        await docRef
+            .collection(AppFirestoreCollectionConstants.facilities)
+            .add(facilityBasic.toJSON());
+        AppConfig.logger.d("Facility $facilityType added");
+        return true;
+      }
     } catch (e) {
       AppConfig.logger.e(e.toString());
-      return false;
     }
+    return false;
   }
 
   @override
@@ -97,36 +112,30 @@ class FacilityFirestore implements FacilityRepository {
     AppConfig.logger.d("Updating $facilityId as main for $profileId");
 
     try {
-      await profileReference.get()
-          .then((querySnapshot) {
-        for (var document in querySnapshot.docs) {
-          if (document.id == profileId) {
-            AppConfig.logger.i("Facility $facilityId as main facility at facilities collection");
-            document.reference
-                .collection(AppFirestoreCollectionConstants.facilities)
-                .doc(facilityId)
-                .update({AppFirestoreConstants.isMain: true});
+      // OPTIMIZED: Query only the specific profile
+      final docRef = await _getProfileDocumentReference(profileId);
+      if (docRef != null) {
+        AppConfig.logger.i("Facility $facilityId as main facility at facilities collection");
+        await docRef
+            .collection(AppFirestoreCollectionConstants.facilities)
+            .doc(facilityId)
+            .update({AppFirestoreConstants.isMain: true});
 
-            AppConfig.logger.d("Facility $facilityId as main facility at profile level");
-            //TODO Add to model
-            //document.reference.update({GigFirestoreConstants.mainFacility: facilityId});
+        AppConfig.logger.d("Facility $facilityId as main facility at profile level");
 
-            if(prevFacilityId.isNotEmpty) {
-              AppConfig.logger.d("Facility $prevFacilityId unset from main facility");
-              document.reference
-                  .collection(AppFirestoreCollectionConstants.facilities)
-                  .doc(prevFacilityId)
-                  .update({AppFirestoreConstants.isMain: false});
-            }
-          }
+        if (prevFacilityId.isNotEmpty) {
+          AppConfig.logger.d("Facility $prevFacilityId unset from main facility");
+          await docRef
+              .collection(AppFirestoreCollectionConstants.facilities)
+              .doc(prevFacilityId)
+              .update({AppFirestoreConstants.isMain: false});
         }
-      });
-
-      return true;
+        return true;
+      }
     } catch (e) {
       AppConfig.logger.e(e.toString());
-      return false;
     }
+    return false;
   }
 
 }

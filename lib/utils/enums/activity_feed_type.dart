@@ -16,5 +16,12 @@ enum ActivityFeedType {
   bandInvitationRequest,
   acceptedRequest,
   declinedRequest,
-  eventFulfilled
+  eventFulfilled,
+  reaction,
+  // Blog related
+  newBlogPost,
+  // Game related
+  gameInvitation,
+  gameInvitationAccepted,
+  gameInvitationDeclined,
 }

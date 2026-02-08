@@ -315,6 +315,11 @@ class AppProperties {
     return bool.parse(appProperties['mediaToWordpressFlag'] ?? 'false');
   }
 
+  /// Flag to enable automatic WooCommerce product creation when uploading releases
+  static bool createWooProductFlag() {
+    return bool.parse(appProperties['createWooProductFlag'] ?? 'false');
+  }
+
   static String getCeoName() {
     return appProperties['ceoName'];
   }
@@ -365,6 +370,10 @@ class AppProperties {
   
   static Map<String, dynamic> getDeeplinkUrl() {
     return appProperties['getDeeplinkUrl'] ?? {};
+  }
+
+  static String getGeminiApiKey() {
+    return appProperties['geminiApiKey'] ?? '';
   }
 
 }

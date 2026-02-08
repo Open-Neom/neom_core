@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:sint/sint.dart';
 import 'package:google_api_headers/google_api_headers.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:neom_google_places/ui/places_autocomplete.dart';
@@ -13,6 +12,7 @@ import 'package:neom_maps_services/domain/models/place_autocomplete_response.dar
 import 'package:neom_maps_services/domain/models/place_details.dart';
 import 'package:neom_maps_services/domain/models/prediction.dart';
 import 'package:neom_maps_services/utils/component.dart';
+import 'package:sint/sint.dart';
 
 import '../../app_config.dart';
 import '../../app_properties.dart';

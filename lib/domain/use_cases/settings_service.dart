@@ -7,5 +7,6 @@ abstract class SettingsService {
   Future<void> verifyLocationPermission();
   Future<void> runAnalyticJobs();
   Future<void> runProfileJobs();
+  Future<void> runVectorIndexJob();
 
 }

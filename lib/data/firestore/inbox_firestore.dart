@@ -95,7 +95,9 @@ class InboxFirestore implements InboxRepository {
           .orderBy(AppFirestoreConstants.createdTime).get();
       if (querySnapshot.docs.isNotEmpty) {
         for (var messageSnapshot in querySnapshot.docs) {
-          InboxMessage message = InboxMessage.fromJSON(messageSnapshot.data());
+          final data = messageSnapshot.data();
+          if (data == null) continue;
+          InboxMessage message = InboxMessage.fromJSON(data as Map<String, dynamic>);
           message.id = messageSnapshot.id;
           AppConfig.logger.t('Message text ${message.text}');
           messages.add(message);
@@ -140,8 +142,10 @@ class InboxFirestore implements InboxRepository {
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        for(var documentSnapshot in querySnapshot.docs) {          
-          Inbox inbox = Inbox.fromJSON(documentSnapshot.data());
+        for(var documentSnapshot in querySnapshot.docs) {
+          final data = documentSnapshot.data();
+          if (data == null) continue;
+          Inbox inbox = Inbox.fromJSON(data as Map<String, dynamic>);
           inbox.id = documentSnapshot.id;
 
             AppConfig.logger.i('Inbox ${inbox.id} found');
@@ -170,14 +174,20 @@ class InboxFirestore implements InboxRepository {
       DocumentSnapshot documentSnapshot = await inboxReference.doc(inboxRoomId).get();
       if(documentSnapshot.exists){
         AppConfig.logger.d("Retrieving inbox from main user");
-        inbox = Inbox.fromJSON(documentSnapshot.data());
-        inbox.id = documentSnapshot.id;
+        final data = documentSnapshot.data();
+        if (data != null) {
+          inbox = Inbox.fromJSON(data as Map<String, dynamic>);
+          inbox.id = documentSnapshot.id;
+        }
       } else {
         DocumentSnapshot itemmateDocumentSnapshot = await inboxReference.doc(mateInboxRoomId).get();
         if(itemmateDocumentSnapshot.exists){
           AppConfig.logger.i("Retrieving inbox from itemmate");
-          inbox = Inbox.fromJSON(itemmateDocumentSnapshot.data());
-          inbox.id = documentSnapshot.id;
+          final itemmateData = itemmateDocumentSnapshot.data();
+          if (itemmateData != null) {
+            inbox = Inbox.fromJSON(itemmateData as Map<String, dynamic>);
+            inbox.id = documentSnapshot.id;
+          }
         } else {
           AppConfig.logger.i("Creating inbox from main user");
           inbox.id = inboxRoomId;
@@ -217,7 +227,8 @@ class InboxFirestore implements InboxRepository {
         .snapshots()
         .map((snapshot) {
       return snapshot.docs.map((doc) {
-        InboxMessage message = InboxMessage.fromJSON(doc.data());
+        final data = doc.data();
+        InboxMessage message = InboxMessage.fromJSON(data);
         message.id = doc.id;
         return message;
       }).toList();
@@ -236,9 +247,11 @@ class InboxFirestore implements InboxRepository {
       DocumentSnapshot documentSnapshot = await inboxReference.doc(inboxRoomId).get();
       if(documentSnapshot.exists){
         AppConfig.logger.d("Retrieving inbox from main user");
-        inbox = Inbox.fromJSON(documentSnapshot.data());
-        inbox.id = documentSnapshot.id;
-        
+        final data = documentSnapshot.data();
+        if (data != null) {
+          inbox = Inbox.fromJSON(data as Map<String, dynamic>);
+          inbox.id = documentSnapshot.id;
+        }
       } else {
         AppConfig.logger.d("Creating inbox for AppBot");
         inbox.id = inboxRoomId;

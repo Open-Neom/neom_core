@@ -6,6 +6,7 @@ abstract class EventRepository {
 
   Future<String> insert(Event event);
   Future<Event> retrieve(String eventId);
+  Future<bool> update(Event event);
   Future<bool> remove(Event event);
   Future<List<Event>> retrieveEvents();
 

@@ -65,4 +65,7 @@ class AppFirestoreCollectionConstants {
   static const String transactions = "transactions";
   static const String typing = "typing";
 
+  /// Vector index collection for semantic search (FindYourBook game)
+  static const String neomVectors = "neom_vectors";
+
 }

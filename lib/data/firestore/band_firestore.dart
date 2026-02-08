@@ -28,8 +28,9 @@ class BandFirestore implements BandRepository {
 
     try {
       DocumentSnapshot documentSnapshot = await bandsReference.doc(bandId).get();
-      if (documentSnapshot.exists) {
-        band = Band.fromJSON(documentSnapshot.data());
+      // FIXED: Added null check after .data()
+      if (documentSnapshot.exists && documentSnapshot.data() != null) {
+        band = Band.fromJSON(documentSnapshot.data() as Map<String, dynamic>);
         band.id = documentSnapshot.id;
         band.members = await getBandMembers(band.id);
         band.itemlists = await ItemlistFirestore().fetchAll(ownerId: band.id, ownerType: OwnerType.band);
@@ -142,7 +143,10 @@ class BandFirestore implements BandRepository {
 
       logger.d("${snapshot.docs.length} Bands Found as Snapshot");
       for (var documentSnapshot in snapshot.docs) {
-        Band band = Band.fromJSON(documentSnapshot.data());
+        // FIXED: Added null check after .data()
+        final data = documentSnapshot.data();
+        if (data == null) continue;
+        Band band = Band.fromJSON(data as Map<String, dynamic>);
         band.id = documentSnapshot.id;
 
         band.members = await getBandMembers(band.id);
@@ -173,7 +177,10 @@ class BandFirestore implements BandRepository {
       logger.d("${snapshot.docs.length} Bands Found as Snapshot");
       for (var documentSnapshot in snapshot.docs) {
         if(bandIds.contains(documentSnapshot.id)) {
-          Band band = Band.fromJSON(documentSnapshot.data());
+          // FIXED: Added null check after .data()
+          final data = documentSnapshot.data();
+          if (data == null) continue;
+          Band band = Band.fromJSON(data as Map<String, dynamic>);
           band.id = documentSnapshot.id;
           band.members = await getBandMembers(band.id);
           band.itemlists = await ItemlistFirestore().fetchAll(ownerId: band.id, ownerType: OwnerType.band);
@@ -306,7 +313,10 @@ class BandFirestore implements BandRepository {
           .collection(AppFirestoreCollectionConstants.members).get();
       if (querySnapshot.docs.isNotEmpty) {
         for (var bandMemberSnapshot in querySnapshot.docs) {
-          BandMember bandMember = BandMember.fromJSON(bandMemberSnapshot.data());
+          // FIXED: Added null check after .data()
+          final data = bandMemberSnapshot.data();
+          if (data == null) continue;
+          BandMember bandMember = BandMember.fromJSON(data as Map<String, dynamic>);
           bandMember.id = bandMemberSnapshot.id;
           logger.t('Band member ${bandMember.instrument?.name} - ${bandMember.name.isNotEmpty
               ? bandMember.name : 'unfulfilled'} - retrieved for band $bandId');

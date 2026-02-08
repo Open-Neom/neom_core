@@ -334,8 +334,13 @@ class UserController extends SintController implements UserService {
       if(userFromEmail?.id.isNotEmpty ?? false) {
         AppConfig.logger.t("User $userEmail exists!!");
         user = userFromEmail!;
-        profile = user.profiles.first;
-        _isNewUser = false;
+        if(user.profiles.isNotEmpty) {
+          profile = user.profiles.first;
+          _isNewUser = false;
+        } else {
+          AppConfig.logger.w("User $userEmail exists but has no profiles");
+          _isNewUser = false;
+        }
       } else {
         AppConfig.logger.w("User $userEmail not exists!!");
         _isNewUser = true;
