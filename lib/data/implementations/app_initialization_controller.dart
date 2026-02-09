@@ -18,21 +18,60 @@ class AppInitializationController {
 
     // Todas las microtareas van aquí
     await AppHiveController().fetchSettingsData();
-    String deviceFcmToken = await getFcmToken();
+
+    // Get and update FCM token for push notifications
+    await _updateFcmTokenIfNeeded(userServiceImpl);
 
     userServiceImpl.getUserSubscription();
     Future.microtask(() => AppHiveController().fetchCachedData());
-
-    if(userServiceImpl.user.fcmToken.isEmpty || userServiceImpl.user.fcmToken != deviceFcmToken) {
-      UserFirestore().updateFcmToken(userServiceImpl.user.id, deviceFcmToken);
-    }
 
     Future.microtask(() => userServiceImpl.verifyLocation());
     Future.microtask(() => Sint.find<NotificationService>().init());
 
     AppHiveController().setFirstTime(false);
     UserFirestore().updateLastTimeOn(userServiceImpl.user.id);
+  }
 
+  /// Updates FCM token in Firestore if it's new or different from stored one
+  static Future<void> _updateFcmTokenIfNeeded(UserService userServiceImpl) async {
+    try {
+      final userId = userServiceImpl.user.id;
+
+      if (userId.isEmpty) {
+        AppConfig.logger.w("Cannot update FCM token: userId is empty");
+        return;
+      }
+
+      final deviceFcmToken = await getFcmToken();
+
+      if (deviceFcmToken.isEmpty) {
+        AppConfig.logger.w("Cannot update FCM token: device token is empty");
+        return;
+      }
+
+      final storedToken = userServiceImpl.user.fcmToken;
+
+      // Update if token is new or different
+      if (storedToken.isEmpty || storedToken != deviceFcmToken) {
+        AppConfig.logger.d("FCM token changed, updating in Firestore...");
+        AppConfig.logger.d("Old token: ${storedToken.isEmpty ? '(empty)' : '${storedToken.substring(0, 20)}...'}");
+        AppConfig.logger.d("New token: ${deviceFcmToken.substring(0, 20)}...");
+
+        final success = await UserFirestore().updateFcmToken(userId, deviceFcmToken);
+
+        if (success) {
+          AppConfig.logger.i("FCM token updated successfully for user $userId");
+          // Update local user object
+          userServiceImpl.user.fcmToken = deviceFcmToken;
+        } else {
+          AppConfig.logger.e("Failed to update FCM token for user $userId");
+        }
+      } else {
+        AppConfig.logger.d("FCM token unchanged, skipping update");
+      }
+    } catch (e) {
+      AppConfig.logger.e("Error updating FCM token: $e");
+    }
   }
 
   static Future<void> initAudioHandler() async {

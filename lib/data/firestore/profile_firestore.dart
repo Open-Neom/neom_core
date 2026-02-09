@@ -1164,51 +1164,77 @@ class ProfileFirestore implements ProfileRepository {
   }
 
 
+  /// Retrieves the FCM token for a profile by looking up the associated user.
+  /// Returns empty string if profile or user not found, or if no FCM token is registered.
   Future<String> retrievedFcmToken(String profileId) async {
     AppConfig.logger.t("Retrieving FCM Token for Profile $profileId");
 
-    String fcmToken = "";
-
-    // Validate profileId is not empty
     if (profileId.isEmpty) {
       AppConfig.logger.w('Cannot retrieve FCM token: profileId is empty');
-      return fcmToken;
+      return "";
     }
 
     try {
-      // OPTIMIZED: Query by 'id' field instead of FieldPath.documentId
-      // (collectionGroup queries don't support FieldPath.documentId with simple IDs)
+      DocumentSnapshot? profileDoc;
+
+      // First try: Query by 'id' field (for profiles that have this field stored)
       final querySnapshot = await profileReference
           .where('id', isEqualTo: profileId)
           .limit(1)
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        final profile = querySnapshot.docs.first;
-        final userId = profile.reference.parent.parent?.id ?? "";
-        AppConfig.logger.t("Reference id: $userId");
-
-        if (userId.isNotEmpty) {
-          // usersReference is a regular collection, so we use doc() directly
-          final userDoc = await usersReference.doc(userId).get();
-
-          if (userDoc.exists && userDoc.data() != null) {
-            fcmToken = AppUser.fromJSON(userDoc.data()!).fcmToken;
-            AppConfig.logger.t("FCM Token $fcmToken");
-          } else {
-            AppConfig.logger.w("No user found for id $userId");
+        profileDoc = querySnapshot.docs.first;
+        AppConfig.logger.t("Profile found by 'id' field");
+      } else {
+        // Fallback: Search by document ID (profiles use documentSnapshot.id, not 'id' field)
+        AppConfig.logger.t("Profile not found by 'id' field, searching by document ID...");
+        final allProfilesSnapshot = await profileReference.get();
+        for (var doc in allProfilesSnapshot.docs) {
+          if (doc.id == profileId) {
+            profileDoc = doc;
+            AppConfig.logger.t("Profile found by document ID scan");
+            break;
           }
         }
       }
+
+      if (profileDoc == null) {
+        AppConfig.logger.w("Profile $profileId not found in Firestore");
+        return "";
+      }
+
+      // Get userId from document path: users/{userId}/profiles/{profileId}
+      final userId = profileDoc.reference.parent.parent?.id ?? "";
+
+      if (userId.isEmpty) {
+        AppConfig.logger.w("Could not determine userId for profile $profileId");
+        return "";
+      }
+
+      AppConfig.logger.t("Found userId: $userId for profile $profileId");
+
+      // Get user document to retrieve FCM token
+      final userDoc = await usersReference.doc(userId).get();
+
+      if (!userDoc.exists || userDoc.data() == null) {
+        AppConfig.logger.w("User document $userId not found");
+        return "";
+      }
+
+      final fcmToken = AppUser.fromJSON(userDoc.data()!).fcmToken;
+
+      if (fcmToken.isEmpty) {
+        AppConfig.logger.w("User $userId has no FCM token registered (device may not have notifications enabled)");
+      } else {
+        AppConfig.logger.t("FCM Token found: ${fcmToken.substring(0, 20)}...");
+      }
+
+      return fcmToken;
     } catch (e) {
-      AppConfig.logger.e(e.toString());
+      AppConfig.logger.e("Error retrieving FCM token for profile $profileId: $e");
+      return "";
     }
-
-    if (fcmToken.isEmpty) {
-      AppConfig.logger.w("Push Notification not sent as FCM Token was not found for users device");
-    }
-
-    return fcmToken;
   }
 
 

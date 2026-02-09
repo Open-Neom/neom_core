@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:http/http.dart' as http;
@@ -15,57 +14,72 @@ import '../../firestore/profile_firestore.dart';
 
 class FirebaseMessagingCalls {
 
+  /// Sends a push notification from one user to another.
+  /// Returns null if recipient has no FCM token registered.
   static Future<http.Response?> sendPrivatePushNotification({
     required String toProfileId, required AppProfile fromProfile,
     required PushNotificationType notificationType, required String title,
     required String message, String referenceId = "", String imgUrl = ""}) async {
 
-
     http.Response? response;
 
-    String profileFCMToken = "";
-
     try {
-      profileFCMToken = await ProfileFirestore().retrievedFcmToken(toProfileId);
-      AppConfig.logger.d("Profile $toProfileId has FCM registered: $profileFCMToken");
+      // Get recipient's FCM token
+      String recipientFcmToken = await ProfileFirestore().retrievedFcmToken(toProfileId);
 
-      if(profileFCMToken.isNotEmpty) {
-
-        String body = jsonEncode(buildPrivatePayload(notificationType, fromProfile: fromProfile, title: title, message: message,
-            imgUrl: imgUrl, referenceId: referenceId, profileFCMToken: profileFCMToken));
-        String fcmUrl = AppGoogleUtilities.fcmGoogleAPIUrl.replaceFirst(AppGoogleUtilities.projectId, AppProperties.getFirebaseProjectId());
-        Uri uri = Uri.parse(fcmUrl);
-
-        String? accessToken = await getAccessToken(); // Llama a tu función para obtener el token
-        if (accessToken == null || accessToken.isEmpty) {
-          AppConfig.logger.e("Firebase Messaging Error: Access Token es nulo o vacío. No se puede enviar la notificación.");
-          return null; // O manejar el error de otra forma
-        }
-
-        response = await http.post(
-          uri,
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer $accessToken',
-          },
-          body: body,
-        );
-
-        if(response.statusCode == 200 || response.statusCode == 201) {
-          AppConfig.logger.i("Firebase Messaginng Response returned as: ${response.statusCode}");
-        } else {
-          AppConfig.logger.e("Firebase Messaging Error: ${response.statusCode} - ${response.body}");
-        }
-      } else {
-        AppConfig.logger.w("Profile $toProfileId has no FCM registered");
+      if (recipientFcmToken.isEmpty) {
+        AppConfig.logger.w("Cannot send push notification: recipient $toProfileId has no FCM token. "
+            "They may not have logged in recently or notifications are disabled on their device.");
+        return null;
       }
 
+      AppConfig.logger.d("Sending push notification to profile $toProfileId");
+      AppConfig.logger.d("FCM Token: ${recipientFcmToken.substring(0, 20)}...");
+
+      // Build the payload
+      String body = jsonEncode(buildPrivatePayload(
+        notificationType,
+        fromProfile: fromProfile,
+        title: title,
+        message: message,
+        imgUrl: imgUrl,
+        referenceId: referenceId,
+        profileFCMToken: recipientFcmToken,
+      ));
+
+      // Get OAuth access token
+      String? accessToken = await getAccessToken();
+      if (accessToken == null || accessToken.isEmpty) {
+        AppConfig.logger.e("Firebase Messaging Error: Could not obtain OAuth access token");
+        return null;
+      }
+
+      // Build FCM URL
+      String fcmUrl = AppGoogleUtilities.fcmGoogleAPIUrl.replaceFirst(
+        AppGoogleUtilities.projectId,
+        AppProperties.getFirebaseProjectId(),
+      );
+
+      // Send the notification
+      response = await http.post(
+        Uri.parse(fcmUrl),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: body,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        AppConfig.logger.i("Push notification sent successfully to $toProfileId");
+      } else {
+        AppConfig.logger.e("Firebase Messaging Error: ${response.statusCode} - ${response.body}");
+      }
     } catch (e) {
-      AppConfig.logger.e(e.toString());
+      AppConfig.logger.e("Error sending push notification: $e");
     }
 
     return response;
-
   }
 
   static Future<http.Response?> sendPublicPushNotification({
@@ -111,142 +125,167 @@ class FirebaseMessagingCalls {
 
   }
 
-  //Devuelve un Map<String, dynamic> listo para ser codificado a JSON.
+  /// Builds FCM v1 payload for private (user-to-user) notifications.
+  /// Includes both 'notification' (for visual display) and 'data' (for app handling).
   static Map<String, dynamic> buildPrivatePayload(PushNotificationType notificationType, {
     required AppProfile fromProfile, required String title, required String message,
     String imgUrl = '', String referenceId = '', String profileFCMToken = ''}) {
 
-    String notificationTitle = "";
-    String notificationBody = message;
-    int channelId = 0;
-    String channelKey = "";
+    String notificationTitle = fromProfile.name;
+    String notificationBody = message.isNotEmpty ? message : title.tr;
+    int channelId = notificationType.value;
+    String channelKey = notificationType.name;
 
     Map<String, dynamic> fcmPrivatePayload = {};
 
-    notificationTitle = title;
-    channelId = notificationType.value;
-    channelKey = notificationType.name;
-
     try {
-
-      Map<String, dynamic> dataPayload = {
-        "title": notificationTitle.tr,
+      // Notification payload - THIS IS REQUIRED for visible notifications
+      Map<String, dynamic> notificationPayload = {
+        "title": notificationTitle,
         "body": notificationBody,
-        "fromId" : fromProfile.id,
-        "fromName" : fromProfile.name,
+      };
+
+      // Data payload - for app to handle when notification is tapped
+      Map<String, dynamic> dataPayload = {
+        "title": title.tr,
+        "body": notificationBody,
+        "fromId": fromProfile.id,
+        "fromName": fromProfile.name,
         "fromImgUrl": fromProfile.photoUrl,
         "imgUrl": imgUrl,
         "referenceId": referenceId,
         "notificationType": notificationType.name,
-        "click_action": "FLUTTER_NOTIFICATION_CLICK", // Acción estándar para Flutter
-        "channelId": channelId.toString(), // Los valores en data suelen ser strings
+        "click_action": "FLUTTER_NOTIFICATION_CLICK",
+        "channelId": channelId.toString(),
         "channelKey": channelKey,
         "isPublic": "false",
       };
 
-      // Configuración específica de APNS (iOS)
+      // Android specific configuration
+      Map<String, dynamic> androidPayload = {
+        "priority": "high",
+        "notification": {
+          "channel_id": channelKey,
+          "sound": "default",
+          "default_vibrate_timings": true,
+          "default_light_settings": true,
+        },
+      };
+
+      // iOS (APNS) specific configuration - MUST be 'alert' type for visible notifications
       Map<String, dynamic> apnsPayload = {
         "payload": {
           "aps": {
-            "content-available": 1, // Para notificaciones silenciosas o de datos en iOS
+            "alert": {
+              "title": notificationTitle,
+              "body": notificationBody,
+            },
+            "sound": "default",
+            "badge": 1,
           }
         },
         "headers": {
-          "apns-push-type": "background", // o 'alert' si tienes la sección "alert" en aps
-          "apns-priority": "5", // 5 para content-available, 10 para alertas visuales
+          "apns-push-type": "alert",
+          "apns-priority": "10",
         }
       };
 
-      // Configuración específica de Android (opcional, para personalizar cómo Android maneja la notificación)
-      Map<String, dynamic> androidPayload = {
-        "priority": "high", // "normal" o "high"
-      };
-
+      // Build the complete message payload
       Map<String, dynamic> messagePayload = {
         "token": profileFCMToken,
+        "notification": notificationPayload,
         "data": dataPayload,
         "android": androidPayload,
+        "apns": apnsPayload,
       };
 
-      if(Platform.isIOS) {
-        messagePayload['apns'] = apnsPayload;
-      }
-
-      // Construcción del payload FCM v1 completo
+      // FCM v1 payload structure
       fcmPrivatePayload = {
         "message": messagePayload
       };
-    } catch (e) {
-      AppConfig.logger.e("Error al traducir el mensaje de notificación: $e");
-      notificationBody = message; // Fallback al mensaje original si hay un error
-    }
 
+      AppConfig.logger.d("FCM Payload built for token: ${profileFCMToken.substring(0, 20)}...");
+    } catch (e) {
+      AppConfig.logger.e("Error building FCM payload: $e");
+    }
 
     return fcmPrivatePayload;
   }
 
+  /// Builds FCM v1 payload for public (topic-based) notifications.
+  /// Sends to all users subscribed to the topic.
   static Map<String, dynamic> buildPublicPayload(PushNotificationType notificationType,
     {required AppProfile fromProfile, required String title, required String message,
       String toProfileId = '', String imgUrl = '', String referenceId = ''}) {
 
-    String notificationTitle = "";
-    String notificationBody = message;
-    int channelId = 0;
-    String channelKey = "";
-    // String toProfileName = toProfile?.name.capitalizeFirst ?? "";
+    String notificationTitle = title.tr;
+    String notificationBody = message.isNotEmpty ? message : fromProfile.name;
+    int channelId = notificationType.value;
+    String channelKey = notificationType.name;
 
-    notificationTitle = title;
-    channelId = notificationType.value;
-    channelKey = notificationType.name;
-
-    Map<String, dynamic> dataPayload = {
-      "title": notificationTitle.tr,
+    // Notification payload for visible notifications
+    Map<String, dynamic> notificationPayload = {
+      "title": notificationTitle,
       "body": notificationBody,
-      "fromId" : fromProfile.id,
-      "fromName" : fromProfile.name,
+    };
+
+    // Data payload for app handling
+    Map<String, dynamic> dataPayload = {
+      "title": notificationTitle,
+      "body": notificationBody,
+      "fromId": fromProfile.id,
+      "fromName": fromProfile.name,
       "fromImgUrl": fromProfile.photoUrl,
       "toId": toProfileId,
       "imgUrl": imgUrl,
       "referenceId": referenceId,
       "notificationType": notificationType.name,
-      "click_action": "FLUTTER_NOTIFICATION_CLICK", // Acción estándar para Flutter
-      "channelId": channelId.toString(), // Los valores en data suelen ser strings
+      "click_action": "FLUTTER_NOTIFICATION_CLICK",
+      "channelId": channelId.toString(),
       "channelKey": channelKey,
-      "isPublic": "true", // Public notifications are not private
+      "isPublic": "true",
     };
 
-    // Configuración específica de APNS (iOS)
+    // Android specific configuration
+    Map<String, dynamic> androidPayload = {
+      "priority": "high",
+      "notification": {
+        "channel_id": channelKey,
+        "sound": "default",
+      },
+    };
+
+    // iOS (APNS) specific configuration
     Map<String, dynamic> apnsPayload = {
       "payload": {
         "aps": {
-          "content-available": 1, // Para notificaciones silenciosas o de datos en iOS
+          "alert": {
+            "title": notificationTitle,
+            "body": notificationBody,
+          },
+          "sound": "default",
         }
       },
       "headers": {
-        "apns-push-type": "background", // o 'alert' si tienes la sección "alert" en aps
-        "apns-priority": "5", // 5 para content-available, 10 para alertas visuales
+        "apns-push-type": "alert",
+        "apns-priority": "10",
       }
-    };
-
-    Map<String, dynamic> androidPayload = {
-      "priority": "high", // "normal" o "high"
     };
 
     Map<String, dynamic> messagePayload = {
       "topic": AppFirestoreConstants.allUsers,
+      "notification": notificationPayload,
       "data": dataPayload,
       "android": androidPayload,
+      "apns": apnsPayload,
     };
 
-    if(Platform.isIOS) {
-      messagePayload['apns'] = apnsPayload;
-    }
-
-    // Construcción del payload FCM v1 completo
+    // FCM v1 payload structure
     Map<String, dynamic> fcmPublicPayload = {
       "message": messagePayload
     };
 
+    AppConfig.logger.d("FCM Public Payload built for topic: ${AppFirestoreConstants.allUsers}");
     return fcmPublicPayload;
   }
 

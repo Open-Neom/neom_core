@@ -150,23 +150,38 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
     }
 
     try {
-      // OPTIMIZED: Query by 'id' field instead of FieldPath.documentId
-      // (collectionGroup queries don't support FieldPath.documentId with simple IDs)
+      DocumentSnapshot? profileDoc;
+
+      // First try: Query by 'id' field
       final querySnapshot = await profileReference
           .where('id', isEqualTo: profileId)
           .limit(1)
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        final document = querySnapshot.docs.first;
-        final snapshot = await document.reference
+        profileDoc = querySnapshot.docs.first;
+      } else {
+        // Fallback: Search by document ID (profiles use documentSnapshot.id)
+        AppConfig.logger.t("Profile not found by 'id' field, searching by document ID...");
+        final allProfilesSnapshot = await profileReference.get();
+        for (var doc in allProfilesSnapshot.docs) {
+          if (doc.id == profileId) {
+            profileDoc = doc;
+            AppConfig.logger.t("Profile found by document ID scan");
+            break;
+          }
+        }
+      }
+
+      if (profileDoc != null) {
+        final snapshot = await profileDoc.reference
             .collection(AppFirestoreCollectionConstants.itemlists)
             .doc(itemlistId)
             .get();
 
         Itemlist itemlist = Itemlist.fromJSON(snapshot.data());
         itemlist.appMediaItems?.removeWhere((element) => element.id == appMediaItem.id);
-        await document.reference
+        await profileDoc.reference
             .collection(AppFirestoreCollectionConstants.itemlists)
             .doc(itemlistId)
             .update(itemlist.toJSON());

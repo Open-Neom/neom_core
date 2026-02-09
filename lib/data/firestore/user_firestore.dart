@@ -194,16 +194,32 @@ class UserFirestore implements UserRepository {
     }
 
     try {
-      // OPTIMIZED: Query profile by 'id' field instead of FieldPath.documentId
-      // (collectionGroup queries don't support FieldPath.documentId with simple IDs)
+      DocumentSnapshot? profileDoc;
+
+      // First try: Query profile by 'id' field
       final profileSnapshot = await profileReference
           .where('id', isEqualTo: profileId)
           .limit(1)
           .get();
 
       if (profileSnapshot.docs.isNotEmpty) {
-        final profile = profileSnapshot.docs.first;
-        final parentRef = profile.reference.parent.parent;
+        profileDoc = profileSnapshot.docs.first;
+        AppConfig.logger.t("Profile found by 'id' field");
+      } else {
+        // Fallback: Search by document ID (profiles use documentSnapshot.id)
+        AppConfig.logger.t("Profile not found by 'id' field, searching by document ID...");
+        final allProfilesSnapshot = await profileReference.get();
+        for (var doc in allProfilesSnapshot.docs) {
+          if (doc.id == profileId) {
+            profileDoc = doc;
+            AppConfig.logger.t("Profile found by document ID scan");
+            break;
+          }
+        }
+      }
+
+      if (profileDoc != null) {
+        final parentRef = profileDoc.reference.parent.parent;
 
         if (parentRef != null) {
           final userId = parentRef.id;

@@ -19,9 +19,8 @@ class MateFirestore implements MateRepository {
   final usersReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.users);
   final profileReference = FirebaseFirestore.instance.collectionGroup(AppFirestoreCollectionConstants.profiles);
 
-  /// OPTIMIZED: Helper method to get a profile document reference by ID
-  /// Uses the 'id' field stored in the document instead of FieldPath.documentId
-  /// (collectionGroup queries don't support FieldPath.documentId with simple IDs)
+  /// Helper method to get a profile document reference by ID
+  /// First tries 'id' field, then falls back to document.id scan
   Future<DocumentReference?> _getProfileDocumentReference(String profileId) async {
     if (profileId.isEmpty) {
       logger.w('Cannot get profile reference: profileId is empty');
@@ -29,6 +28,7 @@ class MateFirestore implements MateRepository {
     }
 
     try {
+      // First try: Query by 'id' field
       final querySnapshot = await profileReference
           .where('id', isEqualTo: profileId)
           .limit(1)
@@ -36,6 +36,16 @@ class MateFirestore implements MateRepository {
 
       if (querySnapshot.docs.isNotEmpty) {
         return querySnapshot.docs.first.reference;
+      }
+
+      // Fallback: Search by document ID (profiles use documentSnapshot.id)
+      logger.t('Profile not found by id field, searching by document ID...');
+      final allProfilesSnapshot = await profileReference.get();
+      for (var doc in allProfilesSnapshot.docs) {
+        if (doc.id == profileId) {
+          logger.t('Profile found by document ID scan');
+          return doc.reference;
+        }
       }
     } catch (e) {
       logger.e('Error getting profile reference: $e');
@@ -69,8 +79,7 @@ class MateFirestore implements MateRepository {
     }
 
     try {
-      // OPTIMIZED: Query by 'id' field instead of FieldPath.documentId
-      // (collectionGroup queries don't support FieldPath.documentId with simple IDs)
+      // First try: Query by 'id' field
       final querySnapshot = await profileReference
           .where('id', isEqualTo: mateId)
           .limit(1)
@@ -80,6 +89,18 @@ class MateFirestore implements MateRepository {
         final document = querySnapshot.docs.first;
         mate = AppProfile.fromJSON(document.data());
         mate.id = document.id;
+      } else {
+        // Fallback: Search by document ID (profiles use documentSnapshot.id)
+        logger.t('Mate not found by id field, searching by document ID...');
+        final allProfilesSnapshot = await profileReference.get();
+        for (var doc in allProfilesSnapshot.docs) {
+          if (doc.id == mateId) {
+            mate = AppProfile.fromJSON(doc.data());
+            mate.id = doc.id;
+            logger.t('Mate found by document ID scan');
+            break;
+          }
+        }
       }
 
       logger.t("Itemmate ${mate.toString()}");
