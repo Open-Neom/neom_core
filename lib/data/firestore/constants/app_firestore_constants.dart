@@ -152,5 +152,6 @@ class AppFirestoreConstants {
   static const String lastUpdated = "lastUpdated";
   static const String lastTransactionId = "lastTransactionId";
   static const String lastTyping = "lastTyping";
+  static const String seenTime = "seenTime";
 
 }

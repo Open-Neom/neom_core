@@ -1,3 +1,17 @@
+## 1.4.2-dev - Real-time Streams for Notifications & Inbox
+
+### New Features
+- **ActivityFeedFirestore**
+  - `getUnreadNotificationsCountStream()` - Real-time stream for unread notification count
+- **InboxFirestore**
+  - `markLastMessageAsRead()` - Mark conversation as read when opened
+  - `getUnreadInboxCountStream()` - Real-time stream for unread inbox count
+
+### Constants
+- Added `seenTime` constant in `AppFirestoreConstants`
+
+---
+
 ## 1.4.1-dev - Adding to openneom.dev publisher
 
 ## 1.4.0-dev - Architectural Changes and Major Refactoring

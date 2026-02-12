@@ -274,6 +274,41 @@ class InboxFirestore implements InboxRepository {
         .doc(profileId).snapshots().map((doc) => InboxProfileInfo.fromJSON(doc.data() ?? {}));
   }
 
+  /// Obtiene el conteo de mensajes sin leer para un perfil.
+  /// Un mensaje se considera no leído si:
+  /// - El lastMessage.ownerId != profileId (no es del usuario actual)
+  /// - El lastMessage.seenTime == 0 (no ha sido visto)
+  Future<int> getUnreadInboxCount(String profileId) async {
+    AppConfig.logger.t("Getting unread inbox count for profile $profileId");
+    int unreadCount = 0;
+
+    try {
+      QuerySnapshot querySnapshot = await inboxReference
+          .where(AppFirestoreConstants.profileIds, arrayContains: profileId)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        for (var documentSnapshot in querySnapshot.docs) {
+          final data = documentSnapshot.data();
+          if (data == null) continue;
+          Inbox inbox = Inbox.fromJSON(data as Map<String, dynamic>);
+
+          // Verificar si hay mensaje sin leer
+          if (inbox.lastMessage != null &&
+              inbox.lastMessage!.ownerId != profileId &&
+              inbox.lastMessage!.seenTime == 0) {
+            unreadCount++;
+          }
+        }
+      }
+      AppConfig.logger.d("Unread inbox count: $unreadCount");
+    } catch (e) {
+      AppConfig.logger.e("Error getting unread count: ${e.toString()}");
+    }
+
+    return unreadCount;
+  }
+
   @override
   Future<void> setLastTyping(String roomId, String profileId) {
     return inboxReference.doc(roomId)
@@ -281,6 +316,63 @@ class InboxFirestore implements InboxRepository {
         .doc(profileId).set({
           AppFirestoreConstants.lastTyping: DateTime.now().millisecondsSinceEpoch,
         });
+  }
+
+  /// Marca el último mensaje de una conversación como leído.
+  /// Solo actualiza si el mensaje no es del usuario actual y no ha sido visto.
+  Future<void> markLastMessageAsRead(String inboxId, String currentUserId) async {
+    AppConfig.logger.t("Marking last message as read for inbox $inboxId");
+
+    try {
+      DocumentSnapshot docSnapshot = await inboxReference.doc(inboxId).get();
+      if (!docSnapshot.exists) return;
+
+      final data = docSnapshot.data();
+      if (data == null) return;
+
+      Inbox inbox = Inbox.fromJSON(data as Map<String, dynamic>);
+
+      // Solo marcar como leído si el mensaje es de otra persona y no ha sido visto
+      if (inbox.lastMessage != null &&
+          inbox.lastMessage!.ownerId != currentUserId &&
+          inbox.lastMessage!.seenTime == 0) {
+
+        await inboxReference.doc(inboxId).update({
+          '${AppFirestoreConstants.lastMessage}.${AppFirestoreConstants.seenTime}':
+              DateTime.now().millisecondsSinceEpoch,
+        });
+
+        AppConfig.logger.d("Last message marked as read for inbox $inboxId");
+      }
+    } catch (e) {
+      AppConfig.logger.e("Error marking message as read: ${e.toString()}");
+    }
+  }
+
+  /// Stream para obtener el conteo de mensajes sin leer en tiempo real.
+  Stream<int> getUnreadInboxCountStream(String profileId) {
+    AppConfig.logger.t("Starting unread inbox count stream for profile $profileId");
+
+    return inboxReference
+        .where(AppFirestoreConstants.profileIds, arrayContains: profileId)
+        .snapshots()
+        .map((snapshot) {
+      int unreadCount = 0;
+
+      for (var doc in snapshot.docs) {
+        final data = doc.data();
+        Inbox inbox = Inbox.fromJSON(data);
+
+        if (inbox.lastMessage != null &&
+            inbox.lastMessage!.ownerId != profileId &&
+            inbox.lastMessage!.seenTime == 0) {
+          unreadCount++;
+        }
+      }
+
+      AppConfig.logger.d("Unread inbox count (stream): $unreadCount");
+      return unreadCount;
+    });
   }
 
 }

@@ -216,5 +216,20 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
     }
   }
 
+  /// Stream para obtener el conteo de notificaciones sin leer en tiempo real.
+  Stream<int> getUnreadNotificationsCountStream(String profileId) {
+    AppConfig.logger.t("Starting unread notifications count stream for profile $profileId");
+
+    return activityFeedReference
+        .doc(profileId)
+        .collection(AppFirestoreCollectionConstants.activityFeedItems)
+        .where(AppFirestoreConstants.unread, isEqualTo: true)
+        .snapshots()
+        .map((snapshot) {
+      final count = snapshot.docs.length;
+      AppConfig.logger.d("Unread notifications count (stream): $count");
+      return count;
+    });
+  }
 
 }
