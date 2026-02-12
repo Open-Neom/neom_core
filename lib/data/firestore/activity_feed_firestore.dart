@@ -232,4 +232,53 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
     });
   }
 
+  /// Insert multiple activity feeds using batched writes.
+  /// Firestore allows up to 500 operations per batch.
+  /// This is much more efficient than individual inserts.
+  Future<void> insertBatch(List<ActivityFeed> activityFeeds) async {
+    if (activityFeeds.isEmpty) return;
+
+    AppConfig.logger.d("Inserting ${activityFeeds.length} activity feeds in batch");
+
+    try {
+      // Firestore batch limit is 500 operations
+      const batchLimit = 500;
+      final batches = <WriteBatch>[];
+      var currentBatch = FirebaseFirestore.instance.batch();
+      var operationCount = 0;
+
+      for (final activityFeed in activityFeeds) {
+        // Skip if profile is the owner (no self-notifications)
+        if (activityFeed.profileId == activityFeed.ownerId) continue;
+
+        final docRef = activityFeedReference
+            .doc(activityFeed.ownerId)
+            .collection(AppFirestoreCollectionConstants.activityFeedItems)
+            .doc(); // Auto-generate ID
+
+        currentBatch.set(docRef, activityFeed.toJSON());
+        operationCount++;
+
+        // If we hit the batch limit, save this batch and start a new one
+        if (operationCount >= batchLimit) {
+          batches.add(currentBatch);
+          currentBatch = FirebaseFirestore.instance.batch();
+          operationCount = 0;
+        }
+      }
+
+      // Add the last batch if it has operations
+      if (operationCount > 0) {
+        batches.add(currentBatch);
+      }
+
+      // Commit all batches
+      await Future.wait(batches.map((batch) => batch.commit()));
+
+      AppConfig.logger.d("Successfully inserted ${activityFeeds.length} activity feeds in ${batches.length} batch(es)");
+    } catch (e) {
+      AppConfig.logger.e("Error inserting activity feeds batch: $e");
+    }
+  }
+
 }

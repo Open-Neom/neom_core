@@ -334,13 +334,17 @@ class ProfileFirestore implements ProfileRepository {
         List<String> postImgUrls = [];
         if (needsPosts && (profile.posts?.isNotEmpty ?? false)) {
           for (String postId in profile.posts!) {
-            Post post = posts.firstWhere((p) => p.id == postId);
-            if (post.mediaUrl.isNotEmpty &&
-                post.mediaUrl.contains('.jpg')) {
-              postImgUrls.add(post.mediaUrl);
+            try {
+              final post = posts.firstWhere((p) => p.id == postId);
+              if (post.mediaUrl.isNotEmpty &&
+                  post.mediaUrl.contains('.jpg')) {
+                postImgUrls.add(post.mediaUrl);
+              }
+            } catch (_) {
+              // Post not found in list, skip it
+              continue;
             }
           }
-
         }
 
         if (facilityType != null) {
