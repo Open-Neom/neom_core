@@ -85,7 +85,7 @@ class CoreConstants {
   static const String http = "http";
 
   static const int blogMinWords = 2;
-  static final blogTabs = ['published', 'drafts'];
+  static final blogTabs = ['community', 'published', 'drafts'];
   static const String titleTextDivider = "_titleTextDivider_";
   static const String digitalLibrary = "digitalLibrary";
   static const String quotation = "quotation";

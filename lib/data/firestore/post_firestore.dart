@@ -382,6 +382,95 @@ class PostFirestore implements PostRepository {
     return drafts;
   }
 
+  /// Obtiene todos los blogs publicados de la comunidad (todos los usuarios).
+  /// Solo retorna entradas publicadas (isDraft = false), ordenadas por fecha de modificación.
+  /// Soporta paginación con [lastDocument] y filtros por [authorId] o [searchQuery].
+  Future<List<Post>> getCommunityBlogEntries({
+    int limit = 20,
+    DocumentSnapshot? lastDocument,
+    String? authorId,
+    String? searchQuery,
+  }) async {
+    AppConfig.logger.d("getCommunityBlogEntries - limit: $limit, authorId: $authorId, searchQuery: $searchQuery");
+    List<Post> entries = [];
+
+    try {
+      Query query = postsReference
+          .where(AppFirestoreConstants.type, isEqualTo: PostType.blogEntry.name)
+          .where(AppFirestoreConstants.isDraft, isEqualTo: false)
+          .orderBy(AppFirestoreConstants.lastInteraction, descending: true)
+          .limit(limit);
+
+      // Filtrar por autor si se especifica
+      if (authorId != null && authorId.isNotEmpty) {
+        query = postsReference
+            .where(AppFirestoreConstants.type, isEqualTo: PostType.blogEntry.name)
+            .where(AppFirestoreConstants.isDraft, isEqualTo: false)
+            .where(AppFirestoreConstants.ownerId, isEqualTo: authorId)
+            .orderBy(AppFirestoreConstants.lastInteraction, descending: true)
+            .limit(limit);
+      }
+
+      // Paginación
+      if (lastDocument != null) {
+        query = query.startAfterDocument(lastDocument);
+      }
+
+      QuerySnapshot snapshot = await query.get();
+
+      for (var doc in snapshot.docs) {
+        Post post = Post.fromJSON(doc.data());
+        post.id = doc.id;
+
+        // Filtrar por búsqueda en cliente si se especifica
+        if (searchQuery != null && searchQuery.isNotEmpty) {
+          final queryLower = searchQuery.toLowerCase();
+          final captionParts = post.caption.split(CoreConstants.titleTextDivider);
+          final title = captionParts.isNotEmpty ? captionParts[0].toLowerCase() : '';
+          final body = captionParts.length > 1 ? captionParts[1].toLowerCase() : '';
+          final authorName = post.profileName.toLowerCase();
+
+          if (!title.contains(queryLower) &&
+              !body.contains(queryLower) &&
+              !authorName.contains(queryLower) &&
+              !post.hashtags.any((tag) => tag.toLowerCase().contains(queryLower))) {
+            continue;
+          }
+        }
+
+        entries.add(post);
+      }
+
+      AppConfig.logger.d("Community blog entries found: ${entries.length}");
+    } catch (e) {
+      AppConfig.logger.e("Error getting community blog entries: ${e.toString()}");
+    }
+
+    return entries;
+  }
+
+  /// Stream para obtener blogs de la comunidad en tiempo real.
+  Stream<List<Post>> getCommunityBlogEntriesStream({int limit = 50}) {
+    AppConfig.logger.t("Starting community blog entries stream");
+
+    return postsReference
+        .where(AppFirestoreConstants.type, isEqualTo: PostType.blogEntry.name)
+        .where(AppFirestoreConstants.isDraft, isEqualTo: false)
+        .orderBy(AppFirestoreConstants.lastInteraction, descending: true)
+        .limit(limit)
+        .snapshots()
+        .map((snapshot) {
+      List<Post> entries = [];
+      for (var doc in snapshot.docs) {
+        Post post = Post.fromJSON(doc.data());
+        post.id = doc.id;
+        entries.add(post);
+      }
+      AppConfig.logger.d("Community blog entries stream: ${entries.length}");
+      return entries;
+    });
+  }
+
   @override
   Future<Map<String, Post>> getDiverseTimeline({bool getRecent = true, bool
     getMoreLiked = true, bool getMoreComment = true, bool getReleases = true, bool
