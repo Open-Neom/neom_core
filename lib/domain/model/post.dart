@@ -27,6 +27,7 @@ class Post {
 
   List<String> likedProfiles;
   List<String> sharedProfiles;
+  List<String> savedByProfiles; // Profiles that bookmarked/saved this post
   List<String> mentionedProfiles;
 
   List<String> hashtags;
@@ -63,6 +64,7 @@ class Post {
     this.location = '',
     this.likedProfiles = const [],
     this.sharedProfiles = const [],
+    this.savedByProfiles = const [],
     this.commentIds = const [],
     this.comments = const [],
     this.hashtags = const [],
@@ -85,7 +87,7 @@ class Post {
     return 'Post{id: $id, ownerId: $ownerId, profileName: $profileName, profileImgUrl: $profileImgUrl, caption: $caption, type: $type, mediaUrl: $mediaUrl, thumbnailUrl: $thumbnailUrl, createdTime: $createdTime, modifiedTime: $modifiedTime, position: $position, location: $location, likedProfiles: $likedProfiles, sharedProfiles: $sharedProfiles, mentionedProfiles: $mentionedProfiles, hashtags: $hashtags, mediaOwner: $mediaOwner, referenceId: $referenceId, isCommentEnabled: $isCommentEnabled, isPrivate: $isPrivate, isDraft: $isDraft, isHidden: $isHidden, verificationLevel: $verificationLevel, commentIds: $commentIds, comments: $comments, lastInteraction: $lastInteraction}';
   }
 
-  Post.fromJSON(data) :
+  Post.fromJSON(dynamic data) :
         id = data["id"] ?? "",
         ownerId = data["ownerId"] ?? "",
         profileName = data["profileName"] ?? "",
@@ -101,6 +103,7 @@ class Post {
         location = data["location"] ?? "",
         likedProfiles = List.from(data["likedProfiles"] ?? []),
         sharedProfiles = List.from(data["sharedProfiles"] ?? []),
+        savedByProfiles = List.from(data["savedByProfiles"] ?? []),
         mentionedProfiles = List.from(data["mentionedProfiles"] ?? []),
         commentIds = List.from(data["commentIds"] ?? []),
         comments = [],
@@ -132,6 +135,7 @@ class Post {
     'location': location,
     'likedProfiles': likedProfiles,
     'sharedProfiles': sharedProfiles,
+    'savedByProfiles': savedByProfiles,
     'mentionedProfiles': mentionedProfiles,
     'commentIds': commentIds,
     'hashtags': hashtags,
@@ -163,6 +167,7 @@ class Post {
     location = post.location,
     likedProfiles = post.likedProfiles,
     sharedProfiles = post.sharedProfiles,
+    savedByProfiles = post.savedByProfiles,
     mentionedProfiles = post.mentionedProfiles,
     commentIds = post.commentIds,
     comments = post.comments,

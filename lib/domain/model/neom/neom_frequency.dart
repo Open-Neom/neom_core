@@ -44,7 +44,7 @@ class NeomFrequency {
     };
   }
 
-  NeomFrequency.fromJSON(data) :
+  NeomFrequency.fromJSON(dynamic data) :
     id = data["id"].toString(),
     name = data["name"] ?? "",
     description = data["description"] ?? "",
@@ -54,7 +54,7 @@ class NeomFrequency {
     isMain = data["isMain"] ?? false,
     isFav = data["isFav"] ?? false;
 
-  NeomFrequency.fromAssetJSON(data) :
+  NeomFrequency.fromAssetJSON(dynamic data) :
         id = data["frequency"] ?? "",
         name = data["name"] ?? "",
         description = "${data["description"] ?? ""}  ${data["nature"] ?? ""} ${data["medicine"] ?? ""} ${data["technology"] ?? ""} ${data["science"] ?? ""} ${data["spiritual"] ?? ""} ${data["misticism"] ?? ""}".trim(),

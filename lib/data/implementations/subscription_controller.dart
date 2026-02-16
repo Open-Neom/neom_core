@@ -80,27 +80,16 @@ class SubscriptionController extends SintController implements SubscriptionServi
     switch(_profileType.value) {
       case ProfileType.general:
         _profilePlans.removeWhere((s, p) =>
-        p.level == SubscriptionLevel.creator
-            || p.level == SubscriptionLevel.connect
-            || p.level == SubscriptionLevel.artist
-            || p.level == SubscriptionLevel.professional
-            || p.level == SubscriptionLevel.premium
-            || p.level == SubscriptionLevel.publish
-        );
+        (p.level?.value ?? 0) > SubscriptionLevel.family.value);
       case ProfileType.appArtist:
         _profilePlans.removeWhere((s, p) =>
-        p.level == SubscriptionLevel.basic
-            || p.level == SubscriptionLevel.connect
-        );
+        (p.level?.value ?? 0) < SubscriptionLevel.creator.value);
       case ProfileType.facilitator:
       case ProfileType.host:
       // case ProfileType.researcher:
       case ProfileType.band:
       _profilePlans.removeWhere((s, p) =>
-      p.level == SubscriptionLevel.creator
-          || p.level == SubscriptionLevel.artist
-          || p.level == SubscriptionLevel.publish
-      );
+      (p.level?.value ?? 0) < SubscriptionLevel.professional.value);
       default:
         break;
     }

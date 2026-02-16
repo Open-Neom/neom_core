@@ -36,7 +36,7 @@ class Inbox {
     };
   }
 
-  Inbox.fromJSON(data) :
+  Inbox.fromJSON(dynamic data) :
         id = data["id"] ?? "",
         isPrivate = data["isPrivate"] ?? true,
         profileIds = List.from(data["profileIds"] ?? []),

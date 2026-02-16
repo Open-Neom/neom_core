@@ -12,7 +12,7 @@ class UserLocations {
     this.locationCounts,
   });
 
-  factory UserLocations.fromJSON(json) {
+  factory UserLocations.fromJSON(dynamic json) {
     // Convertir los valores de totalUsers y totalLocations a int,
     // en caso de que vengan como String.
     int totalUsers = int.tryParse(json['totalUsers'].toString()) ?? 0;

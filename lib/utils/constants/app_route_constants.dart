@@ -135,6 +135,8 @@ class AppRouteConstants {
   static const String blog  = '/blog';
   static const String blogEditor  = '/blog/editor';
   static const String blogEntry  = '/blog/entry';
+  static const String blogAdmin  = '/blog/admin';
+  static const String blogAnalytics  = '/blog/analytics';
 
   static const String services = '/services';
   static const String quotation = '/quotation';

@@ -53,7 +53,7 @@ class CaseteSession {
   }
 
   /// Create a CaseteSession object from a JSON map.
-  factory CaseteSession.fromJSON(json) {
+  factory CaseteSession.fromJSON(dynamic json) {
     return CaseteSession(
       id: json['id'] ?? '',
       itemId: json['itemId'] ?? '',

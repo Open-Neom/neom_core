@@ -6,6 +6,7 @@ import '../model/item_list.dart';
 
 abstract class ItemlistService {
 
+  Future<void> restart();
   Future<void> createItemlist();
   Future<void> updateItemlist(String itemlistId, Itemlist itemlist);
   Future<void> deleteItemlist(Itemlist itemlist);

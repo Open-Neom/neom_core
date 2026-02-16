@@ -1,6 +1,47 @@
 {
   "indexes": [
     {
+      "collectionGroup": "comments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "postId", "order": "ASCENDING" },
+        { "fieldPath": "createdTime", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "posts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "referenceId", "order": "ASCENDING" },
+        { "fieldPath": "createdTime", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "activityFeedItems",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "activityFeedType", "order": "ASCENDING" },
+        { "fieldPath": "activityReferenceId", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "inbox",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "profileIds", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "createdTime", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "blogEntries",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isDraft", "order": "ASCENDING" },
+        { "fieldPath": "isHidden", "order": "ASCENDING" },
+        { "fieldPath": "publishedTime", "order": "DESCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "posts",
       "queryScope": "COLLECTION",
       "fields": [
@@ -17,56 +58,6 @@
       ]
     },
     {
-      "collectionGroup": "posts",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "ownerId", "arrayConfig": "CONTAINS" },
-        { "fieldPath": "lastInteraction", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "posts",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "likedProfiles", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "posts",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "commentIds", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "bands",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "createdTime", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "events",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "createdTime", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "activityFeedItems",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "createdTime", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "messages",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "createdTime", "order": "ASCENDING" }
-      ]
-    },
-    {
       "collectionGroup": "requests",
       "queryScope": "COLLECTION",
       "fields": [
@@ -80,27 +71,6 @@
       "fields": [
         { "fieldPath": "from", "order": "ASCENDING" },
         { "fieldPath": "createdTime", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "profiles",
-      "queryScope": "COLLECTION_GROUP",
-      "fields": [
-        { "fieldPath": "type", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "profiles",
-      "queryScope": "COLLECTION_GROUP",
-      "fields": [
-        { "fieldPath": "searchName", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "profiles",
-      "queryScope": "COLLECTION_GROUP",
-      "fields": [
-        { "fieldPath": "name", "order": "ASCENDING" }
       ]
     },
     {
@@ -128,17 +98,31 @@
       ]
     },
     {
-      "collectionGroup": "users",
+      "collectionGroup": "blogEntries",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "email", "order": "ASCENDING" }
+        { "fieldPath": "ownerId", "order": "ASCENDING" },
+        { "fieldPath": "isDraft", "order": "ASCENDING" },
+        { "fieldPath": "publishedTime", "order": "DESCENDING" }
       ]
     },
     {
-      "collectionGroup": "coupons",
+      "collectionGroup": "posts",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "code", "order": "ASCENDING" }
+        { "fieldPath": "type", "order": "ASCENDING" },
+        { "fieldPath": "isDraft", "order": "ASCENDING" },
+        { "fieldPath": "lastInteraction", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "posts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "type", "order": "ASCENDING" },
+        { "fieldPath": "isDraft", "order": "ASCENDING" },
+        { "fieldPath": "ownerId", "order": "ASCENDING" },
+        { "fieldPath": "lastInteraction", "order": "DESCENDING" }
       ]
     }
   ],
@@ -161,6 +145,34 @@
     {
       "collectionGroup": "profiles",
       "fieldPath": "type",
+      "indexes": [
+        { "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" }
+      ]
+    },
+    {
+      "collectionGroup": "profiles",
+      "fieldPath": "createdTime",
+      "indexes": [
+        { "order": "DESCENDING", "queryScope": "COLLECTION_GROUP" }
+      ]
+    },
+    {
+      "collectionGroup": "profiles",
+      "fieldPath": "searchName",
+      "indexes": [
+        { "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" }
+      ]
+    },
+    {
+      "collectionGroup": "profiles",
+      "fieldPath": "name",
+      "indexes": [
+        { "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" }
+      ]
+    },
+    {
+      "collectionGroup": "profiles",
+      "fieldPath": "id",
       "indexes": [
         { "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" }
       ]

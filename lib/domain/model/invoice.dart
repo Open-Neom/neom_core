@@ -32,7 +32,7 @@ class Invoice {
     };
   }
 
-  Invoice.fromJSON(data) :
+  Invoice.fromJSON(dynamic data) :
     id = data["id"] ?? "",
     description = data["description"] ?? "",
     toUser = AppUser.fromJSON(data["toUser"]),

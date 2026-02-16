@@ -135,7 +135,7 @@ class Band {
     };
   }
 
-  Band.fromJSON(data) :
+  Band.fromJSON(dynamic data) :
         id = data["id"] ?? '',
         email = data["email"] ?? '',
         name = data["name"] ?? '',

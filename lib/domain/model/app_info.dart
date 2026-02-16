@@ -12,6 +12,8 @@ class AppInfo {
   bool hideNupale;
   bool hideCasete;
   bool hideWallet;
+  bool maintenanceMode;
+  bool releaseRevisionEnabled;
 
   ///DEPRECATED
   //bool coinPromo;
@@ -28,15 +30,17 @@ class AppInfo {
     this.hideNupale = false,
     this.hideCasete = false,
     this.hideWallet = false,
+    this.maintenanceMode = false,
+    this.releaseRevisionEnabled = false,
   });
 
 
   @override
   String toString() {
-    return 'AppInfo{version: $version, build: $build, googleLoginEnabled: $googleLoginEnabled, mediaPlayerEnabled: $mediaPlayerEnabled, orderNumber: $orderNumber, suggestedUrl: $suggestedUrl, hideNupale: $hideNupale, hideCasete: $hideCasete, hideWallet: $hideWallet}';
+    return 'AppInfo{version: $version, build: $build, googleLoginEnabled: $googleLoginEnabled, mediaPlayerEnabled: $mediaPlayerEnabled, orderNumber: $orderNumber, suggestedUrl: $suggestedUrl, hideNupale: $hideNupale, hideCasete: $hideCasete, hideWallet: $hideWallet, maintenanceMode: $maintenanceMode}';
   }
 
-  AppInfo.fromJSON(data):
+  AppInfo.fromJSON(dynamic data):
     version = data["version"] ?? "",
     build = data["build"] ?? 0,
     googleLoginEnabled = data["googleLoginEnabled"] ?? true,
@@ -45,7 +49,9 @@ class AppInfo {
     suggestedUrl = data["suggestedUrl"] ?? "",
     hideNupale = data["hideNupale"] ?? false,
     hideCasete = data["hideCasete"] ?? false,
-    hideWallet = data["hideWallet"] ?? false;
+    hideWallet = data["hideWallet"] ?? false,
+    maintenanceMode = data["maintenanceMode"] ?? false,
+    releaseRevisionEnabled = data["releaseRevisionEnabled"] ?? false;
 
 
   Map<String, dynamic> toJSON() {
@@ -59,6 +65,8 @@ class AppInfo {
       'hideNupale': hideNupale,
       'hideCasete': hideCasete,
       'hideWallet': hideWallet,
+      'maintenanceMode': maintenanceMode,
+      'releaseRevisionEnabled': releaseRevisionEnabled,
     };
   }
 

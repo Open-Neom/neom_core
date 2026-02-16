@@ -15,7 +15,7 @@ abstract class ItemlistRepository {
 
   Future<Itemlist> retrieve(String itemlistId);
   Future<String> insert(Itemlist itemlist);
-  Future<bool> delete(itemlistId);
+  Future<bool> delete(String itemlistId);
 
   Future<bool> update(Itemlist itemlist);
 

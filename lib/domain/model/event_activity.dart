@@ -27,7 +27,7 @@ class EventActivity {
     };
   }
 
-  EventActivity.fromJSON(data) :
+  EventActivity.fromJSON(dynamic data) :
     id = data["name"] ?? "",
     name = data["name"] ?? "",
     description = data["description"] ?? "";

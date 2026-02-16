@@ -8,7 +8,7 @@ abstract class ChamberRepository {
   Future<String> insert(NeomChamber chamber);
   Future<NeomChamber> retrieve(String chamberId);
   Future<bool> update(NeomChamber chamber);
-  Future<bool> delete(chamberId);
+  Future<bool> delete(String chamberId);
 
   Future<Map<String, NeomChamber>> fetchAll({bool onlyPublic = false, bool excludeMyFavorites = true, int minItems = 0, int maxLength = 100, String ownerId = ''});
 

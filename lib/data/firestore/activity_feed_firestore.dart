@@ -13,6 +13,7 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
 
   final activityFeedReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.activityFeed);
   final feedItemsReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.activityFeedItems);
+  final globalActivityFeedReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.globalActivityFeed);
 
   @override
   Future<void> removeActivityById(String ownerId, String activityFeedId) async {
@@ -43,21 +44,24 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
     AppConfig.logger.d("removeByReferenceActivity for ownerId $ownerId,"
         " activityFeedType $activityFeedType, activityReferenceId $activityReferenceId");
 
+    if (activityReferenceId.isEmpty) {
+      AppConfig.logger.w("activityReferenceId is empty, skipping removal");
+      return;
+    }
 
     try {
+      // OPTIMIZED: Use where query instead of fetching all activities
       QuerySnapshot querySnapshot = await activityFeedReference
           .doc(ownerId).collection(AppFirestoreCollectionConstants.activityFeedItems)
+          .where(AppFirestoreConstants.activityReferenceId, isEqualTo: activityReferenceId)
+          .where(AppFirestoreConstants.activityFeedType, isEqualTo: activityFeedType.name)
+          .limit(10) // Usually only a few activities per reference
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        AppConfig.logger.d("Snapshot is not empty");
+        AppConfig.logger.d("Found ${querySnapshot.docs.length} activities to remove");
         for (var activitySnapshot in querySnapshot.docs) {
-          ActivityFeed activityFeed = ActivityFeed
-              .fromJSON(activitySnapshot.data());
-          if (activityFeed.activityReferenceId == activityReferenceId &&
-              activityFeed.activityFeedType == activityFeedType) {
-            await activitySnapshot.reference.delete();
-          }
+          await activitySnapshot.reference.delete();
         }
       }
     } catch (e) {
@@ -216,7 +220,33 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
     }
   }
 
+  /// OPTIMIZED: Future-based method to get unread notifications count once.
+  /// Use this instead of streams for polling-based updates to reduce Firestore reads.
+  Future<int> getUnreadNotificationsCount(String profileId) async {
+    AppConfig.logger.t("Getting unread notifications count for profile $profileId");
+
+    try {
+      // Use count() aggregation if available (Firestore 3.x+), otherwise use limited query
+      final querySnapshot = await activityFeedReference
+          .doc(profileId)
+          .collection(AppFirestoreCollectionConstants.activityFeedItems)
+          .where(AppFirestoreConstants.unread, isEqualTo: true)
+          .limit(20) // OPTIMIZED: Reduced limit - only need to know if there are unread items
+          .get();
+
+      final count = querySnapshot.docs.length;
+      AppConfig.logger.d("Unread notifications count: $count");
+      return count;
+    } catch (e) {
+      AppConfig.logger.e("Error getting unread notifications count: $e");
+      return 0;
+    }
+  }
+
   /// Stream para obtener el conteo de notificaciones sin leer en tiempo real.
+  /// DEPRECATED: Use getUnreadNotificationsCount() with polling instead to reduce reads.
+  /// Limita a 100 para evitar lecturas excesivas - si hay más de 99, muestra "99+"
+  @Deprecated('Use getUnreadNotificationsCount() with polling instead to reduce Firestore reads')
   Stream<int> getUnreadNotificationsCountStream(String profileId) {
     AppConfig.logger.t("Starting unread notifications count stream for profile $profileId");
 
@@ -224,12 +254,65 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
         .doc(profileId)
         .collection(AppFirestoreCollectionConstants.activityFeedItems)
         .where(AppFirestoreConstants.unread, isEqualTo: true)
+        .limit(100) // Limit to reduce Firestore reads
         .snapshots()
         .map((snapshot) {
       final count = snapshot.docs.length;
       AppConfig.logger.d("Unread notifications count (stream): $count");
       return count;
     });
+  }
+
+  /// Insert a GLOBAL activity feed notification.
+  /// Global notifications are stored once and downloaded by all users.
+  /// They are mixed with personal notifications on the client side.
+  Future<String> insertGlobal(ActivityFeed activityFeed) async {
+    AppConfig.logger.d("Inserting GLOBAL activity feed: ${activityFeed.activityFeedType}");
+    String activityFeedId = "";
+
+    try {
+      DocumentReference documentReference = await globalActivityFeedReference
+          .add(activityFeed.toJSON());
+
+      activityFeedId = documentReference.id;
+      AppConfig.logger.i("Global notification created with id: $activityFeedId");
+    } catch (e) {
+      AppConfig.logger.e("Error inserting global notification: $e");
+    }
+
+    return activityFeedId;
+  }
+
+  /// Retrieve GLOBAL activity feed notifications.
+  /// These are notifications that all users should see.
+  /// [lastCheckTime] - Only get notifications after this timestamp (milliseconds)
+  /// [limit] - Maximum number of notifications to retrieve
+  Future<List<ActivityFeed>> retrieveGlobal({int lastCheckTime = 0, int limit = 50}) async {
+    AppConfig.logger.t("Retrieving global notifications since $lastCheckTime");
+    List<ActivityFeed> globalFeedItems = [];
+
+    try {
+      Query query = globalActivityFeedReference
+          .orderBy(AppFirestoreConstants.createdTime, descending: true)
+          .limit(limit);
+
+      // If lastCheckTime is provided, only get newer notifications
+      if (lastCheckTime > 0) {
+        query = query.where(AppFirestoreConstants.createdTime, isGreaterThan: lastCheckTime);
+      }
+
+      QuerySnapshot querySnapshot = await query.get();
+
+      for (var doc in querySnapshot.docs) {
+        globalFeedItems.add(ActivityFeed.fromJSON(doc.data())..id = doc.id);
+      }
+
+      AppConfig.logger.d("Retrieved ${globalFeedItems.length} global notifications");
+    } catch (e) {
+      AppConfig.logger.e("Error retrieving global notifications: $e");
+    }
+
+    return globalFeedItems;
   }
 
   /// Insert multiple activity feeds using batched writes.

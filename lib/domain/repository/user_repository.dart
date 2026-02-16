@@ -30,7 +30,7 @@ abstract class UserRepository {
     Position? currentPosition, int maxDistance = 30,});
 
   Future<List<String>> getFCMTokens();
-  Future<bool> addReleaseItem({required String userId, required String releaseItemId});
+  ///DEPRECATED Future<bool> addReleaseItem({required String userId, required String releaseItemId});
   Future<bool> updateUserRole(String userId, UserRole userRole);
 
   Future<bool> addBoughtItem({required String userId, required String itemId});

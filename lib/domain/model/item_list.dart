@@ -79,7 +79,7 @@ class Itemlist {
     appMediaItems = [],
     isModifiable = true;
 
-  Itemlist.fromJSON(data) :
+  Itemlist.fromJSON(dynamic data) :
     id = data["id"] ?? "",
     name = data["name"] ?? "",
     description = data["description"] ?? "",

@@ -5,7 +5,7 @@ import '../model/place.dart';
 
 abstract class PlaceRepository {
 
-  Future<Map<String?,Place>> retrievePlaces(profileId);
+  Future<Map<String?,Place>> retrievePlaces(String profileId);
 
   Future<bool> removePlace({required String profileId, required String placeId});
 

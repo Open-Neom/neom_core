@@ -5,6 +5,7 @@ import '../../utils/constants/core_constants.dart';
 import '../../utils/enums/activity_feed_type.dart';
 import 'app_profile.dart';
 import 'app_request.dart';
+import 'blog_entry.dart';
 import 'event.dart';
 import 'post.dart';
 import 'post_comment.dart';
@@ -38,7 +39,7 @@ class ActivityFeed {
       this.unread = true
   });
 
-  ActivityFeed.fromJSON(data) :
+  ActivityFeed.fromJSON(dynamic data) :
         id = data["id"] ?? "",
         ownerId = data["ownerId"] ?? "",
         profileId = data["profileId"] ?? "",
@@ -214,4 +215,98 @@ class ActivityFeed {
     // Fallback to first 50 chars of caption
     return caption.length > 50 ? '${caption.substring(0, 50)}...' : caption;
   }
+
+  /// Factory for new BlogEntry notifications to followers (new model).
+  ActivityFeed.fromNewBlogEntry({
+    required BlogEntry blogEntry,
+    required AppProfile authorProfile,
+    required String followerId,
+  }) :
+        id = '',
+        ownerId = followerId, // Follower receives the notification
+        activityReferenceId = blogEntry.id,
+        profileId = authorProfile.id,
+        profileName = authorProfile.name,
+        profileImgUrl = authorProfile.photoUrl,
+        mediaUrl = blogEntry.thumbnailUrl,
+        activityFeedType = ActivityFeedType.newBlogPost,
+        createdTime = DateTime.now().millisecondsSinceEpoch,
+        message = blogEntry.title.length > 80
+            ? '${blogEntry.title.substring(0, 80)}...'
+            : blogEntry.title,
+        unread = true;
+
+  /// Factory for release approval request notifications (sent to admins).
+  /// [adminProfileId] - Profile ID of the admin who will review
+  /// [request] - The AppRequest for release approval
+  /// [authorProfile] - Profile of the author submitting the release
+  /// [releaseCoverUrl] - Cover image URL of the release
+  ActivityFeed.fromReleaseApprovalRequest({
+    required String adminProfileId,
+    required AppRequest request,
+    required AppProfile authorProfile,
+    String releaseCoverUrl = '',
+  }) :
+        id = '',
+        ownerId = adminProfileId, // Admin receives the notification
+        activityReferenceId = request.id,
+        profileId = authorProfile.id,
+        profileName = authorProfile.name,
+        profileImgUrl = authorProfile.photoUrl,
+        mediaUrl = releaseCoverUrl,
+        activityFeedType = ActivityFeedType.releaseApprovalRequest,
+        createdTime = DateTime.now().millisecondsSinceEpoch,
+        message = request.message,
+        unread = true;
+
+  /// Factory for release approval/rejection notifications (sent to author).
+  /// [request] - The AppRequest for release approval
+  /// [isApproved] - Whether the release was approved or rejected
+  /// [reviewerMessage] - Optional message from reviewer
+  ActivityFeed.fromReleaseApprovalResponse({
+    required AppRequest request,
+    required bool isApproved,
+    String reviewerMessage = '',
+  }) :
+        id = '',
+        ownerId = request.from, // Author receives the notification
+        activityReferenceId = request.eventId, // releaseItemId
+        profileId = CoreConstants.appBot,
+        profileName = "${AppProperties.getAppName()} ${AppProperties.getAppBotName()}",
+        profileImgUrl = AppProperties.getAppLogoUrl(),
+        mediaUrl = '',
+        activityFeedType = isApproved
+            ? ActivityFeedType.releaseApproved
+            : ActivityFeedType.releaseRejected,
+        createdTime = DateTime.now().millisecondsSinceEpoch,
+        message = reviewerMessage.isNotEmpty
+            ? reviewerMessage
+            : (isApproved
+                ? 'Tu publicación ha sido aprobada'
+                : 'Tu publicación requiere cambios'),
+        unread = true;
+
+  /// Factory for GLOBAL new release notifications.
+  /// These are stored in globalActivityFeed collection and downloaded by all users.
+  /// [releaseId] - ID of the release
+  /// [releaseTitle] - Title of the release
+  /// [releaseCoverUrl] - Cover image URL
+  /// [authorProfile] - Profile of the author who published the release
+  ActivityFeed.fromGlobalNewRelease({
+    required String releaseId,
+    required String releaseTitle,
+    required String releaseCoverUrl,
+    required AppProfile authorProfile,
+  }) :
+        id = '',
+        ownerId = '', // Empty for global notifications (not user-specific)
+        activityReferenceId = releaseId,
+        profileId = authorProfile.id,
+        profileName = authorProfile.name,
+        profileImgUrl = authorProfile.photoUrl,
+        mediaUrl = releaseCoverUrl,
+        activityFeedType = ActivityFeedType.newRelease,
+        createdTime = DateTime.now().millisecondsSinceEpoch,
+        message = releaseTitle,
+        unread = true;
 }

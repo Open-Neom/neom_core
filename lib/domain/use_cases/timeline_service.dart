@@ -19,6 +19,7 @@ abstract class TimelineService {
   Future<void> showRemovePostAlert(BuildContext context, Post post);
   Future<void> showHidePostAlert(BuildContext context, Post post);
   Future<void> showBlockProfileAlert(BuildContext context, String postOwnerId);
+  void addNewPostToTimeline(Post post);
   Future<void> getReleaseItemsFromWoo();
   ScrollController getScrollController();
   double getScrollOffset();

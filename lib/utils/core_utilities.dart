@@ -38,7 +38,7 @@ import 'position_utilities.dart';
 class CoreUtilities {
 
   // ignore: non_constant_identifier_names
-  static Position JSONtoPosition(positionSnapshot){
+  static Position JSONtoPosition(dynamic positionSnapshot){
     Position position = Position(
         longitude: 0, latitude: 0,
         timestamp: DateTime.now(),
@@ -81,7 +81,7 @@ class CoreUtilities {
 
 
   // ignore: non_constant_identifier_names
-  static List<String> JSONtoItemIds(itemsIdsSnapshot){
+  static List<String> JSONtoItemIds(dynamic itemsIdsSnapshot){
     List<dynamic> itemsJSON = jsonDecode(itemsIdsSnapshot);
     List<String> itemIds = [];
     for (var itemJSON in itemsJSON) {
@@ -92,7 +92,7 @@ class CoreUtilities {
   }
 
   // ignore: non_constant_identifier_names
-  static List<AppMediaItem> JSONtoItemlistItems(itemsIdsSnapshot){
+  static List<AppMediaItem> JSONtoItemlistItems(dynamic itemsIdsSnapshot){
     final itemIdString = jsonDecode(itemsIdsSnapshot.toString());
     List<AppMediaItem> itemlistItems = [];
     try {

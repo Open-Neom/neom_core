@@ -86,7 +86,7 @@ class AppMediaItem {
     return 'AppMediaItem{id: $id, name: $name, description: $description, ownerName: $ownerName, ownerId: $ownerId, album: $album, albumId: $albumId, duration: $duration, featInternalArtists: $featInternalArtists, externalArtists: $externalArtists, categories: $categories, lyrics: $lyrics, language: $language, imgUrl: $imgUrl, galleryUrls: $galleryUrls, metaOwner: $metaOwner, publishedYear: $publishedYear, releaseDate: $releaseDate, url: $url, path: $path, permaUrl: $permaUrl, allUrls: $allUrls, trackNumber: $trackNumber, discNumber: $discNumber, quality: $quality, is320Kbps: $is320Kbps, likes: $likes, state: $state, type: $type, mediaSource: $mediaSource';
   }
 
-  factory AppMediaItem.fromJSON(map) {
+  factory AppMediaItem.fromJSON(dynamic map) {
     try {
       AppConfig.logger.t("AppMediaItem fromJSON: ${map['name'] ?? ''} with id ${map['id'] ?? ''}");
       int dur = 30;

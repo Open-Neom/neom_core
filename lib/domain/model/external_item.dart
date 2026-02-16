@@ -82,7 +82,7 @@ class ExternalItem {
     return 'ExternalItem{id: $id, name: $name, description: $description, ownerName: $ownerName, ownerId: $ownerId, album: $album, albumId: $albumId, duration: $duration, externalArtists: $externalArtists, categories: $categories, lyrics: $lyrics, language: $language, imgUrl: $imgUrl, galleryUrls: $galleryUrls, metaOwner: $metaOwner, publishedYear: $publishedYear, releaseDate: $releaseDate, url: $url, path: $path, permaUrl: $permaUrl, allUrls: $allUrls, trackNumber: $trackNumber, discNumber: $discNumber, quality: $quality, is320Kbps: $is320Kbps, likes: $likes, state: $state, type: $type, source: $source';
   }
 
-  factory ExternalItem.fromJSON(map) {
+  factory ExternalItem.fromJSON(dynamic map) {
     try {
       AppConfig.logger.t("ExternalItem fromJSON: ${map['name'] ?? ''} with id ${map['id'] ?? ''}");
       int dur = 30;

@@ -15,6 +15,7 @@ class InboxMessage {
   AppMediaType type;
   String mediaUrl;
   String referenceId;
+  int audioDuration; // Duration in milliseconds for voice messages
 
   List<String> likedProfiles;
 
@@ -29,12 +30,13 @@ class InboxMessage {
     this.type = AppMediaType.text,
     this.mediaUrl = "",
     this.referenceId = "",
+    this.audioDuration = 0,
     this.likedProfiles = const []
   });
 
   @override
   String toString() {
-    return 'InboxMessage{id: $id, ownerId: $ownerId, profileName: $profileName, profileImgUrl: $profileImgUrl, text: $text, createdTime: $createdTime, seenTime: $seenTime, type: $type, mediaUrl: $mediaUrl, referenceId: $referenceId, likedProfiles: $likedProfiles}';
+    return 'InboxMessage{id: $id, ownerId: $ownerId, profileName: $profileName, profileImgUrl: $profileImgUrl, text: $text, createdTime: $createdTime, seenTime: $seenTime, type: $type, mediaUrl: $mediaUrl, referenceId: $referenceId, audioDuration: $audioDuration, likedProfiles: $likedProfiles}';
   }
 
   Map<String, dynamic> toJSON() {
@@ -48,11 +50,12 @@ class InboxMessage {
       'type': type.name,
       'mediaUrl': mediaUrl,
       'referenceId': referenceId,
+      'audioDuration': audioDuration,
       'likedProfiles': likedProfiles
     };
   }
 
-  InboxMessage.fromJSON(data) :
+  InboxMessage.fromJSON(dynamic data) :
     id = data['id'] ?? "",
     ownerId = data['ownerId'] ?? "",
     profileName = data["profileName"] ?? "",
@@ -63,6 +66,7 @@ class InboxMessage {
     type = EnumToString.fromString(AppMediaType.values, data["type"]) ?? AppMediaType.text,
     mediaUrl = data["mediaUrl"] ?? "",
     referenceId = data["referenceId"] ?? "",
-    likedProfiles = List.from(data["likedProfiles"]);
+    audioDuration = data["audioDuration"] ?? 0,
+    likedProfiles = List.from(data["likedProfiles"] ?? []);
 
 }

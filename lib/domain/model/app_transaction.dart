@@ -57,7 +57,7 @@ class AppTransaction {
     };
   }
 
-  AppTransaction.fromJSON(data)
+  AppTransaction.fromJSON(dynamic data)
       : id = data["id"] ?? "",
         description = data["description"] ?? "",
         createdTime = data["createdTime"] ?? 0,

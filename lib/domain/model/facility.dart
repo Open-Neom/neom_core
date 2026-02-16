@@ -112,7 +112,7 @@ class Facility {
     'reviews': reviews,
   };
 
-  Facility.fromJSON(data):
+  Facility.fromJSON(dynamic data):
     id = data["id"] ?? "",
     name = data["name"] ?? "",
     description = data["description"] ?? "",

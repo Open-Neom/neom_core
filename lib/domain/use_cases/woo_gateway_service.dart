@@ -5,8 +5,8 @@ import '../model/app_release_item.dart';
 abstract class WooGatewayService {
 
   /// Creates a WooCommerce product from an AppReleaseItem
-  /// Returns the permalink URL for web access, or null if creation failed
-  Future<String?> createProductFromReleaseItem(
+  /// Returns a map with 'id' (WooCommerce product ID) and 'permalink' (web URL), or null if creation failed
+  Future<Map<String, String>?> createProductFromReleaseItem(
     AppReleaseItem releaseItem, {
     bool fromFunctions = false,
     String? coverImageUrl,

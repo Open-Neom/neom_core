@@ -196,7 +196,7 @@ class UserFirestore implements UserRepository {
     try {
       DocumentSnapshot? profileDoc;
 
-      // First try: Query profile by 'id' field
+      // Query profile by 'id' field (OPTIMIZED: removed full collection scan fallback)
       final profileSnapshot = await profileReference
           .where('id', isEqualTo: profileId)
           .limit(1)
@@ -206,15 +206,25 @@ class UserFirestore implements UserRepository {
         profileDoc = profileSnapshot.docs.first;
         AppConfig.logger.t("Profile found by 'id' field");
       } else {
-        // Fallback: Search by document ID (profiles use documentSnapshot.id)
-        AppConfig.logger.t("Profile not found by 'id' field, searching by document ID...");
-        final allProfilesSnapshot = await profileReference.get();
-        for (var doc in allProfilesSnapshot.docs) {
+        // OPTIMIZED: Instead of scanning ALL profiles, try limited recent profiles only
+        AppConfig.logger.w("Profile $profileId not found by 'id' field - checking recent profiles");
+        final recentProfilesSnapshot = await profileReference
+            .orderBy('createdTime', descending: true)
+            .limit(50) // Only check last 50 profiles instead of ALL
+            .get();
+
+        for (var doc in recentProfilesSnapshot.docs) {
           if (doc.id == profileId) {
             profileDoc = doc;
-            AppConfig.logger.t("Profile found by document ID scan");
+            AppConfig.logger.t("Profile found in recent profiles");
+            // Update legacy profile with 'id' field for future queries
+            await doc.reference.update({'id': profileId});
             break;
           }
+        }
+
+        if (profileDoc == null) {
+          AppConfig.logger.w("Profile $profileId not found - may be very old legacy profile");
         }
       }
 
@@ -672,25 +682,26 @@ class UserFirestore implements UserRepository {
     return fcmTokens;
   }
 
-  @override
-  Future<bool> addReleaseItem({required String userId, required String releaseItemId}) async {
-    AppConfig.logger.t("ReleaseItem $releaseItemId would be added to User $userId");
-
-    try {
-      DocumentSnapshot documentSnapshot = await userReference
-          .doc(userId).get();
-
-      await documentSnapshot.reference.update({
-        AppFirestoreConstants.releaseItemIds: FieldValue.arrayUnion([releaseItemId])
-      });
-      AppConfig.logger.d("ReleaseItem $releaseItemId is now at User $userId");
-      return true;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
-    }
-
-    return false;
-  }
+  ///DEPRECATED
+  // @override
+  // Future<bool> addReleaseItem({required String userId, required String releaseItemId}) async {
+  //   AppConfig.logger.t("ReleaseItem $releaseItemId would be added to User $userId");
+  //
+  //   try {
+  //     DocumentSnapshot documentSnapshot = await userReference
+  //         .doc(userId).get();
+  //
+  //     await documentSnapshot.reference.update({
+  //       AppFirestoreConstants.releaseItemIds: FieldValue.arrayUnion([releaseItemId])
+  //     });
+  //     AppConfig.logger.d("ReleaseItem $releaseItemId is now at User $userId");
+  //     return true;
+  //   } catch (e) {
+  //     AppConfig.logger.e(e.toString());
+  //   }
+  //
+  //   return false;
+  // }
 
   @override
   Future<bool> updateUserRole(String userId, UserRole userRole) async {

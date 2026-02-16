@@ -189,4 +189,62 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
     }
   }
 
+  /// Retrieves all AppReleaseItems with pending status (for admin review)
+  /// Note: "pending" is used for items awaiting admin review,
+  /// while "draft" is for items still in local cache/editing
+  Future<List<AppReleaseItem>> retrievePendingReleases() async {
+    AppConfig.logger.t("Retrieving pending AppReleaseItems for review");
+
+    List<AppReleaseItem> pendingReleases = [];
+    try {
+      QuerySnapshot querySnapshot = await appReleaseItemReference
+          .where(AppFirestoreConstants.status, isEqualTo: ReleaseStatus.pending.name)
+          .orderBy(AppFirestoreConstants.createdTime, descending: true)
+          .limit(50)
+          .get();
+
+      for (var queryDocumentSnapshot in querySnapshot.docs) {
+        if (queryDocumentSnapshot.exists) {
+          AppReleaseItem releaseItem = AppReleaseItem.fromJSON(queryDocumentSnapshot.data());
+          releaseItem.id = queryDocumentSnapshot.id;
+          pendingReleases.add(releaseItem);
+        }
+      }
+    } catch (e) {
+      AppConfig.logger.e("Error retrieving pending releases: $e");
+    }
+
+    AppConfig.logger.d("${pendingReleases.length} pending releases found");
+    return pendingReleases;
+  }
+
+  /// Approves a release by changing its status to publish
+  Future<bool> approveRelease(String releaseItemId) async {
+    AppConfig.logger.d("Approving release $releaseItemId");
+    try {
+      await appReleaseItemReference.doc(releaseItemId).update({
+        AppFirestoreConstants.status: ReleaseStatus.publish.name,
+        AppFirestoreConstants.modifiedTime: DateTime.now().millisecondsSinceEpoch,
+      });
+      AppConfig.logger.d("Release $releaseItemId approved successfully");
+      return true;
+    } catch (e) {
+      AppConfig.logger.e("Error approving release: $e");
+      return false;
+    }
+  }
+
+  /// Rejects a release by removing it or marking as rejected
+  Future<bool> rejectRelease(String releaseItemId) async {
+    AppConfig.logger.d("Rejecting release $releaseItemId");
+    try {
+      await appReleaseItemReference.doc(releaseItemId).delete();
+      AppConfig.logger.d("Release $releaseItemId rejected and removed");
+      return true;
+    } catch (e) {
+      AppConfig.logger.e("Error rejecting release: $e");
+      return false;
+    }
+  }
+
 }

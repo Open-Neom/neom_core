@@ -59,7 +59,7 @@ class AppCoupon {
     };
   }
 
-  AppCoupon.fromJSON(data) :
+  AppCoupon.fromJSON(dynamic data) :
     id = data["id"] ?? "",
     code = data["code"] ?? "",
     amount = data["amount"] ?? 0,

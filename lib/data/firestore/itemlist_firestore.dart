@@ -121,26 +121,39 @@ class ItemlistFirestore implements ItemlistRepository {
     return itemlist;
   }
 
+  /// OPTIMIZED: Reduced default limit from 1000 to 50, added server-side filtering
   @override
-  Future<Map<String, Itemlist>> fetchAll({bool onlyPublic = false, int maxLength = 1000,
+  Future<Map<String, Itemlist>> fetchAll({bool onlyPublic = false, int maxLength = 50,
     String ownerId = '', String excludeFromProfileId = '', OwnerType ownerType = OwnerType.profile,
     ItemlistType? itemlistType}) async {
-    AppConfig.logger.t("Retrieving Itemlists from firestore");
+    AppConfig.logger.t("Retrieving Itemlists from firestore (limit: $maxLength)");
     Map<String, Itemlist> itemlists = {};
 
     try {
-      QuerySnapshot querySnapshot = await itemlistReference.limit(maxLength).get();
+      // OPTIMIZATION: Apply server-side filters instead of reading all then filtering client-side
+      Query query = itemlistReference;
+
+      // Server-side filtering where possible
+      if (ownerId.isNotEmpty) {
+        query = query.where('ownerId', isEqualTo: ownerId);
+      }
+      if (onlyPublic) {
+        query = query.where('public', isEqualTo: true);
+      }
+      query = query.where('ownerType', isEqualTo: ownerType.name);
+      if (itemlistType != null) {
+        query = query.where('type', isEqualTo: itemlistType.name);
+      }
+
+      QuerySnapshot querySnapshot = await query.limit(maxLength).get();
+
       for (var document in querySnapshot.docs) {
         final data = document.data();
         if (data == null) continue;
         Itemlist itemlist = Itemlist.fromJSON(data as Map<String, dynamic>);
         itemlist.id = document.id;
-        if((!onlyPublic || itemlist.public)
-            && (ownerId.isEmpty || itemlist.ownerId == ownerId)
-            && (excludeFromProfileId.isEmpty || itemlist.ownerId != excludeFromProfileId)
-            && (itemlist.ownerType == ownerType)
-            && (itemlistType == null || itemlist.type == itemlistType)
-        ) {
+        // Client-side filter only for excludeFromProfileId (can't do != in Firestore easily)
+        if (excludeFromProfileId.isEmpty || itemlist.ownerId != excludeFromProfileId) {
           itemlists[itemlist.id] = itemlist;
         }
       }
@@ -148,7 +161,7 @@ class ItemlistFirestore implements ItemlistRepository {
       AppConfig.logger.e(e.toString());
     }
 
-    AppConfig.logger.d("${itemlists .length} itemlists found in total.");
+    AppConfig.logger.d("${itemlists.length} itemlists found in total.");
     return itemlists;
   }
 

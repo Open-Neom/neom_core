@@ -84,7 +84,7 @@ class Sponsor {
     'galleryImgUrls': galleryImgUrls,
   };
 
-  Sponsor.fromJSON(data):
+  Sponsor.fromJSON(dynamic data):
     name = data["name"] ?? "",
     fullName = data["fullName"] ?? "",
     phoneNumber = data["phoneNumber"] ?? "",

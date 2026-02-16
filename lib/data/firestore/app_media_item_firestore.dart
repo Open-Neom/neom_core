@@ -36,15 +36,22 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
   }
 
 
+  /// OPTIMIZED: Added pagination support with limit parameter
   @override
   Future<Map<String, AppMediaItem>> fetchAll({ int minItems = 0, int maxLength = 100,
-    MediaItemType? type, List<MediaItemType>? excludeTypes}) async {
-    AppConfig.logger.t("Getting appMediaItems from list");
+    MediaItemType? type, List<MediaItemType>? excludeTypes, int? limit}) async {
+    AppConfig.logger.t("Getting appMediaItems from list (limit: $limit)");
 
     Map<String, AppMediaItem> appMediaItems = {};
 
     try {
-      QuerySnapshot querySnapshot = await appMediaItemReference.get();
+      // OPTIMIZATION: Apply limit to query if specified
+      Query query = appMediaItemReference;
+      if (limit != null && limit > 0) {
+        query = query.limit(limit);
+      }
+
+      QuerySnapshot querySnapshot = await query.get();
 
       if (querySnapshot.docs.isNotEmpty) {
         AppConfig.logger.t("QuerySnapshot is not empty");

@@ -56,7 +56,7 @@ class AppOrder {
     };
   }
 
-  AppOrder.fromJSON(data) :
+  AppOrder.fromJSON(dynamic data) :
     id = data["id"] ?? "",
     description = data["description"] ?? "",
     url = data["url"] ?? "",
@@ -98,7 +98,7 @@ class AppOrder {
     };
   }
 
-  static GooglePlayPurchaseDetails? googlePlayPurchaseDetailsFromJSON(data) {
+  static GooglePlayPurchaseDetails? googlePlayPurchaseDetailsFromJSON(dynamic data) {
     return GooglePlayPurchaseDetails(
       purchaseID: data["purchaseId"] ?? "",
       productID: data["productId"] ?? "",
@@ -129,7 +129,7 @@ class AppOrder {
     );
   }
 
-  static AppStorePurchaseDetails? appStorePurchaseDetailsFromJSON(data) {
+  static AppStorePurchaseDetails? appStorePurchaseDetailsFromJSON(dynamic data) {
     return null;
   }
 

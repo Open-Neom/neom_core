@@ -120,7 +120,7 @@ class Event {
     isTest = false,
     guestsLimit = 0;
 
-  Event.fromJSON(data):
+  Event.fromJSON(dynamic data):
       id = data["id"] ?? "",
       name = data["name"] ?? "",
       description = data["description"] ?? "",

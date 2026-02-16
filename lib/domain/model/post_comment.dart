@@ -61,7 +61,7 @@ class PostComment {
     };
   }
 
-  PostComment.fromJSON(data):
+  PostComment.fromJSON(dynamic data):
         text = data["text"] ?? "",
         likedProfiles = List.from(data["likedProfiles"] ?? []),
         type = EnumToString.fromString(AppMediaType.values, data["type"]) ?? AppMediaType.text,

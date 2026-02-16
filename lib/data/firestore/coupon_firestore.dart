@@ -36,18 +36,29 @@ class CouponFirestore implements CouponRepository {
     return true;
   }
   
+  /// OPTIMIZED: Added limit to prevent scanning entire coupon collection
+  /// For most use cases, only active coupons are needed
   @override
-  Future<Map<String, AppCoupon>> fetchAll() async {
-    AppConfig.logger.d("fetchAll");
+  Future<Map<String, AppCoupon>> fetchAll({int limit = 100, bool onlyActive = false}) async {
+    AppConfig.logger.d("fetchAll coupons (limit: $limit, onlyActive: $onlyActive)");
     Map<String, AppCoupon> coupons = {};
 
     try {
-      QuerySnapshot snapshot = await couponsReference.get();
+      Query query = couponsReference;
+
+      // OPTIMIZATION: Filter active coupons server-side if needed
+      if (onlyActive) {
+        query = query.where(AppFirestoreConstants.isActive, isEqualTo: true);
+      }
+
+      QuerySnapshot snapshot = await query.limit(limit).get();
 
       for(var document in snapshot.docs) {
         AppCoupon coupon = AppCoupon.fromJSON(document.data());
         coupons[coupon.id] = coupon;
       }
+
+      AppConfig.logger.d("${coupons.length} coupons found");
     } catch (e) {
       AppConfig.logger.e(e.toString());
     }
@@ -78,14 +89,15 @@ class CouponFirestore implements CouponRepository {
     return coupon;
   }
 
+  /// OPTIMIZED: Direct document update instead of get() then update()
   @override
   Future<bool> addUsedBy(String couponId, String email) async {
 
       AppConfig.logger.d("Incrementing usage count for coupon $couponId");
 
       try {
-        DocumentSnapshot documentSnapshot = await couponsReference.doc(couponId).get();
-        await documentSnapshot.reference.update({
+        // OPTIMIZATION: Direct update without reading first
+        await couponsReference.doc(couponId).update({
           AppFirestoreConstants.usedBy: FieldValue.arrayUnion([email])
         });
 

@@ -103,8 +103,10 @@ class AppProperties {
     return appProperties['webContact'] ?? '';
   }
 
+  ///DEPRECATED
+  ///It's better to show the appLogo than a "Image not found" for the user
   static String getNoImageUrl() {
-    return appProperties['noImageUrl'] ?? '';
+    return appProperties['appLogoUrl'] ?? '';
   }
 
   static String getAppCoinName() {
@@ -374,6 +376,10 @@ class AppProperties {
 
   static String getGeminiApiKey() {
     return appProperties['geminiApiKey'] ?? '';
+  }
+
+  static String getBraveKey() {
+    return appProperties['braveKey'] ?? '';
   }
 
 }

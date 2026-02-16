@@ -212,7 +212,7 @@ class AppProfile {
     };
   }
 
-  AppProfile.fromJSON(data) :
+  AppProfile.fromJSON(dynamic data) :
         id = data["id"] ?? "",
         name = data["name"] ?? "",
         photoUrl = data["photoUrl"] ?? "",
@@ -264,7 +264,7 @@ class AppProfile {
           );
         }) : {};
 
-  AppProfile.fromProfileInstruments(data) :
+  AppProfile.fromProfileInstruments(dynamic data) :
         id = data["id"] ?? "",
         name = data["name"] ?? "",
         photoUrl = data["photoUrl"] ?? "",

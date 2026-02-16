@@ -42,7 +42,7 @@ class Review {
     };
   }
 
-  Review.fromJSON(data) :
+  Review.fromJSON(dynamic data) :
     id = data["id"] ?? "",
     text = data["text"] ?? "",
     ratingValue = data["ratingValue"] ?? 0,

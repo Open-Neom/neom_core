@@ -76,7 +76,7 @@ class AppUser {
     return 'AppUser{id: $id, name: $name, firstName: $firstName, lastName: $lastName, dateOfBirth: $dateOfBirth, homeTown: $homeTown, phoneNumber: $phoneNumber, countryCode: $countryCode, password: $password, email: $email, photoUrl: $photoUrl, userRole: $userRole, isVerified: $isVerified, isBanned: $isBanned, androidNotificationToken: $androidNotificationToken, profiles: $profiles, orderIds: $orderIds, releaseItemIds: $releaseItemIds, boughtItems: $boughtItems, referralCode: $referralCode, createdDate: $createdDate, lastTimeOn: $lastTimeOn, fcmToken: $fcmToken, spotifyToken: $spotifyToken, currentProfileId: $currentProfileId, customerId: $customerId, subscriptionId: $subscriptionId}';
   }
 
-  AppUser.fromJSON(data) :
+  AppUser.fromJSON(dynamic data) :
         id = data["id"] ?? "",
         name = data["name"] ?? "",
         firstName = data["firstName"] ?? "",

@@ -58,7 +58,7 @@ class Instrument {
     isFavorite = true;
 
 
-  Instrument.fromJSON(data) :
+  Instrument.fromJSON(dynamic data) :
     id = data["name"] ?? "",
     name = data["name"] ?? "",
     instrumentLevel = EnumToString.fromString(InstrumentLevel.values, data["instrumentLevel"]) ?? InstrumentLevel.notDetermined,

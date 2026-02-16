@@ -170,7 +170,7 @@ class PostFirestore implements PostRepository {
           Post post = Post.fromJSON(doc.data());
           post.id = doc.id;
           AppConfig.logger.t('Post ${post.id} of type ${post.type.name} at ${post.location}');
-          if (post.type != PostType.event && post.type != PostType.releaseItem) {
+          if (post.type != PostType.event) {
             posts.add(post);
           }
         }
@@ -258,23 +258,28 @@ class PostFirestore implements PostRepository {
     return drafts;
   }
 
+  /// OPTIMIZED: Remove event post using indexed query instead of full collection scan
   Future<bool> removeEventPost(String ownerId, String eventId) async {
     AppConfig.logger.t('Remove Event Post $eventId');
     bool wasDeleted = false;
 
     try {
-      QuerySnapshot querySnapshot = await postsReference.get();
+      // OPTIMIZED: Use where query with referenceId instead of scanning ALL posts
+      QuerySnapshot querySnapshot = await postsReference
+          .where(AppFirestoreConstants.referenceId, isEqualTo: eventId)
+          .limit(5) // Usually only 1 post per event, but allow a few just in case
+          .get();
+
       if (querySnapshot.docs.isNotEmpty) {
         for (var postSnapshot in querySnapshot.docs) {
-          Post post = Post.fromJSON(postSnapshot.data());
-          post.id = postSnapshot.id;
-          if(post.referenceId == eventId) {
-            await postSnapshot.reference.delete();
-            wasDeleted = await ProfileFirestore().removePost(ownerId, postSnapshot.reference.id);
-            await ActivityFeedFirestore().removePostActivity(postSnapshot.reference.id);
-            wasDeleted = true;
-          }
+          await postSnapshot.reference.delete();
+          wasDeleted = await ProfileFirestore().removePost(ownerId, postSnapshot.reference.id);
+          await ActivityFeedFirestore().removePostActivity(postSnapshot.reference.id);
+          wasDeleted = true;
+          AppConfig.logger.d('Removed event post ${postSnapshot.id}');
         }
+      } else {
+        AppConfig.logger.d('No post found for event $eventId');
       }
     } catch (e) {
       AppConfig.logger.e(e.toString());
@@ -631,6 +636,36 @@ class PostFirestore implements PostRepository {
       AppConfig.logger.d("All ${querySnapshot.docs.length} posts updated successfully.");
     } catch (e) {
       AppConfig.logger.e(e.toString());
+    }
+  }
+
+  /// Add a profile to the savedByProfiles list of a post (bookmark/save).
+  Future<bool> addSavedByProfile(String postId, String profileId) async {
+    AppConfig.logger.d("Adding save/bookmark for post: $postId by profile: $profileId");
+    try {
+      await postsReference.doc(postId).update({
+        AppFirestoreConstants.savedByProfiles: FieldValue.arrayUnion([profileId]),
+        AppFirestoreConstants.lastInteraction: DateTime.now().millisecondsSinceEpoch,
+      });
+      return true;
+    } catch (e) {
+      AppConfig.logger.e(e.toString());
+      return false;
+    }
+  }
+
+  /// Remove a profile from the savedByProfiles list of a post (unbookmark/unsave).
+  Future<bool> removeSavedByProfile(String postId, String profileId) async {
+    AppConfig.logger.d("Removing save/bookmark for post: $postId by profile: $profileId");
+    try {
+      await postsReference.doc(postId).update({
+        AppFirestoreConstants.savedByProfiles: FieldValue.arrayRemove([profileId]),
+        AppFirestoreConstants.lastInteraction: DateTime.now().millisecondsSinceEpoch,
+      });
+      return true;
+    } catch (e) {
+      AppConfig.logger.e(e.toString());
+      return false;
     }
   }
 

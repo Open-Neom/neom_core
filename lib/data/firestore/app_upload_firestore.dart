@@ -20,10 +20,13 @@ class AppUploadFirestore implements AppUploadRepository {
   Future<String> uploadMediaFile(String mediaId, File file, MediaType mediaType, MediaUploadDestination uploadDestination) async {
     String fileUrl = "";
     try {
+      AppConfig.logger.d('uploadMediaFile - mediaId: $mediaId, type: ${mediaType.name}, destination: ${uploadDestination.name}');
+      AppConfig.logger.d('uploadMediaFile - file path: ${file.path}');
       if (!file.existsSync()) {
         AppConfig.logger.e('El archivo no existe en la ruta: ${file.path}');
         return "";
       }
+      AppConfig.logger.d('uploadMediaFile - file exists, size: ${file.lengthSync()} bytes');
 
       String folderName = '';
       String extension = '';
@@ -46,11 +49,14 @@ class AppUploadFirestore implements AppUploadRepository {
           break;
       }
 
-      UploadTask uploadTask = storageRef.child(folderName)
-          .child("${uploadDestination.name.toLowerCase()}_$mediaId$extension").putFile(file);
+      final fileName = "${uploadDestination.name.toLowerCase()}_$mediaId$extension";
+      AppConfig.logger.d('uploadMediaFile - uploading to: $folderName/$fileName');
+
+      UploadTask uploadTask = storageRef.child(folderName).child(fileName).putFile(file);
       TaskSnapshot storageSnap = await uploadTask;
 
       fileUrl = await storageSnap.ref.getDownloadURL();
+      AppConfig.logger.i('uploadMediaFile - success! URL: $fileUrl');
     } catch (e) {
       AppConfig.logger.e(e.toString());
     }

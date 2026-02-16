@@ -8,7 +8,7 @@ import '../model/inbox_profile_info.dart';
 abstract class InboxRepository {
 
   Future<bool> addMessage(String inboxRoomId, InboxMessage message);
-  Future<bool> handleLikeMessage(String profileId, String messageId, bool isLiked);
+  Future<bool> handleLikeMessage(String profileId, String messageId, bool isLiked, {String? inboxId});
 
   Future<bool> inboxExists(String inboxId);
 

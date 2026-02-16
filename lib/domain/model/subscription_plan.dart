@@ -56,7 +56,7 @@ class SubscriptionPlan {
     return 'SubscriptionPlan{id: $id, name: $name, imgUrl: $imgUrl, href: $href, productId: $productId, priceId: $priceId, level: $level, isActive: $isActive, price: $price, discount: $discount, lastUpdated: $lastUpdated}';
   }
 
-  SubscriptionPlan.fromJSON(data)
+  SubscriptionPlan.fromJSON(dynamic data)
       : id = data['id'] ?? '',
         name = data['name'] ?? '',
         imgUrl = data['imgUrl'] ?? '',

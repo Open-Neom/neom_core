@@ -31,7 +31,7 @@ class Address {
     'zipCode': zipCode
   };
 
-  Address.fromJSON(data):
+  Address.fromJSON(dynamic data):
         country = data["country"] ?? "",
         state = data["state"] ?? "",
         city = data["city"] ?? "",

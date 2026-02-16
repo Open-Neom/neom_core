@@ -6,7 +6,7 @@ import '../model/facility.dart';
 
 abstract class FacilityRepository {
 
-  Future<Map<String?,Facility>> retrieveFacilities(profileId);
+  Future<Map<String?,Facility>> retrieveFacilities(String profileId);
 
   Future<bool> removeFacility({required String profileId, required String facilityId});
 

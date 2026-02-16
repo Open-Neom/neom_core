@@ -183,11 +183,14 @@ class UserController extends SintController implements UserService {
         Sint.offAllNamed(AppRouteConstants.login);
       }
     } catch (e) {
+      AppConfig.logger.e("Error creating user: $e");
       Sint.snackbar(
         CoreConstants.errorCreatingAccount.tr,
         e.toString(),
         snackPosition: SnackPosition.bottom,
       );
+      // Navigate back to login on error to prevent stuck screen
+      Sint.offAllNamed(AppRouteConstants.login);
     }
   }
 

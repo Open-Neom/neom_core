@@ -74,7 +74,7 @@ class AppProduct {
     };
   }
 
-  AppProduct.fromJSON(data) :
+  AppProduct.fromJSON(dynamic data) :
     id = data["id"] ?? "",
     name = data["name"] ?? "",
     description = data["description"] ?? "",

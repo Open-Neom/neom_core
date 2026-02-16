@@ -56,7 +56,7 @@ class NupaleSession {
   }
 
   /// Create a NupaleSession object from a JSON map.
-  factory NupaleSession.fromJSON(json) {
+  factory NupaleSession.fromJSON(dynamic json) {
     return NupaleSession(
       id: json['id'] ?? '',
       itemId: json['itemId'] ?? '',

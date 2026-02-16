@@ -112,7 +112,7 @@ class AppReleaseItem {
     return 'AppReleaseItem{id: $id, name: $name, description: $description, imgUrl: $imgUrl, galleryUrls: $galleryUrls, previewUrl: $previewUrl, duration: $duration, type: $type, status: $status, ownerEmail: $ownerEmail, ownerName: $ownerName, ownerType: $ownerType, categories: $categories, metaId: $metaId, metaName: $metaName, metaOwnerId: $metaOwnerId, instruments: $instruments, lyrics: $lyrics, language: $language, digitalPrice: $digitalPrice, physicalPrice: $physicalPrice, variations: $variations, publishedYear: $publishedYear, metaOwner: $metaOwner, place: $place, boughtUsers: $boughtUsers, createdTime: $createdTime, modifiedTime: $modifiedTime, state: $state, externalArtists: $externalArtists, featInternalArtists: $featInternalArtists, likedProfiles: $likedProfiles, externalUrl: $externalUrl}';
   }
 
-  AppReleaseItem.fromJSON(data) :
+  AppReleaseItem.fromJSON(dynamic data) :
         id = data["id"] ?? '',
         name = data["name"] ?? '',
         description = data["description"] ?? '',

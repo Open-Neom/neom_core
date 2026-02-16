@@ -91,7 +91,7 @@ class Place {
     'reviews': reviews,
   };
 
-  Place.fromJSON(data):
+  Place.fromJSON(dynamic data):
     id = data["id"] ?? "",
     name = data["name"] ?? "",
     description = data["description"] ?? "",

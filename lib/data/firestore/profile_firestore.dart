@@ -50,6 +50,8 @@ class ProfileFirestore implements ProfileRepository {
   /// OPTIMIZED: Helper method to get a profile document reference by ID
   /// Uses the 'id' field stored in the document instead of FieldPath.documentId
   /// (collectionGroup queries don't support FieldPath.documentId with simple IDs)
+  ///
+  /// NOTE: Legacy fallback now uses limited scan instead of full collection scan
   Future<DocumentReference?> _getProfileDocumentReference(String profileId) async {
     // Validate profileId is not empty to avoid Firestore error
     if (profileId.isEmpty) {
@@ -68,15 +70,26 @@ class ProfileFirestore implements ProfileRepository {
         return querySnapshot.docs.first.reference;
       }
 
-      // Fallback: Search by document ID for legacy profiles
-      AppConfig.logger.d('Profile not found by id field, trying document ID scan for $profileId');
-      final allProfilesSnapshot = await profileReference.get();
-      for (var doc in allProfilesSnapshot.docs) {
+      // OPTIMIZED Fallback: Query by 'name' prefix to limit results instead of full scan
+      // This assumes profileId format or searches limited recent profiles
+      AppConfig.logger.w('Profile $profileId not found by id field - legacy profile without id field stored');
+
+      // Try limited recent profiles only (avoid full collection scan)
+      final limitedSnapshot = await profileReference
+          .orderBy('createdTime', descending: true)
+          .limit(100) // Only check last 100 profiles
+          .get();
+
+      for (var doc in limitedSnapshot.docs) {
         if (doc.id == profileId) {
-          AppConfig.logger.d('Profile found by document ID scan: ${doc.id}');
+          AppConfig.logger.d('Profile found in recent profiles: ${doc.id}');
+          // Update the profile to store 'id' field for future queries
+          await doc.reference.update({'id': profileId});
           return doc.reference;
         }
       }
+
+      AppConfig.logger.w('Profile $profileId not found - may be very old legacy profile');
     } catch (e) {
       AppConfig.logger.e('Error getting profile reference: $e');
     }
@@ -181,17 +194,24 @@ class ProfileFirestore implements ProfileRepository {
         profile.id = profileSnapshot.id;
         AppConfig.logger.d("Profile found by 'id' field: ${profile.name}");
       } else {
-        // Fallback: Search by document ID using collectionGroup with name field
-        // This handles legacy profiles that don't have 'id' field stored
-        AppConfig.logger.d("Profile not found by 'id' field, trying collectionGroup scan for $profileId");
+        // OPTIMIZED Fallback: Check recent profiles only instead of full collection scan
+        AppConfig.logger.w("Profile $profileId not found by 'id' field - checking recent profiles");
 
-        // Get all profiles and filter by document ID (less efficient but works for legacy data)
-        final allProfilesSnapshot = await profileReference.get();
-        for (var doc in allProfilesSnapshot.docs) {
+        // Only check last 100 profiles to avoid excessive reads
+        final recentProfilesSnapshot = await profileReference
+            .orderBy('createdTime', descending: true)
+            .limit(100)
+            .get();
+
+        for (var doc in recentProfilesSnapshot.docs) {
           if (doc.id == profileId) {
             profile = AppProfile.fromJSON(doc.data());
             profile.id = doc.id;
-            AppConfig.logger.d("Profile found by document ID scan: ${profile.name}");
+            AppConfig.logger.d("Profile found in recent profiles: ${profile.name}");
+
+            // Update the profile to store 'id' field for future queries
+            await doc.reference.update({'id': profileId});
+            AppConfig.logger.d("Updated legacy profile with 'id' field");
             break;
           }
         }
@@ -1191,13 +1211,19 @@ class ProfileFirestore implements ProfileRepository {
         profileDoc = querySnapshot.docs.first;
         AppConfig.logger.t("Profile found by 'id' field");
       } else {
-        // Fallback: Search by document ID (profiles use documentSnapshot.id, not 'id' field)
-        AppConfig.logger.t("Profile not found by 'id' field, searching by document ID...");
-        final allProfilesSnapshot = await profileReference.get();
-        for (var doc in allProfilesSnapshot.docs) {
+        // OPTIMIZED Fallback: Check recent profiles only instead of full collection scan
+        AppConfig.logger.w("Profile $profileId not found by 'id' field - checking recent profiles");
+        final recentProfilesSnapshot = await profileReference
+            .orderBy('createdTime', descending: true)
+            .limit(100)
+            .get();
+
+        for (var doc in recentProfilesSnapshot.docs) {
           if (doc.id == profileId) {
             profileDoc = doc;
-            AppConfig.logger.t("Profile found by document ID scan");
+            AppConfig.logger.t("Profile found in recent profiles");
+            // Update legacy profile with 'id' field
+            await doc.reference.update({'id': profileId});
             break;
           }
         }

@@ -5,6 +5,7 @@ class AppFirestoreCollectionConstants {
 
   static const String activityFeed = "activityFeed";
   static const String activityFeedItems = "activityFeedItems";
+  static const String globalActivityFeed = "globalActivityFeed";
 
   static const String bands = "bands";
   static const String genres = "genres";
@@ -45,6 +46,7 @@ class AppFirestoreCollectionConstants {
   static const String products = "products";
   static const String quotations = "quotations";
   static const String posts = "posts";
+  static const String blog = "blog";  // Collection for BlogEntry documents
   static const String sponsors = "sponsors";
 
   static const String bank = "bank";
@@ -65,7 +67,6 @@ class AppFirestoreCollectionConstants {
   static const String transactions = "transactions";
   static const String typing = "typing";
 
-  /// Vector index collection for semantic search (FindYourBook game)
-  static const String neomVectors = "neom_vectors";
+  static const String neomVectors = "neomVectors";
 
 }

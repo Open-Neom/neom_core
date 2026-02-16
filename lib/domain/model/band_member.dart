@@ -63,7 +63,7 @@ class BandMember {
     'isMuted': isMuted,
   };
 
-  BandMember.fromJSON(data) :
+  BandMember.fromJSON(dynamic data) :
         id = data["id"] ?? "",
         name = data["name"] ?? "",
         imgUrl = data["imgUrl"] ?? "",

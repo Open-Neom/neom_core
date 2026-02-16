@@ -3,7 +3,7 @@ import '../model/genre.dart';
 
 abstract class GenreRepository {
 
-  Future<Map<String?,Genre>> retrieveGenres(profileId);
+  Future<Map<String?,Genre>> retrieveGenres(String profileId);
 
   Future<bool> removeGenre({required String profileId, required String genreId});
 

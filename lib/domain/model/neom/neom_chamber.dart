@@ -51,7 +51,7 @@ class NeomChamber {
     chamberPresets = [],
     isModifiable = true;
 
-  NeomChamber.fromJSON(data) :
+  NeomChamber.fromJSON(dynamic data) :
     id = data["id"] ?? "",
     name = data["name"] ?? "",
     description = data["description"] ?? "",

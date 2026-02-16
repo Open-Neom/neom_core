@@ -43,7 +43,7 @@ class Booking {
     };
   }
 
-  Booking.fromJSON(data) :
+  Booking.fromJSON(dynamic data) :
         id = data["id"] ?? "",
         profileId = data["profileId"] ?? "",
         profileName = data["profileName"] ?? "",

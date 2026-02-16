@@ -61,6 +61,10 @@ class AppRequest {
   /// Check if this is a game request
   bool get isGameRequest => gameRequestType != null;
 
+  /// Check if this is a release approval request
+  /// Release approval requests have eventId (releaseItemId) and id containing '_release_'
+  bool get isReleaseApprovalRequest => id.contains('_release_') && eventId.isNotEmpty && gameRequestType == null;
+
   /// Default game invitation expiration (3 minutes)
   static const int defaultGameExpirationMinutes = 3;
 
@@ -88,13 +92,38 @@ class AppRequest {
     );
   }
 
+  /// Create a release approval request (for books, songs, etc.)
+  /// [from] - profileId of the author submitting the release
+  /// [to] - app identifier (e.g., "EMXI", "Gigmeout") for admin review
+  /// [releaseItemId] - ID of the AppReleaseItem being submitted
+  /// [releaseName] - Name of the release for the message
+  factory AppRequest.releaseApproval({
+    required String from,
+    required String to,
+    required String releaseItemId,
+    required String releaseName,
+    String? authorName,
+    String? message,
+  }) {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    return AppRequest(
+      id: '${from}_release_$now',
+      from: from,
+      to: to,
+      eventId: releaseItemId, // Using eventId to store releaseItemId
+      createdTime: now,
+      message: message ?? 'Solicitud de aprobación: "$releaseName" por ${authorName ?? from}',
+      requestDecision: RequestDecision.pending,
+    );
+  }
+
   @override
   String toString() {
     return 'AppRequest{id: $id, from: $from, to: $to, bandId: $bandId, eventId: $eventId, createdTime: $createdTime, expiresAt: $expiresAt, newOffer: $newOffer, message: $message, unread: $unread, instrument: $instrument, percentageCoverage: $percentageCoverage, distanceKm: $distanceKm, requestDecision: $requestDecision, gameRequestType: $gameRequestType}';
   }
 
 
-  AppRequest.fromJSON(data) {
+  AppRequest.fromJSON(dynamic data) {
     try {
       from = data["from"] ?? "";
       to = data["to"] ?? "";

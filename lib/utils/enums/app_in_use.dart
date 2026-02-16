@@ -6,6 +6,8 @@ enum AppInUse {
   e,
   f,
   g,
+  h,
+  i,
   o,
   s,
 }

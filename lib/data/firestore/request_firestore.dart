@@ -15,15 +15,17 @@ class RequestFirestore implements RequestRepository {
   final requestsReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.requests);
 
 
+  /// OPTIMIZED: Added limit and orderBy to prevent unbounded reads
   @override
-  Future<List<AppRequest>> retrieveRequests(String profileId) async {
-    AppConfig.logger.t("Retrieving Requests for Profile $profileId");
+  Future<List<AppRequest>> retrieveRequests(String profileId, {int limit = 50}) async {
+    AppConfig.logger.t("Retrieving Requests for Profile $profileId (limit: $limit)");
     List<AppRequest> requests = <AppRequest>[];
 
     try {
       QuerySnapshot querySnapshot = await requestsReference
           .where(AppFirestoreConstants.to, isEqualTo: profileId)
-          //.orderBy(GigFirestoreConstants.createdTime, descending: true)
+          .orderBy(AppFirestoreConstants.createdTime, descending: true)
+          .limit(limit)  // OPTIMIZATION: Prevent reading all requests
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
@@ -43,15 +45,18 @@ class RequestFirestore implements RequestRepository {
   }
 
 
+  /// OPTIMIZED: Added limit and orderBy to prevent unbounded reads
   @override
-  Future<List<AppRequest>> retrieveSentRequests(String profileId) async {
-    AppConfig.logger.t("Retrieving Requests Sent");
+  Future<List<AppRequest>> retrieveSentRequests(String profileId, {int limit = 50}) async {
+    AppConfig.logger.t("Retrieving Requests Sent (limit: $limit)");
 
     List<AppRequest> requests = [];
 
     try {
       QuerySnapshot querySnapshot = await requestsReference
           .where(AppFirestoreConstants.from, isEqualTo: profileId)
+          .orderBy(AppFirestoreConstants.createdTime, descending: true)
+          .limit(limit)  // OPTIMIZATION: Prevent reading all requests
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
@@ -67,20 +72,23 @@ class RequestFirestore implements RequestRepository {
       AppConfig.logger.e(e.toString());
     }
 
-    AppConfig.logger.d("${requests .length} requests Sent found");
+    AppConfig.logger.d("${requests.length} requests Sent found");
     return requests;
   }
 
 
+  /// OPTIMIZED: Added limit and orderBy to prevent unbounded reads
   @override
-  Future<List<AppRequest>> retrieveInvitationRequests(String profileId) async {
-    AppConfig.logger.t("Retrieving Invitation requests");
+  Future<List<AppRequest>> retrieveInvitationRequests(String profileId, {int limit = 50}) async {
+    AppConfig.logger.t("Retrieving Invitation requests (limit: $limit)");
 
     List<AppRequest> requests = [];
 
     try {
       QuerySnapshot querySnapshot = await requestsReference
           .where(AppFirestoreConstants.from, isEqualTo: profileId)
+          .orderBy(AppFirestoreConstants.createdTime, descending: true)
+          .limit(limit)  // OPTIMIZATION: Prevent reading all requests
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
@@ -96,19 +104,21 @@ class RequestFirestore implements RequestRepository {
       AppConfig.logger.e(e.toString());
     }
 
-    AppConfig.logger.d("${requests .length} requests Sent found");
+    AppConfig.logger.d("${requests.length} requests Sent found");
     return requests;
   }
 
 
-  Future<List<AppRequest>> retrieveEventRequests(String eventId) async {
-    AppConfig.logger.t("Retrieving Requests for Event $eventId");
+  /// OPTIMIZED: Added limit to prevent unbounded reads for popular events
+  Future<List<AppRequest>> retrieveEventRequests(String eventId, {int limit = 100}) async {
+    AppConfig.logger.t("Retrieving Requests for Event $eventId (limit: $limit)");
 
     List<AppRequest> requests = [];
 
     try {
       QuerySnapshot querySnapshot = await requestsReference
           .where(AppFirestoreConstants.eventId, isEqualTo: eventId)
+          .limit(limit)  // OPTIMIZATION: Prevent reading all requests for popular events
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
@@ -123,7 +133,7 @@ class RequestFirestore implements RequestRepository {
       AppConfig.logger.e(e.toString());
     }
 
-    AppConfig.logger.d("${requests .length} requests Sent found");
+    AppConfig.logger.d("${requests.length} event requests found");
     return requests;
   }
 
@@ -305,9 +315,12 @@ class RequestFirestore implements RequestRepository {
   }
 
   /// Stream sent requests for a profile
-  Stream<List<AppRequest>> streamSentRequests(String profileId) {
+  /// Limits to 30 most recent requests to reduce Firestore reads
+  Stream<List<AppRequest>> streamSentRequests(String profileId, {int limit = 30}) {
     return requestsReference
         .where(AppFirestoreConstants.from, isEqualTo: profileId)
+        .orderBy(AppFirestoreConstants.createdTime, descending: true)
+        .limit(limit)
         .snapshots()
         .map((snapshot) {
       return snapshot.docs.map((doc) {
@@ -319,9 +332,12 @@ class RequestFirestore implements RequestRepository {
   }
 
   /// Stream received requests for a profile
-  Stream<List<AppRequest>> streamRequests(String profileId) {
+  /// Limits to 30 most recent requests to reduce Firestore reads
+  Stream<List<AppRequest>> streamRequests(String profileId, {int limit = 30}) {
     return requestsReference
         .where(AppFirestoreConstants.to, isEqualTo: profileId)
+        .orderBy(AppFirestoreConstants.createdTime, descending: true)
+        .limit(limit)
         .snapshots()
         .map((snapshot) {
       return snapshot.docs.map((doc) {
@@ -344,6 +360,39 @@ class RequestFirestore implements RequestRepository {
       AppConfig.logger.e('Error getting request: $e');
       return null;
     }
+  }
+
+  /// Retrieves release approval requests for support+ users to review
+  /// These are requests with 'to' = 'appBot' and pending status
+  Future<List<AppRequest>> retrieveReleaseApprovalRequests({int limit = 50}) async {
+    AppConfig.logger.t("Retrieving Release Approval Requests (limit: $limit)");
+    List<AppRequest> requests = <AppRequest>[];
+
+    try {
+      QuerySnapshot querySnapshot = await requestsReference
+          .where(AppFirestoreConstants.to, isEqualTo: 'appBot')
+          .where(AppFirestoreConstants.requestDecision, isEqualTo: RequestDecision.pending.name)
+          .orderBy(AppFirestoreConstants.createdTime, descending: true)
+          .limit(limit)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        for (var snapshot in querySnapshot.docs) {
+          AppRequest request = AppRequest.fromJSON(snapshot.data());
+          request.id = snapshot.id;
+          // Only include release approval requests
+          if (request.isReleaseApprovalRequest) {
+            requests.add(request);
+            AppConfig.logger.t('Release approval request ${request.id} retrieved');
+          }
+        }
+      }
+    } catch (e) {
+      AppConfig.logger.e('Error retrieving release approval requests: $e');
+    }
+
+    AppConfig.logger.d("${requests.length} release approval requests found");
+    return requests;
   }
 
 

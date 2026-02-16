@@ -44,23 +44,50 @@ class InboxFirestore implements InboxRepository {
     return false;
   }
 
+  /// OPTIMIZED: Now requires inboxId for direct document access instead of scanning all messages
   @override
-  Future<bool> handleLikeMessage(String profileId, String messageId, bool isLiked) async {
-    AppConfig.logger.d("");
+  Future<bool> handleLikeMessage(String profileId, String messageId, bool isLiked, {String? inboxId}) async {
+    AppConfig.logger.t("handleLikeMessage: profileId=$profileId, messageId=$messageId, isLiked=$isLiked");
     try {
-      await messageReference.get()
-          .then((querySnapshot) async {
-        for (var document in querySnapshot.docs) {
-          if(document.id == messageId) {
-            isLiked ? await document.reference.update({AppFirestoreConstants.likedProfiles: FieldValue.arrayRemove([profileId])})
-                : await document.reference.update({AppFirestoreConstants.likedProfiles: FieldValue.arrayUnion([profileId])});
-          }
-        }
-      });
+      if (inboxId != null && inboxId.isNotEmpty) {
+        // OPTIMIZED: Direct document access - 1 read instead of scanning all messages
+        final messageRef = inboxReference
+            .doc(inboxId)
+            .collection(AppFirestoreCollectionConstants.messages)
+            .doc(messageId);
 
-      return true;
+        if (isLiked) {
+          await messageRef.update({AppFirestoreConstants.likedProfiles: FieldValue.arrayRemove([profileId])});
+        } else {
+          await messageRef.update({AppFirestoreConstants.likedProfiles: FieldValue.arrayUnion([profileId])});
+        }
+        AppConfig.logger.d("Message $messageId like updated directly");
+        return true;
+      }
+
+      // FALLBACK: Use collectionGroup with limit if inboxId not provided
+      // This is less efficient but limited to prevent full scan
+      AppConfig.logger.w("handleLikeMessage called without inboxId - using limited collectionGroup query");
+      final querySnapshot = await messageReference
+          .where(FieldPath.documentId, isEqualTo: messageId)
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        final document = querySnapshot.docs.first;
+        if (isLiked) {
+          await document.reference.update({AppFirestoreConstants.likedProfiles: FieldValue.arrayRemove([profileId])});
+        } else {
+          await document.reference.update({AppFirestoreConstants.likedProfiles: FieldValue.arrayUnion([profileId])});
+        }
+        AppConfig.logger.d("Message $messageId like updated via collectionGroup");
+        return true;
+      }
+
+      AppConfig.logger.w("Message $messageId not found");
+      return false;
     } catch (e) {
-      AppConfig.logger.e(e.toString());
+      AppConfig.logger.e("Error in handleLikeMessage: ${e.toString()}");
       return false;
     }
   }
@@ -137,8 +164,11 @@ class InboxFirestore implements InboxRepository {
     List<Inbox> inboxs = [];
 
     try {
+      // OPTIMIZED: Added limit to prevent loading too many conversations
       QuerySnapshot querySnapshot = await inboxReference
           .where(AppFirestoreConstants.profileIds, arrayContains: profileId)
+          .orderBy(AppFirestoreConstants.createdTime, descending: true)
+          .limit(50) // Only load last 50 conversations
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
@@ -148,11 +178,11 @@ class InboxFirestore implements InboxRepository {
           Inbox inbox = Inbox.fromJSON(data as Map<String, dynamic>);
           inbox.id = documentSnapshot.id;
 
-            AppConfig.logger.i('Inbox ${inbox.id} found');
+            AppConfig.logger.t('Inbox ${inbox.id} found');
             inboxs.add(inbox);
           }
         }
-      AppConfig.logger.i("${inboxs.length} inboxRoom retrieved");
+      AppConfig.logger.d("${inboxs.length} inboxRoom retrieved");
     } catch (e) {
       AppConfig.logger.e(e.toString());
     }
@@ -217,16 +247,18 @@ class InboxFirestore implements InboxRepository {
   }
 
   @override
-  Stream<List<InboxMessage>> messageStream(String inboxId) {
-    AppConfig.logger.t("Iniciando stream de mensajes para: $inboxId");
+  Stream<List<InboxMessage>> messageStream(String inboxId, {int limit = 50}) {
+    AppConfig.logger.t("Iniciando stream de mensajes para: $inboxId (limit: $limit)");
 
     return inboxReference
         .doc(inboxId)
         .collection(AppFirestoreCollectionConstants.messages)
-        .orderBy(AppFirestoreConstants.createdTime, descending: false)
+        .orderBy(AppFirestoreConstants.createdTime, descending: true) // Most recent first
+        .limit(limit) // Limit to reduce Firestore reads
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) {
+      // Reverse to show oldest first in UI
+      return snapshot.docs.reversed.map((doc) {
         final data = doc.data();
         InboxMessage message = InboxMessage.fromJSON(data);
         message.id = doc.id;
@@ -274,7 +306,7 @@ class InboxFirestore implements InboxRepository {
         .doc(profileId).snapshots().map((doc) => InboxProfileInfo.fromJSON(doc.data() ?? {}));
   }
 
-  /// Obtiene el conteo de mensajes sin leer para un perfil.
+  /// OPTIMIZED: Obtiene el conteo de mensajes sin leer para un perfil.
   /// Un mensaje se considera no leído si:
   /// - El lastMessage.ownerId != profileId (no es del usuario actual)
   /// - El lastMessage.seenTime == 0 (no ha sido visto)
@@ -283,8 +315,11 @@ class InboxFirestore implements InboxRepository {
     int unreadCount = 0;
 
     try {
+      // OPTIMIZED: Added limit and orderBy to reduce reads - only check most recent conversations
       QuerySnapshot querySnapshot = await inboxReference
           .where(AppFirestoreConstants.profileIds, arrayContains: profileId)
+          .orderBy(AppFirestoreConstants.createdTime, descending: true)
+          .limit(20) // Only check last 20 conversations for unread count
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
@@ -350,11 +385,16 @@ class InboxFirestore implements InboxRepository {
   }
 
   /// Stream para obtener el conteo de mensajes sin leer en tiempo real.
+  /// DEPRECATED: Use getUnreadInboxCount() with polling instead to reduce Firestore reads.
+  /// Limita a 20 conversaciones para evitar lecturas excesivas.
+  @Deprecated('Use getUnreadInboxCount() with polling instead to reduce Firestore reads')
   Stream<int> getUnreadInboxCountStream(String profileId) {
     AppConfig.logger.t("Starting unread inbox count stream for profile $profileId");
 
     return inboxReference
         .where(AppFirestoreConstants.profileIds, arrayContains: profileId)
+        .orderBy(AppFirestoreConstants.createdTime, descending: true)
+        .limit(20) // OPTIMIZED: Reduced from 50 to 20 to reduce Firestore reads
         .snapshots()
         .map((snapshot) {
       int unreadCount = 0;

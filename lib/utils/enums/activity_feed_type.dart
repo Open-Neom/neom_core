@@ -24,4 +24,10 @@ enum ActivityFeedType {
   gameInvitation,
   gameInvitationAccepted,
   gameInvitationDeclined,
+  // Release approval related
+  releaseApprovalRequest,
+  releaseApproved,
+  releaseRejected,
+  // Global notifications
+  newRelease,
 }

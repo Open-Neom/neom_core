@@ -16,7 +16,8 @@ abstract class ReleaseUploadService {
   void setPublishedYear(int year);
   void setIsPhysical();
   void setIsAutoPublished();
-  void setReleaseName();
+  void setReleaseAuthor();
+  void setReleaseTitle();
   void setReleaseDesc();
   bool validateNameDesc();
   Future<void> gotoReleaseSummary();

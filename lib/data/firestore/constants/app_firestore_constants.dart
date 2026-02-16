@@ -44,12 +44,14 @@ class AppFirestoreConstants {
   static const String blockedBy = "blockedBy";
 
   static const String likedProfiles = "likedProfiles";
+  static const String savedByProfiles = "savedByProfiles";
 
   static const String events = "events";
   static const String bands = "bands";
 
   static const String ownerId = "ownerId";
   static const String createdTime = "createdTime";
+  static const String modifiedTime = "modifiedTime";
 
   static const String wrongPassword = 'wrong-password';
   static const String invalidEmail = 'invalid-email';
@@ -81,6 +83,9 @@ class AppFirestoreConstants {
   static const String email = 'email';
   static const String lastMessage = 'lastMessage';
   static const String activityFeedId = 'activityFeedId';
+  static const String activityReferenceId = 'activityReferenceId';
+  static const String activityFeedType = 'activityFeedType';
+  static const String referenceId = 'referenceId';
   static const String unread = 'unread';
   static const String eventId = 'eventId';
   static const String bandId = 'bandId';
@@ -108,6 +113,7 @@ class AppFirestoreConstants {
   static const String isActive = 'isActive';
   static const String isAvailable = 'isAvailable';
   static const String isDraft = 'isDraft';
+  static const String isHidden = 'isHidden';
 
   static const String fcmToken = 'fcmToken';
   static const String spotifyToken = 'spotifyToken';

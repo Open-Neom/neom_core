@@ -45,34 +45,47 @@ class BandFirestore implements BandRepository {
   }
 
 
+  /// OPTIMIZED: Batch operations in parallel instead of sequential N+1
   @override
   Future<String> insert(Band band) async {
-    logger.d("");
+    logger.d("Inserting band ${band.name}");
     String bandId = "";
     try {
       DocumentReference documentReference = await bandsReference.add(band.toJSON());
       bandId = documentReference.id;
 
-      for (var bandMember in band.members!.values) {
-        if(await addMemberToBand(bandMember, bandId) && bandMember.profileId.isNotEmpty) {
-          if(await ProfileFirestore().addBand(profileId: bandMember.profileId, bandId: bandId)){
-            logger.i("Band added to Profile ${bandMember.profileId}");
-          }
+      final List<Future> operations = [];
+
+      // OPTIMIZATION: Add all members in parallel
+      if (band.members != null) {
+        for (var bandMember in band.members!.values) {
+          operations.add(
+            _addMemberAndUpdateProfile(bandMember, bandId)
+          );
         }
       }
 
-      for (var genre in band.genres!.values) {
-        if(await addGenreToBand(genre, bandId)) {
-          logger.i("Genre ${genre.name} added to Band $bandId");
-        } else {
-          logger.i("Genre ${genre.name} was not added to Band $bandId");
+      // OPTIMIZATION: Add all genres in parallel
+      if (band.genres != null) {
+        for (var genre in band.genres!.values) {
+          operations.add(addGenreToBand(genre, bandId));
         }
       }
+
+      await Future.wait(operations);
+      logger.i("Band $bandId inserted with ${band.members?.length ?? 0} members and ${band.genres?.length ?? 0} genres");
     } catch (e) {
       logger.e(e.toString());
     }
 
     return bandId;
+  }
+
+  /// Helper to add member and update profile in one operation
+  Future<void> _addMemberAndUpdateProfile(BandMember bandMember, String bandId) async {
+    if (await addMemberToBand(bandMember, bandId) && bandMember.profileId.isNotEmpty) {
+      await ProfileFirestore().addBand(profileId: bandMember.profileId, bandId: bandId);
+    }
   }
 
 
@@ -99,29 +112,33 @@ class BandFirestore implements BandRepository {
   }
 
 
+  /// OPTIMIZED: Parallel operations + removeBandRequests called once (not N times)
   @override
   Future<bool> remove(Band band) async {
-    logger.d("");
+    logger.d("Removing band ${band.id}");
     bool wasDeleted = false;
     try {
+      final List<Future> operations = [];
 
-      await bandsReference.doc(band.id).delete();
+      // Delete band document
+      operations.add(bandsReference.doc(band.id).delete());
 
+      // OPTIMIZATION: Remove band requests ONCE, not once per member
+      operations.add(RequestFirestore().removeBandRequests(band.id));
+
+      // OPTIMIZATION: Remove band from all member profiles in parallel
       for (var bandMemberId in band.members!.keys) {
         BandMember bandMember = band.members?[bandMemberId] ?? BandMember();
-
-        if(bandMemberId == bandMember.profileId) {
-          if(await ProfileFirestore().removeBand(profileId: bandMember.profileId, bandId: band.id)){
-            wasDeleted = true;
-            logger.i("Band remove from Profile $bandMemberId");
-          } else {
-            logger.i("Band could not be removed from Profile $bandMemberId");
-            wasDeleted = false;
-          }
+        if (bandMemberId == bandMember.profileId && bandMember.profileId.isNotEmpty) {
+          operations.add(
+            ProfileFirestore().removeBand(profileId: bandMember.profileId, bandId: band.id)
+          );
         }
-
-        await RequestFirestore().removeBandRequests(band.id);
       }
+
+      await Future.wait(operations);
+      wasDeleted = true;
+      logger.i("Band ${band.id} removed successfully");
 
     } catch (e) {
       logger.e(e.toString());
@@ -131,29 +148,40 @@ class BandFirestore implements BandRepository {
   }
 
 
+  /// OPTIMIZED: Added limit parameter to prevent full collection scan
+  /// Also loads members in parallel instead of sequential N+1
   @override
-  Future<Map<String, Band>> getBands() async {
-    logger.d("");
+  Future<Map<String, Band>> getBands({int limit = 20}) async {
+    logger.d("Getting bands with limit: $limit");
     Map<String, Band> bands = {};
 
     try {
       QuerySnapshot snapshot = await bandsReference
           .orderBy(AppFirestoreConstants.createdTime, descending: true)
+          .limit(limit)  // OPTIMIZATION: Prevent full collection scan
           .get();
 
       logger.d("${snapshot.docs.length} Bands Found as Snapshot");
+
+      // OPTIMIZATION: First collect all bands without members
+      final List<Band> bandList = [];
       for (var documentSnapshot in snapshot.docs) {
-        // FIXED: Added null check after .data()
         final data = documentSnapshot.data();
         if (data == null) continue;
         Band band = Band.fromJSON(data as Map<String, dynamic>);
         band.id = documentSnapshot.id;
-
-        band.members = await getBandMembers(band.id);
-        band.itemlists = await ItemlistFirestore().fetchAll(ownerId: band.id, ownerType: OwnerType.band);
-        bands[band.id] = band;
+        bandList.add(band);
       }
 
+      // OPTIMIZATION: Load members in parallel instead of sequential N+1
+      final memberFutures = bandList.map((b) => getBandMembers(b.id));
+      final memberResults = await Future.wait(memberFutures);
+
+      for (int i = 0; i < bandList.length; i++) {
+        bandList[i].members = memberResults[i];
+        // Note: itemlists loading deferred - can be loaded on demand when viewing band details
+        bands[bandList[i].id] = bandList[i];
+      }
 
       logger.d("${bands.length} Bands Found");
     } catch (e) {
@@ -164,27 +192,42 @@ class BandFirestore implements BandRepository {
   }
 
 
+  /// OPTIMIZED: Use whereIn instead of full collection scan + client filter
   @override
   Future<Map<String, Band>> getBandsFromList(List<String> bandIds) async {
     logger.d("Retrieving ${bandIds.length} bands from list");
     Map<String, Band> bands = {};
 
-    try {
-      QuerySnapshot snapshot = await bandsReference
-          .orderBy(AppFirestoreConstants.createdTime, descending: true)
-          .get();
+    if (bandIds.isEmpty) return bands;
 
-      logger.d("${snapshot.docs.length} Bands Found as Snapshot");
-      for (var documentSnapshot in snapshot.docs) {
-        if(bandIds.contains(documentSnapshot.id)) {
-          // FIXED: Added null check after .data()
+    try {
+      // OPTIMIZATION: Use whereIn batches instead of scanning entire collection
+      const batchSize = 10; // Firestore whereIn limit
+      final List<Band> bandList = [];
+
+      for (var i = 0; i < bandIds.length; i += batchSize) {
+        final batch = bandIds.skip(i).take(batchSize).toList();
+        QuerySnapshot snapshot = await bandsReference
+            .where(FieldPath.documentId, whereIn: batch)
+            .get();
+
+        for (var documentSnapshot in snapshot.docs) {
           final data = documentSnapshot.data();
           if (data == null) continue;
           Band band = Band.fromJSON(data as Map<String, dynamic>);
           band.id = documentSnapshot.id;
-          band.members = await getBandMembers(band.id);
-          band.itemlists = await ItemlistFirestore().fetchAll(ownerId: band.id, ownerType: OwnerType.band);
-          bands[band.id] = band;
+          bandList.add(band);
+        }
+      }
+
+      // OPTIMIZATION: Load members in parallel
+      if (bandList.isNotEmpty) {
+        final memberFutures = bandList.map((b) => getBandMembers(b.id));
+        final memberResults = await Future.wait(memberFutures);
+
+        for (int i = 0; i < bandList.length; i++) {
+          bandList[i].members = memberResults[i];
+          bands[bandList[i].id] = bandList[i];
         }
       }
 
@@ -391,23 +434,15 @@ class BandFirestore implements BandRepository {
     return addedGenre;
   }
 
+  /// OPTIMIZED: Direct document access instead of scanning all bands
   @override
   Future<bool> addPlayingEvent(String bandId, String eventId) async {
     logger.t("$bandId would add event $eventId");
 
     try {
-
-      await bandsReference.get()
-          .then((querySnapshot) async {
-        for (var document in querySnapshot.docs) {
-          if(bandId == document.id) {
-            String eventListToUpdate = "";
-            eventListToUpdate = AppFirestoreConstants.playingEvents;
-            await document.reference
-                .update({eventListToUpdate: FieldValue.arrayUnion([eventId])});
-
-          }
-        }
+      // OPTIMIZATION: Direct document update instead of full collection scan
+      await bandsReference.doc(bandId).update({
+        AppFirestoreConstants.playingEvents: FieldValue.arrayUnion([eventId])
       });
 
       logger.d("$bandId has added event $eventId");
@@ -418,24 +453,22 @@ class BandFirestore implements BandRepository {
     return false;
   }
 
+  /// OPTIMIZED: Direct document updates in parallel instead of scanning all bands
   @override
   Future<bool> addPlayingEventToBands(List<String> bandIds, String eventId) async {
     logger.d("$bandIds would add $eventId");
 
+    if (bandIds.isEmpty) return true;
+
     try {
+      // OPTIMIZATION: Update each band directly in parallel
+      final updates = bandIds.map((bandId) =>
+        bandsReference.doc(bandId).update({
+          AppFirestoreConstants.playingEvents: FieldValue.arrayUnion([eventId])
+        })
+      );
 
-      await bandsReference.get()
-          .then((querySnapshot) async {
-        for (var document in querySnapshot.docs) {
-          if(bandIds.contains(document.id)) {
-            String eventListToUpdate = "";
-            eventListToUpdate = AppFirestoreConstants.playingEvents;
-            await document.reference
-                .update({eventListToUpdate: FieldValue.arrayUnion([eventId])});
-
-          }
-        }
-      });
+      await Future.wait(updates);
 
       logger.d("$bandIds has added event $eventId");
       return true;
@@ -446,27 +479,18 @@ class BandFirestore implements BandRepository {
   }
 
 
+  /// OPTIMIZED: Direct document access instead of scanning all bands
   @override
   Future<bool> removePlayingEvent(String bandId, String eventId) async {
     logger.d("Band $bandId would remove event $eventId");
 
     try {
-
-      await bandsReference.get()
-          .then((querySnapshot) async {
-        for (var document in querySnapshot.docs) {
-          if(bandId == document.id) {
-            String eventListToUpdate = "";
-            eventListToUpdate = AppFirestoreConstants.playingEvents;
-            await document.reference
-                .update({eventListToUpdate: FieldValue.arrayRemove([eventId])});
-
-          }
-          logger.d("${document.id} has removed event $eventId");
-        }
+      // OPTIMIZATION: Direct document update instead of full collection scan
+      await bandsReference.doc(bandId).update({
+        AppFirestoreConstants.playingEvents: FieldValue.arrayRemove([eventId])
       });
 
-
+      logger.d("$bandId has removed event $eventId");
       return true;
     } catch (e) {
       logger.e(e.toString());

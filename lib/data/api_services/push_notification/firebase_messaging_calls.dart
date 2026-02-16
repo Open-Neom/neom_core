@@ -14,6 +14,53 @@ import '../../firestore/profile_firestore.dart';
 
 class FirebaseMessagingCalls {
 
+  /// Maximum number of push notifications to send when notifying multiple users.
+  /// This helps reduce FCM costs by limiting mass notifications.
+  /// Users beyond this limit will still get ActivityFeed notifications in-app.
+  static const int maxPushNotificationsPerBatch = 100;
+
+  /// Sends push notifications to multiple users with a limit.
+  /// Only the first [maxPushNotificationsPerBatch] users will receive push notifications.
+  /// All users should receive ActivityFeed notifications separately.
+  ///
+  /// Returns the number of notifications actually sent.
+  static Future<int> sendBatchPushNotifications({
+    required List<String> toProfileIds,
+    required AppProfile fromProfile,
+    required PushNotificationType notificationType,
+    required String title,
+    required String message,
+    String referenceId = "",
+    String imgUrl = "",
+    int? maxNotifications,
+  }) async {
+    final limit = maxNotifications ?? maxPushNotificationsPerBatch;
+    final limitedIds = toProfileIds.take(limit).toList();
+
+    AppConfig.logger.d('Sending batch push notifications: ${limitedIds.length}/${toProfileIds.length} '
+        '(limit: $limit)');
+
+    int sentCount = 0;
+    for (final profileId in limitedIds) {
+      final response = await sendPrivatePushNotification(
+        toProfileId: profileId,
+        fromProfile: fromProfile,
+        notificationType: notificationType,
+        title: title,
+        message: message,
+        referenceId: referenceId,
+        imgUrl: imgUrl,
+      );
+
+      if (response != null && (response.statusCode == 200 || response.statusCode == 201)) {
+        sentCount++;
+      }
+    }
+
+    AppConfig.logger.i('Batch push notifications sent: $sentCount/${limitedIds.length}');
+    return sentCount;
+  }
+
   /// Sends a push notification from one user to another.
   /// Returns null if recipient has no FCM token registered.
   static Future<http.Response?> sendPrivatePushNotification({

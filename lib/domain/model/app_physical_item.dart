@@ -43,7 +43,7 @@ class AppPhysicalItem {
     return 'AppPhysicalItem{id: $id, name: $name, imgUrl: $imgUrl, description: $description, ownerId: $ownerId, ownerName: $ownerName, ownerImgUrl: $ownerImgUrl, duration: $duration, previewUrl: $previewUrl, size: $size, genres: $genres, publisher: $publisher, publishedDate: $publishedDate}';
   }
 
-  AppPhysicalItem.fromJSON(data) :
+  AppPhysicalItem.fromJSON(dynamic data) :
     id = data["id"] ?? "",
     name = data["name"] ?? "",
     imgUrl = data["imgUrl"] ?? "",

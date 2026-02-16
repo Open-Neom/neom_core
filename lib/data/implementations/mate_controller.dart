@@ -157,8 +157,26 @@ class MateController extends SintController implements MateService {
   Future<void> loadProfiles({bool includeSelf = false}) async {
     AppConfig.logger.t("loadProfiles");
     try {
+      // OPTIMIZED: Only load profiles that are actually needed instead of ALL profiles
       if(_profiles.isEmpty) {
-        _profiles.value = await ProfileFirestore().retrieveAllProfiles();
+        // Collect all unique profile IDs we need
+        final Set<String> neededProfileIds = {};
+
+        if (profile.followers?.isNotEmpty ?? false) {
+          neededProfileIds.addAll(profile.followers!);
+        }
+        if (profile.following?.isNotEmpty ?? false) {
+          neededProfileIds.addAll(profile.following!);
+        }
+        if (profile.itemmates?.isNotEmpty ?? false) {
+          neededProfileIds.addAll(profile.itemmates!);
+        }
+
+        // Only fetch needed profiles instead of ALL profiles
+        if (neededProfileIds.isNotEmpty) {
+          _profiles.value = await ProfileFirestore().retrieveFromList(neededProfileIds.toList());
+          AppConfig.logger.d("Loaded ${_profiles.length} needed profiles (instead of all)");
+        }
       }
 
       if(!includeSelf) _profiles.remove(profile.id);
