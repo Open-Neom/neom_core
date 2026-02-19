@@ -62,15 +62,16 @@ class AppConfig {
   Future<void> _getAppInfo() async {
     AppConfig.logger.d("Retrieving App Info from Firestore...");
     if(appInfo.version.isNotEmpty) {
-      logger.d("AppInfo already loaded: ${appInfo.toString()}}");
+      AppConfig.logger.d("AppInfo already loaded: ${appInfo.toString()}}");
       return;
     } else if(Firebase.apps.isNotEmpty) {
+      AppConfig.logger.d("Firebase initialized, retrieving app info...");
       appInfo = await AppInfoFirestore().retrieve();
       lastStableVersion = appInfo.version;
       lastStableBuild = appInfo.build;
-      logger.d(appInfo.toString());
+      AppConfig.logger.d(appInfo.toString());
     } else {
-      logger.w("Firebase not initialized, cannot retrieve app info.");
+      AppConfig.logger.w("Firebase not initialized, cannot retrieve app info.");
       lastStableVersion = "0.0.0";
       lastStableBuild = 0;
     }

@@ -382,4 +382,14 @@ class AppProperties {
     return appProperties['braveKey'] ?? '';
   }
 
+  /// API key para OpenRouter (proveedores OpenAI-compatible: Qwen, DeepSeek, etc.)
+  static String getOpenRouterApiKey() {
+    return appProperties['openRouterApiKey'] ?? '';
+  }
+
+  /// Base URL para OpenRouter (o cualquier endpoint OpenAI-compatible)
+  static String getOpenRouterBaseUrl() {
+    return appProperties['openRouterBaseUrl'] ?? 'https://openrouter.ai/api/v1';
+  }
+
 }
