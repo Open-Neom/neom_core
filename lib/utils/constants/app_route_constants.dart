@@ -200,6 +200,12 @@ class AppRouteConstants {
   static const String caseteItemDetails  = '/casete/item/details';
   static const String caseteMonthlyDetails  = '/casete/monthly/details';
 
+  static const String dawProjects = '/daw';
+  static const String dawEditor = '/daw/editor';
+  static const String dawMixer = '/daw/mixer';
+
+  static const String vstHome = '/vst';
+
   static const String games = '/games';
   static const String gamesWordChain = '/games/wordChain';
   static const String gamesStoryBuilder = '/games/storyBuilder';
