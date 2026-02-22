@@ -11,5 +11,8 @@ abstract class AppReleaseItemRepository {
   Future<bool> addBoughtUser({required String releaseItemId, required String userId});
   Future<Map<String, AppReleaseItem>> retrieveAll();
   Future<bool> exists(String releaseItemId);
+  Future<Map<String, AppReleaseItem>> retrieveByCategory(String category, {int limit = 30});
+  Future<Map<String, AppReleaseItem>> retrieveByOwner(String ownerEmail, {int limit = 30});
+  Future<Map<String, AppReleaseItem>> retrieveByLanguage(String language, {int limit = 30});
 
 }

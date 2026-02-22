@@ -189,6 +189,90 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
     }
   }
 
+  @override
+  Future<Map<String, AppReleaseItem>> retrieveByCategory(String category, {int limit = 30}) async {
+    AppConfig.logger.t("Getting AppReleaseItems by category: $category");
+    Map<String, AppReleaseItem> releaseItems = {};
+    if (category.isEmpty) return releaseItems;
+
+    try {
+      final querySnapshot = await appReleaseItemReference
+          .where('categories', arrayContains: category)
+          .where(AppFirestoreConstants.status, isEqualTo: ReleaseStatus.publish.name)
+          .limit(limit)
+          .get();
+
+      for (var doc in querySnapshot.docs) {
+        if (doc.exists) {
+          AppReleaseItem releaseItem = AppReleaseItem.fromJSON(doc.data());
+          releaseItem.id = doc.id;
+          releaseItems[doc.id] = releaseItem;
+        }
+      }
+    } catch (e) {
+      AppConfig.logger.e("Error retrieving by category: $e");
+    }
+
+    AppConfig.logger.d("${releaseItems.length} releaseItems found for category: $category");
+    return releaseItems;
+  }
+
+  @override
+  Future<Map<String, AppReleaseItem>> retrieveByOwner(String ownerEmail, {int limit = 30}) async {
+    AppConfig.logger.t("Getting AppReleaseItems by owner: $ownerEmail");
+    Map<String, AppReleaseItem> releaseItems = {};
+    if (ownerEmail.isEmpty) return releaseItems;
+
+    try {
+      final querySnapshot = await appReleaseItemReference
+          .where('ownerEmail', isEqualTo: ownerEmail)
+          .where(AppFirestoreConstants.status, isEqualTo: ReleaseStatus.publish.name)
+          .limit(limit)
+          .get();
+
+      for (var doc in querySnapshot.docs) {
+        if (doc.exists) {
+          AppReleaseItem releaseItem = AppReleaseItem.fromJSON(doc.data());
+          releaseItem.id = doc.id;
+          releaseItems[doc.id] = releaseItem;
+        }
+      }
+    } catch (e) {
+      AppConfig.logger.e("Error retrieving by owner: $e");
+    }
+
+    AppConfig.logger.d("${releaseItems.length} releaseItems found for owner: $ownerEmail");
+    return releaseItems;
+  }
+
+  @override
+  Future<Map<String, AppReleaseItem>> retrieveByLanguage(String language, {int limit = 30}) async {
+    AppConfig.logger.t("Getting AppReleaseItems by language: $language");
+    Map<String, AppReleaseItem> releaseItems = {};
+    if (language.isEmpty) return releaseItems;
+
+    try {
+      final querySnapshot = await appReleaseItemReference
+          .where('language', isEqualTo: language)
+          .where(AppFirestoreConstants.status, isEqualTo: ReleaseStatus.publish.name)
+          .limit(limit)
+          .get();
+
+      for (var doc in querySnapshot.docs) {
+        if (doc.exists) {
+          AppReleaseItem releaseItem = AppReleaseItem.fromJSON(doc.data());
+          releaseItem.id = doc.id;
+          releaseItems[doc.id] = releaseItem;
+        }
+      }
+    } catch (e) {
+      AppConfig.logger.e("Error retrieving by language: $e");
+    }
+
+    AppConfig.logger.d("${releaseItems.length} releaseItems found for language: $language");
+    return releaseItems;
+  }
+
   /// Retrieves all AppReleaseItems with pending status (for admin review)
   /// Note: "pending" is used for items awaiting admin review,
   /// while "draft" is for items still in local cache/editing

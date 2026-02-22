@@ -69,4 +69,7 @@ class AppFirestoreCollectionConstants {
 
   static const String neomVectors = "neomVectors";
 
+  static const String dawProjects = "dawProjects";
+  static const String jamSessions = "jamSessions";
+
 }
