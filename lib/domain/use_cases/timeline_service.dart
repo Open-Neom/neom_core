@@ -1,4 +1,6 @@
 import 'package:flutter/cupertino.dart';
+import '../model/app_release_item.dart';
+import '../model/literature_books.dart';
 import '../model/post.dart';
 import '../model/post_comment.dart';
 
@@ -26,5 +28,7 @@ abstract class TimelineService {
   void setScrollOffset(double offset);
   Future<void> setMainScrollOffset(double offset);
   bool get showAppBar;
+  List<LiteraryBook> get featuredBooks;
+  Map<String, AppReleaseItem> get mainItems;
 
 }

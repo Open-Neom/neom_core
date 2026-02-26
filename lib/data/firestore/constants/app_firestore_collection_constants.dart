@@ -52,6 +52,8 @@ class AppFirestoreCollectionConstants {
   static const String bank = "bank";
 
   static const String nupaleSessions = "nupaleSessions";
+  static const String royaltyPayouts = "royaltyPayouts";
+  static const String withdrawalRequests = "withdrawalRequests";
   static const String caseteSessions = "caseteSessions";
   static const String authorsCaseteSessions = "authorsCaseteSessions";
   static const String freemiumCaseteSessions = "freemiumCaseteSessions";
@@ -71,5 +73,13 @@ class AppFirestoreCollectionConstants {
 
   static const String dawProjects = "dawProjects";
   static const String jamSessions = "jamSessions";
+
+  static const String stories = "stories";
+  static const String tips = "tips";
+  static const String liveSessions = "liveSessions";
+  static const String communities = "communities";
+  static const String achievements = "achievements";
+  static const String scheduledPosts = "scheduledPosts";
+  static const String creatorAnalytics = "creatorAnalytics";
 
 }

@@ -6,7 +6,9 @@ enum TransactionType {
 
   withdrawal(4), //User to App Bank
   purchase(5), //User to AppBank
-  transfer(6); //User to User
+  transfer(6), //User to User
+  tip(7), //User to User (with tier + message)
+  royaltyPayout(8); //AppBank to User (NUPALE royalty distribution)
 
   final int value;
   const TransactionType(this.value);

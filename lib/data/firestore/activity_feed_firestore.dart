@@ -96,8 +96,7 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
 
   @override
   Future<List<ActivityFeed>> retrieve(String profileId) async {
-
-    AppConfig.logger.t("");
+    AppConfig.logger.t("Retrieving activity feed for profile $profileId");
     List<ActivityFeed> feedItems=[];
 
     try {
@@ -287,7 +286,7 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
   /// These are notifications that all users should see.
   /// [lastCheckTime] - Only get notifications after this timestamp (milliseconds)
   /// [limit] - Maximum number of notifications to retrieve
-  Future<List<ActivityFeed>> retrieveGlobal({int lastCheckTime = 0, int limit = 50}) async {
+  Future<List<ActivityFeed>> retrieveGlobal({int lastCheckTime = 0, int limit = 20}) async {
     AppConfig.logger.t("Retrieving global notifications since $lastCheckTime");
     List<ActivityFeed> globalFeedItems = [];
 

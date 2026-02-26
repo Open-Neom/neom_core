@@ -189,6 +189,8 @@ class AppRouteConstants {
   static const String nupaleStats3  = '/stats/nupale3';
   static const String nupaleStats4  = '/stats/nupale4';
   static const String nupaleStats5  = '/stats/nupale5';
+  static const String nupaleRoyalties  = '/nupale/royalties';
+  static const String nupaleAdmin  = '/nupale/admin';
   static const String caseteStats  = '/stats/casete';
 
   static const String camera  = '/camera';
@@ -206,6 +208,8 @@ class AppRouteConstants {
 
   static const String vstHome = '/vst';
 
+  static const String learning = '/learning';
+
   static const String games = '/games';
   static const String gamesWordChain = '/games/wordChain';
   static const String gamesStoryBuilder = '/games/storyBuilder';
@@ -218,5 +222,48 @@ class AppRouteConstants {
   static const String gamesLibroTerapia = '/games/libroTerapia';
   static const String findOpponent = '/games/findOpponent';
   static const String multiplayerChess = '/games/multiplayerChess';
+
+  // Shop
+  static const String shopCart = '/shop/cart';
+  static const String shopCheckout = '/shop/checkout';
+  static const String shopOrders = '/shop/orders';
+  static const String shopOrderDetail = '/shop/order/detail';
+  static const String shopAdmin = '/shop/admin';
+  static const String shopAdminOrders = '/shop/admin/orders';
+  static const String shopAdminOrderDetail = '/shop/admin/order/detail';
+  static const String shopAdminShipping = '/shop/admin/shipping';
+  static const String shopWishlist = '/shop/wishlist';
+  static const String shopAddresses = '/shop/addresses';
+  static const String shopRefundRequest = '/shop/refund/request';
+  static const String shopReview = '/shop/review';
+  static const String shopSellerDashboard = '/shop/seller';
+  static const String shopSellerOrderDetail = '/shop/seller/order/detail';
+  static const String shopSellerProducts = '/shop/seller/products';
+  static const String shopProductEdit = '/shop/seller/product/edit';
+  static const String shopSellerInventory = '/shop/seller/inventory';
+  static const String shopSellerStats = '/shop/seller/stats';
+  static const String shopSupport = '/shop/support';
+  static const String shopCatalog = '/shop/admin/catalog';
+  static const String shopGlobalInventory = '/shop/admin/inventory';
+  static const String shopAnalytics = '/shop/admin/analytics';
+  static const String shopMediaManager = '/shop/admin/media';
+
+  // New features 2026
+  static const String scheduledPosts = '/post/scheduled';
+  static const String achievements = '/achievements';
+  static const String stories = '/stories';
+  static const String storyCreate = '/stories/create';
+  static const String storyViewer = '/stories/viewer';
+  static const String communities = '/communities';
+  static const String communityDetail = '/community/detail';
+  static const String communityChat = '/community/chat';
+  static const String communityCreate = '/community/create';
+  static const String creatorAnalytics = '/creator/analytics';
+  static const String trackAnalytics = '/creator/analytics/track';
+  static const String liveDiscover = '/live';
+  static const String liveHost = '/live/host';
+  static const String liveListener = '/live/listener';
+  static const String goLive = '/live/setup';
+  static const String tipHistory = '/tip/history';
 
 }

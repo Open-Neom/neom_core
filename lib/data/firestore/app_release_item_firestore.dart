@@ -331,4 +331,32 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
     }
   }
 
+  /// Increments the total page view counter for a book and tracks
+  /// individual page views in a subcollection for granular analytics.
+  ///
+  /// Uses [FieldValue.increment] for atomic, race-condition-free counting.
+  /// The subcollection stores per-page view counts with timestamps.
+  Future<bool> incrementPageView(String releaseItemId, int pageNumber) async {
+    AppConfig.logger.t("Increment page view for item: $releaseItemId, page: $pageNumber");
+    try {
+      await appReleaseItemReference.doc(releaseItemId).update({
+        'totalPageViews': FieldValue.increment(1),
+      });
+
+      await appReleaseItemReference
+          .doc(releaseItemId)
+          .collection('pageViews')
+          .doc(pageNumber.toString())
+          .set({
+        'views': FieldValue.increment(1),
+        'lastViewed': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+
+      return true;
+    } catch (e) {
+      AppConfig.logger.e("Error incrementing page view: $e");
+      return false;
+    }
+  }
+
 }

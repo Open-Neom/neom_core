@@ -78,6 +78,9 @@ class AppProfile {
   Map<String, Facility>? facilities;
   Map<String, Place>? places;
 
+  List<String>? badges;
+  int totalTipsReceived;
+
   bool directoryVisible;
   bool showPhone;
   VerificationLevel verificationLevel;
@@ -100,6 +103,7 @@ class AppProfile {
     this.type = ProfileType.general,
     this.directoryVisible = true,
     this.showPhone = true,
+    this.totalTipsReceived = 0,
     this.verificationLevel = VerificationLevel.none,
     this.lastNameUpdate = 0,
   });
@@ -152,6 +156,8 @@ class AppProfile {
       'requests': requests,
       'sentRequests': sentRequests,
       'invitationRequests': invitationRequests,
+      'badges': badges,
+      'totalTipsReceived': totalTipsReceived,
       'directoryVisible': directoryVisible,
       'showPhone': showPhone,
       'verificationLevel': verificationLevel.name,
@@ -202,6 +208,8 @@ class AppProfile {
       'requests': requests,
       'sentRequests': sentRequests,
       'invitationRequests': invitationRequests,
+      'badges': badges,
+      'totalTipsReceived': totalTipsReceived,
       'directoryVisible': directoryVisible,
       'showPhone': showPhone,
       'verificationLevel': verificationLevel.name,
@@ -252,6 +260,8 @@ class AppProfile {
         requests = data["requests"]?.cast<String>() ?? [],
         sentRequests = data["sentRequests"]?.cast<String>() ?? [],
         invitationRequests = data["invitationRequests"]?.cast<String>() ?? [],
+        badges = data["badges"]?.cast<String>() ?? [],
+        totalTipsReceived = data["totalTipsReceived"] ?? 0,
         directoryVisible = data["directoryVisible"] ?? true,
         showPhone = data["showPhone"] ?? true,
         verificationLevel = EnumToString.fromString(VerificationLevel.values, data["verificationLevel"] ?? VerificationLevel.none.name) ?? VerificationLevel.none,
@@ -281,6 +291,8 @@ class AppProfile {
         type = ProfileType.appArtist,
         coverImgUrl = "",
         isActive = true,
+        badges = [],
+        totalTipsReceived = 0,
         directoryVisible = true,
         showPhone = true,
         verificationLevel = EnumToString.fromString(VerificationLevel.values, data["verificationLevel"] ?? VerificationLevel.none.name) ?? VerificationLevel.none;

@@ -92,6 +92,40 @@ class AppRequest {
     );
   }
 
+  /// Default DAW invitation expiration (7 days).
+  static const int defaultDawExpirationDays = 7;
+
+  /// Create a DAW project collaboration invitation.
+  ///
+  /// [from] - profileId of the inviting user (project owner)
+  /// [to] - profileId of the user being invited
+  /// [projectId] - ID of the DawProject
+  /// [projectName] - Name of the project for display
+  /// [role] - Proposed role (producer, musician, listener)
+  factory AppRequest.dawInvitation({
+    required String from,
+    required String to,
+    required String projectId,
+    required String projectName,
+    String role = 'musician',
+    String? message,
+  }) {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    return AppRequest(
+      id: '${from}_daw_$now',
+      from: from,
+      to: to,
+      eventId: projectId,
+      createdTime: now,
+      expiresAt: now + (defaultDawExpirationDays * 24 * 60 * 60 * 1000),
+      message: message ?? 'Invitación al proyecto "$projectName" como $role',
+      requestDecision: RequestDecision.pending,
+    );
+  }
+
+  /// Check if this is a DAW collaboration invitation.
+  bool get isDawInvitation => id.contains('_daw_') && eventId.isNotEmpty && gameRequestType == null;
+
   /// Create a release approval request (for books, songs, etc.)
   /// [from] - profileId of the author submitting the release
   /// [to] - app identifier (e.g., "EMXI", "Gigmeout") for admin review

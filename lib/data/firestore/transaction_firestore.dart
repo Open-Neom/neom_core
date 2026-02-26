@@ -107,28 +107,28 @@ class TransactionFirestore implements TransactionRepository {
 
   @override
   Future<Map<String, AppTransaction>> retrieveFromList(List<String> transactionIds, {TransactionStatus? status}) async {
-    AppConfig.logger.d("Getting transactions from list");
+    AppConfig.logger.d("Getting transactions from list (${transactionIds.length} ids)");
 
     Map<String, AppTransaction> transactions = {};
 
     try {
-      QuerySnapshot querySnapshot = await transactionReference.get();
+      if (transactionIds.isEmpty) return transactions;
 
-      if (querySnapshot.docs.isNotEmpty) {
-        AppConfig.logger.d("QuerySnapshot is not empty");
+      // Firestore whereIn supports up to 30 items per query — batch if needed
+      const batchSize = 30;
+      for (int i = 0; i < transactionIds.length; i += batchSize) {
+        final batch = transactionIds.skip(i).take(batchSize).toList();
+        QuerySnapshot querySnapshot = await transactionReference
+            .where(FieldPath.documentId, whereIn: batch)
+            .get();
+
         for (var documentSnapshot in querySnapshot.docs) {
-          if(transactionIds.contains(documentSnapshot.id)){
-            final data = documentSnapshot.data();
-            if (data == null) continue;
-            AppTransaction transaction = AppTransaction.fromJSON(data as Map<String, dynamic>);
-            transaction.id = documentSnapshot.id;
-            AppConfig.logger.d("AppTransaction ${transaction.id} was retrieved with details");
-            if(status != null && transaction.status == status) {
-              transactions[transaction.id] = transaction;
-            } else {
-              transactions[transaction.id] = transaction;
-            }
-          }
+          final data = documentSnapshot.data();
+          if (data == null) continue;
+          AppTransaction transaction = AppTransaction.fromJSON(data as Map<String, dynamic>);
+          transaction.id = documentSnapshot.id;
+          if (status != null && transaction.status != status) continue;
+          transactions[transaction.id] = transaction;
         }
       }
 
@@ -141,21 +141,21 @@ class TransactionFirestore implements TransactionRepository {
 
   @override
   Future<List<AppTransaction>> retrieveByOrderId(String orderId) async {
-    AppConfig.logger.d("retrieveByOrderId");
+    AppConfig.logger.d("retrieveByOrderId: $orderId");
 
     List<AppTransaction> transactions = [];
 
     try {
-      QuerySnapshot snapshot = await transactionReference.get();
+      QuerySnapshot snapshot = await transactionReference
+          .where('orderId', isEqualTo: orderId)
+          .get();
 
-      for(var document in snapshot.docs) {
+      for (var document in snapshot.docs) {
         final data = document.data();
         if (data == null) continue;
         AppTransaction transaction = AppTransaction.fromJSON(data as Map<String, dynamic>);
-        if(transaction.orderId == orderId) {
-          transaction.id = document.id;
-          transactions.add(transaction);
-        }
+        transaction.id = document.id;
+        transactions.add(transaction);
       }
     } catch (e) {
       AppConfig.logger.e(e.toString());
@@ -170,17 +170,34 @@ class TransactionFirestore implements TransactionRepository {
     Map<String, AppTransaction> transactions = {};
 
     try {
-      QuerySnapshot snapshot = await transactionReference.get();
+      // Query by senderId
+      QuerySnapshot senderSnapshot = await transactionReference
+          .where('senderId', isEqualTo: email)
+          .orderBy('createdTime', descending: true)
+          .get();
 
-      for(var document in snapshot.docs) {
+      for (var document in senderSnapshot.docs) {
         final data = document.data();
         if (data == null) continue;
         AppTransaction transaction = AppTransaction.fromJSON(data as Map<String, dynamic>);
-        if(transaction.senderId == email || transaction.recipientId == email) {
-          transaction.id = document.id;
-          transactions[transaction.id] = transaction;
-        }
+        transaction.id = document.id;
+        transactions[transaction.id] = transaction;
       }
+
+      // Query by recipientId
+      QuerySnapshot recipientSnapshot = await transactionReference
+          .where('recipientId', isEqualTo: email)
+          .orderBy('createdTime', descending: true)
+          .get();
+
+      for (var document in recipientSnapshot.docs) {
+        final data = document.data();
+        if (data == null) continue;
+        AppTransaction transaction = AppTransaction.fromJSON(data as Map<String, dynamic>);
+        transaction.id = document.id;
+        transactions[transaction.id] = transaction;
+      }
+
       AppConfig.logger.d("${transactions.length} Transactions were retrieved");
     } catch (e) {
       AppConfig.logger.e(e.toString());

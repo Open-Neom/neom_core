@@ -3,7 +3,6 @@ import 'package:sint/sint.dart';
 import '../../app_config.dart';
 import '../../domain/model/app_media_item.dart';
 import '../../domain/model/app_profile.dart';
-import '../../domain/use_cases/geolocator_service.dart';
 import '../../domain/use_cases/mate_service.dart';
 import '../../domain/use_cases/user_service.dart';
 import '../../utils/constants/app_route_constants.dart';
@@ -26,8 +25,6 @@ class MateController extends SintController implements MateService {
   final RxBool following = false.obs;
   final RxBool isLoading = true.obs;
   final RxBool isButtonDisabled = false.obs;
-
-  GeoLocatorService geoLocatorServiceImpl = Sint.find<GeoLocatorService>();
 
   List<String> mateIds = [];
   String mateId = "";
@@ -154,29 +151,36 @@ class MateController extends SintController implements MateService {
   }
 
   @override
-  Future<void> loadProfiles({bool includeSelf = false}) async {
+  Future<void> loadProfiles({bool includeSelf = false, bool loadAll = false}) async {
     AppConfig.logger.t("loadProfiles");
     try {
       // OPTIMIZED: Only load profiles that are actually needed instead of ALL profiles
       if(_profiles.isEmpty) {
-        // Collect all unique profile IDs we need
-        final Set<String> neededProfileIds = {};
 
-        if (profile.followers?.isNotEmpty ?? false) {
-          neededProfileIds.addAll(profile.followers!);
-        }
-        if (profile.following?.isNotEmpty ?? false) {
-          neededProfileIds.addAll(profile.following!);
-        }
-        if (profile.itemmates?.isNotEmpty ?? false) {
-          neededProfileIds.addAll(profile.itemmates!);
-        }
-
-        // Only fetch needed profiles instead of ALL profiles
-        if (neededProfileIds.isNotEmpty) {
-          _profiles.value = await ProfileFirestore().retrieveFromList(neededProfileIds.toList());
+        if(loadAll) {
+          _profiles.value = await ProfileFirestore().retrieveAllProfiles();
           AppConfig.logger.d("Loaded ${_profiles.length} needed profiles (instead of all)");
+        } else {
+          // Collect all unique profile IDs we need
+          final Set<String> neededProfileIds = {};
+
+          if (profile.followers?.isNotEmpty ?? false) {
+            neededProfileIds.addAll(profile.followers!);
+          }
+          if (profile.following?.isNotEmpty ?? false) {
+            neededProfileIds.addAll(profile.following!);
+          }
+          if (profile.itemmates?.isNotEmpty ?? false) {
+            neededProfileIds.addAll(profile.itemmates!);
+          }
+
+          // Only fetch needed profiles instead of ALL profiles
+          if (neededProfileIds.isNotEmpty) {
+            _profiles.value = await ProfileFirestore().retrieveFromList(neededProfileIds.toList());
+            AppConfig.logger.d("Loaded ${_profiles.length} needed profiles (instead of all)");
+          }
         }
+
       }
 
       if(!includeSelf) _profiles.remove(profile.id);
@@ -213,7 +217,8 @@ class MateController extends SintController implements MateService {
     }
 
     isLoading.value = false;
-    AppConfig.logger.d("${_profiles.length} profiles found ");
+    _totalProfiles.value = _profiles.value;
+    AppConfig.logger.d("${_totalProfiles.length} profiles found ");
     update();
   }
 

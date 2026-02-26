@@ -1,6 +1,7 @@
 
 class AppFirestoreConstants {
 
+  static const String id = 'id';
   static const String appItems = 'appItems';
   static const String appMediaItems = 'appMediaItems';
   static const String favoriteItems = 'favoriteItems';

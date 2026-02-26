@@ -30,4 +30,19 @@ enum ActivityFeedType {
   releaseRejected,
   // Global notifications
   newRelease,
+  // Tipping
+  tip,
+  // Social sharing
+  repost,
+  // Achievements
+  achievementUnlocked,
+  // Stories
+  storyReaction,
+  storyReply,
+  // Live streaming
+  liveSessionStarted,
+  // Communities
+  communityInvite,
+  // Scheduled posts
+  scheduledPostPublished,
 }

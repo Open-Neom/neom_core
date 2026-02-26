@@ -12,6 +12,7 @@ class NupaleSession {
   String readerEmail; ///EMAIL OF READER
 
   Map<int, int> pagesDuration;
+  Map<int, int> pageViews; /// Number of times each page was viewed in this session
   int nupale; ///REAL Number of Pages Read
   int createdTime; ///CREATED SESSION TIME IN MILISECONDSSINCEEPOCH
   int totalPages; /// TOTAL PAGES IN THE ITEM
@@ -21,7 +22,7 @@ class NupaleSession {
 
   @override
   String toString() {
-    return 'NupaleSession{id: $id, itemId: $itemId, itemName: $itemName, ownerEmail: $ownerEmail, readerEmail: $readerEmail, pagesDuration: $pagesDuration, nupale: $nupale, createdTime: $createdTime, subscriptionLevel: $subscriptionLevel, isTest: $isTest}';
+    return 'NupaleSession{id: $id, itemId: $itemId, itemName: $itemName, ownerEmail: $ownerEmail, readerEmail: $readerEmail, pagesDuration: $pagesDuration, pageViews: $pageViews, nupale: $nupale, createdTime: $createdTime, totalPages: $totalPages, subscriptionLevel: $subscriptionLevel, isTest: $isTest}';
   }
 
   NupaleSession({
@@ -31,6 +32,7 @@ class NupaleSession {
     this.ownerEmail = '',
     this.readerEmail = '',
     this.pagesDuration = const {},
+    this.pageViews = const {},
     this.nupale = 0,
     this.createdTime = 0,
     this.totalPages = 0,
@@ -47,6 +49,7 @@ class NupaleSession {
       'ownerEmail': ownerEmail,
       'readerEmail': readerEmail,
       'pagesDuration': pagesDuration.map((key, value) => MapEntry(key.toString(), value)),
+      'pageViews': pageViews.map((key, value) => MapEntry(key.toString(), value)),
       'nupale': nupale,
       'createdTime': createdTime,
       'totalPages': totalPages,
@@ -64,7 +67,10 @@ class NupaleSession {
       ownerEmail: json['ownerEmail'] ?? json['ownerId'] ?? '',
       readerEmail: json['readerEmail'] ?? json['readerId'] ?? '',
       pagesDuration: (json['pagesDuration'] != null)
-          ? (json['pagesDuration'] as Map).map((key, value) => MapEntry(int.parse(key), value))
+          ? (json['pagesDuration'] as Map).map((key, value) => MapEntry(int.parse(key), value as int))
+          : {},
+      pageViews: (json['pageViews'] != null)
+          ? (json['pageViews'] as Map).map((key, value) => MapEntry(int.parse(key.toString()), value as int))
           : {},
       nupale: json['nupale'] ?? 0,
       createdTime: json['createdTime'] ?? 0,

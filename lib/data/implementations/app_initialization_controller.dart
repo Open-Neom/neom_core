@@ -1,4 +1,5 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:sint/sint.dart';
 
 import '../../app_config.dart';
@@ -26,7 +27,9 @@ class AppInitializationController {
     Future.microtask(() => AppHiveController().fetchCachedData());
 
     Future.microtask(() => userServiceImpl.verifyLocation());
-    Future.microtask(() => Sint.find<NotificationService>().init());
+    if (!kIsWeb) {
+      Future.microtask(() => Sint.find<NotificationService>().init());
+    }
 
     AppHiveController().setFirstTime(false);
     UserFirestore().updateLastTimeOn(userServiceImpl.user.id);
@@ -75,6 +78,7 @@ class AppInitializationController {
   }
 
   static Future<void> initAudioHandler() async {
+    if (kIsWeb) return;
     Future.microtask(() => Sint.find<AudioPlayerInvokerService>().initAudioHandler());
   }
 

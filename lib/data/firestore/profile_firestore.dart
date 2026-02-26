@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:sint/sint.dart';
 
@@ -117,14 +118,19 @@ class ProfileFirestore implements ProfileRepository {
     String profileId = "";
 
     try {
-      AppConfig.logger.t(profile.toJSON());
-
-      DocumentReference documentReference = await usersReference
+      // 1. Creamos la referencia del documento VACÍO primero (esto genera el ID)
+      DocumentReference documentReference = usersReference
           .doc(userId)
           .collection(AppFirestoreCollectionConstants.profiles)
-          .add(profile.toJSON());
+          .doc(); // <- .doc() sin parámetros autogenera un ID
 
+      // 2. Le inyectamos ese ID al objeto profile ANTES de guardarlo
+      profile.id = documentReference.id;
       profileId = documentReference.id;
+      profileId = documentReference.id;
+
+      // 3. Guardamos el perfil en Firestore (ahora el JSON SÍ incluye el campo 'id')
+      await documentReference.set(profile.toJSON());
 
       // FIXED: Use for-loop with await instead of forEach with async (fire-and-forget)
       if (profile.instruments != null) {
@@ -184,7 +190,7 @@ class ProfileFirestore implements ProfileRepository {
     try {
       // First try: Query by 'id' field (for profiles that have this field stored)
       final querySnapshot = await profileReference
-          .where('id', isEqualTo: profileId)
+          .where(AppFirestoreConstants.id, isEqualTo: profileId)
           .limit(1)
           .get();
 
@@ -199,7 +205,7 @@ class ProfileFirestore implements ProfileRepository {
 
         // Only check last 100 profiles to avoid excessive reads
         final recentProfilesSnapshot = await profileReference
-            .orderBy('createdTime', descending: true)
+            .orderBy(AppFirestoreConstants.createdTime, descending: true)
             .limit(100)
             .get();
 
@@ -1686,6 +1692,58 @@ class ProfileFirestore implements ProfileRepository {
     }
 
     return results;
+  }
+
+  /// SCRIPT DE MIGRACIÓN: Ejecutar UNA SOLA VEZ para curar los perfiles legacy.
+  Future<void> backfillAllProfileIds() async {
+    AppConfig.logger.i("Iniciando script de migración de IDs para perfiles...");
+
+    try {
+      // 1. Obtener TODOS los perfiles usando collectionGroup
+      final querySnapshot = await FirebaseFirestore.instance
+          .collectionGroup(AppFirestoreCollectionConstants.profiles)
+          .get();
+
+      final docs = querySnapshot.docs;
+      AppConfig.logger.i("Se encontraron ${docs.length} perfiles en la base de datos.");
+
+      // 2. Preparar el Batch (Lotes de máximo 500 operaciones permitidas por Firebase)
+      var batch = FirebaseFirestore.instance.batch();
+      int operationCount = 0;
+      int totalUpdated = 0;
+
+      for (var doc in docs) {
+        final data = doc.data();
+        final docId = doc.id;
+
+        // 3. OPTIMIZACIÓN DE COSTOS: Solo actualizar si NO tiene el ID o está mal
+        if (!data.containsKey('id') || data['id'] != docId) {
+          batch.update(doc.reference, {'id': docId});
+          operationCount++;
+          totalUpdated++;
+
+          // 4. Si llegamos a 500 operaciones, hacemos commit y creamos un nuevo batch
+          if (operationCount == 500) {
+            await batch.commit();
+            AppConfig.logger.i("Lote de 500 perfiles actualizado...");
+
+            // Reiniciar el batch para los siguientes 500
+            batch = FirebaseFirestore.instance.batch();
+            operationCount = 0;
+          }
+        }
+      }
+
+      // 5. Hacer commit de los documentos restantes (si quedaron menos de 500 al final)
+      if (operationCount > 0) {
+        await batch.commit();
+      }
+
+      AppConfig.logger.i("¡Migración completada! Se corrigieron $totalUpdated perfiles legacy.");
+
+    } catch (e) {
+      AppConfig.logger.e("Error fatal en el script de migración: $e");
+    }
   }
 
 }

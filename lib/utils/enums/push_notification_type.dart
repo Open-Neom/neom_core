@@ -15,7 +15,17 @@ enum PushNotificationType {
   roomReaction(14),
   gameInvitation(15),
   gameInvitationAccepted(16),
-  gameInvitationDeclined(17);
+  gameInvitationDeclined(17),
+  tip(18),
+  repost(19),
+  achievementUnlocked(20),
+  storyReaction(21),
+  liveSessionStarted(22),
+  communityMessage(23),
+  scheduledPostPublished(24),
+  royaltyDeposited(25),
+  royaltiesClaimed(26),
+  shopOrderUpdate(27);
 
   final int value;
   const PushNotificationType(this.value);

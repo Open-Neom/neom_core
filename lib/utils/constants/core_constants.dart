@@ -22,17 +22,17 @@ class CoreConstants {
   static const String prevVersion4 = "prevVersion4";
 
   static const int profilePostsLimit = 15;
-  static const int timelineLimit = 25;
-  static const int nextTimelineLimit = 15;
+  static const int timelineLimit = 10;
+  static const int nextTimelineLimit = 10;
   static const int recentTimelineLimit = 10;
   static const int diverseTimelineLimit = 6;
-  static const int activityFeedLimit = 30;
-  static const int sponsorsLimit = 20;
-  static const int eventsLimit = 30;
-  static const int followingProfilesLimit = 15;
-  static const int followerProfilesLimit = 15;
-  static const int matesLimit = 15;
-  static const int profilesLimit = 1500;
+  static const int activityFeedLimit = 10;
+  static const int sponsorsLimit = 10;
+  static const int eventsLimit = 10;
+  static const int followingProfilesLimit = 10;
+  static const int followerProfilesLimit = 10;
+  static const int matesLimit = 10;
+  static const int profilesLimit = 1000;
   static const int maxPlaceNameLength = 28;
   static const int maxEventNameDescLength = 50;
   static const int maxEventNameLength = 22;

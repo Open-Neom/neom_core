@@ -65,6 +65,9 @@ class AppReleaseItem {
   /// AI assistant configuration for this item
   IaInfo? iaInfo;
 
+  /// Total page views across all users and reading sessions
+  int totalPageViews;
+
   AppReleaseItem({
     this.id = '',
     this.name = '',
@@ -105,6 +108,7 @@ class AppReleaseItem {
     this.externalUrl,
     this.webPreviewUrl,
     this.iaInfo,
+    this.totalPageViews = 0,
   });
 
   @override
@@ -150,7 +154,8 @@ class AppReleaseItem {
         likedProfiles = List.from(data["likedProfiles"]?.cast<String>() ?? []),
         externalUrl = data["externalUrl"].toString(),
         webPreviewUrl = data["webPreviewUrl"].toString(),
-        iaInfo = data["iaInfo"] != null ? IaInfo.fromJSON(data["iaInfo"] as Map<String, dynamic>) : null;
+        iaInfo = data["iaInfo"] != null ? IaInfo.fromJSON(data["iaInfo"] as Map<String, dynamic>) : null,
+        totalPageViews = data["totalPageViews"] ?? 0;
   
   /// Returns true if this release item contains audio content (audiobook, song, podcast, etc.)
   /// Used to route to audio player instead of book details
@@ -230,6 +235,7 @@ class AppReleaseItem {
     'externalUrl': externalUrl,
     'webPreviewUrl': webPreviewUrl,
     'iaInfo': iaInfo?.toJSON(),
+    'totalPageViews': totalPageViews,
   };
 
 }

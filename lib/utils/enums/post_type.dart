@@ -11,4 +11,8 @@ enum PostType {
   question,
   poll,
   pending,
+  learning,
+  story,
+  repost,
+  scheduled,
 }
