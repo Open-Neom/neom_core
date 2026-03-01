@@ -25,7 +25,8 @@ enum PushNotificationType {
   scheduledPostPublished(24),
   royaltyDeposited(25),
   royaltiesClaimed(26),
-  shopOrderUpdate(27);
+  shopOrderUpdate(27),
+  remoteCommandCompleted(28);
 
   final int value;
   const PushNotificationType(this.value);
