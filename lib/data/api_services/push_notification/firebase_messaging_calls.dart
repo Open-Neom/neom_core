@@ -6,6 +6,7 @@ import 'package:sint/sint.dart';
 
 import '../../../app_config.dart';
 import '../../../app_properties.dart';
+import '../../../cloud_properties.dart';
 import '../../../domain/model/app_profile.dart';
 import '../../../utils/constants/app_google_utilities.dart';
 import '../../../utils/enums/push_notification_type.dart';
@@ -338,21 +339,28 @@ class FirebaseMessagingCalls {
 
 
   static Future<String?> getAccessToken() async {
+    // Service account is not loaded on web (security) — push notifications
+    // from the client are not supported on web.
+    if (CloudProperties.serviceAccount is! Map ||
+        (CloudProperties.serviceAccount as Map).isEmpty) {
+      AppConfig.logger.w("getAccessToken: service account not available (web or not loaded)");
+      return null;
+    }
+
     AppConfig.logger.d("Obteniendo token de acceso OAuth2 para Firebase Cloud Messaging");
 
     String? accessToken;
-    String serviceAccount = jsonEncode(AppProperties.serviceAccount);
+    String serviceAccount = jsonEncode(CloudProperties.serviceAccount);
 
     try {
       auth.ServiceAccountCredentials credentials = auth.ServiceAccountCredentials.fromJson(serviceAccount);
       var scopes = ['https://www.googleapis.com/auth/firebase.messaging'];
 
       auth.AccessCredentials accessCredentials = await auth.obtainAccessCredentialsViaServiceAccount(
-          credentials, scopes, http.Client()); // Necesitas un http.Client
+          credentials, scopes, http.Client());
       accessToken = accessCredentials.accessToken.data;
     } catch (e) {
       AppConfig.logger.e("Error obteniendo token de acceso OAuth2: $e");
-
     }
 
     return accessToken;

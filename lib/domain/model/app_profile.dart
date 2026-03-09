@@ -10,6 +10,7 @@ import '../../utils/enums/usage_reason.dart';
 import '../../utils/enums/verification_level.dart';
 import 'facility.dart';
 import 'genre.dart';
+import 'influence.dart';
 import 'instrument.dart';
 import 'item_list.dart';
 import 'neom/neom_chamber.dart';
@@ -26,7 +27,6 @@ class AppProfile {
   String coverImgUrl;
   String mainFeature;
   int lastTimeOn = 0;
-  int lastSpotifySync = 0;
 
   bool isActive;
   Position? position;
@@ -60,6 +60,7 @@ class AppProfile {
   List<String>? reviews;
 
   List<String>? favoriteItems; ///EACH LIKED APPMEDIAITEM OR APPRELEASEITEM ID GOES HERE TO FETCH FROM GLOBAL DB
+  List<String>? savedItemlistIds; /// IDs of other users' playlists saved to library
   List<String>? chamberPresets; ///NEOM USAGE
   List<String>? watchingEvents; ///EVENT THE USER IS FOLLOWING TO VERIFY IF GOING OR TO GET FEED
   List<String>? goingEvents; //////EVENT WHERE USER IS GOING
@@ -79,12 +80,14 @@ class AppProfile {
   Map<String, Place>? places;
 
   List<String>? badges;
+  List<Influence>? influences;
   int totalTipsReceived;
 
   bool directoryVisible;
   bool showPhone;
   VerificationLevel verificationLevel;
   int lastNameUpdate = 0;
+  String slug;
 
   AppProfile({
     this.id = "",
@@ -97,7 +100,6 @@ class AppProfile {
     this.aboutMe = "",
     this.usageReason = UsageReason.casual,
     this.mainFeature = "",
-    this.lastSpotifySync = 0,
     this.reviewStars = 10.0,
     this.isActive = false,
     this.type = ProfileType.general,
@@ -106,11 +108,21 @@ class AppProfile {
     this.totalTipsReceived = 0,
     this.verificationLevel = VerificationLevel.none,
     this.lastNameUpdate = 0,
+    this.slug = "",
   });
+
+  /// Generates a URL slug from a profile name.
+  /// "Serzen Montoya" → "serzenmontoya"
+  static String generateSlug(String name) {
+    return name
+        .toLowerCase()
+        .replaceAll(RegExp(r'\s+'), '')
+        .replaceAll(RegExp(r'[^a-z0-9áéíóúñü]'), '');
+  }
 
   @override
   String toString() {
-    return 'AppProfile{id: $id, name: $name, aboutMe: $aboutMe, photoUrl: $photoUrl, coverImgUrl: $coverImgUrl, mainFeature: $mainFeature, lastTimeOn: $lastTimeOn, lastSpotifySync: $lastSpotifySync, isActive: $isActive, position: $position, address: $address, phoneNumber: $phoneNumber, type: $type, usageReason: $usageReason, reviewStars: $reviewStars, lastReview: $lastReview, itemmates: $itemmates, eventmates: $eventmates, followers: $followers, following: $following, unfollowing: $unfollowing, blockTo: $blockTo, blockedBy: $blockedBy, posts: $posts, blogEntries: $blogEntries, comments: $comments, hiddenPosts: $hiddenPosts, hiddenComments: $hiddenComments, bannedGenres: $bannedGenres, reports: $reports, bands: $bands, events: $events, reviews: $reviews, favoriteItems: $favoriteItems, chamberPresets: $chamberPresets, watchingEvents: $watchingEvents, goingEvents: $goingEvents, playingEvents: $playingEvents, requests: $requests, sentRequests: $sentRequests, invitationRequests: $invitationRequests, itemlists: $itemlists, instruments: $instruments, chambers: $chambers, frequencies: $frequencies, genres: $genres, facilities: $facilities, places: $places, directoryVisible: $directoryVisible, showPhone: $showPhone, verificationLevel: $verificationLevel, lastNameUpdate: $lastNameUpdate}';
+    return 'AppProfile{id: $id, name: $name, aboutMe: $aboutMe, photoUrl: $photoUrl, coverImgUrl: $coverImgUrl, mainFeature: $mainFeature, lastTimeOn: $lastTimeOn, isActive: $isActive, position: $position, address: $address, phoneNumber: $phoneNumber, type: $type, usageReason: $usageReason, reviewStars: $reviewStars, lastReview: $lastReview, itemmates: $itemmates, eventmates: $eventmates, followers: $followers, following: $following, unfollowing: $unfollowing, blockTo: $blockTo, blockedBy: $blockedBy, posts: $posts, blogEntries: $blogEntries, comments: $comments, hiddenPosts: $hiddenPosts, hiddenComments: $hiddenComments, bannedGenres: $bannedGenres, reports: $reports, bands: $bands, events: $events, reviews: $reviews, favoriteItems: $favoriteItems, chamberPresets: $chamberPresets, watchingEvents: $watchingEvents, goingEvents: $goingEvents, playingEvents: $playingEvents, requests: $requests, sentRequests: $sentRequests, invitationRequests: $invitationRequests, itemlists: $itemlists, instruments: $instruments, chambers: $chambers, frequencies: $frequencies, genres: $genres, facilities: $facilities, places: $places, directoryVisible: $directoryVisible, showPhone: $showPhone, verificationLevel: $verificationLevel, lastNameUpdate: $lastNameUpdate}';
   }
 
   Map<String, dynamic> toJSON() {
@@ -125,7 +137,6 @@ class AppProfile {
       'coverImgUrl': coverImgUrl,
       'aboutMe': aboutMe,
       'mainFeature': mainFeature,
-      'lastSpotifySync': lastSpotifySync,
       'reviewStars': reviewStars,
       'isActive': isActive,
       'type': type.name,
@@ -149,6 +160,7 @@ class AppProfile {
       'events': events,
       'reviews': reviews,
       'favoriteItems': favoriteItems,
+      'savedItemlistIds': savedItemlistIds,
       'chamberPresets': chamberPresets,
       'watchingEvents': watchingEvents,
       'goingEvents': goingEvents,
@@ -157,11 +169,13 @@ class AppProfile {
       'sentRequests': sentRequests,
       'invitationRequests': invitationRequests,
       'badges': badges,
+      'influences': influences?.map((i) => i.toJSON()).toList() ?? [],
       'totalTipsReceived': totalTipsReceived,
       'directoryVisible': directoryVisible,
       'showPhone': showPhone,
       'verificationLevel': verificationLevel.name,
       'lastNameUpdate': lastNameUpdate,
+      'slug': slug,
     };
   }
 
@@ -177,7 +191,6 @@ class AppProfile {
       'coverImgUrl': coverImgUrl,
       'aboutMe': aboutMe,
       'mainFeature': mainFeature,
-      'lastSpotifySync': lastSpotifySync,
       'reviewStars': reviewStars,
       'isActive': isActive,
       'type': type.name,
@@ -201,6 +214,7 @@ class AppProfile {
       'events': events,
       'reviews': reviews,
       'favoriteItems': favoriteItems,
+      'savedItemlistIds': savedItemlistIds,
       'chamberPresets': chamberPresets,
       'watchingEvents': watchingEvents,
       'goingEvents': goingEvents,
@@ -209,11 +223,13 @@ class AppProfile {
       'sentRequests': sentRequests,
       'invitationRequests': invitationRequests,
       'badges': badges,
+      'influences': influences?.map((i) => i.toJSON()).toList() ?? [],
       'totalTipsReceived': totalTipsReceived,
       'directoryVisible': directoryVisible,
       'showPhone': showPhone,
       'verificationLevel': verificationLevel.name,
       'lastNameUpdate': lastNameUpdate,
+      'slug': slug,
       'facilities': facilities != null
           ? facilities!.map((key, facility) => MapEntry(key, facility.toJSON()))
           : {},
@@ -228,7 +244,6 @@ class AppProfile {
         type = EnumToString.fromString(ProfileType.values, data["type"] ?? ProfileType.general.value) ?? ProfileType.general,
         usageReason = EnumToString.fromString(UsageReason.values, data["usageReason"] ?? UsageReason.casual.name) ?? UsageReason.casual,
         aboutMe = data["aboutMe"] ?? "",
-        lastSpotifySync = data["lastSpotifySync"] ?? 0,
         reviewStars = double.tryParse(data["reviewStars"].toString()) ?? 10,
         mainFeature = data["mainFeature"] ?? "",
         isActive = data["isActive"] ?? true,
@@ -253,6 +268,7 @@ class AppProfile {
         events = data["events"]?.cast<String>() ?? [],
         reviews = data["reviews"]?.cast<String>() ?? [],
         favoriteItems = data["favoriteItems"]?.cast<String>() ?? [],
+        savedItemlistIds = data["savedItemlistIds"]?.cast<String>() ?? [],
         chamberPresets = data["chamberPresets"]?.cast<String>() ?? [],
         watchingEvents = data["watchingEvents"]?.cast<String>() ?? [],
         goingEvents = data["goingEvents"]?.cast<String>() ?? [],
@@ -261,11 +277,13 @@ class AppProfile {
         sentRequests = data["sentRequests"]?.cast<String>() ?? [],
         invitationRequests = data["invitationRequests"]?.cast<String>() ?? [],
         badges = data["badges"]?.cast<String>() ?? [],
+        influences = (data["influences"] as List?)?.map((i) => Influence.fromJSON(i)).toList() ?? [],
         totalTipsReceived = data["totalTipsReceived"] ?? 0,
         directoryVisible = data["directoryVisible"] ?? true,
         showPhone = data["showPhone"] ?? true,
         verificationLevel = EnumToString.fromString(VerificationLevel.values, data["verificationLevel"] ?? VerificationLevel.none.name) ?? VerificationLevel.none,
         lastNameUpdate = data["lastNameUpdate"] ?? 0,
+        slug = data["slug"] ?? "",
         facilities = data["facilities"] != null
             ? (data["facilities"] as Map).map((key, value) {
           return MapEntry(
@@ -285,6 +303,7 @@ class AppProfile {
         address = data["address"] ?? '',
         phoneNumber = data["phoneNumber"] ?? '',
         favoriteItems = data["favoriteItems"]?.cast<String>() ?? [],
+        savedItemlistIds = data["savedItemlistIds"]?.cast<String>() ?? [],
         chamberPresets = data["chamberPresets"]?.cast<String>() ?? [],
         instruments = { for (var e in data["instruments"]?.cast<String>() ?? []) e : Instrument() },
         frequencies = { for (var e in data["frequencies"]?.cast<String>() ?? []) e : NeomFrequency() },
@@ -295,7 +314,8 @@ class AppProfile {
         totalTipsReceived = 0,
         directoryVisible = true,
         showPhone = true,
-        verificationLevel = EnumToString.fromString(VerificationLevel.values, data["verificationLevel"] ?? VerificationLevel.none.name) ?? VerificationLevel.none;
+        verificationLevel = EnumToString.fromString(VerificationLevel.values, data["verificationLevel"] ?? VerificationLevel.none.name) ?? VerificationLevel.none,
+        slug = data["slug"] ?? "";
 
 
   Map<String, dynamic> toProfileInstrumentsJSON() {
@@ -312,6 +332,7 @@ class AppProfile {
       'mainFeature': mainFeature,
       'instruments': instruments?.values.map((instrument) => instrument.name).toList(),
       'frequencies': frequencies?.values.map((frequency) => frequency.name).toList(),
+      'influences': influences?.map((i) => i.toJSON()).toList() ?? [],
       'verificationLevel': verificationLevel.name
     };
   }

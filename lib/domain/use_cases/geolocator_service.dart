@@ -1,7 +1,8 @@
 import 'dart:async';
 
-import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+
+import '../../utils/platform/core_geocoding.dart';
 
 abstract class GeoLocatorService {
 

@@ -63,7 +63,9 @@ class InboxMessage {
     text = data["text"] ?? "",
     createdTime = data["createdTime"] ?? 0,
     seenTime = data["seenTime"] ?? 0,
-    type = EnumToString.fromString(AppMediaType.values, data["type"]) ?? AppMediaType.text,
+    type = data["type"] != null
+        ? (EnumToString.fromString(AppMediaType.values, data["type"]) ?? AppMediaType.text)
+        : AppMediaType.text,
     mediaUrl = data["mediaUrl"] ?? "",
     referenceId = data["referenceId"] ?? "",
     audioDuration = data["audioDuration"] ?? 0,

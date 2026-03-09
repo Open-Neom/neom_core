@@ -68,6 +68,14 @@ class AppReleaseItem {
   /// Total page views across all users and reading sessions
   int totalPageViews;
 
+  /// URL slug for vanity URLs (e.g., emxi.org/quemando-mis-razones)
+  String slug;
+
+  /// Content moderation fields
+  bool isSuspended;
+  String? suspendedBy;
+  String? suspendedReason;
+
   AppReleaseItem({
     this.id = '',
     this.name = '',
@@ -109,6 +117,10 @@ class AppReleaseItem {
     this.webPreviewUrl,
     this.iaInfo,
     this.totalPageViews = 0,
+    this.slug = '',
+    this.isSuspended = false,
+    this.suspendedBy,
+    this.suspendedReason,
   });
 
   @override
@@ -152,10 +164,14 @@ class AppReleaseItem {
         externalArtists = List.from(data["externalArtists"]?.cast<String>() ?? []),
         featInternalArtists = data["featInternalArtists"] as Map<String,String>?,
         likedProfiles = List.from(data["likedProfiles"]?.cast<String>() ?? []),
-        externalUrl = data["externalUrl"].toString(),
-        webPreviewUrl = data["webPreviewUrl"].toString(),
+        externalUrl = data["externalUrl"]?.toString(),
+        webPreviewUrl = data["webPreviewUrl"]?.toString(),
         iaInfo = data["iaInfo"] != null ? IaInfo.fromJSON(data["iaInfo"] as Map<String, dynamic>) : null,
-        totalPageViews = data["totalPageViews"] ?? 0;
+        totalPageViews = data["totalPageViews"] ?? 0,
+        slug = data["slug"] ?? '',
+        isSuspended = data["isSuspended"] ?? false,
+        suspendedBy = data["suspendedBy"],
+        suspendedReason = data["suspendedReason"];
   
   /// Returns true if this release item contains audio content (audiobook, song, podcast, etc.)
   /// Used to route to audio player instead of book details
@@ -194,6 +210,15 @@ class AppReleaseItem {
     return url.endsWith('.pdf') ||
            url.endsWith('.epub') ||
            url.endsWith('.mobi');
+  }
+
+  /// Generates a URL-friendly slug from a title.
+  /// "Quemando mis razones" → "quemando-mis-razones"
+  static String generateSlug(String title) {
+    return title
+        .toLowerCase()
+        .replaceAll(RegExp(r'\s+'), '-')
+        .replaceAll(RegExp(r'[^a-z0-9\-áéíóúñü]'), '');
   }
 
   Map<String, dynamic>  toJSON() => {
@@ -236,6 +261,10 @@ class AppReleaseItem {
     'webPreviewUrl': webPreviewUrl,
     'iaInfo': iaInfo?.toJSON(),
     'totalPageViews': totalPageViews,
+    'slug': slug,
+    'isSuspended': isSuspended,
+    'suspendedBy': suspendedBy,
+    'suspendedReason': suspendedReason,
   };
 
 }

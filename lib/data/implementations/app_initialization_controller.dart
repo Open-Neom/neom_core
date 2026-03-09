@@ -86,8 +86,10 @@ class AppInitializationController {
     String fcmToken = await FirebaseMessaging.instance.getToken() ?? "";
 
     if(fcmToken.isNotEmpty) {
-      await FirebaseMessaging.instance.subscribeToTopic(AppFirestoreConstants.allUsers);
-      AppConfig.logger.d("FCM Token $fcmToken subscribed to topic ${AppFirestoreConstants.allUsers}.");
+      if (!kIsWeb) {
+        await FirebaseMessaging.instance.subscribeToTopic(AppFirestoreConstants.allUsers);
+        AppConfig.logger.d("FCM Token $fcmToken subscribed to topic ${AppFirestoreConstants.allUsers}.");
+      }
     } else {
       AppConfig.logger.w("FCM Token is empty");
     }

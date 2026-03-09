@@ -59,7 +59,9 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
           AppMediaItem appMediaItem = AppMediaItem.fromJSON(documentSnapshot.data());
           appMediaItem.id = documentSnapshot.id;
 
-          if((type == null || appMediaItem.type == type)
+          if(!appMediaItem.isSuspended
+              && appMediaItem.isAudioContent
+              && (type == null || appMediaItem.type == type)
               && (excludeTypes == null || !excludeTypes.contains(appMediaItem.type))) {
             appMediaItems[appMediaItem.id] = appMediaItem;
           }
@@ -93,8 +95,10 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
         for (var documentSnapshot in querySnapshot.docs) {
           AppMediaItem appMediaItem = AppMediaItem.fromJSON(documentSnapshot.data());
           appMediaItem.id = documentSnapshot.id;
-          AppConfig.logger.d("AppMediaItem ${appMediaItem.name} was retrieved with details");
-          appMediaItems[documentSnapshot.id] = appMediaItem;
+          if (!appMediaItem.isSuspended) {
+            AppConfig.logger.d("AppMediaItem ${appMediaItem.name} was retrieved with details");
+            appMediaItems[documentSnapshot.id] = appMediaItem;
+          }
         }
       }
     } catch (e) {
@@ -124,6 +128,16 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
   @override
   Future<void> insert(AppMediaItem appMediaItem) async {
     AppConfig.logger.t("Adding appMediaItem to database collection");
+
+    if (!appMediaItem.isAudioContent) {
+      AppConfig.logger.w("Rejected non-audio item '${appMediaItem.name}' (type: ${appMediaItem.type}) from appMediaItems collection");
+      return;
+    }
+
+    if (appMediaItem.url.toLowerCase().endsWith('.pdf')) {
+      AppConfig.logger.w("Rejected PDF URL item '${appMediaItem.name}' from appMediaItems collection");
+      return;
+    }
 
     try {
       await appMediaItemReference.doc(appMediaItem.id).set(appMediaItem.toJSON());
@@ -204,9 +218,27 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
     return false;
   }
 
+  /// Updates specific fields of an AppMediaItem
+  Future<bool> updateFields(String mediaItemId, Map<String, dynamic> fields) async {
+    AppConfig.logger.d("Updating appMediaItem $mediaItemId fields");
+    try {
+      await appMediaItemReference.doc(mediaItemId).update(fields);
+      AppConfig.logger.d("AppMediaItem $mediaItemId updated successfully");
+      return true;
+    } catch (e) {
+      AppConfig.logger.e("Error updating AppMediaItem: $e");
+      return false;
+    }
+  }
+
   @override
   Future<void> existsOrInsert(AppMediaItem appMediaItem) async {
     AppConfig.logger.t("existsOrInsert appMediaItem ${appMediaItem.id}");
+
+    if (!appMediaItem.isAudioContent) {
+      AppConfig.logger.w("Skipped non-audio item '${appMediaItem.name}' (type: ${appMediaItem.type}) in existsOrInsert");
+      return;
+    }
 
     try {
       // OPTIMIZED: Use await instead of .then()

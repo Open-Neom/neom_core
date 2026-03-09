@@ -59,6 +59,14 @@ class Band {
   Map<String, Genre>? genres;
   Map<String, BandMember>? members;
 
+  String slug;
+
+  static String generateSlug(String title) {
+    return title.toLowerCase()
+      .replaceAll(RegExp(r'\s+'), '-')
+      .replaceAll(RegExp(r'[^a-z0-9\-áéíóúñü]'), '');
+  }
+
   Band({
     this.id = "",
     this.email = '',
@@ -89,7 +97,8 @@ class Band {
     this.playingEvents,
     this.requests,
     this.sentRequests,
-    this.invitationRequests
+    this.invitationRequests,
+    this.slug = '',
   });
 
   @override
@@ -131,7 +140,8 @@ class Band {
       'playingEvents': playingEvents,
       'requests': requests,
       'sentRequests': sentRequests,
-      'invitationRequests': invitationRequests
+      'invitationRequests': invitationRequests,
+      'slug': slug,
     };
   }
 
@@ -166,6 +176,7 @@ class Band {
         playingEvents = data["playingEvents"]?.cast<String>() ?? [],
         requests = data["requests"]?.cast<String>() ?? [],
         sentRequests = data["sentRequests"]?.cast<String>() ?? [],
-        invitationRequests = data["invitationRequests"]?.cast<String>() ?? [];
+        invitationRequests = data["invitationRequests"]?.cast<String>() ?? [],
+        slug = data["slug"] ?? '';
 
 }

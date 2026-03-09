@@ -557,6 +557,9 @@ class UserController extends SintController implements UserService {
     return wasUpdated;
   }
 
+  bool _isSubscriptionSuspended = false;
+  bool get isSubscriptionSuspended => _isSubscriptionSuspended;
+
   @override
   Future<void> getUserSubscription() async {
     AppConfig.logger.d('getUserSubscription');
@@ -565,6 +568,17 @@ class UserController extends SintController implements UserService {
       List<UserSubscription> subscriptions = await UserSubscriptionFirestore().getByUserId(user.id);
 
       if(subscriptions.isNotEmpty) {
+        // Check for suspended subscription first
+        final suspended = subscriptions.firstWhereOrNull(
+          (sub) => sub.status == SubscriptionStatus.suspended,
+        );
+        if (suspended != null) {
+          _isSubscriptionSuspended = true;
+          AppConfig.logger.w('User subscription ${suspended.subscriptionId} is SUSPENDED');
+        } else {
+          _isSubscriptionSuspended = false;
+        }
+
         _userSubscription = subscriptions.firstWhereOrNull((subscription) => subscription.status == SubscriptionStatus.active);
         if(userSubscription?.subscriptionId == user.subscriptionId) {
           _subscriptionLevel = userSubscription?.level ?? SubscriptionLevel.freemium;
@@ -574,6 +588,7 @@ class UserController extends SintController implements UserService {
           AppConfig.logger.d('User subscription is different from user.subscriptionId');
         }
       } else if(user.subscriptionId.isNotEmpty) {
+        _isSubscriptionSuspended = false;
         if (CoreUtilities.isWithinFirstMonth(user.createdDate)) {
           _subscriptionLevel = SubscriptionLevel.freeMonth;
           AppConfig.logger.i('User subscriptionId ${user.subscriptionId} is still within free month for SubscriptionLevel ${subscriptionLevel.name}');
@@ -584,6 +599,7 @@ class UserController extends SintController implements UserService {
       } else if(user.userRole.value > UserRole.subscriber.value){
         AppConfig.logger.d('No user subscription found');
         _subscriptionLevel = SubscriptionLevel.ambassador;
+        _isSubscriptionSuspended = false;
       }
     } catch (e) {
       AppConfig.logger.e(e.toString());

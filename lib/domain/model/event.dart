@@ -58,7 +58,18 @@ class Event {
   String? url;
   bool isOutdoor;
   bool isTest;
-  
+
+  // Edit tracking
+  bool isEdited;
+
+  String slug;
+
+  static String generateSlug(String title) {
+    return title.toLowerCase()
+      .replaceAll(RegExp(r'\s+'), '-')
+      .replaceAll(RegExp(r'[^a-z0-9\-áéíóúñü]'), '');
+  }
+
   Event({
       this.id = "",
       this.name = "",
@@ -91,7 +102,9 @@ class Event {
       this.url,
       this.isOutdoor = false,
       this.isTest = false,
-      this.guestsLimit = 0
+      this.guestsLimit = 0,
+      this.isEdited = false,
+      this.slug = '',
   });
 
   @override
@@ -118,7 +131,9 @@ class Event {
     isOnline = false,
     isOutdoor = false,
     isTest = false,
-    guestsLimit = 0;
+    guestsLimit = 0,
+    isEdited = false,
+    slug = '';
 
   Event.fromJSON(dynamic data):
       id = data["id"] ?? "",
@@ -158,7 +173,9 @@ class Event {
       url = data["url"],
       isOutdoor = data["isOutdoor"] ?? false,
       isTest = data["isTest"] ?? false,
-      guestsLimit = data["guestsLimit"] ?? 0;
+      guestsLimit = data["guestsLimit"] ?? 0,
+      isEdited = data["isEdited"] ?? false,
+      slug = data["slug"] ?? "";
 
   Map<String, dynamic> toJSON() => {
     'id': id,
@@ -193,6 +210,8 @@ class Event {
     'isTest': isTest,
     'isOutdoor': isOutdoor,
     'guestsLimit': guestsLimit,
+    'isEdited': isEdited,
+    'slug': slug,
   };
 
 }

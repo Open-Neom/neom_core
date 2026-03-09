@@ -115,6 +115,10 @@ class AppFirestoreConstants {
   static const String isAvailable = 'isAvailable';
   static const String isDraft = 'isDraft';
   static const String isHidden = 'isHidden';
+  static const String isEdited = 'isEdited';
+  static const String isSuspended = 'isSuspended';
+  static const String suspendedBy = 'suspendedBy';
+  static const String suspendedReason = 'suspendedReason';
 
   static const String fcmToken = 'fcmToken';
   static const String spotifyToken = 'spotifyToken';
@@ -134,6 +138,7 @@ class AppFirestoreConstants {
   static const String documentsFolder = "documents";
   static const String miscFolder = "misc";
 
+  static const String influences = "influences";
   static const String verificationLevel = "verificationLevel";
   static const String userRole = "userRole";
 
@@ -160,5 +165,6 @@ class AppFirestoreConstants {
   static const String lastTransactionId = "lastTransactionId";
   static const String lastTyping = "lastTyping";
   static const String seenTime = "seenTime";
+  static const String readerEmail = "readerEmail";
 
 }

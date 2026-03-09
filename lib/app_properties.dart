@@ -1,9 +1,12 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
 import 'app_config.dart';
+import 'cloud_properties.dart';
 import 'domain/model/price.dart';
 import 'utils/constants/data_assets.dart';
 import 'utils/enums/app_currency.dart';
+import 'utils/enums/app_in_use.dart';
 
 class AppProperties {
 
@@ -17,7 +20,6 @@ class AppProperties {
   AppProperties._internal(); // Constructor privado para Singleton
 
   static dynamic appProperties = {};
-  static dynamic serviceAccount = {};
 
   /// Flag para garantizar que `readProperties()` solo se llame una vez
   static bool _isPropertiesRead = false;
@@ -26,14 +28,27 @@ class AppProperties {
   Future<void> _init() async {
     if (!_isPropertiesRead) {
       await readProperties();
-      await readServiceAccount();
+      await CloudProperties.init();
       _isPropertiesRead = true;
     }
   }
 
+  /// Loads app configuration. On web, fetches from Cloud Functions (secureOpsWeb)
+  /// so that secrets never reach the client. On mobile, falls back to the
+  /// local asset file for offline support.
   static Future<void> readProperties() async {
     AppConfig.logger.t("readProperties");
 
+    if (kIsWeb) {
+      try {
+        await CloudProperties.loadFromCloud();
+        return;
+      } catch (e) {
+        AppConfig.logger.w("Cloud Functions getConfig failed, falling back to local: $e");
+      }
+    }
+
+    // Mobile or Cloud Functions fallback: load from local asset
     try {
       String jsonString = await rootBundle.loadString(DataAssets.propertiesJsonPath);
       appProperties = jsonDecode(jsonString);
@@ -43,60 +58,68 @@ class AppProperties {
     }
   }
 
-  static Future<void> readServiceAccount() async {
-    AppConfig.logger.t("readServiceAccount");
-    try {
-      String jsonString = await rootBundle.loadString(DataAssets.serviceAccountJsonPath);
-      serviceAccount = jsonDecode(jsonString);
-      AppConfig.logger.t("Service Account Loaded as: $serviceAccount");
-    } catch (e) {
-      AppConfig.logger.e("Error reading service account: $e");
-      return;
-    }
+  static String getAppName() {
+    return appProperties['appName'] ?? '';
   }
 
-  static String getAppName() {    
-    return appProperties['appName'];      
+  /// Returns the display name for a given AppInUse source.
+  /// Reads from the `appSourceNames` map in properties/config.
+  /// Falls back to the enum letter uppercased if not found.
+  static String getAppSourceName(AppInUse appInUse) {
+    final names = appProperties['appSourceNames'];
+    if (names is Map) {
+      return names[appInUse.name]?.toString() ?? appInUse.name.toUpperCase();
+    }
+    return appInUse.name.toUpperCase();
+  }
+
+  static String getAppSourceUrl(AppInUse appInUse) {
+    String sourceUrl = '';
+    final names = appProperties['appSourceUrls'];
+    if (names is Map) {
+      sourceUrl = names[appInUse.name]?.toString() ?? '';
+    }
+    return sourceUrl;
   }
 
   static String getAppBotName() {
-    return appProperties['appBotName'];
+    return appProperties['appBotName'] ?? '';
   }
 
   static String getAppLogoUrl() {
-    return appProperties['appLogoUrl'];
+    return appProperties['appLogoUrl'] ?? '';
   }
 
   static String getJammingDefaultImgUrl() {
-    return appProperties['jammingLogo'];
+    return appProperties['jammingLogo'] ?? '';
   }
 
   static String getLinksUrl() {
-    return appProperties['linksUrl'];
+    return appProperties['linksUrl'] ?? '';
   }
 
   static String getPlayStoreUrl() {
-    return appProperties['playStoreUrl'];
+    return appProperties['playStoreUrl'] ?? '';
   }
 
   static String getAppStoreUrl() {
-    return appProperties['appStoreUrl'];
+    return appProperties['appStoreUrl'] ?? '';
   }
 
   static String getLandingPageUrl() {
-    return appProperties['landingPageUrl'];
+    return appProperties['landingPageUrl'] ?? '';
   }
 
   static String getTermsOfServiceUrl() {
-    return appProperties['termsOfServiceUrl'];
+    return appProperties['termsOfServiceUrl'] ?? '';
   }
 
   static String getPrivacyPolicyUrl() {
-    return appProperties['privacyPolicyUrl'];
+    return appProperties['privacyPolicyUrl'] ?? '';
   }
 
   static String getBlogUrl() {
-    return appProperties['blogUrl'];
+    return appProperties['blogUrl'] ?? '';
   }
 
   static String getWebContact() {
@@ -114,172 +137,135 @@ class AppProperties {
   }
 
   static String getFirebaseProjectId() {
-    return appProperties['firebaseProjectId'];
-  }
-
-  static String getGoogleApiKey() {
-    return appProperties['googleApiKey'];
-  }
-
-  static String getSpotifyClientId() {
-    return appProperties['spotifyClientId'];
-  }
-
-  static String getSpotifyClientSecret() {
-    return appProperties['spotifyClientSecret'];
-  }
-
-  static String getStripePublishableKey() {
-    return appProperties['stripePublishableKey'];
-  }
-
-  static String getStripeSecretKey({required bool isLive}) {
-    return isLive ? appProperties['stripeSecretLiveKey'] : appProperties['stripeSecretTestKey'];
+    return appProperties['firebaseProjectId'] ?? '';
   }
 
   static String getECommerceUrl() {
-    return appProperties['eCommerceUrl'];
+    return appProperties['eCommerceUrl'] ?? '';
   }
 
   static String getPresskitUrl() {
-    return appProperties['presskitUrl'];
+    return appProperties['presskitUrl'] ?? '';
   }
 
   static String getMediatourUrl() {
-    return appProperties['mediatourUrl'];
+    return appProperties['mediatourUrl'] ?? '';
   }
 
   static String getOnlineInterviewUrl() {
-    return appProperties['onlineInterviewUrl'];
+    return appProperties['onlineInterviewUrl'] ?? '';
   }
 
   static String getDigitalPositioningUrl() {
-    return appProperties['digitalPositioningUrl'];
+    return appProperties['digitalPositioningUrl'] ?? '';
   }
 
   static String getConsultancyUrl() {
-    return appProperties['consultancyUrl'];
+    return appProperties['consultancyUrl'] ?? '';
   }
 
   static String getCopyrightUrl() {
-    return appProperties['copyrightUrl'];
+    return appProperties['copyrightUrl'] ?? '';
   }
 
   static String getIsbnProcedureUrl() {
-    return appProperties['isbnProcedureUrl'];
+    return appProperties['isbnProcedureUrl'] ?? '';
   }
 
   static String getCoverDesignUrl() {
-    return appProperties['coverDesignUrl'];
+    return appProperties['coverDesignUrl'] ?? '';
   }
 
   static String getOnlineClinicUrl() {
-    return appProperties['onlineClinicUrl'];
+    return appProperties['onlineClinicUrl'] ?? '';
   }
 
   static String getStartCampaignUrl() {
-    return appProperties['startCampaignUrl'];
+    return appProperties['startCampaignUrl'] ?? '';
   }
 
   static String getCrowdfundingUrl() {
-    return appProperties['crowdfundingUrl'];
+    return appProperties['crowdfundingUrl'] ?? '';
   }
 
   static String getWhatsappBusinessNumber() {
-    return appProperties['whatsappBusinessNumber'];
+    return appProperties['whatsappBusinessNumber'] ?? '';
   }
 
   static String getInitialPrice() {
-    return appProperties['initialPrice'];
+    return appProperties['initialPrice'] ?? '';
   }
 
   static String getBuyMeACoffeeURL() {
-    return appProperties['buyMeACoffeeUrl'];    
+    return appProperties['buyMeACoffeeUrl'] ?? '';
   }
 
   static String getHubName() {
-    return appProperties['hubName'];
+    return appProperties['hubName'] ?? '';
   }
 
   static String getStorageServerName() {
-    return appProperties['storageServerName'];    
+    return appProperties['storageServerName'] ?? '';
   }
 
   static String getSplashSubtitle() {
-    return appProperties['splashSubText'];    
+    return appProperties['splashSubText'] ?? '';
   }
 
   static String getPaymentGatewayBaseURL() {
-    return appProperties['paymentGatewayBaseURL'];
+    return appProperties['paymentGatewayBaseURL'] ?? '';
   }
 
   static String getNotificationChannelId() {
-    return appProperties['notificationChannelId'];
+    return appProperties['notificationChannelId'] ?? '';
   }
 
   static String getNotificationChannelName() {
-    return appProperties['notificationChannelName'];
+    return appProperties['notificationChannelName'] ?? '';
   }
 
   static String getNotificationIcon() {
-    return appProperties['notificationIcon'];
+    return appProperties['notificationIcon'] ?? '';
   }
 
   static String getInstagram() {
-    return appProperties['instagramUrl'];
+    return appProperties['instagramUrl'] ?? '';
   }
 
   static String getEmail() {
-    return appProperties['contactEmail'];
+    return appProperties['contactEmail'] ?? '';
   }
 
   static String getSubscriptionPlansUrl() {
-    return appProperties['subscriptionPlansUrl'];
+    return appProperties['subscriptionPlansUrl'] ?? '';
   }
 
   static String getSiteUrl() {
-    return appProperties['siteUrl'];
+    return appProperties['siteUrl'] ?? '';
   }
 
-
   static String getWooUrl() {
-    return appProperties['wooUrl'];
+    return appProperties['wooUrl'] ?? '';
   }
 
   static String getWordpressUrl() {
     return appProperties['wpUrl'] ?? '';
   }
 
-  static String getWooClientKey() {
-    return appProperties['wooClientKey'];
-  }
-
-  static String getWooClientSecret() {
-    return appProperties['wooClientSecret'];
-  }
-
   static String getWooMainCategoryId() {
-    return appProperties['wooMainCategoryId'];
+    return appProperties['wooMainCategoryId'] ?? '';
   }
 
   static String getWooSecondaryCategoryId() {
-    return appProperties['wooSecondaryCategoryId'];
-  }
-
-  static String getWooAccount() {
-    return appProperties['wooAccount'];
-  }
-
-  static String getWooPass() {
-    return appProperties['wooPass'];
+    return appProperties['wooSecondaryCategoryId'] ?? '';
   }
 
   static String getGeneralSubscriptionName() {
-    return appProperties['generalSubscriptionName'];
+    return appProperties['generalSubscriptionName'] ?? '';
   }
 
   static Price getSubscriptionPrice() {
-    double amount = appProperties['subscriptionPrice'];
+    double amount = (appProperties['subscriptionPrice'] ?? 0).toDouble();
     String currency = appProperties['subscriptionCurrency'] ?? 'MXN';
     AppCurrency appCurrency = AppCurrency.values.firstWhere(
       (e) => e.toString().split('.').last.toUpperCase() == currency.toUpperCase(),
@@ -290,27 +276,27 @@ class AppProperties {
   }
 
   static String getDevGithub() {
-    return appProperties['devGithub'];
+    return appProperties['devGithub'] ?? '';
   }
 
   static String getDevLinkedIn() {
-    return appProperties['devLinkedIn'];
+    return appProperties['devLinkedIn'] ?? '';
   }
 
   static String getWhatsappUrl() {
-    return appProperties['whatsappURL'];
+    return appProperties['whatsappURL'] ?? '';
   }
 
   static String getMainWhatsGroupUrl() {
-    return appProperties['mainWhatsGroupUrl'];
+    return appProperties['mainWhatsGroupUrl'] ?? '';
   }
 
   static String getSecondaryWhatsGroupUrl() {
-    return appProperties['secondaryWhatsGroupUrl'];
+    return appProperties['secondaryWhatsGroupUrl'] ?? '';
   }
 
   static String getClipName() {
-    return appProperties['clipName'];
+    return appProperties['clipName'] ?? '';
   }
 
   static bool mediaToWordpressFlag() {
@@ -323,73 +309,47 @@ class AppProperties {
   }
 
   static String getCeoName() {
-    return appProperties['ceoName'];
+    return appProperties['ceoName'] ?? '';
   }
 
   static String getCooName() {
-    return appProperties['cooName'];
+    return appProperties['cooName'] ?? '';
   }
 
   static String getCcoName() {
-    return appProperties['ccoName'];
+    return appProperties['ccoName'] ?? '';
   }
 
   static String getWooPhysicalItemCategory() {
-    return appProperties['wooPhysicalItemCategory'];
+    return appProperties['wooPhysicalItemCategory'] ?? '';
   }
 
   static String getWooDigitalItemCategory() {
-    return appProperties['wooDigitalItemCategory'];
+    return appProperties['wooDigitalItemCategory'] ?? '';
   }
 
   static String getWooStreamingCategory() {
-    return appProperties['wooStreamingItemCategory'];
+    return appProperties['wooStreamingItemCategory'] ?? '';
   }
 
   static String getWooSubscriptionItemCategory() {
-    return appProperties['wooSubscriptionItemCategory'];
+    return appProperties['wooSubscriptionItemCategory'] ?? '';
   }
 
   static String getWooNupaleProdutId() {
-    return appProperties['wooNupaleProductId'];
+    return appProperties['wooNupaleProductId'] ?? '';
   }
 
   static String getWooCaseteProdutId() {
-    return appProperties['wooCaseteProductId'];
-  }
-
-  static String getWebCliendId() {
-    return appProperties['webClientId'];
-  }
-
-  static String getServerCliendId() {
-    return appProperties['serverClientId'];
+    return appProperties['wooCaseteProductId'] ?? '';
   }
 
   static String getAppCoinValue() {
-    return appProperties['appCoinValue'];
+    return appProperties['appCoinValue'] ?? '';
   }
-  
+
   static Map<String, dynamic> getDeeplinkUrl() {
     return appProperties['getDeeplinkUrl'] ?? {};
-  }
-
-  static String getGeminiApiKey() {
-    return appProperties['geminiApiKey'] ?? '';
-  }
-
-  static String getBraveKey() {
-    return appProperties['braveKey'] ?? '';
-  }
-
-  /// API key para OpenRouter (proveedores OpenAI-compatible: Qwen, DeepSeek, etc.)
-  static String getOpenRouterApiKey() {
-    return appProperties['openRouterApiKey'] ?? '';
-  }
-
-  /// Base URL para OpenRouter (o cualquier endpoint OpenAI-compatible)
-  static String getOpenRouterBaseUrl() {
-    return appProperties['openRouterBaseUrl'] ?? 'https://openrouter.ai/api/v1';
   }
 
 }

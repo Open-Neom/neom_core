@@ -1,4 +1,4 @@
-import 'dart:io';
+import '../../utils/platform/core_io.dart';
 
 abstract class ImageEditorService {
 

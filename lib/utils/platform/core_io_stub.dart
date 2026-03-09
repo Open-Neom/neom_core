@@ -13,7 +13,7 @@ class File {
   int lengthSync() => 0;
   Uint8List readAsBytesSync() => Uint8List(0);
   Future<Uint8List> readAsBytes() async => Uint8List(0);
-  Stream<List<int>> readAsBytes_asStream() => Stream.value(Uint8List(0));
+  Stream<List<int>> readAsBytesAsStream() => Stream.value(Uint8List(0));
   Future<File> create({bool recursive = false}) async => this;
   Future<File> writeAsBytes(List<int> bytes, {bool flush = false}) async => this;
   Future<File> writeAsString(String contents) async => this;
@@ -21,7 +21,14 @@ class File {
   Future<bool> exists() async => false;
   Future<int> length() async => 0;
   Future<void> delete({bool recursive = false}) async {}
+  void deleteSync({bool recursive = false}) {}
+  Future<File> copy(String newPath) async => File(newPath);
+  Future<File> rename(String newPath) async => File(newPath);
+  Stream<List<int>> openRead([int? start, int? end]) => Stream.value(Uint8List(0));
   Uri get uri => Uri.parse(path);
+
+  @override
+  String toString() => "File: '$path'";
 }
 
 /// Stub Directory class for web platform.

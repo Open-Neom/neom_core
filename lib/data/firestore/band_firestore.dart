@@ -45,12 +45,39 @@ class BandFirestore implements BandRepository {
   }
 
 
+  Future<Band?> getBySlug(String slug) async {
+    if (slug.isEmpty) return null;
+    try {
+      final querySnapshot = await bandsReference
+          .where('slug', isEqualTo: slug)
+          .limit(1)
+          .get();
+      if (querySnapshot.docs.isNotEmpty) {
+        final doc = querySnapshot.docs.first;
+        final band = Band.fromJSON(doc.data());
+        band.id = doc.id;
+        return band;
+      }
+    } catch (e) {
+      logger.e("getBySlug error: $e");
+    }
+    return null;
+  }
+
   /// OPTIMIZED: Batch operations in parallel instead of sequential N+1
   @override
   Future<String> insert(Band band) async {
     logger.d("Inserting band ${band.name}");
     String bandId = "";
     try {
+      // Auto-generate slug if empty
+      if (band.slug.isEmpty && band.name.isNotEmpty) {
+        final titleSlug = Band.generateSlug(band.name);
+        final existing = await getBySlug(titleSlug);
+        final emailPrefix = band.email.contains('@') ? band.email.split('@').first : band.email;
+        band.slug = existing == null ? titleSlug : Band.generateSlug('$emailPrefix ${band.name}');
+      }
+
       DocumentReference documentReference = await bandsReference.add(band.toJSON());
       bandId = documentReference.id;
 

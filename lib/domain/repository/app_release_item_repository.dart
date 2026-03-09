@@ -14,5 +14,6 @@ abstract class AppReleaseItemRepository {
   Future<Map<String, AppReleaseItem>> retrieveByCategory(String category, {int limit = 30});
   Future<Map<String, AppReleaseItem>> retrieveByOwner(String ownerEmail, {int limit = 30});
   Future<Map<String, AppReleaseItem>> retrieveByLanguage(String language, {int limit = 30});
+  Future<AppReleaseItem?> getBySlug(String slug);
 
 }

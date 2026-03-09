@@ -1,9 +1,12 @@
 import 'dart:async';
-import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:flutter/cupertino.dart';
+
 import '../../utils/enums/app_file_from.dart';
 import '../../utils/enums/media_type.dart';
 import '../../utils/enums/media_upload_destination.dart';
+import '../../utils/platform/core_io.dart';
 
 abstract class MediaUploadService {
 
@@ -34,5 +37,9 @@ abstract class MediaUploadService {
   List<File> get releaseFiles;
   String get mediaUrl;
   MediaType get mediaType;
+
+  /// Bytes del archivo seleccionado — usado en web donde dart:io File no funciona.
+  /// Retorna null en mobile (que usa File nativo).
+  Uint8List? get mediaBytes;
 
 }

@@ -82,4 +82,17 @@ class AppFirestoreCollectionConstants {
   static const String scheduledPosts = "scheduledPosts";
   static const String creatorAnalytics = "creatorAnalytics";
 
+  static const String itzliDevices = "itzliDevices";
+
+  static const String erpRoleAssignments = "erpRoleAssignments";
+  static const String financialSnapshots = "financialSnapshots";
+  static const String subscriptionEvents = "subscriptionEvents";
+  static const String collectionEvents = "collectionEvents";
+
+  static const String hubLeads = "hubLeads";
+  static const String hubAgents = "hubAgents";
+  static const String hubExpenses = "hubExpenses";
+  static const String hubIncomes = "hubIncomes";
+  static const String hubSnapshots = "hubSnapshots";
+
 }

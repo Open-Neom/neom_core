@@ -324,15 +324,21 @@ class InboxFirestore implements InboxRepository {
 
       if (querySnapshot.docs.isNotEmpty) {
         for (var documentSnapshot in querySnapshot.docs) {
-          final data = documentSnapshot.data();
-          if (data == null) continue;
-          Inbox inbox = Inbox.fromJSON(data as Map<String, dynamic>);
+          try {
+            final data = documentSnapshot.data();
+            if (data == null) continue;
+            Inbox inbox = Inbox.fromJSON(data as Map<String, dynamic>);
 
-          // Verificar si hay mensaje sin leer
-          if (inbox.lastMessage != null &&
-              inbox.lastMessage!.ownerId != profileId &&
-              inbox.lastMessage!.seenTime == 0) {
-            unreadCount++;
+            // Verificar si hay mensaje sin leer
+            if (inbox.lastMessage != null &&
+                inbox.lastMessage!.ownerId.isNotEmpty &&
+                inbox.lastMessage!.ownerId != profileId &&
+                inbox.lastMessage!.seenTime == 0) {
+              unreadCount++;
+            }
+          } catch (docError) {
+            AppConfig.logger.w("Skipping malformed inbox doc ${documentSnapshot.id}: $docError");
+            continue;
           }
         }
       }

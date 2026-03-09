@@ -20,6 +20,20 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
     AppConfig.logger.d("Adding appReleaseItem to database collection");
     String releaseItemId = appReleaseItem.id;
     try {
+      // Auto-generate slug from title; if taken, prepend author name
+      if (appReleaseItem.slug.isEmpty && appReleaseItem.name.isNotEmpty) {
+        final titleSlug = AppReleaseItem.generateSlug(appReleaseItem.name);
+        final existing = await getBySlug(titleSlug);
+        if (existing == null) {
+          appReleaseItem.slug = titleSlug;
+        } else {
+          // Collision: prepend ownerName → "javier-tupedo-quemando-mis-razones"
+          appReleaseItem.slug = AppReleaseItem.generateSlug(
+            '${appReleaseItem.ownerName} ${appReleaseItem.name}',
+          );
+        }
+      }
+
       if(releaseItemId.isNotEmpty) {
         await appReleaseItemReference.doc(releaseItemId).set(appReleaseItem.toJSON());
       } else {
@@ -48,7 +62,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
           AppReleaseItem releaseItem = AppReleaseItem.fromJSON(queryDocumentSnapshot.data());
           releaseItem.id = queryDocumentSnapshot.id;
 
-          if(releaseItem.status == ReleaseStatus.publish || DateTime.fromMillisecondsSinceEpoch(releaseItem.createdTime).add(const Duration(days: 28)).millisecondsSinceEpoch < DateTime.now().millisecondsSinceEpoch) {
+          if(!releaseItem.isSuspended && (releaseItem.status == ReleaseStatus.publish || DateTime.fromMillisecondsSinceEpoch(releaseItem.createdTime).add(const Duration(days: 28)).millisecondsSinceEpoch < DateTime.now().millisecondsSinceEpoch)) {
             releaseItems[releaseItem.id] = releaseItem;
           }
         }
@@ -206,7 +220,9 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
         if (doc.exists) {
           AppReleaseItem releaseItem = AppReleaseItem.fromJSON(doc.data());
           releaseItem.id = doc.id;
-          releaseItems[doc.id] = releaseItem;
+          if (!releaseItem.isSuspended) {
+            releaseItems[doc.id] = releaseItem;
+          }
         }
       }
     } catch (e) {
@@ -234,7 +250,9 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
         if (doc.exists) {
           AppReleaseItem releaseItem = AppReleaseItem.fromJSON(doc.data());
           releaseItem.id = doc.id;
-          releaseItems[doc.id] = releaseItem;
+          if (!releaseItem.isSuspended) {
+            releaseItems[doc.id] = releaseItem;
+          }
         }
       }
     } catch (e) {
@@ -262,7 +280,9 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
         if (doc.exists) {
           AppReleaseItem releaseItem = AppReleaseItem.fromJSON(doc.data());
           releaseItem.id = doc.id;
-          releaseItems[doc.id] = releaseItem;
+          if (!releaseItem.isSuspended) {
+            releaseItems[doc.id] = releaseItem;
+          }
         }
       }
     } catch (e) {
@@ -357,6 +377,30 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
       AppConfig.logger.e("Error incrementing page view: $e");
       return false;
     }
+  }
+
+  /// Retrieve an AppReleaseItem by its URL slug.
+  /// Used for vanity URL resolution: emxi.org/quemando-mis-razones → book
+  @override
+  Future<AppReleaseItem?> getBySlug(String slug) async {
+    if (slug.isEmpty) return null;
+
+    try {
+      final querySnapshot = await appReleaseItemReference
+          .where('slug', isEqualTo: slug)
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        final doc = querySnapshot.docs.first;
+        final item = AppReleaseItem.fromJSON(doc.data());
+        item.id = doc.id;
+        return item;
+      }
+    } catch (e) {
+      AppConfig.logger.e("getBySlug error: $e");
+    }
+    return null;
   }
 
 }

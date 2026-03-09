@@ -1,6 +1,7 @@
 import 'dart:async';
-import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
+import '../../utils/platform/core_io.dart';
 
 abstract class MediaPlayerService {
 

@@ -144,22 +144,21 @@ class MateController extends SintController implements MateService {
   Future<void> getMateDetails(AppProfile mate) async {
     AppConfig.logger.t("getMateDetails: ${mate.id} - ${mate.name}");
     if(mate.id != profile.id) {
-      Sint.toNamed(AppRouteConstants.mateDetails, arguments: mate.id);
+      Sint.toNamed(AppRouteConstants.matePath(mate.id), arguments: mate.id);
     } else {
-      Sint.toNamed(AppRouteConstants.profileDetails, arguments: mate.id);
+      Sint.toNamed(AppRouteConstants.profilePath(mate.id), arguments: mate.id);
     }
   }
 
   @override
   Future<void> loadProfiles({bool includeSelf = false, bool loadAll = false}) async {
-    AppConfig.logger.t("loadProfiles");
+    AppConfig.logger.d("loadProfiles loadAll: $loadAll, current: ${_profiles.length}");
     try {
-      // OPTIMIZED: Only load profiles that are actually needed instead of ALL profiles
-      if(_profiles.isEmpty) {
+      if(_profiles.isEmpty || loadAll) {
 
         if(loadAll) {
           _profiles.value = await ProfileFirestore().retrieveAllProfiles();
-          AppConfig.logger.d("Loaded ${_profiles.length} needed profiles (instead of all)");
+          AppConfig.logger.d("Loaded ${_profiles.length} profiles (loadAll)");
         } else {
           // Collect all unique profile IDs we need
           final Set<String> neededProfileIds = {};

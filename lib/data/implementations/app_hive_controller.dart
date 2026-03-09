@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:ui';
 
 import 'package:enum_to_string/enum_to_string.dart';
@@ -17,6 +16,7 @@ import '../../utils/constants/app_hive_constants.dart';
 import '../../utils/constants/core_constants.dart';
 import '../../utils/enums/app_hive_box.dart';
 import '../../utils/enums/app_locale.dart';
+import '../../utils/platform/core_io.dart';
 
 class AppHiveController implements AppHiveService {
 
@@ -72,13 +72,14 @@ class AppHiveController implements AppHiveService {
     AppConfig.logger.t('openHiveBox $boxName');
     final box = await Hive.openBox(boxName).onError((error, stackTrace) async {
       AppConfig.logger.e('Failed to open $boxName Box');
-      final Directory dir = await getApplicationDocumentsDirectory();
-      final String dirPath = dir.path;
-      final File dbFile = File('$dirPath/$boxName.hive');
-      final File lockFile = File('$dirPath/$boxName.lock');
-
-      await dbFile.delete();
-      await lockFile.delete();
+      if (!kIsWeb) {
+        final dir = await getApplicationDocumentsDirectory();
+        final dirPath = dir.path;
+        final dbFile = File('$dirPath/$boxName.hive');
+        final lockFile = File('$dirPath/$boxName.lock');
+        await dbFile.delete();
+        await lockFile.delete();
+      }
       await Hive.openBox(boxName);
       throw 'Failed to open $boxName Box\nError: $error';
     });

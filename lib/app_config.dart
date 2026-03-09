@@ -6,6 +6,7 @@ import 'package:logger/logger.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sint/sint.dart';
 
+import 'app_properties.dart';
 import 'data/firestore/app_info_firestore.dart';
 import 'data/implementations/app_hive_controller.dart';
 import 'domain/model/app_info.dart';
@@ -40,13 +41,22 @@ class AppConfig {
   Map<String, Itemlist> releaseItemlists = {};
   ItemlistType defaultItemlistType = ItemlistType.playlist;
 
-  /// Inicialización manual para controlar mejor el ciclo de vida
-  Future<void> initialize({required AppInUse app}) async {
-    if (_isInitialized) return;
-    _isInitialized = true;
+  // Cross-Promo Properties
+  List<AppInUse> promoSources = [];
+  int timelinePromoFrequency = 10;
+  Map<AppInUse, String> promoEndpoints = {};
 
+
+  /// Inicialización manual para controlar mejor el ciclo de vida
+
+  Future<void> initialize({
+    required AppInUse app,
+  }) async {
     logger.t("AppConfig Initialization");
 
+    if (_isInitialized) return;
+    _isInitialized = true;
+    
     try {
       appInUse = app;
       await _getAppInfo();
@@ -112,6 +122,24 @@ class AppConfig {
     }
 
     return rootPage;
+  }
+
+  Future<void> setPromoSources({
+    List<AppInUse> promoSources = const [],
+    int timelinePromoFrequency = 5,
+  }) async {
+    logger.t("Setting Promo Sources");
+
+    this.promoSources = promoSources;
+    this.timelinePromoFrequency = timelinePromoFrequency;
+
+    try {
+      for (var appInUse in promoSources) {
+        promoEndpoints[appInUse] = AppProperties.getAppSourceUrl(appInUse);
+      }
+    } catch (e) {
+      logger.e(e.toString());
+    }
   }
 
 }

@@ -119,7 +119,6 @@ class NupaleSessionFirestore implements NupaleSessionRepository {
           if(itemId == null || itemId == documentSnapshot.id){
             NupaleSession session = NupaleSession.fromJSON(documentSnapshot.data());
             if(skipTest && session.isTest) {
-              AppConfig.logger.d("session ${session.id} is a test session");
               continue;
             }
             session.id = documentSnapshot.id;
@@ -133,6 +132,34 @@ class NupaleSessionFirestore implements NupaleSessionRepository {
     } catch (e) {
       AppConfig.logger.e(e);
     }
+    return sessions;
+  }
+
+  @override
+  Future<Map<String, NupaleSession>> fetchByReaderEmail(String email, {bool skipTest = true}) async {
+    AppConfig.logger.d("Fetching sessions for readerEmail: $email");
+
+    Map<String, NupaleSession> sessions = {};
+
+    try {
+      QuerySnapshot querySnapshot = await nupaleSessionsReference
+          .where(AppFirestoreConstants.readerEmail, isEqualTo: email)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        for (var documentSnapshot in querySnapshot.docs) {
+          NupaleSession session = NupaleSession.fromJSON(documentSnapshot.data());
+          if (skipTest && session.isTest) continue;
+          session.id = documentSnapshot.id;
+          sessions[session.id] = session;
+        }
+      }
+
+      AppConfig.logger.d("${sessions.length} sessions found for $email");
+    } catch (e) {
+      AppConfig.logger.e(e.toString());
+    }
+
     return sessions;
   }
 

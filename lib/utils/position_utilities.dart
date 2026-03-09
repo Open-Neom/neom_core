@@ -1,9 +1,9 @@
-import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 
 import '../app_config.dart';
 import '../data/implementations/geolocator_controller.dart';
 import '../domain/model/address.dart';
+import 'platform/core_geocoding.dart';
 
 class PositionUtilities {
 

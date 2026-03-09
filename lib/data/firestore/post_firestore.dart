@@ -88,11 +88,39 @@ class PostFirestore implements PostRepository {
     }
   }
 
+  Future<Post?> getBySlug(String slug) async {
+    if (slug.isEmpty) return null;
+    try {
+      final querySnapshot = await postsReference
+          .where('slug', isEqualTo: slug)
+          .limit(1)
+          .get();
+      if (querySnapshot.docs.isNotEmpty) {
+        final doc = querySnapshot.docs.first;
+        final post = Post.fromJSON(doc.data());
+        post.id = doc.id;
+        return post;
+      }
+    } catch (e) {
+      AppConfig.logger.e("getBySlug error: $e");
+    }
+    return null;
+  }
+
   @override
   Future<String> insert(Post post) async {
     AppConfig.logger.t("Insert");
     String postId = "";
     try {
+      // Auto-generate slug if empty and caption is not empty
+      if (post.slug.isEmpty && post.caption.isNotEmpty) {
+        final titleSlug = Post.generateSlug(post.caption);
+        if (titleSlug.isNotEmpty) {
+          final existing = await getBySlug(titleSlug);
+          post.slug = existing == null ? titleSlug : Post.generateSlug('${post.profileName} ${post.caption}');
+        }
+      }
+
       DocumentReference documentReference = await postsReference
           .add(post.toJSON());
       postId = documentReference.id;
@@ -147,6 +175,17 @@ class PostFirestore implements PostRepository {
     }
 
     return false;
+  }
+
+  Future<bool> updateFields(String postId, Map<String, dynamic> fields) async {
+    AppConfig.logger.d("Updating post $postId fields");
+    try {
+      await postsReference.doc(postId).update(fields);
+      return true;
+    } catch (e) {
+      AppConfig.logger.e("Error updating Post: $e");
+      return false;
+    }
   }
 
   @override

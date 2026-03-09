@@ -1,10 +1,7 @@
 import 'package:enum_to_string/enum_to_string.dart';
-import 'package:in_app_purchase/in_app_purchase.dart';
-import 'package:in_app_purchase_android/billing_client_wrappers.dart';
-import 'package:in_app_purchase_android/src/types/google_play_purchase_details.dart';
-import 'package:in_app_purchase_storekit/src/types/app_store_purchase_details.dart';
 
 import '../../utils/enums/profile_type.dart';
+import '../../utils/platform/core_purchase_details.dart';
 import 'app_product.dart';
 import 'subscription_plan.dart';
 
@@ -21,8 +18,8 @@ class AppOrder {
   AppProduct? product;
   SubscriptionPlan? subscriptionPlan;
 
-  GooglePlayPurchaseDetails? googlePlayPurchaseDetails;
-  AppStorePurchaseDetails? appStorePurchaseDetails;
+  dynamic googlePlayPurchaseDetails;
+  dynamic appStorePurchaseDetails;
 
   AppOrder({
     this.id = "",
@@ -51,8 +48,8 @@ class AppOrder {
       'invoiceIds': invoiceIds,
       'product': product?.toJSON(),
       'subscriptionPlan': subscriptionPlan?.toJSON(),
-      'googlePlayPurchaseDetails': googlePlayPurchaseDetails != null ? googlePlayPurchaseDetailsJSON(googlePlayPurchaseDetails) : {},
-      'appStorePurchaseDetails': appStorePurchaseDetails != null ? appStorePurchaseDetailsJSON(appStorePurchaseDetails) : {},
+      'googlePlayPurchaseDetails': googlePlayPurchaseDetails != null ? googlePlayPurchaseDetailsToJSON(googlePlayPurchaseDetails) : {},
+      'appStorePurchaseDetails': appStorePurchaseDetails != null ? appStorePurchaseDetailsToJSON(appStorePurchaseDetails) : {},
     };
   }
 
@@ -67,70 +64,7 @@ class AppOrder {
     invoiceIds = data["invoiceIds"]?.cast<String>() ?? [],
     product = AppProduct.fromJSON(data["product"] ?? {}),
     subscriptionPlan = SubscriptionPlan.fromJSON(data["subscriptionPlan"] ?? {}),
-    googlePlayPurchaseDetails = googlePlayPurchaseDetailsFromJSON(data["googlePlayPurchaseDetails"] ?? {}),
-    appStorePurchaseDetails = appStorePurchaseDetailsFromJSON(data["appStorePurchaseDetails"] ?? {});
-
-  static Map googlePlayPurchaseDetailsJSON(GooglePlayPurchaseDetails? purchaseDetails) {
-    return {
-      'purchaseId': purchaseDetails?.purchaseID ?? "",
-      'productId': purchaseDetails?.productID ?? "",
-      'transactionDate': purchaseDetails?.transactionDate ?? "",
-      'status': purchaseDetails?.status.name ?? PurchaseStatus.error.name,
-      'verificationData': {
-        'localVerificationData': purchaseDetails?.verificationData.localVerificationData ?? "",
-        'serverVerificationData': purchaseDetails?.verificationData.serverVerificationData ?? "",
-        'source': purchaseDetails?.verificationData.source ?? "",
-      }
-    };
-  }
-
-  static Map appStorePurchaseDetailsJSON(AppStorePurchaseDetails? purchaseDetails) {
-    return {
-      'purchaseId': purchaseDetails?.purchaseID ?? "",
-      'productId': purchaseDetails?.productID ?? "",
-      'transactionDate': purchaseDetails?.transactionDate ?? "",
-      'status': purchaseDetails?.status.name ?? PurchaseStatus.error.name,
-      'verificationData': {
-        'localVerificationData': purchaseDetails?.verificationData.localVerificationData ?? "",
-        'serverVerificationData': purchaseDetails?.verificationData.serverVerificationData ?? "",
-        'source': purchaseDetails?.verificationData.source ?? "",
-      }
-    };
-  }
-
-  static GooglePlayPurchaseDetails? googlePlayPurchaseDetailsFromJSON(dynamic data) {
-    return GooglePlayPurchaseDetails(
-      purchaseID: data["purchaseId"] ?? "",
-      productID: data["productId"] ?? "",
-      transactionDate: data["transactionDate"] ?? "",
-      status: EnumToString.fromString(PurchaseStatus.values, data["status"] ?? PurchaseStatus.error.name)
-          ?? PurchaseStatus.error,
-      verificationData: PurchaseVerificationData(
-        localVerificationData: data["verificationData"]?["localVerificationData"] ?? "",
-        serverVerificationData: data["verificationData"]?["serverVerificationData"] ?? "",
-        source: data["verificationData"]?["source"] ?? "",
-      ),
-      billingClientPurchase: PurchaseWrapper(
-        orderId: data["billingClientPurchase"]?["orderId"] ?? "",
-        packageName: data["billingClientPurchase"]?["packageName"] ?? "",
-        purchaseTime: data["billingClientPurchase"]?["purchaseTime"] ?? 0,
-        purchaseToken: data["billingClientPurchase"]?["purchaseToken"] ?? "",
-        signature: data["billingClientPurchase"]?["signature"] ?? "",
-        products: data["billingClientPurchase"]?["products"]?.cast<String>() ?? [],
-        isAutoRenewing: data["billingClientPurchase"]?["isAutoRenewing"] ?? false,
-        originalJson: data["billingClientPurchase"]?["originalJson"] ?? "",
-        developerPayload: data["billingClientPurchase"]?["developerPayload"] ?? "",
-        isAcknowledged: data["billingClientPurchase"]?["isAcknowledged"] ?? false,
-        purchaseState: EnumToString.fromString(PurchaseStateWrapper.values, (data["billingClientPurchase"]?["purchaseState"]
-            ?? PurchaseStateWrapper.unspecified_state.name)) ?? PurchaseStateWrapper.unspecified_state,
-        obfuscatedAccountId: data["billingClientPurchase"]?["obfuscatedAccountId"] ?? "",
-        obfuscatedProfileId: data["billingClientPurchase"]?["obfuscatedProfileId"] ?? "",
-      ),
-    );
-  }
-
-  static AppStorePurchaseDetails? appStorePurchaseDetailsFromJSON(dynamic data) {
-    return null;
-  }
+    googlePlayPurchaseDetails = googlePlayPurchaseDetailsFromJSON(Map<dynamic, dynamic>.from(data["googlePlayPurchaseDetails"] ?? {})),
+    appStorePurchaseDetails = appStorePurchaseDetailsFromJSON(Map<dynamic, dynamic>.from(data["appStorePurchaseDetails"] ?? {}));
 
 }

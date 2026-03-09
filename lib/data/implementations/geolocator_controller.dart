@@ -1,11 +1,12 @@
 import 'dart:async';
 
-import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 
 import '../../app_config.dart';
 import '../../domain/use_cases/geolocator_service.dart';
 import '../../utils/constants/core_constants.dart';
+import '../../utils/platform/core_geocoding.dart';
+import '../../utils/platform/core_geolocation.dart';
 import '../../utils/position_utilities.dart';
 import '../firestore/profile_firestore.dart';
 
@@ -130,7 +131,7 @@ class GeoLocatorController implements GeoLocatorService {
         // return Future.error('Location permissions are permanently denied,'
         //     ' we cannot request permissions.');
       } else {
-        position = await Geolocator.getCurrentPosition();
+        position = await platformGetCurrentPosition();
       }
 
       AppConfig.logger.t("Position: ${position.toString()}");

@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 
 import '../../utils/enums/post_type.dart';
 
@@ -11,7 +11,7 @@ abstract class PostUploadService {
   void setUserLocation(String locationSuggestion);
   void clearUserLocation();
   void getBackToUploadImage(BuildContext context);
-  Future<void> getLocation(context);
+  Future<void> getLocation(BuildContext context);
 
   PostType get postType;
   void setPostType(PostType type);

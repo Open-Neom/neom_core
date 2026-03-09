@@ -8,8 +8,6 @@ import '../../../utils/enums/post_type.dart';
 import '../blog_entry_firestore.dart';
 import '../constants/app_firestore_collection_constants.dart';
 import '../constants/app_firestore_constants.dart';
-import '../post_firestore.dart';
-import '../profile_firestore.dart';
 
 /// Service to migrate Post.blogEntry documents to the new BlogEntry collection.
 ///
@@ -20,9 +18,7 @@ import '../profile_firestore.dart';
 /// 4. Optionally marks old Posts as migrated (or deletes them)
 class BlogMigrationService {
 
-  final PostFirestore _postFirestore = PostFirestore();
   final BlogEntryFirestore _blogEntryFirestore = BlogEntryFirestore();
-  final ProfileFirestore _profileFirestore = ProfileFirestore();
 
   final postsReference = FirebaseFirestore.instance.collection(
     AppFirestoreCollectionConstants.posts,
@@ -96,10 +92,6 @@ class BlogMigrationService {
       for (var post in blogPosts) {
         await _migratePost(post, deleteOld: deleteOldPosts);
       }
-
-      // Step 3: Update profiles with new blog entry IDs
-      AppConfig.logger.d("Step 3: Updating profile references...");
-      await _updateProfileReferences();
 
       AppConfig.logger.i("=== Migration Complete ===");
       AppConfig.logger.i("Total: $totalPosts");
@@ -214,23 +206,6 @@ class BlogMigrationService {
     } catch (e) {
       return false;
     }
-  }
-
-  /// Update profile.blogEntries to reference new BlogEntry IDs.
-  Future<void> _updateProfileReferences() async {
-    // Group by ownerId
-    Map<String, List<String>> profileUpdates = {}; // profileId -> list of new blog IDs
-
-    for (var entry in migrationMap.entries) {
-      // We need to find which profile owns this post
-      // The new blog entry already has the ownerId
-    }
-
-    // For now, we'll update profiles that have the old IDs
-    // This requires reading each profile and checking their blogEntries list
-
-    AppConfig.logger.d("Profile references will be updated when profiles are loaded");
-    // Note: A more complete implementation would batch-update profiles here
   }
 
   /// Log details of a post for dry run.

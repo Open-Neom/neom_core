@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:sint/sint.dart';
 
@@ -9,6 +8,7 @@ import '../../app_config.dart';
 import '../../domain/model/app_profile.dart';
 import '../../domain/model/app_user.dart';
 import '../../domain/model/facility.dart';
+import '../../domain/model/influence.dart';
 import '../../domain/model/place.dart';
 import '../../domain/model/post.dart';
 import '../../domain/repository/chamber_repository.dart';
@@ -128,6 +128,11 @@ class ProfileFirestore implements ProfileRepository {
       profile.id = documentReference.id;
       profileId = documentReference.id;
       profileId = documentReference.id;
+
+      // 2b. Generate slug from profile name if not already set
+      if (profile.slug.isEmpty && profile.name.isNotEmpty) {
+        profile.slug = AppProfile.generateSlug(profile.name);
+      }
 
       // 3. Guardamos el perfil en Firestore (ahora el JSON SÍ incluye el campo 'id')
       await documentReference.set(profile.toJSON());
@@ -854,6 +859,27 @@ class ProfileFirestore implements ProfileRepository {
     });
   }
 
+  @override
+  Future<bool> updateSlug(String profileId, String slug) async {
+    AppConfig.logger.d("Updating profile $profileId slug to $slug");
+    return await _updateProfileField(profileId, {'slug': slug});
+  }
+
+  @override
+  Future<bool> isAvailableSlug(String slug) async {
+    if (slug.isEmpty) return false;
+    try {
+      final querySnapshot = await profileReference
+          .where('slug', isEqualTo: slug)
+          .limit(1)
+          .get();
+      return querySnapshot.docs.isEmpty;
+    } catch (e) {
+      AppConfig.logger.e("isAvailableSlug error: $e");
+      return false;
+    }
+  }
+
 
   @override
   Future<bool> updateAboutMe(String profileId, String aboutMe) async {
@@ -892,6 +918,13 @@ class ProfileFirestore implements ProfileRepository {
     // OPTIMIZED: Use helper method instead of fetching ALL profiles
     return await _updateProfileField(profileId, {
       AppFirestoreConstants.type: type.value,
+    });
+  }
+
+  Future<bool> updateInfluences(String profileId, List<Influence> influences) async {
+    AppConfig.logger.d("Updating influences for profile $profileId");
+    return await _updateProfileField(profileId, {
+      AppFirestoreConstants.influences: influences.map((i) => i.toJSON()).toList(),
     });
   }
 
@@ -1002,6 +1035,22 @@ class ProfileFirestore implements ProfileRepository {
     // OPTIMIZED: Use helper method instead of fetching ALL profiles
     return await _updateProfileField(profileId, {
       AppFirestoreConstants.favoriteItems: FieldValue.arrayRemove(itemIds)
+    });
+  }
+
+  /// Saves another user's playlist to this profile's library.
+  Future<bool> saveItemlist(String profileId, String itemlistId) async {
+    AppConfig.logger.t("Saving itemlist $itemlistId to Profile $profileId library");
+    return await _updateProfileField(profileId, {
+      'savedItemlistIds': FieldValue.arrayUnion([itemlistId])
+    });
+  }
+
+  /// Removes a saved playlist from this profile's library.
+  Future<bool> unsaveItemlist(String profileId, String itemlistId) async {
+    AppConfig.logger.t("Unsaving itemlist $itemlistId from Profile $profileId library");
+    return await _updateProfileField(profileId, {
+      'savedItemlistIds': FieldValue.arrayRemove([itemlistId])
     });
   }
 
@@ -1296,6 +1345,29 @@ class ProfileFirestore implements ProfileRepository {
 
     AppConfig.logger.d("No profiles found");
     return true;
+  }
+
+  /// Retrieve a profile by its URL slug (normalized lowercase name without spaces).
+  /// Used for vanity URL resolution: emxi.org/serzenmontoya → profile
+  Future<AppProfile?> getBySlug(String slug) async {
+    if (slug.isEmpty) return null;
+
+    try {
+      final querySnapshot = await profileReference
+          .where('slug', isEqualTo: slug)
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        final doc = querySnapshot.docs.first;
+        final profile = AppProfile.fromJSON(doc.data());
+        profile.id = doc.id;
+        return profile;
+      }
+    } catch (e) {
+      AppConfig.logger.e("getBySlug error: $e");
+    }
+    return null;
   }
 
   Future<AppProfile> getProfileFeatures(AppProfile profile) async {

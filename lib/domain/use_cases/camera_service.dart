@@ -1,7 +1,8 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
+
+import '../../utils/platform/core_io.dart';
 
 /// Define el contrato para un servicio de cámara, exponiendo las acciones
 /// y el estado necesarios para que la UI interactúe con la cámara del dispositivo.

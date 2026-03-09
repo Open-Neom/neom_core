@@ -102,6 +102,9 @@ class Itemlist {
     position = CoreUtilities.JSONtoPosition(data["position"]),
     type = EnumToString.fromString(ItemlistType.values, data["type"] ?? ItemlistType.playlist.name) ?? ItemlistType.playlist,
     ownerType = EnumToString.fromString(OwnerType.values, data["ownerType"] ?? OwnerType.profile.name) ?? OwnerType.profile,
+    createdTime = data["createdTime"],
+    modifiedTime = data["modifiedTime"],
+    language = data["language"] ?? "",
     categories = List.from(data["categories"]?.cast<String>() ?? []),
     tags = List.from(data["tags"]?.cast<String>() ?? []);
 
@@ -112,6 +115,7 @@ class Itemlist {
     'href': href,
     'imgUrl': imgUrl,
     'ownerId': ownerId,
+    'ownerName': ownerName,
     'public': public,
     'uri': uri,
     'appReleaseItems': appReleaseItems?.map((appReleaseItem) => appReleaseItem.toJSON()).toList() ?? [],
@@ -121,6 +125,9 @@ class Itemlist {
     'type': type.name,
     'ownerType': ownerType.name,
     'isModifiable': isModifiable,
+    'createdTime': createdTime,
+    'modifiedTime': modifiedTime,
+    'language': language,
     'categories': categories,
     'tags': tags
   };
@@ -132,6 +139,7 @@ class Itemlist {
     'href': href,
     'imgUrl': imgUrl,
     'ownerId': ownerId,
+    'ownerName': ownerName,
     'public': public,
     'uri': uri,
     'appMediaItems': appMediaItems?.map((appMediaItem) => appMediaItem.toJSON()).toList() ?? [],
@@ -140,7 +148,12 @@ class Itemlist {
     'position': position != null ? jsonEncode(position) : null,
     'type': type.name,
     'ownerType': ownerType.name,
-    'isModifiable': isModifiable
+    'isModifiable': isModifiable,
+    'createdTime': createdTime,
+    'modifiedTime': modifiedTime,
+    'language': language,
+    'categories': categories,
+    'tags': tags
   };
 
   List<dynamic> get allItems {

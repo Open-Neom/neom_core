@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/cupertino.dart';
+
 import '../../utils/enums/event_type.dart';
 import '../../utils/enums/usage_reason.dart';
 import '../model/app_media_item.dart';
@@ -25,7 +27,7 @@ abstract class EventService {
 
   Future<void> createEvent();
   Future<void> createPostEvent();
-  Future<void> getEventPlace(context);
+  Future<void> getEventPlace(BuildContext context);
 
   bool validateInfo();
 
@@ -34,7 +36,7 @@ abstract class EventService {
   void setCoverFree();
   void setOnlineEvent();
   void setIsOnlineCheckboxState();
-  void setEventTime(context);
+  void setEventTime(BuildContext context);
   void setPaymentAmount();
 
   void setEventName();

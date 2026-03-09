@@ -1,7 +1,7 @@
-import 'dart:io';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../utils/enums/app_locale.dart';
+import '../../utils/platform/core_io.dart';
 import '../model/app_release_item.dart';
 // Necesario para Box
 

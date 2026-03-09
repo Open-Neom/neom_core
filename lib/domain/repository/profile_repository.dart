@@ -36,6 +36,8 @@ abstract class ProfileRepository {
   Future<bool> removePost(String profileId, String postId);
 
   Future<bool> updateName(String profileId, String name);
+  Future<bool> updateSlug(String profileId, String slug);
+  Future<bool> isAvailableSlug(String slug);
   Future<bool> updateAboutMe(String profileId, String aboutMe);
 
   Future<bool> addEvent(String profileId, String eventId, EventAction eventAction);

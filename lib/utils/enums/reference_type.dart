@@ -5,5 +5,7 @@ enum ReferenceType {
   event,
   request,
   invitation,
-  inbox
+  inbox,
+  release,
+  mediaItem
 }

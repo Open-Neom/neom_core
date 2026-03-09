@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_api_headers/google_api_headers.dart';
@@ -15,12 +16,13 @@ import 'package:neom_maps_services/utils/component.dart';
 import 'package:sint/sint.dart';
 
 import '../../app_config.dart';
-import '../../app_properties.dart';
+import '../../cloud_properties.dart';
 import '../../domain/model/app_profile.dart';
 import '../../domain/model/place.dart';
 import '../../domain/use_cases/maps_service.dart';
 import '../../domain/use_cases/user_service.dart';
 import '../../utils/constants/core_constants.dart';
+import '../../utils/platform/core_geolocation.dart';
 import '../../utils/position_utilities.dart';
 
 //TODO Move to neom_maps_service or something specific out of neom_core
@@ -30,6 +32,9 @@ class MapsController extends SintController implements MapsService {
 
   GoogleMapController? _googleMapController;
   final RxSet<Marker> _markers = <Marker>{}.obs;
+
+  /// Cached Google API key — fetched from Cloud Functions in secure mode.
+  String _googleApiKey = '';
 
   AppProfile profile = AppProfile();
   Position? referencePosition;
@@ -47,18 +52,22 @@ class MapsController extends SintController implements MapsService {
     super.onInit();
     AppConfig.logger.t("Maps Controller Init");
 
+    // On web, ALWAYS fetch Google API key from Cloud Functions (even if
+    // getConfig failed — the key is never in client-side properties).
+    if (CloudProperties.isSecureMode || kIsWeb) {
+      _googleApiKey = await CloudProperties.getSecretFromCloud('googleApiKey');
+    } else {
+      _googleApiKey = CloudProperties.getGoogleApiKey();
+    }
+
     profile = userServiceImpl.profile;
 
-    referencePosition = await Geolocator.getCurrentPosition(
-        locationSettings: LocationSettings(accuracy: LocationAccuracy.high,)
-    );
+    referencePosition = await platformGetCurrentPositionHighAccuracy();
 
     if(profile.position != null) {
       referencePosition = profile.position!;
     } else {
-      referencePosition = await Geolocator.getCurrentPosition(
-          locationSettings: LocationSettings(accuracy: LocationAccuracy.high,)
-      );
+      referencePosition = await platformGetCurrentPositionHighAccuracy();
       profile.position = referencePosition;
       userServiceImpl.profile = profile;
     }
@@ -147,7 +156,7 @@ class MapsController extends SintController implements MapsService {
         strictBounds: false,
         mode: Mode.fullscreen,
         context: context,
-        apiKey: AppProperties.getGoogleApiKey(),
+        apiKey: _googleApiKey,
         onError: onError,
         language: "es-MX",
         decoration: InputDecoration(
@@ -219,7 +228,7 @@ class MapsController extends SintController implements MapsService {
 
     try {
       GoogleMapsPlaces places = GoogleMapsPlaces(
-        apiKey: AppProperties.getGoogleApiKey(),
+        apiKey: _googleApiKey,
         apiHeaders: await const GoogleApiHeaders().getHeaders(),
       );
 

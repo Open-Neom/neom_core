@@ -1,4 +1,6 @@
 
+import 'package:flutter/material.dart';
+
 import '../../utils/enums/release_type.dart';
 import '../model/band.dart';
 import '../model/genre.dart';
@@ -11,7 +13,7 @@ abstract class ReleaseUploadService {
   Future<void> addInstrumentsToReleaseItem();
   Future<void> uploadReleaseItem();
   Future<void> createReleasePost();
-  Future<void> getPublisherPlace(context);
+  Future<void> getPublisherPlace(BuildContext context);
   bool validateInfo();
   void setPublishedYear(int year);
   void setIsPhysical();

@@ -71,10 +71,36 @@ class EventFirestore implements EventRepository {
     return events;
   }
 
+  Future<Event?> getBySlug(String slug) async {
+    if (slug.isEmpty) return null;
+    try {
+      final querySnapshot = await eventsReference
+          .where('slug', isEqualTo: slug)
+          .limit(1)
+          .get();
+      if (querySnapshot.docs.isNotEmpty) {
+        final doc = querySnapshot.docs.first;
+        final event = Event.fromJSON(doc.data());
+        event.id = doc.id;
+        return event;
+      }
+    } catch (e) {
+      AppConfig.logger.e("getBySlug error: $e");
+    }
+    return null;
+  }
+
   @override
   Future<String> insert(Event event,{String eventId = ""}) async {
     AppConfig.logger.t("insert");
     try {
+      // Auto-generate slug if empty
+      if (event.slug.isEmpty && event.name.isNotEmpty) {
+        final titleSlug = Event.generateSlug(event.name);
+        final existing = await getBySlug(titleSlug);
+        event.slug = existing == null ? titleSlug : Event.generateSlug('${event.ownerName} ${event.name}');
+      }
+
       DocumentReference documentReference;
       if(eventId.isEmpty) {
         documentReference = await eventsReference.add(event.toJSON());

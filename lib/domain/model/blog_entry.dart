@@ -47,6 +47,9 @@ class BlogEntry {
   // ID del Post original (para migración, se puede eliminar después)
   String? legacyPostId;
 
+  /// URL slug for vanity URLs (e.g., emxi.org/blog/mi-primer-articulo)
+  String slug;
+
   BlogEntry({
     this.id = '',
     this.ownerId = '',
@@ -69,6 +72,7 @@ class BlogEntry {
     this.viewCount = 0,
     this.verificationLevel,
     this.legacyPostId,
+    this.slug = '',
   });
 
   /// Genera el roomId asociado a este blog.
@@ -87,6 +91,15 @@ class BlogEntry {
   String get estimatedReadTime {
     final minutes = (wordCount / 200).ceil();
     return '$minutes min';
+  }
+
+  /// Generates a URL-friendly slug from a title.
+  /// "Mi primer articulo" → "mi-primer-articulo"
+  static String generateSlug(String title) {
+    return title
+        .toLowerCase()
+        .replaceAll(RegExp(r'\s+'), '-')
+        .replaceAll(RegExp(r'[^a-z0-9\-áéíóúñü]'), '');
   }
 
   @override
@@ -121,7 +134,8 @@ class BlogEntry {
           VerificationLevel.values,
           data["verificationLevel"] ?? VerificationLevel.none.name,
         ) ?? VerificationLevel.none,
-        legacyPostId = data["legacyPostId"];
+        legacyPostId = data["legacyPostId"],
+        slug = data["slug"] ?? '';
 
   Map<String, dynamic> toJSON() => {
     'ownerId': ownerId,
@@ -144,6 +158,7 @@ class BlogEntry {
     'viewCount': viewCount,
     'verificationLevel': verificationLevel?.name,
     if (legacyPostId != null) 'legacyPostId': legacyPostId,
+    'slug': slug,
   };
 
   BlogEntry.createClone(BlogEntry entry) :
@@ -167,7 +182,8 @@ class BlogEntry {
     savedByProfiles = List<String>.from(entry.savedByProfiles),
     viewCount = entry.viewCount,
     verificationLevel = entry.verificationLevel,
-    legacyPostId = entry.legacyPostId;
+    legacyPostId = entry.legacyPostId,
+    slug = entry.slug;
 
   /// Convierte este BlogEntry a un Post para mostrarlo en el feed/timeline.
   /// El caption del Post incluirá un preview del contenido.

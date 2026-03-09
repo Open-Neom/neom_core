@@ -225,6 +225,10 @@ class ItemlistFirestore implements ItemlistRepository {
       await documentReference.update({
         AppFirestoreConstants.name: itemlist.name,
         AppFirestoreConstants.description: itemlist.description,
+        AppFirestoreConstants.imgUrl: itemlist.imgUrl,
+        'public': itemlist.public,
+        AppFirestoreConstants.modifiedTime:
+            DateTime.now().millisecondsSinceEpoch,
       });
 
       AppConfig.logger.d("Itemlist ${itemlist.id} was updated");

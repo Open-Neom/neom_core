@@ -48,6 +48,23 @@ class AppMediaItem {
   MediaItemType? type;
   AppMediaSource mediaSource;
 
+  /// Returns true if this item is playable audio (not a book, PDF, or video).
+  bool get isAudioContent {
+    if (type != null) return type!.isAudio;
+    final lowerUrl = url.toLowerCase();
+    return !lowerUrl.endsWith('.pdf') &&
+           !lowerUrl.endsWith('.epub') &&
+           !lowerUrl.endsWith('.mobi');
+  }
+
+  /// URL slug for vanity URLs (propagated from AppReleaseItem)
+  String slug;
+
+  /// Content moderation fields
+  bool isSuspended;
+  String? suspendedBy;
+  String? suspendedReason;
+
   AppMediaItem({
     this.id = '',
     this.album = '',
@@ -79,6 +96,10 @@ class AppMediaItem {
     this.path,
     this.type,
     this.state = 0,
+    this.slug = '',
+    this.isSuspended = false,
+    this.suspendedBy,
+    this.suspendedReason,
   });
 
   @override
@@ -138,6 +159,10 @@ class AppMediaItem {
         likes: map['likes'] ?? 0,
         path: map['path'] ?? '',
         state: map['state'] ?? 0,
+        slug: map['slug'] ?? '',
+        isSuspended: map['isSuspended'] ?? false,
+        suspendedBy: map['suspendedBy'],
+        suspendedReason: map['suspendedReason'],
       );
       return appMediaItem;
     } catch (e) {
@@ -178,6 +203,10 @@ class AppMediaItem {
       'path': path,
       'state': state,
       'type': type?.value,
+      'slug': slug,
+      'isSuspended': isSuspended,
+      'suspendedBy': suspendedBy,
+      'suspendedReason': suspendedReason,
     };
   }
 

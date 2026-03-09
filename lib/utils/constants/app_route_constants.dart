@@ -1,6 +1,7 @@
 class AppRouteConstants {
 
   static const String root = "/";
+  static const String notFound = "/not-found";
   static const String login = "/login";
   static const String forgotPassword = "/forgot_password";
   static const String forgotPasswordSending = "/forgot_password/sending";
@@ -30,18 +31,18 @@ class AppRouteConstants {
   static const String genresFav = '/genres/fav';
   static const String lists = '/lists';
   static const String listItems = '/list/items';
-  static const String itemDetails = '/item/details';
+  static const String itemDetails = '/item/:itemId';
   static const String itemSearch = '/item/search';
 
   static const String profile = '/profile';
-  static const String profileDetails = '/profile/details';
+  static const String profileDetails = '/profile/:profileId';
   static const String profileEdit = '/profile/edit';
   static const String profileRemove = '/profile/remove';
   static const String spotifyPlaylists = '/spotify/playlists';
   static const String finishingSpotifySync = '/spotify/synchronization';
 
   static const String mates = '/mates';
-  static const String mateDetails = '/mate/details';
+  static const String mateDetails = '/mate/:mateId';
   static const String mateBlog = '/mate/blog';
   static const String mateSearch = '/mate/search';
   static const String following = '/following';
@@ -53,8 +54,8 @@ class AppRouteConstants {
 
   static const String inbox = '/inbox';
   static const String inboxRoom = '/inbox/room';
-  static const String postDetails = '/post/details';
-  static const String postDetailsFullScreen = '/post/details/fullscreen';
+  static const String postDetails = '/post/:postId';
+  static const String postDetailsFullScreen = '/post/:postId/fullscreen';
   static const String post = '/post';
   static const String postComments = '/post/comments';
   static const String postUploadDescription = '/post/upload/description';
@@ -79,7 +80,7 @@ class AppRouteConstants {
   static const String createEventCoverGenres = '/createEvent/coverGenres';
   static const String createEventEventSummary = '/createEvent/summary';
 
-  static const String eventDetails = '/event/details';
+  static const String eventDetails = '/event/:eventId';
   static const String events = '/event';
 
   static const String feedActivity = '/feed/activity';
@@ -88,7 +89,7 @@ class AppRouteConstants {
 
   static const String bands = '/bands';
   static const String bandsRoom = '/bands/room';
-  static const String bandDetails = '/band/details';
+  static const String bandDetails = '/band/:bandId';
   static const String bandLists = '/band/lists';
   static const String bandListItems = '/band/list/items';
   static const String createBandAddImage = '/createBand/addImage';
@@ -116,21 +117,22 @@ class AppRouteConstants {
   static const String directory = '/directory';
   static const String request = '/request';
   static const String requestUp = '/request-up';
-  static const String requestDetails = '/request/details';
-  static const String invitationDetails = '/invitation/details';
+  static const String requestDetails = '/request/:requestId';
+  static const String invitationDetails = '/invitation/:invitationId';
 
   static const String createCoupon = '/coupon/create';
   static const String createSponsor = '/sponsor/create';
   static const String orderConfirmation = '/order/confirmation';
-  static const String orderDetails = '/order/details';
+  static const String orderDetails = '/order/:orderId';
   static const String paymentGateway = '/payment/gateway';
 
   ///DEPRECATED static const String readlists  = '/readlists';
-  static const String pdfViewer  = '/PDFViewer';
+  static const String reading  = '/reading/:bookId';
   static const String epubViewer  = '/EPUBViewer';
   static const String digitalLibrary  = '/digitalLibrary';
   static const String libraryHome  = '/library/';
-  static const String bookDetails  = '/book/details';
+  static const String topBooks  = '/books/top';
+  static const String bookDetails  = '/book/:bookId';
 
   static const String blog  = '/blog';
   static const String blogEditor  = '/blog/editor';
@@ -166,6 +168,7 @@ class AppRouteConstants {
   static const String spatial360Fullscreen  = '/360/spatial/fullscreen';
   static const String vr360MonoFullscreen  = '/360/vr/mono/fullscreen';
   static const String vr360StereoFullscreen  = '/360/vr/stereo/fullscreen';
+  static const String fractalFullscreen  = '/fractal/fullscreen';
 
   static const String audioPlayer  = '/audioPlayer';
   static const String audioPlayerMedia  = '/audioPlayer/media';
@@ -182,8 +185,8 @@ class AppRouteConstants {
   static const String stripeWebView  = '/stripe/webview';
 
   static const String nupaleHome  = '/nupale/home';
-  static const String nupaleItemDetails  = '/nupale/item/details';
-  static const String nupaleMonthlyDetails  = '/nupale/monthly/details';
+  static const String nupaleItemDetails  = '/nupale/item/:itemId';
+  static const String nupaleMonthlyDetails  = '/nupale/monthly/:monthId';
   static const String nupaleStats1  = '/stats/nupale1';
   static const String nupaleStats2  = '/stats/nupale2';
   static const String nupaleStats3  = '/stats/nupale3';
@@ -196,11 +199,11 @@ class AppRouteConstants {
   static const String camera  = '/camera';
 
   static const String wallet = '/wallet';
-  static const String transactionDetails = '/transaction/details';
+  static const String transactionDetails = '/transaction/:transactionId';
 
   static const String caseteHome  = '/casete/home';
-  static const String caseteItemDetails  = '/casete/item/details';
-  static const String caseteMonthlyDetails  = '/casete/monthly/details';
+  static const String caseteItemDetails  = '/casete/item/:itemId';
+  static const String caseteMonthlyDetails  = '/casete/monthly/:monthId';
 
   static const String dawProjects = '/daw';
   static const String dawEditor = '/daw/editor';
@@ -227,17 +230,17 @@ class AppRouteConstants {
   static const String shopCart = '/shop/cart';
   static const String shopCheckout = '/shop/checkout';
   static const String shopOrders = '/shop/orders';
-  static const String shopOrderDetail = '/shop/order/detail';
+  static const String shopOrderDetail = '/shop/order/:orderId';
   static const String shopAdmin = '/shop/admin';
   static const String shopAdminOrders = '/shop/admin/orders';
-  static const String shopAdminOrderDetail = '/shop/admin/order/detail';
+  static const String shopAdminOrderDetail = '/shop/admin/order/:orderId';
   static const String shopAdminShipping = '/shop/admin/shipping';
   static const String shopWishlist = '/shop/wishlist';
   static const String shopAddresses = '/shop/addresses';
   static const String shopRefundRequest = '/shop/refund/request';
   static const String shopReview = '/shop/review';
   static const String shopSellerDashboard = '/shop/seller';
-  static const String shopSellerOrderDetail = '/shop/seller/order/detail';
+  static const String shopSellerOrderDetail = '/shop/seller/order/:orderId';
   static const String shopSellerProducts = '/shop/seller/products';
   static const String shopProductEdit = '/shop/seller/product/edit';
   static const String shopSellerInventory = '/shop/seller/inventory';
@@ -247,6 +250,11 @@ class AppRouteConstants {
   static const String shopGlobalInventory = '/shop/admin/inventory';
   static const String shopAnalytics = '/shop/admin/analytics';
   static const String shopMediaManager = '/shop/admin/media';
+  static const String shopHome = '/shop';
+  static const String shopProductDetail = '/shop/product/:productId';
+  static const String shopMerchList = '/shop/admin/merch';
+  static const String shopMerchEdit = '/shop/seller/merch/edit';
+  static const String shopAdminBanners = '/shop/admin/banners';
 
   // New features 2026
   static const String scheduledPosts = '/post/scheduled';
@@ -255,7 +263,7 @@ class AppRouteConstants {
   static const String storyCreate = '/stories/create';
   static const String storyViewer = '/stories/viewer';
   static const String communities = '/communities';
-  static const String communityDetail = '/community/detail';
+  static const String communityDetail = '/community/:communityId';
   static const String communityChat = '/community/chat';
   static const String communityCreate = '/community/create';
   static const String creatorAnalytics = '/creator/analytics';
@@ -265,5 +273,47 @@ class AppRouteConstants {
   static const String liveListener = '/live/listener';
   static const String goLive = '/live/setup';
   static const String tipHistory = '/tip/history';
+
+  // ERP Financial Intelligence
+  static const String erpDashboard = '/erp/dashboard';
+  static const String erpSubscriptions = '/erp/subscriptions';
+
+  // Hub (Operations Center)
+  static const String hubDashboard = '/hub/dashboard';
+  static const String hubOperations = '/hub/operations';
+
+  // Subscription status
+  static const String subscriptionSuspended = '/subscription/suspended';
+
+  // Admin
+  static const String slugMigration = '/admin/slug-migration';
+
+  // Remote Control
+  static const String rc = '/rc';
+
+  // ─── RESTful Path Builders (for navigation with dynamic IDs) ───
+
+  static String bookPath(String id) => '/book/$id';
+  static String readingPath(String id) => '/reading/$id';
+  static String matePath(String id) => '/mate/$id';
+  static String postPath(String id) => '/post/$id';
+  static String postFullScreenPath(String id) => '/post/$id/fullscreen';
+  static String eventPath(String id) => '/event/$id';
+  static String bandPath(String id) => '/band/$id';
+  static String itemPath(String id) => '/item/$id';
+  static String profilePath(String id) => '/profile/$id';
+  static String requestPath(String id) => '/request/$id';
+  static String invitationPath(String id) => '/invitation/$id';
+  static String orderPath(String id) => '/order/$id';
+  static String transactionPath(String id) => '/transaction/$id';
+  static String communityPath(String id) => '/community/$id';
+  static String shopOrderPath(String id) => '/shop/order/$id';
+  static String shopProductPath(String id) => '/shop/product/$id';
+  static String shopAdminOrderPath(String id) => '/shop/admin/order/$id';
+  static String shopSellerOrderPath(String id) => '/shop/seller/order/$id';
+  static String nupaleItemPath(String id) => '/nupale/item/$id';
+  static String nupaleMonthlyPath(String id) => '/nupale/monthly/$id';
+  static String caseteItemPath(String id) => '/casete/item/$id';
+  static String caseteMonthlyPath(String id) => '/casete/monthly/$id';
 
 }

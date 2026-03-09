@@ -1,6 +1,5 @@
 import 'dart:collection';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/services.dart';
@@ -32,6 +31,7 @@ import 'enums/itemlist_type.dart';
 import 'enums/media_item_type.dart';
 import 'enums/profile_type.dart';
 import 'enums/usage_reason.dart';
+import 'platform/core_exit_app.dart';
 import 'position_utilities.dart';
 
 
@@ -488,15 +488,10 @@ class CoreUtilities {
   static List<Itemlist> filterItemlists(List<Itemlist> lists, ItemlistType type) {
     if(lists.isEmpty) return [];
 
-    switch(type) {
-      case ItemlistType.playlist:
-        lists.removeWhere((list) => list.type == ItemlistType.readlist);
-        lists.removeWhere((list) => list.type == ItemlistType.giglist);
-        break;
-      case ItemlistType.readlist:
-        lists.removeWhere((list) => list.type != ItemlistType.readlist);
-      default:
-        break;
+    if (type.isAudio) {
+      lists.removeWhere((list) => !list.type.isAudio);
+    } else {
+      lists.removeWhere((list) => list.type != type);
     }
 
     return lists;
@@ -522,11 +517,7 @@ class CoreUtilities {
   }
 
   static void exitApp() {
-    if (Platform.isAndroid) {
-      SystemNavigator.pop();
-    } else if (Platform.isIOS) {
-      exit(0);
-    }
+    coreExitApp();
   }
 
   static MediaItemType getMediaItemType(AppReleaseItem releaseItem) {

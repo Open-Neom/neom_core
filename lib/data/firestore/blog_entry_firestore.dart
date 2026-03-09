@@ -16,12 +16,10 @@ class BlogEntryFirestore implements BlogEntryRepository {
 
   // Pagination cache
   DocumentSnapshot? _lastCommunityDocument;
-  DocumentSnapshot? _lastProfileDocument;
 
   /// Reset pagination cache.
   void resetPagination() {
     _lastCommunityDocument = null;
-    _lastProfileDocument = null;
   }
 
   @override
@@ -29,6 +27,18 @@ class BlogEntryFirestore implements BlogEntryRepository {
     AppConfig.logger.d("Insert BlogEntry");
     String entryId = "";
     try {
+      // Auto-generate slug from title if empty
+      if (entry.slug.isEmpty && entry.title.isNotEmpty) {
+        final titleSlug = BlogEntry.generateSlug(entry.title);
+        final existing = await getBySlug(titleSlug);
+        if (existing == null) {
+          entry.slug = titleSlug;
+        } else {
+          // Collision: prepend author name
+          entry.slug = BlogEntry.generateSlug('${entry.profileName} ${entry.title}');
+        }
+      }
+
       DocumentReference documentReference = await blogReference.add(entry.toJSON());
       entryId = documentReference.id;
       AppConfig.logger.d("BlogEntry inserted with ID: $entryId");
@@ -36,6 +46,26 @@ class BlogEntryFirestore implements BlogEntryRepository {
       AppConfig.logger.e("Error inserting BlogEntry: $e");
     }
     return entryId;
+  }
+
+  /// Retrieve a BlogEntry by its URL slug.
+  Future<BlogEntry?> getBySlug(String slug) async {
+    if (slug.isEmpty) return null;
+    try {
+      final querySnapshot = await blogReference
+          .where('slug', isEqualTo: slug)
+          .limit(1)
+          .get();
+      if (querySnapshot.docs.isNotEmpty) {
+        final doc = querySnapshot.docs.first;
+        final entry = BlogEntry.fromJSON(doc.data());
+        entry.id = doc.id;
+        return entry;
+      }
+    } catch (e) {
+      AppConfig.logger.e("getBySlug error: $e");
+    }
+    return null;
   }
 
   @override
