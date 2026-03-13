@@ -122,4 +122,19 @@ class AppUploadFirestore implements AppUploadRepository {
     return releaseItemUrl;
   }
 
+  @override
+  Future<String> uploadReleaseItemBytes(String fileName, Uint8List bytes, AppMediaType type) async {
+    String releaseItemUrl = '';
+    try {
+      AppConfig.logger.d('uploadReleaseItemBytes - $fileName (${bytes.length} bytes)');
+      UploadTask uploadTask = storageRef.child(AppFirestoreConstants.releaseItemsFolder).child('$fileName.${type.value}').putData(bytes);
+      TaskSnapshot storageSnap = await uploadTask;
+      releaseItemUrl = await storageSnap.ref.getDownloadURL();
+      AppConfig.logger.i('uploadReleaseItemBytes - success! URL: $releaseItemUrl');
+    } catch (e) {
+      AppConfig.logger.e(e.toString());
+    }
+    return releaseItemUrl;
+  }
+
 }

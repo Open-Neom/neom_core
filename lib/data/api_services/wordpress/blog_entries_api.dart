@@ -11,15 +11,15 @@ class BlogEntriesApi {
   static Future<List<BlogEntry>> getBlogEntries({int perPage = 10, int page = 1}) async {
 
     List<BlogEntry> entries = [];
-    final String url = '${AppProperties.getWordpressUrl()}/posts?page=$page&per_page=$perPage';
+    final String url = '${AppProperties.getWordpressUrl()}/posts?page=$page&per_page=$perPage&_embed=wp:featuredmedia';
 
     try {
       final response = await http.get(
         Uri.parse(url),
-        // headers: {
-        //   'Accept': 'application/json',
-        //   'User-Agent': 'Mozilla/5.0 (compatible; FlutterApp/1.0)',
-        // },
+        headers: {
+          'Accept': 'application/json',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+        },
       );
 
       if (response.statusCode == 200 || response.statusCode == 202) {

@@ -10,5 +10,6 @@ abstract class AppUploadRepository {
   Future<String> uploadMediaFile(String mediaId, File file, MediaType mediaType, MediaUploadDestination uploadDestination);
   Future<String> uploadMediaBytes(String mediaId, Uint8List bytes, MediaType mediaType, MediaUploadDestination uploadDestination);
   Future<String> uploadReleaseItem(String fileName, File file, AppMediaType type);
+  Future<String> uploadReleaseItemBytes(String fileName, Uint8List bytes, AppMediaType type);
 
 }

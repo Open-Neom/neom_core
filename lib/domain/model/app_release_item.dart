@@ -187,14 +187,15 @@ class AppReleaseItem {
              mediaType == MediaItemType.neomPreset;
     }
 
-    // Fallback: check file extension in previewUrl
+    // Fallback: check file extension in previewUrl (strip query params for Firebase URLs)
     final url = previewUrl.toLowerCase();
-    return url.endsWith('.mp3') ||
-           url.endsWith('.wav') ||
-           url.endsWith('.m4a') ||
-           url.endsWith('.aac') ||
-           url.endsWith('.ogg') ||
-           url.endsWith('.flac');
+    final path = Uri.tryParse(url)?.path ?? url;
+    return path.endsWith('.mp3') ||
+           path.endsWith('.wav') ||
+           path.endsWith('.m4a') ||
+           path.endsWith('.aac') ||
+           path.endsWith('.ogg') ||
+           path.endsWith('.flac');
   }
 
   /// Returns true if this release item is a readable book (PDF, EPUB, etc.)
@@ -205,11 +206,12 @@ class AppReleaseItem {
              mediaType == MediaItemType.pdf;
     }
 
-    // Fallback: check file extension in previewUrl
+    // Fallback: check file extension in previewUrl (strip query params for Firebase URLs)
     final url = previewUrl.toLowerCase();
-    return url.endsWith('.pdf') ||
-           url.endsWith('.epub') ||
-           url.endsWith('.mobi');
+    final path = Uri.tryParse(url)?.path ?? url;
+    return path.endsWith('.pdf') ||
+           path.endsWith('.epub') ||
+           path.endsWith('.mobi');
   }
 
   /// Generates a URL-friendly slug from a title.

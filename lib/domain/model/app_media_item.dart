@@ -51,10 +51,12 @@ class AppMediaItem {
   /// Returns true if this item is playable audio (not a book, PDF, or video).
   bool get isAudioContent {
     if (type != null) return type!.isAudio;
+    // Strip query params for Firebase Storage URLs before checking extension
     final lowerUrl = url.toLowerCase();
-    return !lowerUrl.endsWith('.pdf') &&
-           !lowerUrl.endsWith('.epub') &&
-           !lowerUrl.endsWith('.mobi');
+    final path = Uri.tryParse(lowerUrl)?.path ?? lowerUrl;
+    return !path.endsWith('.pdf') &&
+           !path.endsWith('.epub') &&
+           !path.endsWith('.mobi');
   }
 
   /// URL slug for vanity URLs (propagated from AppReleaseItem)

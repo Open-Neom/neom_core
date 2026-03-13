@@ -102,6 +102,7 @@ class AppRouteConstants {
   static const String settingsPrivacy = '/settingsAndPrivacy';
   static const String settingsAccount = '/settings/account';
   static const String settingsNotification = '/settings/notification';
+  static const String subscriptionPlans = '/subscription/plans';
   static const String contentPreferences = '/content/preferences';
   static const String about = '/about';
   static const String accountRemove = '/account/remove';
@@ -136,7 +137,7 @@ class AppRouteConstants {
 
   static const String blog  = '/blog';
   static const String blogEditor  = '/blog/editor';
-  static const String blogEntry  = '/blog/entry';
+  static const String blogEntry  = '/blog/:entryId';
   static const String blogAdmin  = '/blog/admin';
   static const String blogAnalytics  = '/blog/analytics';
 
@@ -251,6 +252,7 @@ class AppRouteConstants {
   static const String shopAnalytics = '/shop/admin/analytics';
   static const String shopMediaManager = '/shop/admin/media';
   static const String shopHome = '/shop';
+  static const String shopSearch = '/shop/search';
   static const String shopProductDetail = '/shop/product/:productId';
   static const String shopMerchList = '/shop/admin/merch';
   static const String shopMerchEdit = '/shop/seller/merch/edit';
@@ -288,20 +290,34 @@ class AppRouteConstants {
   // Admin
   static const String slugMigration = '/admin/slug-migration';
 
+  // Museum / Gallery
+  static const String museumHome = '/museum';
+  static const String museumArtworkDetail = '/museum/artwork/:artworkId';
+  static const String museumGallery = '/museum/gallery/:galleryId';
+  static const String museumGalleryCreate = '/museum/gallery/create';
+  static const String museumAuctionDetail = '/museum/auction/:auctionId';
+  static const String museumMyGalleries = '/museum/my-galleries';
+  static const String museumHallway = '/museum/hallway';
+  static const String museumRoom = '/museum/room';
+
   // Remote Control
   static const String rc = '/rc';
 
   // ─── RESTful Path Builders (for navigation with dynamic IDs) ───
+  // When a slug is provided and non-empty, it is used instead of the id
+  // for web-friendly URLs, SEO, and deep linking compatibility.
 
-  static String bookPath(String id) => '/book/$id';
-  static String readingPath(String id) => '/reading/$id';
-  static String matePath(String id) => '/mate/$id';
-  static String postPath(String id) => '/post/$id';
-  static String postFullScreenPath(String id) => '/post/$id/fullscreen';
-  static String eventPath(String id) => '/event/$id';
-  static String bandPath(String id) => '/band/$id';
-  static String itemPath(String id) => '/item/$id';
-  static String profilePath(String id) => '/profile/$id';
+  static String _slugOrId(String id, String slug) => slug.isNotEmpty ? slug : id;
+
+  static String bookPath(String id, {String slug = ''}) => '/book/${_slugOrId(id, slug)}';
+  static String readingPath(String id, {String slug = ''}) => '/reading/${_slugOrId(id, slug)}';
+  static String matePath(String id, {String slug = ''}) => '/mate/${_slugOrId(id, slug)}';
+  static String postPath(String id, {String slug = ''}) => '/post/${_slugOrId(id, slug)}';
+  static String postFullScreenPath(String id, {String slug = ''}) => '/post/${_slugOrId(id, slug)}/fullscreen';
+  static String eventPath(String id, {String slug = ''}) => '/event/${_slugOrId(id, slug)}';
+  static String bandPath(String id, {String slug = ''}) => '/band/${_slugOrId(id, slug)}';
+  static String itemPath(String id, {String slug = ''}) => '/item/${_slugOrId(id, slug)}';
+  static String profilePath(String id, {String slug = ''}) => '/profile/${_slugOrId(id, slug)}';
   static String requestPath(String id) => '/request/$id';
   static String invitationPath(String id) => '/invitation/$id';
   static String orderPath(String id) => '/order/$id';
@@ -315,5 +331,9 @@ class AppRouteConstants {
   static String nupaleMonthlyPath(String id) => '/nupale/monthly/$id';
   static String caseteItemPath(String id) => '/casete/item/$id';
   static String caseteMonthlyPath(String id) => '/casete/monthly/$id';
+  static String museumArtworkPath(String id) => '/museum/artwork/$id';
+  static String museumGalleryPath(String id) => '/museum/gallery/$id';
+  static String museumAuctionPath(String id) => '/museum/auction/$id';
+  static String blogEntryPath(String id, {String slug = ''}) => '/blog/${_slugOrId(id, slug)}';
 
 }

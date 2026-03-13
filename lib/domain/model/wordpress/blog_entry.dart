@@ -37,6 +37,12 @@ class BlogEntry {
     // Reemplazar múltiples espacios, saltos de línea y tabulaciones por un único espacio
     content = content.replaceAll(RegExp(r'\s+'), ' ').trim();
 
+    // Try jetpack_featured_media_url first, then _embedded featured media
+    String imgUrl = (json['jetpack_featured_media_url'] ?? '') as String;
+    if (imgUrl.isEmpty) {
+      imgUrl = _extractEmbeddedImageUrl(json);
+    }
+
     return BlogEntry(
       id: json['id'].toString(),
       date: DateTime.parse(json['date'] as String),
@@ -45,7 +51,7 @@ class BlogEntry {
       content: content,
       excerpt: (json['excerpt']?['rendered'] ?? '') as String,
       author: (json['author'].toString()),
-      imgUrl: (json['jetpack_featured_media_url'] ?? '') as String,
+      imgUrl: imgUrl,
       url: json['link'] as String,
     );
   }
@@ -60,6 +66,36 @@ class BlogEntry {
     'excerpt': excerpt,
   };
 
+
+  /// Extract featured image URL from WordPress _embedded data.
+  ///
+  /// WordPress REST API returns embedded media when `_embed` is requested:
+  /// `_embedded.wp:featuredmedia[0].source_url` or from `media_details.sizes`.
+  static String _extractEmbeddedImageUrl(Map<String, dynamic> json) {
+    try {
+      final embedded = json['_embedded'];
+      if (embedded == null) return '';
+
+      final featuredMedia = embedded['wp:featuredmedia'];
+      if (featuredMedia == null || featuredMedia is! List || featuredMedia.isEmpty) return '';
+
+      final media = featuredMedia[0] as Map<String, dynamic>;
+
+      // Try medium_large or full size for optimal web display
+      final sizes = media['media_details']?['sizes'] as Map<String, dynamic>?;
+      if (sizes != null) {
+        final preferred = sizes['medium_large'] ?? sizes['large'] ?? sizes['full'];
+        if (preferred != null && preferred['source_url'] != null) {
+          return preferred['source_url'] as String;
+        }
+      }
+
+      // Fallback to source_url
+      return (media['source_url'] ?? '') as String;
+    } catch (_) {
+      return '';
+    }
+  }
 
   /// Crea una instancia de BlogEntry a partir de un elemento HTML que representa un post.
   factory BlogEntry.fromHtml(dom.Element article) {

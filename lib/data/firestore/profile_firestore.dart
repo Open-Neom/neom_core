@@ -205,8 +205,17 @@ class ProfileFirestore implements ProfileRepository {
         profile.id = profileSnapshot.id;
         AppConfig.logger.d("Profile found by 'id' field: ${profile.name}");
       } else {
+        // Slug fallback: the profileId might be a vanity slug (e.g. 'serzenmontoya')
+        // from a web URL like /mate/serzenmontoya. Try resolving by slug field.
+        final slugProfile = await getBySlug(profileId);
+        if (slugProfile != null && slugProfile.id.isNotEmpty) {
+          profile = slugProfile;
+          AppConfig.logger.d("Profile found by 'slug' field: ${profile.name}");
+          return profile;
+        }
+
         // OPTIMIZED Fallback: Check recent profiles only instead of full collection scan
-        AppConfig.logger.w("Profile $profileId not found by 'id' field - checking recent profiles");
+        AppConfig.logger.w("Profile $profileId not found by 'id' or 'slug' field - checking recent profiles");
 
         // Only check last 100 profiles to avoid excessive reads
         final recentProfilesSnapshot = await profileReference
@@ -265,7 +274,13 @@ class ProfileFirestore implements ProfileRepository {
         profile.id = profileDocument.id;
         AppConfig.logger.d("Profile ${profile.toString()}");
       } else {
-        AppConfig.logger.d("Profile not found $profileId");
+        // Slug fallback: try resolving by slug field for web vanity URLs
+        final slugProfile = await getBySlug(profileId);
+        if (slugProfile != null && slugProfile.id.isNotEmpty) {
+          AppConfig.logger.d("Profile found by 'slug' field: ${slugProfile.name}");
+          return slugProfile;
+        }
+        AppConfig.logger.d("Profile not found by id or slug: $profileId");
       }
     } catch (e) {
       AppConfig.logger.e(e.toString());

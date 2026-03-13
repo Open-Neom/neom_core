@@ -42,4 +42,11 @@ abstract class MediaUploadService {
   /// Retorna null en mobile (que usa File nativo).
   Uint8List? get mediaBytes;
 
+  /// Bytes de un archivo de release específico por índice.
+  /// Usado en web para subir tracks individuales de un álbum.
+  Uint8List? getReleaseFileBytes(int index);
+
+  /// Nombre del archivo de release por índice.
+  String getReleaseFileName(int index);
+
 }
