@@ -47,20 +47,20 @@ class CloudProperties {
   /// On mobile, uses the callable secureOps via Firebase SDK.
   static Future<Map<String, dynamic>> callSecureOps(Map<String, dynamic> data) async {
     if (kIsWeb) {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        throw Exception('Authentication required — user not logged in');
+      }
+
       final url = Uri.parse(
         'https://secureopsweb-uzmgogia7a-uc.a.run.app',
       );
 
+      final token = await user.getIdToken();
       final headers = <String, String>{
         'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
       };
-
-      // Add auth token if user is logged in
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        final token = await user.getIdToken();
-        if (token != null) headers['Authorization'] = 'Bearer $token';
-      }
 
       final response = await http.post(
         url,

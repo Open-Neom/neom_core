@@ -8,5 +8,8 @@ abstract class SettingsService {
   Future<void> runAnalyticJobs();
   Future<void> runProfileJobs();
   Future<void> runVectorIndexJob();
+  Future<void> runSaiaDomainContextJob();
+  Future<void> runSaiaUserContextsJob({bool forceRebuild = false});
+  Future<void> runSaiaFullPipelineJob();
 
 }

@@ -95,4 +95,7 @@ class AppFirestoreCollectionConstants {
   static const String hubIncomes = "hubIncomes";
   static const String hubSnapshots = "hubSnapshots";
 
+  static const String saiaDomainSnapshots = "saiaDomainSnapshots";
+  static const String saiaUserContexts = "saiaUserContexts";
+
 }

@@ -10,4 +10,7 @@ abstract class MiniPlayerService {
   void goToMusicPlayerHome();
   void goToTimeline(BuildContext context);
 
+  /// Whether the miniplayer is currently visible (has an active media item).
+  bool get isActive;
+
 }

@@ -283,6 +283,7 @@ class AppRouteConstants {
   // Hub (Operations Center)
   static const String hubDashboard = '/hub/dashboard';
   static const String hubOperations = '/hub/operations';
+  static const String hubBenchmark = '/hub/benchmark';
 
   // Subscription status
   static const String subscriptionSuspended = '/subscription/suspended';
