@@ -39,6 +39,7 @@ class AppConfig {
 
   AuthStatus authStatus = AuthStatus.notDetermined;
   bool isGuestMode = true;
+  bool isAdminMode = false;
 
   Map<String, Itemlist> releaseItemlists = {};
   ItemlistType defaultItemlistType = ItemlistType.playlist;

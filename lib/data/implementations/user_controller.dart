@@ -323,6 +323,7 @@ class UserController extends SintController implements UserService {
         user = userFromFirestore;
         profile = user.profiles.first;
         _isNewUser = false;
+        AppConfig.instance.isAdminMode = user.userRole.value >= UserRole.admin.value;
       } else {
         AppConfig.logger.w("User $userId not exists!!");
         _isNewUser = true;

@@ -64,6 +64,12 @@ class Event {
 
   String slug;
 
+  // Recurrence
+  bool isRecurring;
+  List<int> recurringDays; // 1=Mon..7=Sun
+  String recurringTime; // "HH:mm"
+  String roomId; // linked NeomRoom for ongoing interaction
+
   static String generateSlug(String title) {
     return title.toLowerCase()
       .replaceAll(RegExp(r'\s+'), '-')
@@ -105,6 +111,10 @@ class Event {
       this.guestsLimit = 0,
       this.isEdited = false,
       this.slug = '',
+      this.isRecurring = false,
+      this.recurringDays = const [],
+      this.recurringTime = '',
+      this.roomId = '',
   });
 
   @override
@@ -133,7 +143,11 @@ class Event {
     isTest = false,
     guestsLimit = 0,
     isEdited = false,
-    slug = '';
+    slug = '',
+    isRecurring = false,
+    recurringDays = const [],
+    recurringTime = '',
+    roomId = '';
 
   Event.fromJSON(dynamic data):
       id = data["id"] ?? "",
@@ -175,7 +189,11 @@ class Event {
       isTest = data["isTest"] ?? false,
       guestsLimit = data["guestsLimit"] ?? 0,
       isEdited = data["isEdited"] ?? false,
-      slug = data["slug"] ?? "";
+      slug = data["slug"] ?? "",
+      isRecurring = data["isRecurring"] ?? false,
+      recurringDays = List<int>.from(data["recurringDays"]?.cast<int>() ?? []),
+      recurringTime = data["recurringTime"] ?? '',
+      roomId = data["roomId"] ?? '';
 
   Map<String, dynamic> toJSON() => {
     'id': id,
@@ -212,6 +230,10 @@ class Event {
     'guestsLimit': guestsLimit,
     'isEdited': isEdited,
     'slug': slug,
+    'isRecurring': isRecurring,
+    'recurringDays': recurringDays,
+    'recurringTime': recurringTime,
+    'roomId': roomId,
   };
 
 }
