@@ -98,23 +98,37 @@ class NeomStopwatch {
     return total;
   }
 
-  /// Returns elapsed seconds for [ref] and restarts its counter from 0.
-  /// Useful for per-page tracking: get the time spent, then restart for the next page.
+  /// Returns elapsed seconds for [ref] **without** resetting.
+  /// Call [commitLap] after the value has been safely captured/stored.
+  ///
+  /// Typical usage:
+  /// ```dart
+  /// final duration = stopwatch.lap(ref: 'page_book1');
+  /// pagesDuration[page] = (pagesDuration[page] ?? 0) + duration;
+  /// stopwatch.commitLap(ref: 'page_book1'); // safe to reset now
+  /// ```
   int lap({String? ref}) {
     ref ??= currentReference;
     if (_stopwatches.containsKey(ref)) {
-      int secs;
       if (_stopwatches[ref]!.isRunning) {
-        secs = _accumulatedTime[ref]! + _stopwatches[ref]!.elapsed.inSeconds;
-        _stopwatches[ref]!.reset();
-        _stopwatches[ref]!.start();
-      } else {
-        secs = _accumulatedTime[ref]!;
+        return _accumulatedTime[ref]! + _stopwatches[ref]!.elapsed.inSeconds;
       }
-      _accumulatedTime[ref] = 0;
-      return secs;
+      return _accumulatedTime[ref]!;
     }
     return 0;
+  }
+
+  /// Resets the lap counter for [ref] and restarts timing from 0.
+  /// Call this **after** the lap value has been safely captured.
+  void commitLap({String? ref}) {
+    ref ??= currentReference;
+    if (_stopwatches.containsKey(ref)) {
+      final wasRunning = _stopwatches[ref]!.isRunning;
+      _stopwatches[ref]!.stop();
+      _stopwatches[ref]!.reset();
+      _accumulatedTime[ref] = 0;
+      if (wasRunning) _stopwatches[ref]!.start();
+    }
   }
 
   /// Whether a stopwatch exists and is running for [ref].
