@@ -8,4 +8,5 @@ enum EventType {
   meetup, /// Social gathering to network, connect or discuss
   talk, /// Talk event with main speaker or panel - colloqium
   bookTour, /// Synchronized reading/listening tour — host controls navigation
+  virtualMeeting, /// Viewer-only event with external URL (Google Meet, Zoom, etc.)
 }

@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'app_config.dart';
 import 'app_properties.dart';
 import 'utils/constants/data_assets.dart';
+import 'utils/enums/app_in_use.dart';
 import 'utils/neom_error_logger.dart';
 
 /// Sensitive values (API keys, secrets) and cloud operations (proxies, secureOps).
@@ -31,6 +32,19 @@ class CloudProperties {
     }
   }
 
+  /// Returns the secureOpsWeb URL for the current app.
+  static String _getSecureOpsWebUrl() {
+    switch (AppConfig.instance.appInUse) {
+      case AppInUse.g:
+        return 'https://us-central1-gig-me-out.cloudfunctions.net/secureOpsWeb';
+      case AppInUse.c:
+        return 'https://us-central1-cyberneom-app.cloudfunctions.net/secureOpsWeb';
+      case AppInUse.e:
+      default:
+        return 'https://secureopsweb-uzmgogia7a-uc.a.run.app';
+    }
+  }
+
   /// Loads config from Cloud Functions on web.
   /// Stores into [AppProperties.appProperties] so both classes share the same data.
   static Future<void> loadFromCloud() async {
@@ -49,15 +63,15 @@ class CloudProperties {
   static Future<Map<String, dynamic>> callSecureOps(Map<String, dynamic> data) async {
     if (kIsWeb) {
       final user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
+      final isPublicAction = data['action'] == 'getConfig';
+
+      if (user == null && !isPublicAction) {
         throw Exception('Authentication required — user not logged in');
       }
 
-      final url = Uri.parse(
-        'https://secureopsweb-uzmgogia7a-uc.a.run.app',
-      );
+      final url = Uri.parse(_getSecureOpsWebUrl());
 
-      final token = await user.getIdToken();
+      final token = user != null ? await user.getIdToken() : null;
       final headers = <String, String>{
         'Content-Type': 'application/json',
         if (token != null) 'Authorization': 'Bearer $token',
@@ -74,10 +88,18 @@ class CloudProperties {
       }
 
       final body = jsonDecode(response.body);
-      if (body['error'] != null) {
-        throw Exception(body['error']['message'] ?? 'Unknown error');
+      if (body is Map<String, dynamic>) {
+        if (body['error'] != null) {
+          final err = body['error'];
+          throw Exception(err is Map ? (err['message'] ?? 'Unknown error') : err.toString());
+        }
+        // onCall wraps in 'result', HTTP returns directly
+        if (body.containsKey('result') && body['result'] is Map) {
+          return body['result'] as Map<String, dynamic>;
+        }
+        return body;
       }
-      return (body['result'] as Map<String, dynamic>?) ?? {};
+      return {};
     }
 
     // Mobile: use Firebase SDK callable
