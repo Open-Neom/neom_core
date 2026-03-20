@@ -1,8 +1,8 @@
 import 'package:enum_to_string/enum_to_string.dart';
 
 
-import '../../app_config.dart';
 import '../../utils/enums/game_request_type.dart';
+import '../../utils/neom_error_logger.dart';
 import '../../utils/enums/request_decision.dart';
 import 'event_offer.dart';
 import 'instrument.dart';
@@ -178,8 +178,8 @@ class AppRequest {
       gameRequestType = data["gameRequestType"] != null
           ? EnumToString.fromString(GameRequestType.values, data["gameRequestType"])
           : null;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'AppRequest.fromJSON');
     }
 
   }

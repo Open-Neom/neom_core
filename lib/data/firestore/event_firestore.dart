@@ -9,6 +9,7 @@ import '../../domain/model/instrument_fulfillment.dart';
 import '../../domain/repository/event_repository.dart';
 import '../../utils/constants/core_constants.dart';
 import '../../utils/enums/event_action.dart';
+import '../../utils/neom_error_logger.dart';
 import 'activity_feed_firestore.dart';
 import 'band_firestore.dart';
 import 'constants/app_firestore_collection_constants.dart';
@@ -35,8 +36,8 @@ class EventFirestore implements EventRepository {
         event.id = documentSnapshot.id;
         AppConfig.logger.t(event.toString());
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'EventFirestore.retrieve');
     }
 
 
@@ -63,8 +64,8 @@ class EventFirestore implements EventRepository {
         AppConfig.logger.d("${events.length} events found");
         return events;
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'EventFirestore.retrieveEvents');
     }
 
     AppConfig.logger.d("No Events Found");
@@ -84,8 +85,8 @@ class EventFirestore implements EventRepository {
         event.id = doc.id;
         return event;
       }
-    } catch (e) {
-      AppConfig.logger.e("getBySlug error: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'EventFirestore.getBySlug');
     }
     return null;
   }
@@ -112,8 +113,8 @@ class EventFirestore implements EventRepository {
       if(await ProfileFirestore().addEvent(event.ownerId, eventId, EventAction.organize)){
         AppConfig.logger.d("Event added to Profile");
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'EventFirestore.insert');
     }
 
     return eventId;
@@ -137,8 +138,8 @@ class EventFirestore implements EventRepository {
           }
         }
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'EventFirestore.remove');
     }
 
     return wasDeleted;
@@ -166,8 +167,8 @@ class EventFirestore implements EventRepository {
 
 
       AppConfig.logger.d("${events.length} Events Found");
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'EventFirestore.getEvents');
     }
 
     return events;
@@ -193,8 +194,8 @@ class EventFirestore implements EventRepository {
           }
         }
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'EventFirestore.getEventsById');
     }
 
 
@@ -239,8 +240,8 @@ class EventFirestore implements EventRepository {
       });
 
       AppConfig.logger.i("Instrument ${appRequest.instrument?.name ?? ""} has been fulfilled");
-    } catch (e) {
-      AppConfig.logger.e.toString();
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'EventFirestore.fulfillInstrument');
       return false;
     }
 
@@ -284,8 +285,8 @@ class EventFirestore implements EventRepository {
       });
 
       AppConfig.logger.i("Instrument ${appRequest.instrument?.name ?? ""} has been unfulfilled");
-    } catch (e) {
-      AppConfig.logger.e.toString();
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'EventFirestore.unfulfillInstrument');
       return false;
     }
 
@@ -326,8 +327,8 @@ class EventFirestore implements EventRepository {
 
         }
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'EventFirestore.retrievePlayingEvents');
     }
 
     AppConfig.logger.d("${events.length} events found");
@@ -350,8 +351,8 @@ class EventFirestore implements EventRepository {
       //BandFirestore().insert(band)
 
       AppConfig.logger.i("Event $eventId has been fulfilled");
-    } catch (e) {
-      AppConfig.logger.e.toString();
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'EventFirestore.fulfilled');
       return false;
     }
 
@@ -371,8 +372,8 @@ class EventFirestore implements EventRepository {
       });
 
       AppConfig.logger.i("Event $eventId has been unfulfilled");
-    } catch (e) {
-      AppConfig.logger.e.toString();
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'EventFirestore.unFulfilled');
       return false;
     }
 
@@ -393,8 +394,8 @@ class EventFirestore implements EventRepository {
 
       AppConfig.logger.d("Profile $profileId has been added as going to event $eventId");
       return true;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'EventFirestore.addGoingProfile');
     }
     return false;
   }
@@ -413,8 +414,8 @@ class EventFirestore implements EventRepository {
 
       AppConfig.logger.d("Profile $profileId has been removed from going to event $eventId");
       return true;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'EventFirestore.removeGoingProfile');
     }
     return false;
   }
@@ -427,8 +428,8 @@ class EventFirestore implements EventRepository {
       await eventsReference.doc(event.id).update(event.toJSON());
       AppConfig.logger.d("Event ${event.id} updated successfully");
       return true;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'EventFirestore.update');
       return false;
     }
   }
@@ -440,8 +441,8 @@ class EventFirestore implements EventRepository {
       await eventsReference.doc(eventId).update(fields);
       AppConfig.logger.d("Event $eventId fields updated successfully");
       return true;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'EventFirestore.updateFields');
       return false;
     }
   }
@@ -478,8 +479,8 @@ class EventFirestore implements EventRepository {
     });
 
     AppConfig.logger.i("Band ${bandFulfillment.bandName} has been fulfilled");
-  } catch (e) {
-    AppConfig.logger.e.toString();
+  } catch (e, st) {
+    NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'EventFirestore.fulfillBand');
     return false;
   }
 

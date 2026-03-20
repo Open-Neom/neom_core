@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'app_config.dart';
 import 'app_properties.dart';
 import 'utils/constants/data_assets.dart';
+import 'utils/neom_error_logger.dart';
 
 /// Sensitive values (API keys, secrets) and cloud operations (proxies, secureOps).
 ///
@@ -102,8 +103,8 @@ class CloudProperties {
         'data': data ?? {},
       });
       return result['success'] == true;
-    } catch (e) {
-      AppConfig.logger.e("sendNotificationViaCloud error: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'sendNotificationViaCloud');
       return false;
     }
   }
@@ -124,8 +125,8 @@ class CloudProperties {
         'body': body,
         'isLive': isLive,
       });
-    } catch (e) {
-      AppConfig.logger.e("stripeProxy error: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'stripeProxy');
       return null;
     }
   }
@@ -143,8 +144,8 @@ class CloudProperties {
         'path': path,
         'body': body,
       });
-    } catch (e) {
-      AppConfig.logger.e("wooProxy error: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'wooProxy');
       return null;
     }
   }
@@ -157,8 +158,8 @@ class CloudProperties {
         'key': key,
       });
       return result['value'] ?? '';
-    } catch (e) {
-      AppConfig.logger.e("getSecretFromCloud($key) error: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getSecretFromCloud');
       return '';
     }
   }
@@ -176,8 +177,8 @@ class CloudProperties {
         'path': path,
         'body': body,
       });
-    } catch (e) {
-      AppConfig.logger.e("wooMediaProxy error: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'wooMediaProxy');
       return null;
     }
   }
@@ -199,8 +200,8 @@ class CloudProperties {
         'maxTokens': maxTokens,
         'query': query,
       });
-    } catch (e) {
-      AppConfig.logger.e("aiProxy error: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'aiProxy');
       return null;
     }
   }
@@ -222,8 +223,8 @@ class CloudProperties {
       String jsonString = await rootBundle.loadString(DataAssets.serviceAccountJsonPath);
       serviceAccount = jsonDecode(jsonString);
       AppConfig.logger.t("Service Account Loaded (${(serviceAccount as Map).length} keys)");
-    } catch (e) {
-      AppConfig.logger.e("Error reading service account: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'readServiceAccount');
       return;
     }
   }

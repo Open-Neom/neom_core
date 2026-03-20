@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart'; // Add this import for UUID generation
 import '../../app_config.dart';
 import '../../domain/model/app_order.dart';
 import '../../domain/repository/order_repository.dart';
+import '../../utils/neom_error_logger.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
 
@@ -30,8 +31,8 @@ class OrderFirestore implements OrderRepository {
       }
       orderId = order.id;
       AppConfig.logger.d("Order for ${order.description} was added with id $orderId");
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'OrderFirestore.insert');
     }
 
     return orderId;
@@ -48,8 +49,8 @@ class OrderFirestore implements OrderRepository {
       AppConfig.logger.d("Order ${order.id} was removed");
       return true;
 
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'OrderFirestore.remove');
     }
     return false;
   }
@@ -74,8 +75,8 @@ class OrderFirestore implements OrderRepository {
         AppConfig.logger.w("Order ${order.id} was not found");
       }
 
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'OrderFirestore.retrieveOrder');
     }
     return order;
   }
@@ -104,8 +105,8 @@ class OrderFirestore implements OrderRepository {
       }
 
       AppConfig.logger.d("${orders.length} Orders were retrieved");
-    } catch (e) {
-      AppConfig.logger.e(e);
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'OrderFirestore.retrieveFromList');
     }
     return orders;
   }
@@ -125,8 +126,8 @@ class OrderFirestore implements OrderRepository {
       });
       AppConfig.logger.d("Invoice $invoiceId is now at Order $orderId");
       return true;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'OrderFirestore.addInvoiceId');
     }
 
     return false;
@@ -146,8 +147,8 @@ class OrderFirestore implements OrderRepository {
       });
       AppConfig.logger.d("Invoice $invoiceId was removed from Order $orderId");
       return true;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'OrderFirestore.removeInvoiceId');
     }
 
     return false;
@@ -167,8 +168,8 @@ class OrderFirestore implements OrderRepository {
       });
       AppConfig.logger.d("Payment $paymentId is now at Order $orderId");
       return true;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'OrderFirestore.addPaymentId');
     }
 
     return false;
@@ -188,8 +189,8 @@ class OrderFirestore implements OrderRepository {
       });
       AppConfig.logger.d("Payment $paymentId was removed from Order $orderId");
       return true;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'OrderFirestore.removePaymentId');
     }
 
     return false;

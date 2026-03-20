@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../app_config.dart';
 import '../../domain/model/app_request.dart';
 import '../../domain/repository/request_repository.dart';
+import '../../utils/neom_error_logger.dart';
 import '../../utils/enums/request_decision.dart';
 import '../../utils/enums/request_type.dart';
 import 'activity_feed_firestore.dart';
@@ -36,8 +37,8 @@ class RequestFirestore implements RequestRepository {
           requests.add(request);
         }
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'RequestFirestore.retrieveRequests');
     }
 
     AppConfig.logger.d("${requests.length} requests found");
@@ -68,8 +69,8 @@ class RequestFirestore implements RequestRepository {
         }
 
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'RequestFirestore.retrieveSentRequests');
     }
 
     AppConfig.logger.d("${requests.length} requests Sent found");
@@ -100,8 +101,8 @@ class RequestFirestore implements RequestRepository {
         }
 
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'RequestFirestore.retrieveInvitationRequests');
     }
 
     AppConfig.logger.d("${requests.length} requests Sent found");
@@ -129,8 +130,8 @@ class RequestFirestore implements RequestRepository {
           requests.add(request);
         }
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'RequestFirestore.retrieveEventRequests');
     }
 
     AppConfig.logger.d("${requests.length} event requests found");
@@ -145,8 +146,8 @@ class RequestFirestore implements RequestRepository {
     try {
       DocumentReference documentReference = await requestsReference.add(request.toJSON());
       requestId  = documentReference.id;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'RequestFirestore.insert');
     }
 
     return requestId;
@@ -161,8 +162,8 @@ class RequestFirestore implements RequestRepository {
       if(await removeRequestsFromProfiles(request)) {
         await requestsReference.doc(request.id).delete();
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'RequestFirestore.remove');
     }
 
     return wasDeleted;
@@ -190,8 +191,8 @@ class RequestFirestore implements RequestRepository {
         }
         requestsRemoved = true;
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'RequestFirestore.removeEventRequests');
     }
 
     AppConfig.logger.d("Requests removed for event $eventId");
@@ -219,8 +220,8 @@ class RequestFirestore implements RequestRepository {
         }
         requestsRemoved = true;
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'RequestFirestore.removeBandRequests');
     }
 
     AppConfig.logger.d("Requests removed for band $bandId");
@@ -236,8 +237,8 @@ class RequestFirestore implements RequestRepository {
       await ProfileFirestore().removeRequest(request.to, request.id, RequestType.invitation);
       await ActivityFeedFirestore().removeRequestActivity(request.id);
       AppConfig.logger.d("Request ${request.id} has been remove from profile data");
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'RequestFirestore.removeRequestsFromProfiles');
       return false;
     }
 
@@ -255,8 +256,8 @@ class RequestFirestore implements RequestRepository {
       });
 
       AppConfig.logger.d("Request $requestId has been change to accepted");
-    } catch (e) {
-      AppConfig.logger.e.toString();
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'RequestFirestore.acceptRequest');
       return false;
     }
 
@@ -275,8 +276,8 @@ class RequestFirestore implements RequestRepository {
       });
 
       AppConfig.logger.d("Request $requestId has been change to declined");
-    } catch (e) {
-      AppConfig.logger.e.toString();
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'RequestFirestore.declineRequest');
       return false;
     }
 
@@ -296,8 +297,8 @@ class RequestFirestore implements RequestRepository {
 
 
       AppConfig.logger.d("Request $requestId has been change to pending");
-    } catch (e) {
-      AppConfig.logger.e.toString();
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'RequestFirestore.moveToPending');
       return false;
     }
 
@@ -356,8 +357,8 @@ class RequestFirestore implements RequestRepository {
       final request = AppRequest.fromJSON(doc.data()!);
       request.id = doc.id;
       return request;
-    } catch (e) {
-      AppConfig.logger.e('Error getting request: $e');
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'RequestFirestore.getRequest');
       return null;
     }
   }
@@ -387,8 +388,8 @@ class RequestFirestore implements RequestRepository {
           }
         }
       }
-    } catch (e) {
-      AppConfig.logger.e('Error retrieving release approval requests: $e');
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'RequestFirestore.retrieveReleaseApprovalRequests');
     }
 
     AppConfig.logger.d("${requests.length} release approval requests found");

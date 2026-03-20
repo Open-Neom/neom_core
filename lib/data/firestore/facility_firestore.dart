@@ -6,6 +6,7 @@ import '../../app_config.dart';
 import '../../domain/model/facility.dart';
 import '../../domain/repository/facility_repository.dart';
 import '../../utils/enums/facilitator_type.dart';
+import '../../utils/neom_error_logger.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
 
@@ -41,8 +42,8 @@ class FacilityFirestore implements FacilityRepository {
           return doc.reference;
         }
       }
-    } catch (e) {
-      AppConfig.logger.e('Error getting profile reference: $e');
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'FacilityFirestore._getProfileDocumentReference');
     }
     return null;
   }
@@ -66,8 +67,8 @@ class FacilityFirestore implements FacilityRepository {
           facilities[facility.name] = facility;
         }
       }
-    } catch (e) {
-      AppConfig.logger.e("No facilities found");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'FacilityFirestore.retrieveFacilities');
     }
 
     AppConfig.logger.d("${facilities.length} facilities found");
@@ -88,8 +89,8 @@ class FacilityFirestore implements FacilityRepository {
         AppConfig.logger.d("Facility $facilityId removed");
         return true;
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'FacilityFirestore.removeFacility');
     }
     return false;
   }
@@ -109,8 +110,8 @@ class FacilityFirestore implements FacilityRepository {
         AppConfig.logger.d("Facility $facilityType added");
         return true;
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'FacilityFirestore.addFacility');
     }
     return false;
   }
@@ -142,8 +143,8 @@ class FacilityFirestore implements FacilityRepository {
         }
         return true;
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'FacilityFirestore.updateMainFacility');
     }
     return false;
   }

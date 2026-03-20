@@ -10,6 +10,7 @@ import '../../../cloud_properties.dart';
 import '../../../domain/model/app_profile.dart';
 import '../../../utils/constants/app_google_utilities.dart';
 import '../../../utils/enums/push_notification_type.dart';
+import '../../../utils/neom_error_logger.dart';
 import '../../firestore/constants/app_firestore_constants.dart';
 import '../../firestore/profile_firestore.dart';
 
@@ -123,8 +124,8 @@ class FirebaseMessagingCalls {
       } else {
         AppConfig.logger.e("Firebase Messaging Error: ${response.statusCode} - ${response.body}");
       }
-    } catch (e) {
-      AppConfig.logger.e("Error sending push notification: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'sendPrivatePushNotification');
     }
 
     return response;
@@ -165,8 +166,8 @@ class FirebaseMessagingCalls {
       } else {
         AppConfig.logger.e("Firebase Messaging Error: ${response.statusCode} - ${response.body}");
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'sendPublicPushNotification');
     }
 
     return response;
@@ -253,8 +254,8 @@ class FirebaseMessagingCalls {
       };
 
       AppConfig.logger.d("FCM Payload built for token: ${profileFCMToken.substring(0, 20)}...");
-    } catch (e) {
-      AppConfig.logger.e("Error building FCM payload: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'buildPrivatePayload');
     }
 
     return fcmPrivatePayload;
@@ -359,8 +360,8 @@ class FirebaseMessagingCalls {
       auth.AccessCredentials accessCredentials = await auth.obtainAccessCredentialsViaServiceAccount(
           credentials, scopes, http.Client());
       accessToken = accessCredentials.accessToken.data;
-    } catch (e) {
-      AppConfig.logger.e("Error obteniendo token de acceso OAuth2: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getAccessToken');
     }
 
     return accessToken;

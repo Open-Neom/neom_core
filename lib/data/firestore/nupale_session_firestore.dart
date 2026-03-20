@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../app_config.dart';
 import '../../domain/model/nupale/nupale_session.dart';
 import '../../domain/repository/nupale_session_repository.dart';
+import '../../utils/neom_error_logger.dart';
 
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
@@ -24,8 +25,8 @@ class NupaleSessionFirestore implements NupaleSessionRepository {
         session.id = documentReference.id;
       }
       AppConfig.logger.d("NupaleSession for ${session.itemName} was added with id ${session.id}");
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'NupaleSessionFirestore.insert');
     }
 
     return session.id;
@@ -42,8 +43,8 @@ class NupaleSessionFirestore implements NupaleSessionRepository {
       AppConfig.logger.d("session $sessionId was removed");
       return true;
 
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'NupaleSessionFirestore.remove');
     }
     return false;
   }
@@ -68,8 +69,8 @@ class NupaleSessionFirestore implements NupaleSessionRepository {
         AppConfig.logger.w("session ${session.id} was not found");
       }
 
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'NupaleSessionFirestore.retrieveSession');
     }
     return session;
   }
@@ -97,8 +98,8 @@ class NupaleSessionFirestore implements NupaleSessionRepository {
       }
 
       AppConfig.logger.d("${sessions.length} sessions were retrieved");
-    } catch (e) {
-      AppConfig.logger.e(e);
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'NupaleSessionFirestore.retrieveFromList');
     }
     return sessions;
   }
@@ -129,8 +130,8 @@ class NupaleSessionFirestore implements NupaleSessionRepository {
       }
 
       AppConfig.logger.d("${sessions.length} sessions were retrieved");
-    } catch (e) {
-      AppConfig.logger.e(e);
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'NupaleSessionFirestore.fetchAll');
     }
     return sessions;
   }
@@ -156,8 +157,8 @@ class NupaleSessionFirestore implements NupaleSessionRepository {
       }
 
       AppConfig.logger.d("${sessions.length} sessions found for $email");
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'NupaleSessionFirestore.fetchByReaderEmail');
     }
 
     return sessions;
@@ -193,10 +194,8 @@ class NupaleSessionFirestore implements NupaleSessionRepository {
         AppConfig.logger.d("No sessions found in the collection.");
       }
 
-    } catch (e) {
-      AppConfig.logger.e("Error removing sessions with short IDs: ${e.toString()}");
-      // Considera cómo manejar este error, quizás lanzando la excepción
-      // rethrow;
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'NupaleSessionFirestore.removeSessionsWithShortIds');
     }
 
     return deletedCount; // Retornar el número de documentos eliminados
@@ -228,10 +227,8 @@ class NupaleSessionFirestore implements NupaleSessionRepository {
         AppConfig.logger.d("No test sessions found in the collection.");
       }
 
-    } catch (e) {
-      AppConfig.logger.e("Error removing test sessions: ${e.toString()}");
-      // Considera cómo manejar este error, quizás lanzando la excepción
-      // rethrow;
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'NupaleSessionFirestore.removeTestSessions');
     }
 
     return deletedCount; // Retornar el número de documentos eliminados

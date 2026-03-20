@@ -7,6 +7,7 @@ import '../../../utils/constants/core_constants.dart';
 import '../../../utils/enums/post_type.dart';
 import '../blog_entry_firestore.dart';
 import '../constants/app_firestore_collection_constants.dart';
+import '../../../utils/neom_error_logger.dart';
 import '../constants/app_firestore_constants.dart';
 
 /// Service to migrate Post.blogEntry documents to the new BlogEntry collection.
@@ -112,8 +113,8 @@ class BlogMigrationService {
         migrationMap: migrationMap,
       );
 
-    } catch (e) {
-      AppConfig.logger.e("Migration failed: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'runMigration');
       return MigrationResult(
         success: false,
         message: "Migration failed: $e",
@@ -140,8 +141,8 @@ class BlogMigrationService {
         post.id = doc.id;
         posts.add(post);
       }
-    } catch (e) {
-      AppConfig.logger.e("Error fetching blog posts: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: '_getAllBlogEntryPosts');
     }
 
     return posts;
@@ -186,8 +187,8 @@ class BlogMigrationService {
         AppConfig.logger.d("Deleted old post: ${post.id}");
       }
 
-    } catch (e) {
-      AppConfig.logger.e("Error migrating post ${post.id}: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: '_migratePost');
       errorCount++;
       errorIds.add(post.id);
     }
@@ -274,8 +275,8 @@ class BlogMigrationService {
         unmigratedIds: unmigrated,
       );
 
-    } catch (e) {
-      AppConfig.logger.e("Verification error: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'verifyMigration');
       return MigrationVerificationResult(
         oldPostCount: oldPostCount,
         newEntryCount: newEntryCount,

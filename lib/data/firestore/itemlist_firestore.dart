@@ -9,10 +9,10 @@ import '../../domain/model/external_item.dart';
 import '../../domain/model/item_list.dart';
 import '../../domain/model/neom/neom_chamber_preset.dart';
 import '../../domain/repository/itemlist_repository.dart';
-
 import '../../utils/constants/core_constants.dart';
 import '../../utils/enums/itemlist_type.dart';
 import '../../utils/enums/owner_type.dart';
+import '../../utils/neom_error_logger.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
 
@@ -36,8 +36,8 @@ class ItemlistFirestore implements ItemlistRepository {
       }
 
       AppConfig.logger.d("Public Itemlist $itemlistId inserted");
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ItemlistFirestore.insert');
     }
 
     return itemlistId;
@@ -57,8 +57,8 @@ class ItemlistFirestore implements ItemlistRepository {
 
          addedItem = true;
        }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ItemlistFirestore.addMediaItem');
     }
 
     addedItem ? AppConfig.logger.d("AppMediaItem was added to itemlist $itemlistId") :
@@ -90,8 +90,8 @@ class ItemlistFirestore implements ItemlistRepository {
 
       AppConfig.logger.d("Item was removed from itemlist $itemlistId");
       return true;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ItemlistFirestore.deleteMediaItem');
     }
 
     AppConfig.logger.d("Item was not  removed from itemlist $itemlistId");
@@ -113,8 +113,8 @@ class ItemlistFirestore implements ItemlistRepository {
         itemlist.id = documentSnapshot.id;
         AppConfig.logger.t(itemlist.toString());
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ItemlistFirestore.retrieve');
     }
 
 
@@ -157,8 +157,8 @@ class ItemlistFirestore implements ItemlistRepository {
           itemlists[itemlist.id] = itemlist;
         }
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ItemlistFirestore.fetchAll');
     }
 
     AppConfig.logger.d("${itemlists.length} itemlists found in total.");
@@ -192,8 +192,8 @@ class ItemlistFirestore implements ItemlistRepository {
           }
         });
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ItemlistFirestore.getByOwnerId');
     }
 
     AppConfig.logger.d("${itemlists.length} itemlists found in total.");
@@ -209,8 +209,8 @@ class ItemlistFirestore implements ItemlistRepository {
       AppConfig.logger.d("Itemlist $itemlistId removed");
       return true;
 
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ItemlistFirestore.delete');
       return false;
     }
   }
@@ -233,8 +233,8 @@ class ItemlistFirestore implements ItemlistRepository {
 
       AppConfig.logger.d("Itemlist ${itemlist.id} was updated");
       return true;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ItemlistFirestore.update');
     }
 
     AppConfig.logger.d("Itemlist ${itemlist.id} was not updated");
@@ -253,8 +253,8 @@ class ItemlistFirestore implements ItemlistRepository {
 
       AppConfig.logger.d("Itemlist ${itemlist.id} was updated");
       return true;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ItemlistFirestore.updateType');
     }
 
     AppConfig.logger.d("Itemlist ${itemlist.id} was not updated");
@@ -273,8 +273,8 @@ class ItemlistFirestore implements ItemlistRepository {
       });
 
       addedItem = true;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ItemlistFirestore.addReleaseItem');
     }
 
     addedItem ? AppConfig.logger.d("AppReleaseItem was added to itemlist $itemlistId") :
@@ -299,8 +299,8 @@ class ItemlistFirestore implements ItemlistRepository {
 
         AppConfig.logger.i("releaseItem $itemId was removed");
         return true;
-      } catch (e) {
-        AppConfig.logger.e(e.toString());
+      } catch (e, st) {
+        NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ItemlistFirestore.deleteReleaseItem');
       }
 
       AppConfig.logger.d("releaseItem $itemId was not removed");
@@ -318,8 +318,8 @@ class ItemlistFirestore implements ItemlistRepository {
         AppFirestoreConstants.chamberPresets: FieldValue.arrayUnion([preset.toJSON()])
       });
       addedItem = true;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ItemlistFirestore.addPreset');
     }
 
     addedItem ? AppConfig.logger.d("Preset was added to chamber $chamberId") :
@@ -340,8 +340,8 @@ class ItemlistFirestore implements ItemlistRepository {
 
       AppConfig.logger.d("Preset was removed from chamber $chamberId");
       return true;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ItemlistFirestore.deletePreset');
     }
 
     AppConfig.logger.d("Preset was not  removed from chamber $chamberId");
@@ -360,8 +360,8 @@ class ItemlistFirestore implements ItemlistRepository {
       });
 
       addedItem = true;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ItemlistFirestore.addExternalItem');
     }
 
     addedItem ? AppConfig.logger.d("ExternalItem was added to itemlist $itemlistId") :
@@ -386,8 +386,8 @@ class ItemlistFirestore implements ItemlistRepository {
 
       AppConfig.logger.i("externalItem $itemId was removed");
       return true;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ItemlistFirestore.deleteExternalItem');
     }
 
     AppConfig.logger.d("externalItem $itemId was not removed");

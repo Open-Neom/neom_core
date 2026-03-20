@@ -1,4 +1,5 @@
 import '../../app_config.dart';
+import '../../utils/neom_error_logger.dart';
 
 
 class Address {
@@ -53,8 +54,8 @@ class Address {
       locality.isNotEmpty ?
       address = "$locality, $country"
           : address = "$administrativeArea, $country" ;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getAddressSimple');
     }
 
     return address;

@@ -11,6 +11,7 @@ import '../../domain/repository/inbox_repository.dart';
 
 import '../../utils/constants/core_constants.dart';
 import '../../utils/enums/inbox_room_type.dart';
+import '../../utils/neom_error_logger.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
 
@@ -36,8 +37,8 @@ class InboxFirestore implements InboxRepository {
 
       AppConfig.logger.i("${message.text} last message added");
       return true;
-    } catch (e) {
-      AppConfig.logger.e("Something occurred.");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'InboxFirestore.addMessage');
     }
 
     AppConfig.logger.d("Message not send");
@@ -86,8 +87,8 @@ class InboxFirestore implements InboxRepository {
 
       AppConfig.logger.w("Message $messageId not found");
       return false;
-    } catch (e) {
-      AppConfig.logger.e("Error in handleLikeMessage: ${e.toString()}");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'InboxFirestore.handleLikeMessage');
       return false;
     }
   }
@@ -102,8 +103,8 @@ class InboxFirestore implements InboxRepository {
       if(documentSnapshot.exists){
         return true;
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'InboxFirestore.inboxExists');
     }
 
     AppConfig.logger.d("");
@@ -134,8 +135,8 @@ class InboxFirestore implements InboxRepository {
         AppConfig.logger.t("No messages found Found");
       }
 
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'InboxFirestore.retrieveMessages');
     }
 
     return messages;
@@ -150,8 +151,8 @@ class InboxFirestore implements InboxRepository {
       await inboxReference.doc(inbox.id).set(inbox.toJSON());
       AppConfig.logger.d("");
       return true;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'InboxFirestore.addInbox');
     }
 
     return false;
@@ -183,8 +184,8 @@ class InboxFirestore implements InboxRepository {
           }
         }
       AppConfig.logger.d("${inboxs.length} inboxRoom retrieved");
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'InboxFirestore.getProfileInbox');
     }
 
     return inboxs;
@@ -230,8 +231,8 @@ class InboxFirestore implements InboxRepository {
         }
       }
 
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'InboxFirestore.getOrCreateInboxRoom');
       rethrow;
     }
 
@@ -292,8 +293,8 @@ class InboxFirestore implements InboxRepository {
         inbox.profileIds = profileIds;
           await inboxReference.doc(inboxRoomId).set(inbox.toJSON());
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'InboxFirestore.getOrCreateAppBotRoom');
     }
 
     AppConfig.logger.d(inbox.toString());
@@ -343,8 +344,8 @@ class InboxFirestore implements InboxRepository {
         }
       }
       AppConfig.logger.d("Unread inbox count: $unreadCount");
-    } catch (e) {
-      AppConfig.logger.e("Error getting unread count: ${e.toString()}");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'InboxFirestore.getUnreadInboxCount');
     }
 
     return unreadCount;
@@ -385,8 +386,8 @@ class InboxFirestore implements InboxRepository {
 
         AppConfig.logger.d("Last message marked as read for inbox $inboxId");
       }
-    } catch (e) {
-      AppConfig.logger.e("Error marking message as read: ${e.toString()}");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'InboxFirestore.markLastMessageAsRead');
     }
   }
 

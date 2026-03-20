@@ -9,6 +9,7 @@ import '../../domain/model/item_list.dart';
 import '../../domain/repository/external_item_repository.dart';
 import '../../utils/enums/external_media_source.dart';
 import '../../utils/enums/media_item_type.dart';
+import '../../utils/neom_error_logger.dart';
 import 'constants/app_firestore_collection_constants.dart';
 
 class ExternalItemFirestore implements ExternalItemRepository {
@@ -29,8 +30,8 @@ class ExternalItemFirestore implements ExternalItemRepository {
       } else {
         AppConfig.logger.d("ExternalItem not found");
       }
-    } catch (e) {
-      AppConfig.logger.d(e);
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ExternalItemFirestore.retrieve');
       rethrow;
     }
     return externalItem;
@@ -60,8 +61,8 @@ class ExternalItemFirestore implements ExternalItemRepository {
           AppConfig.logger.t("Add ${externalItem.name} to fetchAll list");
         }
       }
-    } catch (e) {
-      AppConfig.logger.d(e);
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ExternalItemFirestore.fetchAll');
     }
 
     AppConfig.logger.d("${externalItems.length} externalItems found");
@@ -87,8 +88,8 @@ class ExternalItemFirestore implements ExternalItemRepository {
         }
       }
 
-    } catch (e) {
-      AppConfig.logger.d(e);
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ExternalItemFirestore.retrieveFromList');
     }
     return externalItems;
   }
@@ -104,8 +105,8 @@ class ExternalItemFirestore implements ExternalItemRepository {
           return true;
         }
       });
-    } catch (e) {
-      AppConfig.logger.e(e);
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ExternalItemFirestore.exists');
     }
     AppConfig.logger.d("ExternalItem not found");
     return false;
@@ -125,8 +126,8 @@ class ExternalItemFirestore implements ExternalItemRepository {
 
       await externalItemReference.doc(externalItem.id).set(externalItem.toJSON());
       AppConfig.logger.d("ExternalItem inserted into Firestore");
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ExternalItemFirestore.insert');
       AppConfig.logger.i("ExternalItem not inserted into Firestore");
     }
   }
@@ -137,8 +138,8 @@ class ExternalItemFirestore implements ExternalItemRepository {
     try {
       await externalItemReference.doc(externalItem.id).delete();
       return true;
-    } catch (e) {
-      AppConfig.logger.d(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ExternalItemFirestore.remove');
       return false;
     }
   }
@@ -167,8 +168,8 @@ class ExternalItemFirestore implements ExternalItemRepository {
 
       AppConfig.logger.i("ItemlistItem ${externalItem.name} was updated to ${externalItem.state}");
       return true;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ExternalItemFirestore.removeItemFromList');
     }
 
     AppConfig.logger.d("ItemlistItem ${externalItem.name} was not updated");
@@ -188,8 +189,8 @@ class ExternalItemFirestore implements ExternalItemRepository {
           insert(externalItem);
         }
       });
-    } catch (e) {
-      AppConfig.logger.e(e);
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ExternalItemFirestore.existsOrInsert');
     }
 
   }

@@ -2,6 +2,7 @@ import 'package:geolocator/geolocator.dart';
 
 import '../app_config.dart';
 import '../data/implementations/geolocator_controller.dart';
+import 'neom_error_logger.dart';
 import '../domain/model/address.dart';
 import 'platform/core_geocoding.dart';
 
@@ -20,8 +21,8 @@ class PositionUtilities {
       AppConfig.logger.t("Distance between positions $distanceInMeters");
 
       distanceKm = (distanceInMeters / 1000).round();
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'distanceBetweenPositionsRounded');
     }
 
     return distanceKm;

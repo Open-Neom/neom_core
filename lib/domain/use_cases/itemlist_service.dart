@@ -20,7 +20,7 @@ abstract class ItemlistService {
   String getSelectedItemlist();
   void setAppItemState(AppItemState newState);
   int getItemState();
-  Future<void> addItemlistItem(BuildContext context, {int fanItemState = 0, bool goHome = true});
+  Future<void> addItemlistItem(BuildContext context, {int fanItemState = 0});
 
   bool checkIsLoading();
 

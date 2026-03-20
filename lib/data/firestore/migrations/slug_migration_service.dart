@@ -7,6 +7,7 @@ import '../../../domain/model/band.dart';
 import '../../../domain/model/blog_entry.dart';
 import '../../../domain/model/event.dart';
 import '../../../domain/model/post.dart';
+import '../../../utils/neom_error_logger.dart';
 import '../constants/app_firestore_collection_constants.dart';
 
 /// Backfill service to populate the `slug` field on existing Firestore documents.
@@ -230,8 +231,8 @@ class SlugMigrationService {
 
       AppConfig.logger.i('  ${config.label}: ${stats.migrated} migrated, ${stats.collisions} collisions, ${stats.errors} errors');
 
-    } catch (e) {
-      AppConfig.logger.e('Error migrating ${config.name}: $e');
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'migrateCollection');
       stats.errors++;
     }
 
@@ -272,8 +273,8 @@ class SlugMigrationService {
           withoutSlug++;
         }
       }
-    } catch (e) {
-      AppConfig.logger.e('Error verifying ${config.name}: $e');
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'verifyCollection');
     }
 
     return SlugVerificationResult(

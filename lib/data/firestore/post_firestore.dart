@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../app_config.dart';
 import '../../domain/model/post.dart';
 import '../../domain/repository/post_repository.dart';
+import '../../utils/neom_error_logger.dart';
 
 import '../../utils/constants/core_constants.dart';
 import '../../utils/enums/post_type.dart';
@@ -63,8 +64,8 @@ class PostFirestore implements PostRepository {
         }
         AppConfig.logger.t("${posts.length} posts found");
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.retrievePosts');
       AppConfig.logger.w("No Posts Found");
     }
 
@@ -82,8 +83,8 @@ class PostFirestore implements PostRepository {
       });
 
       return true;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.handleLikePost');
       return false;
     }
   }
@@ -101,8 +102,8 @@ class PostFirestore implements PostRepository {
         post.id = doc.id;
         return post;
       }
-    } catch (e) {
-      AppConfig.logger.e("getBySlug error: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.getBySlug');
     }
     return null;
   }
@@ -124,8 +125,8 @@ class PostFirestore implements PostRepository {
       DocumentReference documentReference = await postsReference
           .add(post.toJSON());
       postId = documentReference.id;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.insert');
     }
     AppConfig.logger.d("Post Inserted with ID: $postId");
     return postId;
@@ -142,8 +143,8 @@ class PostFirestore implements PostRepository {
         post = Post.fromJSON(postSnapshot.data() as Map<String, dynamic>);
         post.id = postSnapshot.id;
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.retrieve');
     }
 
     return post;
@@ -158,8 +159,8 @@ class PostFirestore implements PostRepository {
       await postsReference.doc(postId).delete();
       wasDeleted = await ProfileFirestore().removePost(profileId, postId);
       await ActivityFeedFirestore().removePostActivity(postId);
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.remove');
     }
 
     return wasDeleted;
@@ -170,8 +171,8 @@ class PostFirestore implements PostRepository {
     try {
       await postsReference.doc(post.id).update(post.toJSON());
       return true;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.update');
     }
 
     return false;
@@ -182,8 +183,8 @@ class PostFirestore implements PostRepository {
     try {
       await postsReference.doc(postId).update(fields);
       return true;
-    } catch (e) {
-      AppConfig.logger.e("Error updating Post: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.updateFields');
       return false;
     }
   }
@@ -214,8 +215,8 @@ class PostFirestore implements PostRepository {
           }
         }
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.getProfilePosts');
     }
 
     AppConfig.logger.d("Retrieveing ${posts.length} Posts");
@@ -251,8 +252,8 @@ class PostFirestore implements PostRepository {
         }
 
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.getTimeline');
     }
 
     AppConfig.logger.d("Retrieveing ${posts.length} Posts");
@@ -290,8 +291,8 @@ class PostFirestore implements PostRepository {
         drafts[post.id] = post;
       }
 
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.getDrafts');
     }
 
     return drafts;
@@ -320,8 +321,8 @@ class PostFirestore implements PostRepository {
       } else {
         AppConfig.logger.d('No post found for event $eventId');
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.removeEventPost');
     }
 
     return wasDeleted;
@@ -339,8 +340,8 @@ class PostFirestore implements PostRepository {
       });
 
       return true;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.addComment');
       return false;
     }
   }
@@ -355,8 +356,8 @@ class PostFirestore implements PostRepository {
         AppFirestoreConstants.lastInteraction: DateTime.now().millisecondsSinceEpoch,
       });
       return true;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.removeComment');
       return false;
     }
   }
@@ -380,8 +381,8 @@ class PostFirestore implements PostRepository {
           AppConfig.logger.d(post.toString());
         }
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.retrievePostForEvent');
     }
 
     return post;
@@ -419,8 +420,8 @@ class PostFirestore implements PostRepository {
         }
       }
 
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.getBlogEntries');
     }
 
     return drafts;
@@ -486,8 +487,8 @@ class PostFirestore implements PostRepository {
       }
 
       AppConfig.logger.d("Community blog entries found: ${entries.length}");
-    } catch (e) {
-      AppConfig.logger.e("Error getting community blog entries: ${e.toString()}");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.getCommunityBlogEntries');
     }
 
     return entries;
@@ -640,8 +641,8 @@ class PostFirestore implements PostRepository {
           _diverseDocTimeline[doc.id] = doc;
         }
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.getDiverseTimeline');
     }
 
     AppConfig.logger.d("Retrieveing ${posts.length} Posts");
@@ -673,8 +674,8 @@ class PostFirestore implements PostRepository {
       await batch.commit();
 
       AppConfig.logger.d("All ${querySnapshot.docs.length} posts updated successfully.");
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.updateAllPostsLastInteraction');
     }
   }
 
@@ -687,8 +688,8 @@ class PostFirestore implements PostRepository {
         AppFirestoreConstants.lastInteraction: DateTime.now().millisecondsSinceEpoch,
       });
       return true;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.addSavedByProfile');
       return false;
     }
   }
@@ -702,8 +703,8 @@ class PostFirestore implements PostRepository {
         AppFirestoreConstants.lastInteraction: DateTime.now().millisecondsSinceEpoch,
       });
       return true;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.removeSavedByProfile');
       return false;
     }
   }

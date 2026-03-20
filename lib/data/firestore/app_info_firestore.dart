@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../app_config.dart';
 import '../../domain/model/app_info.dart';
 import '../../domain/repository/app_info_repository.dart';
+import '../../utils/neom_error_logger.dart';
 
 import 'constants/app_firestore_collection_constants.dart';
 
@@ -24,8 +25,8 @@ class AppInfoFirestore implements AppInfoRepository {
         appInfo = AppInfo.fromJSON(documentSnapshot.data());
         AppConfig.logger.t("App Info Found: ${appInfo.toString()}");
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'retrieve');
       rethrow;
     }
 

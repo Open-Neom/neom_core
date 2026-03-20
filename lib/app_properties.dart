@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
 import 'app_config.dart';
 import 'cloud_properties.dart';
+import 'utils/neom_error_logger.dart';
 import 'domain/model/price.dart';
 import 'utils/constants/data_assets.dart';
 import 'utils/enums/app_currency.dart';
@@ -43,8 +44,8 @@ class AppProperties {
       try {
         await CloudProperties.loadFromCloud();
         return;
-      } catch (e) {
-        AppConfig.logger.w("Cloud Functions getConfig failed, falling back to local: $e");
+      } catch (e, st) {
+        NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'readProperties');
       }
     }
 
@@ -52,8 +53,8 @@ class AppProperties {
     try {
       String jsonString = await rootBundle.loadString(DataAssets.propertiesJsonPath);
       appProperties = jsonDecode(jsonString);
-    } catch (e) {
-      AppConfig.logger.e("Error reading properties: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'readProperties');
       return;
     }
   }

@@ -8,6 +8,7 @@ import '../../domain/model/app_media_item.dart';
 import '../../domain/model/item_list.dart';
 import '../../domain/repository/app_media_item_repository.dart';
 import '../../utils/enums/media_item_type.dart';
+import '../../utils/neom_error_logger.dart';
 import 'constants/app_firestore_collection_constants.dart';
 
 class AppMediaItemFirestore implements AppMediaItemRepository {
@@ -28,8 +29,8 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
       } else {
         AppConfig.logger.d("AppMediaItem not found");
       }
-    } catch (e) {
-      AppConfig.logger.d(e);
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'retrieve');
       rethrow;
     }
     return appMediaItem;
@@ -68,8 +69,8 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
           AppConfig.logger.t("Add ${appMediaItem.name} to fetchAll list");
         }
       }
-    } catch (e) {
-      AppConfig.logger.d(e);
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'fetchAll');
     }
 
     AppConfig.logger.d("${appMediaItems.length} appMediaItems found");
@@ -101,8 +102,8 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
           }
         }
       }
-    } catch (e) {
-      AppConfig.logger.d(e);
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'retrieveFromList');
     }
     return appMediaItems;
   }
@@ -118,8 +119,8 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
         AppConfig.logger.d("AppMediaItem found");
         return true;
       }
-    } catch (e) {
-      AppConfig.logger.e(e);
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'exists');
     }
     AppConfig.logger.d("AppMediaItem not found");
     return false;
@@ -142,8 +143,8 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
     try {
       await appMediaItemReference.doc(appMediaItem.id).set(appMediaItem.toJSON());
       AppConfig.logger.d("AppMediaItem inserted into Firestore");
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'insert');
       AppConfig.logger.i("AppMediaItem not inserted into Firestore");
     }
 
@@ -155,8 +156,8 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
     try {
       await appMediaItemReference.doc(appMediaItem.id).delete();
       return true;
-    } catch (e) {
-      AppConfig.logger.d(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'remove');
       return false;
     }
   }
@@ -210,8 +211,8 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
         AppConfig.logger.i("ItemlistItem ${appMediaItem.name} was updated to ${appMediaItem.state}");
         return true;
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'removeItemFromList');
     }
 
     AppConfig.logger.d("ItemlistItem ${appMediaItem.name} was not updated");
@@ -225,8 +226,8 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
       await appMediaItemReference.doc(mediaItemId).update(fields);
       AppConfig.logger.d("AppMediaItem $mediaItemId updated successfully");
       return true;
-    } catch (e) {
-      AppConfig.logger.e("Error updating AppMediaItem: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'updateFields');
       return false;
     }
   }
@@ -249,8 +250,8 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
         AppConfig.logger.d("AppMediaItem ${appMediaItem.id}. ${appMediaItem.name} not found. Inserting");
         await insert(appMediaItem);
       }
-    } catch (e) {
-      AppConfig.logger.e(e);
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'existsOrInsert');
     }
 
   }

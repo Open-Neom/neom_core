@@ -23,6 +23,7 @@ import '../../domain/use_cases/maps_service.dart';
 import '../../domain/use_cases/user_service.dart';
 import '../../utils/constants/core_constants.dart';
 import '../../utils/platform/core_geolocation.dart';
+import '../../utils/neom_error_logger.dart';
 import '../../utils/position_utilities.dart';
 
 //TODO Move to neom_maps_service or something specific out of neom_core
@@ -101,8 +102,8 @@ class MapsController extends SintController implements MapsService {
           )
       );
 
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'goToPosition');
     }
 
     update();
@@ -246,8 +247,8 @@ class MapsController extends SintController implements MapsService {
           altitudeAccuracy: 1, headingAccuracy: 1
       );
       AppConfig.logger.i(place.toString());
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'predictionToGooglePlace');
     }
 
     return place;

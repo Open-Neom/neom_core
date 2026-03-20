@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../app_config.dart';
 import '../../domain/model/withdrawal_request.dart';
+import '../../utils/neom_error_logger.dart';
 import 'constants/app_firestore_collection_constants.dart';
 
 class WithdrawalRequestFirestore {
@@ -21,8 +22,8 @@ class WithdrawalRequestFirestore {
         await withdrawalRequestsReference.doc(request.id).update({'id': request.id});
       }
       AppConfig.logger.d("WithdrawalRequest ${request.id} inserted");
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'WithdrawalRequestFirestore.insert');
     }
 
     return request.id;
@@ -41,8 +42,8 @@ class WithdrawalRequestFirestore {
       for (var doc in querySnapshot.docs) {
         requests.add(WithdrawalRequest.fromJSON(doc.data()));
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'WithdrawalRequestFirestore.fetchByOwner');
     }
 
     return requests;
@@ -64,8 +65,8 @@ class WithdrawalRequestFirestore {
 
       await withdrawalRequestsReference.doc(requestId).update(updateData);
       return true;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'WithdrawalRequestFirestore.updateStatus');
     }
 
     return false;

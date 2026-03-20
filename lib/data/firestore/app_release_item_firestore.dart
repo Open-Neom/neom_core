@@ -6,6 +6,7 @@ import '../../app_config.dart';
 import '../../domain/model/app_release_item.dart';
 import '../../domain/repository/app_release_item_repository.dart';
 import '../../utils/enums/release_status.dart';
+import '../../utils/neom_error_logger.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
 
@@ -42,8 +43,8 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
       }
 
       AppConfig.logger.d("AppReleaseItem inserted into Firestore with id: $releaseItemId");
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'insert');
       AppConfig.logger.i("AppReleaseItem not inserted into Firestore");
     }
 
@@ -67,8 +68,8 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
           }
         }
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'retrieveAll');
     }
 
     AppConfig.logger.d("${releaseItems.length} releaseItems found");
@@ -148,8 +149,8 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
       });
       AppConfig.logger.d("$releaseItemId has added user $userId");
       return true;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'addBoughtUser');
     }
     return false;
   }
@@ -166,8 +167,8 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
         AppConfig.logger.d("AppMediaItem found");
         return true;
       }
-    } catch (e) {
-      AppConfig.logger.e(e);
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'exists');
     }
     AppConfig.logger.d("AppMediaItem not found");
     return false;
@@ -185,8 +186,8 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
         AppConfig.logger.d("AppReleaseItem ${releaseItem.id}. ${releaseItem.name} not found. Inserting");
         await insert(releaseItem);
       }
-    } catch (e) {
-      AppConfig.logger.e(e);
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'existsOrInsert');
     }
   }
 
@@ -197,8 +198,8 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
       await appReleaseItemReference.doc(releaseItemId).update(fields);
       AppConfig.logger.d("AppReleaseItem $releaseItemId updated successfully");
       return true;
-    } catch (e) {
-      AppConfig.logger.e("Error updating AppReleaseItem: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'updateFields');
       return false;
     }
   }
@@ -225,8 +226,8 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
           }
         }
       }
-    } catch (e) {
-      AppConfig.logger.e("Error retrieving by category: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'retrieveByCategory');
     }
 
     AppConfig.logger.d("${releaseItems.length} releaseItems found for category: $category");
@@ -255,8 +256,8 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
           }
         }
       }
-    } catch (e) {
-      AppConfig.logger.e("Error retrieving by owner: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'retrieveByOwner');
     }
 
     AppConfig.logger.d("${releaseItems.length} releaseItems found for owner: $ownerEmail");
@@ -285,8 +286,8 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
           }
         }
       }
-    } catch (e) {
-      AppConfig.logger.e("Error retrieving by language: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'retrieveByLanguage');
     }
 
     AppConfig.logger.d("${releaseItems.length} releaseItems found for language: $language");
@@ -314,8 +315,8 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
           pendingReleases.add(releaseItem);
         }
       }
-    } catch (e) {
-      AppConfig.logger.e("Error retrieving pending releases: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'retrievePendingReleases');
     }
 
     AppConfig.logger.d("${pendingReleases.length} pending releases found");
@@ -332,8 +333,8 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
       });
       AppConfig.logger.d("Release $releaseItemId approved successfully");
       return true;
-    } catch (e) {
-      AppConfig.logger.e("Error approving release: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'approveRelease');
       return false;
     }
   }
@@ -345,8 +346,8 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
       await appReleaseItemReference.doc(releaseItemId).delete();
       AppConfig.logger.d("Release $releaseItemId rejected and removed");
       return true;
-    } catch (e) {
-      AppConfig.logger.e("Error rejecting release: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'rejectRelease');
       return false;
     }
   }
@@ -373,8 +374,8 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
       }, SetOptions(merge: true));
 
       return true;
-    } catch (e) {
-      AppConfig.logger.e("Error incrementing page view: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'incrementPageView');
       return false;
     }
   }
@@ -397,8 +398,8 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
         item.id = doc.id;
         return item;
       }
-    } catch (e) {
-      AppConfig.logger.e("getBySlug error: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getBySlug');
     }
     return null;
   }

@@ -8,6 +8,7 @@ import '../../utils/constants/core_constants.dart';
 import '../../utils/platform/core_geocoding.dart';
 import '../../utils/platform/core_geolocation.dart';
 import '../../utils/position_utilities.dart';
+import '../../utils/neom_error_logger.dart';
 import '../firestore/profile_firestore.dart';
 
 class GeoLocatorController implements GeoLocatorService {
@@ -24,8 +25,8 @@ class GeoLocatorController implements GeoLocatorService {
           placeMark = placeMarks.first;
         }
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getPlaceMark');
     }
 
     return placeMark;
@@ -58,8 +59,8 @@ class GeoLocatorController implements GeoLocatorService {
               : address = "$administrativeArea, $country";
         }
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getAddressSimple');
     }
 
 
@@ -88,8 +89,8 @@ class GeoLocatorController implements GeoLocatorService {
       permission = await Geolocator.requestPermission();
       AppConfig.logger.d('New LocationPermission is: ${permission.name}');
 
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'requestPermission');
     }
 
     return permission;
@@ -135,8 +136,8 @@ class GeoLocatorController implements GeoLocatorService {
       }
 
       AppConfig.logger.t("Position: ${position.toString()}");
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getCurrentPosition');
     }
 
     return position;
@@ -167,8 +168,8 @@ class GeoLocatorController implements GeoLocatorService {
           AppConfig.logger.i("GpsLocation was updated as there was no data for it");
         }
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'updateLocation');
     }
 
     AppConfig.logger.d("updateLocation method Exit");
@@ -211,8 +212,8 @@ class GeoLocatorController implements GeoLocatorService {
         await _addPlaceToSet(searchPos, areaSuggestions);
       }
 
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getNearbySimpleAddresses');
     }
 
     return areaSuggestions.toList();

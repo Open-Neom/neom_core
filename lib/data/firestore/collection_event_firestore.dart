@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../app_config.dart';
 import '../../domain/model/collection_event.dart';
+import '../../utils/neom_error_logger.dart';
 import 'constants/app_firestore_collection_constants.dart';
 
 class CollectionEventFirestore {
@@ -19,8 +20,8 @@ class CollectionEventFirestore {
       return snapshot.docs
           .map((doc) => CollectionEvent.fromJSON(doc.data()))
           .toList();
-    } catch (e) {
-      AppConfig.logger.e("Error getting recent collection events: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getRecent');
       return [];
     }
   }
@@ -35,8 +36,8 @@ class CollectionEventFirestore {
       return snapshot.docs
           .map((doc) => CollectionEvent.fromJSON(doc.data()))
           .toList();
-    } catch (e) {
-      AppConfig.logger.e("Error getting events for subscription: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getBySubscriptionId');
       return [];
     }
   }
@@ -51,8 +52,8 @@ class CollectionEventFirestore {
       return snapshot.docs
           .map((doc) => CollectionEvent.fromJSON(doc.data()))
           .toList();
-    } catch (e) {
-      AppConfig.logger.e("Error getting collection events for user: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getByUserId');
       return [];
     }
   }
@@ -68,8 +69,8 @@ class CollectionEventFirestore {
       return snapshot.docs
           .map((doc) => CollectionEvent.fromJSON(doc.data()))
           .toList();
-    } catch (e) {
-      AppConfig.logger.e("Error getting payment failure events: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getPaymentFailures');
       return [];
     }
   }
@@ -83,8 +84,8 @@ class CollectionEventFirestore {
       if (event.id.isEmpty) event.id = docRef.id;
       await docRef.set(event.toJSON());
       AppConfig.logger.d("Collection event inserted: ${event.id}");
-    } catch (e) {
-      AppConfig.logger.e("Error inserting collection event: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'insert');
     }
   }
 }

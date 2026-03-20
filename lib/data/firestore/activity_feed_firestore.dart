@@ -6,6 +6,7 @@ import '../../domain/model/activity_feed.dart';
 import '../../domain/repository/activity_feed_repository.dart';
 import '../../utils/constants/core_constants.dart';
 import '../../utils/enums/activity_feed_type.dart';
+import '../../utils/neom_error_logger.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
 
@@ -31,8 +32,8 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
           .doc(activityFeedId);
       final doc = await docRef.get();
       if (doc.exists) await docRef.delete();
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'removeActivityById');
     }
   }
 
@@ -64,8 +65,8 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
           await activitySnapshot.reference.delete();
         }
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'removeByReferenceActivity');
     }
   }
 
@@ -86,8 +87,8 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
 
         activityFeedId = documentReference.id;
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'insert');
     }
 
     return activityFeedId;
@@ -109,8 +110,8 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
       for (var doc in querySnapshot.docs) {
         feedItems.add(ActivityFeed.fromJSON(doc.data())..id = doc.id);
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'retrieve');
     }
 
     return feedItems;
@@ -214,8 +215,8 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
           .doc(activityFeedId).update({
             AppFirestoreConstants.unread: false
           });
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'setAsRead');
     }
   }
 
@@ -236,8 +237,8 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
       final count = querySnapshot.docs.length;
       AppConfig.logger.d("Unread notifications count: $count");
       return count;
-    } catch (e) {
-      AppConfig.logger.e("Error getting unread notifications count: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getUnreadNotificationsCount');
       return 0;
     }
   }
@@ -275,8 +276,8 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
 
       activityFeedId = documentReference.id;
       AppConfig.logger.i("Global notification created with id: $activityFeedId");
-    } catch (e) {
-      AppConfig.logger.e("Error inserting global notification: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'insertGlobal');
     }
 
     return activityFeedId;
@@ -307,8 +308,8 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
       }
 
       AppConfig.logger.d("Retrieved ${globalFeedItems.length} global notifications");
-    } catch (e) {
-      AppConfig.logger.e("Error retrieving global notifications: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'retrieveGlobal');
     }
 
     return globalFeedItems;
@@ -358,8 +359,8 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
       await Future.wait(batches.map((batch) => batch.commit()));
 
       AppConfig.logger.d("Successfully inserted ${activityFeeds.length} activity feeds in ${batches.length} batch(es)");
-    } catch (e) {
-      AppConfig.logger.e("Error inserting activity feeds batch: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'insertBatch');
     }
   }
 

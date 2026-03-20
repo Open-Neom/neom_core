@@ -9,6 +9,7 @@ import '../../domain/use_cases/report_service.dart';
 import '../../domain/use_cases/user_service.dart';
 import '../../utils/enums/reference_type.dart';
 import '../../utils/enums/report_type.dart';
+import '../../utils/neom_error_logger.dart';
 import '../firestore/report_firestore.dart';
 
 class ReportController extends SintController implements ReportService {
@@ -30,8 +31,8 @@ class ReportController extends SintController implements ReportService {
     try {
       profile = userServiceImpl.user.profiles.first;
 
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'onInit');
     }
 
   }
@@ -77,8 +78,8 @@ class ReportController extends SintController implements ReportService {
 
       ReportFirestore().insert(report);
 
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'sendReport');
     }
 
     _isButtonDisabled.value = false;

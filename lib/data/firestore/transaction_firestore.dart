@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../app_config.dart';
 import '../../domain/model/app_transaction.dart';
+import '../../utils/neom_error_logger.dart';
 import '../../domain/repository/transaction_repository.dart';
 import '../../utils/enums/transaction_status.dart';
 import 'constants/app_firestore_collection_constants.dart';
@@ -30,8 +31,8 @@ class TransactionFirestore implements TransactionRepository {
         AppConfig.logger.w("AppTransaction $transactionId was not found");
       }
 
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'TransactionFirestore.retrieve');
     }
     return transaction;
   }
@@ -60,8 +61,8 @@ class TransactionFirestore implements TransactionRepository {
         transaction.id = documentReference.id;
       }
       AppConfig.logger.i("AppTransaction for Order ${transaction.orderId} was added with id ${transaction.id}");
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'TransactionFirestore.insert');
     }
 
     return transaction.id;
@@ -78,8 +79,8 @@ class TransactionFirestore implements TransactionRepository {
       AppConfig.logger.d("AppTransaction ${transaction.id} was removed");
       return true;
 
-    } catch (e) {
-      AppConfig.logger.e(e.toString());      
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'TransactionFirestore.remove');
     }
     return false;
   }
@@ -96,8 +97,8 @@ class TransactionFirestore implements TransactionRepository {
 
       AppConfig.logger.d("AppTransaction $transactionId status was updated to ${status.name}");
       return true;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'TransactionFirestore.updateStatus');
     }
 
     AppConfig.logger.d("AppTransaction $transactionId status was not updated");
@@ -133,8 +134,8 @@ class TransactionFirestore implements TransactionRepository {
       }
 
       AppConfig.logger.d("${transactions.length} Transactions were retrieved");
-    } catch (e) {
-      AppConfig.logger.e(e);
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'TransactionFirestore.retrieveFromList');
     }
     return transactions;
   }
@@ -157,8 +158,8 @@ class TransactionFirestore implements TransactionRepository {
         transaction.id = document.id;
         transactions.add(transaction);
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'TransactionFirestore.retrieveByOrderId');
     }
 
     return transactions;
@@ -199,8 +200,8 @@ class TransactionFirestore implements TransactionRepository {
       }
 
       AppConfig.logger.d("${transactions.length} Transactions were retrieved");
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'TransactionFirestore.retrieveByEmail');
     }
 
     return transactions;

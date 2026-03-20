@@ -5,6 +5,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 
 import '../../app_config.dart';
 import '../../domain/repository/app_upload_repository.dart';
+import '../../utils/neom_error_logger.dart';
 import '../../utils/enums/app_media_type.dart';
 import '../../utils/enums/media_type.dart';
 import '../../utils/enums/media_upload_destination.dart';
@@ -59,8 +60,8 @@ class AppUploadFirestore implements AppUploadRepository {
 
       fileUrl = await storageSnap.ref.getDownloadURL();
       AppConfig.logger.i('uploadMediaFile - success! URL: $fileUrl');
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'uploadMediaFile');
     }
 
     return fileUrl;
@@ -99,8 +100,8 @@ class AppUploadFirestore implements AppUploadRepository {
 
       fileUrl = await storageSnap.ref.getDownloadURL();
       AppConfig.logger.i('uploadMediaBytes - success! URL: $fileUrl');
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'uploadMediaBytes');
     }
 
     return fileUrl;
@@ -115,8 +116,8 @@ class AppUploadFirestore implements AppUploadRepository {
       UploadTask uploadTask = storageRef.child(AppFirestoreConstants.releaseItemsFolder).child('$fileName.${type.value}').putData(fileBytes);
       TaskSnapshot storageSnap = await uploadTask;
       releaseItemUrl = await storageSnap.ref.getDownloadURL();
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'uploadReleaseItem');
     }
 
     return releaseItemUrl;
@@ -131,8 +132,8 @@ class AppUploadFirestore implements AppUploadRepository {
       TaskSnapshot storageSnap = await uploadTask;
       releaseItemUrl = await storageSnap.ref.getDownloadURL();
       AppConfig.logger.i('uploadReleaseItemBytes - success! URL: $releaseItemUrl');
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'uploadReleaseItemBytes');
     }
     return releaseItemUrl;
   }

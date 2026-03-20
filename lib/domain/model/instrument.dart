@@ -6,6 +6,7 @@ class Instrument {
 
   String id;
   String name;
+  String description;
   InstrumentLevel instrumentLevel;
   bool isMain;
   bool isFavorite;
@@ -15,6 +16,7 @@ class Instrument {
   Instrument({
     this.id = "",
     this.name = "",
+    this.description = "",
     this.instrumentLevel = InstrumentLevel.notDetermined,
     this.model = "",
     this.isMain = false,
@@ -30,7 +32,8 @@ class Instrument {
   static Instrument fromJsonDefault(Map<String, dynamic> json) {
     return Instrument(
       id: json["name"],
-      name: json["name"], //name from Json File "name": "guitar"
+      name: json["name"],
+      description: json["description"] ?? "",
       instrumentLevel: InstrumentLevel.notDetermined,
       isMain: false,
       isFavorite: false,
@@ -42,6 +45,7 @@ class Instrument {
     return <String, dynamic>{
       'id': name,
       'name': name,
+      'description': description,
       'instrumentLevel': instrumentLevel.name,
       'isMain': isMain,
       'isFavorite': isFavorite,
@@ -52,6 +56,7 @@ class Instrument {
 
   Instrument.addBasic(this.name) :
     id = name,
+    description = "",
     model = "",
     instrumentLevel = InstrumentLevel.notDetermined,
     isMain = false,
@@ -61,6 +66,7 @@ class Instrument {
   Instrument.fromJSON(dynamic data) :
     id = data["name"] ?? "",
     name = data["name"] ?? "",
+    description = data["description"] ?? "",
     instrumentLevel = EnumToString.fromString(InstrumentLevel.values, data["instrumentLevel"]) ?? InstrumentLevel.notDetermined,
     isMain = data["isMain"] ?? false,
     isFavorite = data["isFavorite"] ?? false,

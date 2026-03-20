@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import '../../utils/enums/release_type.dart';
 import '../app_config.dart';
 import '../app_properties.dart';
+import 'neom_error_logger.dart';
 import '../domain/model/app_media_item.dart';
 import '../domain/model/app_profile.dart';
 import '../domain/model/app_release_item.dart';
@@ -72,8 +73,8 @@ class CoreUtilities {
             headingAccuracy: 1
         );
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'JSONtoPosition');
     }
 
     return position;
@@ -103,8 +104,8 @@ class CoreUtilities {
               id: itemJSON.id, state: itemJSON.itemState));
         }
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'JSONtoItemlistItems');
     }
 
     return itemlistItems;
@@ -292,8 +293,8 @@ class CoreUtilities {
       }
 
       AppConfig.logger.d("${genreList.length} loaded genres from json");
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'loadGenres');
     }
 
     return genreList;
@@ -311,8 +312,8 @@ class CoreUtilities {
           AppConfig.logger.t("Adding Item Id: $itemId - Name: ${item.name}");
         }
       });
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getItemMatches');
     }
     AppConfig.logger.d("Total ItemmMatches: ${matchedItems.length}");
     return matchedItems;
@@ -328,8 +329,8 @@ class CoreUtilities {
           matchedInstruments[instrumentFulfillment.instrument.id] = instrumentFulfillment.instrument;
         }
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getInstrumentMatches');
     }
 
     return matchedInstruments;
@@ -346,8 +347,8 @@ class CoreUtilities {
           bandInstrumentMatches.add(profileInstruments[bandMember.instrument!.id] ?? Instrument());
         }
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getBandInstrumentMatches');
     }
 
     return bandInstrumentMatches;
@@ -364,8 +365,8 @@ class CoreUtilities {
           bandInstrumentMatches[profileInstruments[bandMember.instrument!.id]!.id] = profileInstruments[bandMember.instrument!.id] ?? Instrument();
         }
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getBandMemberInstrumentMatches');
     }
 
     return bandInstrumentMatches;
@@ -392,8 +393,8 @@ class CoreUtilities {
 
       }
 
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'fulfillmentMatchedRequirements');
     }
 
 
@@ -410,8 +411,8 @@ class CoreUtilities {
       if (response.statusCode != 200) {
         isAvailable = false;
       }
-    } catch (e){
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'isAvailableMediaUrl');
       isAvailable = false;
     }
     return isAvailable;

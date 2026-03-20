@@ -1,11 +1,14 @@
 import 'dart:core';
+
 import 'package:sint/sint.dart';
+
 import '../../app_config.dart';
 import '../../domain/model/app_media_item.dart';
 import '../../domain/model/app_profile.dart';
 import '../../domain/use_cases/mate_service.dart';
 import '../../domain/use_cases/user_service.dart';
 import '../../utils/constants/app_route_constants.dart';
+import '../../utils/neom_error_logger.dart';
 import '../firestore/mate_firestore.dart';
 import '../firestore/profile_firestore.dart';
 
@@ -44,8 +47,8 @@ class MateController extends SintController implements MateService {
       }
 
       loadMateProfiles();
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'onInit');
     }
   }
 
@@ -68,8 +71,8 @@ class MateController extends SintController implements MateService {
       ///TODO Implement once algorithm of itemmates and eventmates is available.
       //totalProfiles.addAll(itemmates);
       _totalProfiles.addAll(_profiles);
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'loadMateProfiles');
     }
 
     isLoading.value = false;
@@ -83,8 +86,8 @@ class MateController extends SintController implements MateService {
       if(profile.itemmates?.isNotEmpty ?? false) {
         _mates.value = await MateFirestore().getMatesFromList(profile.itemmates!);
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'loadMates');
     }
 
     isLoading.value = false;
@@ -99,8 +102,8 @@ class MateController extends SintController implements MateService {
         _followingProfiles.value = await MateFirestore().getMatesFromList(profile.following!);
       }
 
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'loadFollowingProfiles');
     }
 
     isLoading.value = false;
@@ -114,8 +117,8 @@ class MateController extends SintController implements MateService {
       if(profile.followers?.isNotEmpty ?? false) {
         _followerProfiles.value = await MateFirestore().getMatesFromList(profile.followers!);
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'loadFollowersProfiles');
     }
 
     isLoading.value = false;
@@ -128,8 +131,8 @@ class MateController extends SintController implements MateService {
 
     try {
       _mates.value = await MateFirestore().getMatesFromList(mateIds);
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'loadMatesFromList');
     }
 
     AppConfig.logger.d("${_mates.length} mates found ");
@@ -211,8 +214,8 @@ class MateController extends SintController implements MateService {
         });
       }
 
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'loadProfiles');
     }
 
     isLoading.value = false;
@@ -235,8 +238,8 @@ class MateController extends SintController implements MateService {
       } else {
         AppConfig.logger.i("Something happened while blocking profile");
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'block');
     }
 
     Sint.back();
@@ -253,8 +256,8 @@ class MateController extends SintController implements MateService {
       } else {
         AppConfig.logger.i("Somethnig happened while unblocking profile");
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'unblock');
     }
 
     Sint.back();

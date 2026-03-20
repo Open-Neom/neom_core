@@ -19,6 +19,7 @@ import '../../utils/enums/subscription_level.dart';
 import '../../utils/enums/subscription_status.dart';
 import '../firestore/profile_firestore.dart';
 import '../firestore/subscription_plan_firestore.dart';
+import '../../utils/neom_error_logger.dart';
 import '../firestore/user_subscription_firestore.dart';
 
 class SubscriptionController extends SintController implements SubscriptionService {
@@ -86,6 +87,12 @@ class SubscriptionController extends SintController implements SubscriptionServi
         (p.level?.value ?? 0) < SubscriptionLevel.creator.value);
       case ProfileType.facilitator:
       case ProfileType.host:
+        _profilePlans.removeWhere((s, p) {
+          final lv = p.level?.value ?? 0;
+          return lv != SubscriptionLevel.basic.value
+              && lv != SubscriptionLevel.professional.value
+              && lv != SubscriptionLevel.premium.value;
+        });
       // case ProfileType.researcher:
       case ProfileType.band:
       _profilePlans.removeWhere((s, p) =>
@@ -108,8 +115,8 @@ class SubscriptionController extends SintController implements SubscriptionServi
 
     try {
       Sint.toNamed(AppRouteConstants.orderConfirmation, arguments: [subscriptionPlan, fromRoute, profileType.value]);
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'paySubscription');
     }
 
     update();
@@ -135,8 +142,8 @@ class SubscriptionController extends SintController implements SubscriptionServi
 
         }
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'cancelSubscription');
     }
 
     update();
@@ -163,8 +170,8 @@ class SubscriptionController extends SintController implements SubscriptionServi
     try {
       _profileType.value = type;
       setProfileTypePlans();
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'selectProfileType');
     }
   }
 
@@ -174,8 +181,8 @@ class SubscriptionController extends SintController implements SubscriptionServi
 
     try {
       facilityType.value = type;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'selectFacilityType');
     }
 
   }
@@ -187,8 +194,8 @@ class SubscriptionController extends SintController implements SubscriptionServi
     try {
       placeType.value = type;
       setProfileTypePlans();
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'selectPlaceType');
     }
 
   }
@@ -220,8 +227,8 @@ class SubscriptionController extends SintController implements SubscriptionServi
       }
 
 
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'updateProfileType');
     }
 
   }

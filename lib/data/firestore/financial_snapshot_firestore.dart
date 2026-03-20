@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../app_config.dart';
 import '../../domain/model/financial_snapshot.dart';
+import '../../utils/neom_error_logger.dart';
 import 'constants/app_firestore_collection_constants.dart';
 
 class FinancialSnapshotFirestore {
@@ -16,8 +17,8 @@ class FinancialSnapshotFirestore {
       if (doc.exists) {
         return FinancialSnapshot.fromJSON(doc.data() as Map<String, dynamic>);
       }
-    } catch (e) {
-      AppConfig.logger.e("Error getting financial snapshot: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'FinancialSnapshotFirestore.getById');
     }
     return null;
   }
@@ -32,8 +33,8 @@ class FinancialSnapshotFirestore {
       if (snapshot.docs.isNotEmpty) {
         return FinancialSnapshot.fromJSON(snapshot.docs.first.data());
       }
-    } catch (e) {
-      AppConfig.logger.e("Error getting latest financial snapshot: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'FinancialSnapshotFirestore.getLatest');
     }
     return null;
   }
@@ -49,8 +50,8 @@ class FinancialSnapshotFirestore {
       return snapshot.docs
           .map((doc) => FinancialSnapshot.fromJSON(doc.data()))
           .toList();
-    } catch (e) {
-      AppConfig.logger.e("Error getting financial snapshot range: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'FinancialSnapshotFirestore.getRange');
       return [];
     }
   }
@@ -67,8 +68,8 @@ class FinancialSnapshotFirestore {
           .toList()
           .reversed
           .toList(); // chronological order
-    } catch (e) {
-      AppConfig.logger.e("Error getting last $count financial snapshots: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'FinancialSnapshotFirestore.getLastN');
       return [];
     }
   }
@@ -78,8 +79,8 @@ class FinancialSnapshotFirestore {
     try {
       await _collection.doc(snapshot.id).set(snapshot.toJSON());
       AppConfig.logger.d("Financial snapshot inserted: ${snapshot.id}");
-    } catch (e) {
-      AppConfig.logger.e("Error inserting financial snapshot: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'FinancialSnapshotFirestore.insert');
     }
   }
 }

@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../app_config.dart';
 import '../../domain/model/blog_entry.dart';
 import '../../domain/repository/blog_entry_repository.dart';
+import '../../utils/neom_error_logger.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
 
@@ -42,8 +43,8 @@ class BlogEntryFirestore implements BlogEntryRepository {
       DocumentReference documentReference = await blogReference.add(entry.toJSON());
       entryId = documentReference.id;
       AppConfig.logger.d("BlogEntry inserted with ID: $entryId");
-    } catch (e) {
-      AppConfig.logger.e("Error inserting BlogEntry: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'insert');
     }
     return entryId;
   }
@@ -62,8 +63,8 @@ class BlogEntryFirestore implements BlogEntryRepository {
         entry.id = doc.id;
         return entry;
       }
-    } catch (e) {
-      AppConfig.logger.e("getBySlug error: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getBySlug');
     }
     return null;
   }
@@ -74,8 +75,8 @@ class BlogEntryFirestore implements BlogEntryRepository {
     try {
       await blogReference.doc(entry.id).update(entry.toJSON());
       return true;
-    } catch (e) {
-      AppConfig.logger.e("Error updating BlogEntry: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'update');
       return false;
     }
   }
@@ -86,8 +87,8 @@ class BlogEntryFirestore implements BlogEntryRepository {
     try {
       await blogReference.doc(entryId).delete();
       return true;
-    } catch (e) {
-      AppConfig.logger.e("Error removing BlogEntry: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'remove');
       return false;
     }
   }
@@ -102,8 +103,8 @@ class BlogEntryFirestore implements BlogEntryRepository {
         entry = BlogEntry.fromJSON(snapshot.data() as Map<String, dynamic>);
         entry.id = snapshot.id;
       }
-    } catch (e) {
-      AppConfig.logger.e("Error retrieving BlogEntry: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'retrieve');
     }
     return entry;
   }
@@ -172,8 +173,8 @@ class BlogEntryFirestore implements BlogEntryRepository {
       }
 
       AppConfig.logger.d("Community entries found: ${entries.length}");
-    } catch (e) {
-      AppConfig.logger.e("Error getting community entries: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getCommunityEntries');
     }
 
     return entries;
@@ -208,8 +209,8 @@ class BlogEntryFirestore implements BlogEntryRepository {
       }
 
       AppConfig.logger.d("Profile entries found: ${entries.length}");
-    } catch (e) {
-      AppConfig.logger.e("Error getting profile entries: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getProfileEntries');
     }
 
     return entries;
@@ -230,8 +231,8 @@ class BlogEntryFirestore implements BlogEntryRepository {
       final hasEntries = snapshot.docs.isNotEmpty;
       AppConfig.logger.d("hasPublishedEntries: $hasEntries for $profileId");
       return hasEntries;
-    } catch (e) {
-      AppConfig.logger.e("Error checking hasPublishedEntries: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'hasPublishedEntries');
       return false;
     }
   }
@@ -255,8 +256,8 @@ class BlogEntryFirestore implements BlogEntryRepository {
       }
 
       AppConfig.logger.d("Drafts found: ${drafts.length}");
-    } catch (e) {
-      AppConfig.logger.e("Error getting drafts: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getDrafts');
     }
 
     return drafts;
@@ -272,8 +273,8 @@ class BlogEntryFirestore implements BlogEntryRepository {
         AppFirestoreConstants.modifiedTime: DateTime.now().millisecondsSinceEpoch,
       });
       return true;
-    } catch (e) {
-      AppConfig.logger.e("Error publishing BlogEntry: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'publish');
       return false;
     }
   }
@@ -287,8 +288,8 @@ class BlogEntryFirestore implements BlogEntryRepository {
         AppFirestoreConstants.modifiedTime: DateTime.now().millisecondsSinceEpoch,
       });
       return true;
-    } catch (e) {
-      AppConfig.logger.e("Error unpublishing BlogEntry: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'unpublish');
       return false;
     }
   }
@@ -301,8 +302,8 @@ class BlogEntryFirestore implements BlogEntryRepository {
         AppFirestoreConstants.savedByProfiles: FieldValue.arrayUnion([profileId]),
       });
       return true;
-    } catch (e) {
-      AppConfig.logger.e("Error adding bookmark: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'addSavedByProfile');
       return false;
     }
   }
@@ -315,8 +316,8 @@ class BlogEntryFirestore implements BlogEntryRepository {
         AppFirestoreConstants.savedByProfiles: FieldValue.arrayRemove([profileId]),
       });
       return true;
-    } catch (e) {
-      AppConfig.logger.e("Error removing bookmark: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'removeSavedByProfile');
       return false;
     }
   }
@@ -329,8 +330,8 @@ class BlogEntryFirestore implements BlogEntryRepository {
         'viewCount': FieldValue.increment(1),
       });
       return true;
-    } catch (e) {
-      AppConfig.logger.e("Error incrementing view count: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'incrementViewCount');
       return false;
     }
   }
@@ -354,8 +355,8 @@ class BlogEntryFirestore implements BlogEntryRepository {
       }
 
       AppConfig.logger.d("Saved entries found: ${entries.length}");
-    } catch (e) {
-      AppConfig.logger.e("Error getting saved entries: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getSavedEntries');
     }
 
     return entries;
@@ -414,8 +415,8 @@ class BlogEntryFirestore implements BlogEntryRepository {
       }
 
       AppConfig.logger.d("Latest entries for timeline: ${entries.length}");
-    } catch (e) {
-      AppConfig.logger.e("Error getting latest entries for timeline: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getLatestEntriesForTimeline');
     }
 
     return entries;
@@ -445,8 +446,8 @@ class BlogEntryFirestore implements BlogEntryRepository {
       }
 
       AppConfig.logger.d("Entries by IDs found: ${entries.length}");
-    } catch (e) {
-      AppConfig.logger.e("Error getting entries by IDs: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getEntriesByIds');
     }
 
     return entries;
@@ -469,8 +470,8 @@ class BlogEntryFirestore implements BlogEntryRepository {
       }
 
       return newId;
-    } catch (e) {
-      AppConfig.logger.e("Error migrating Post to BlogEntry: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'migrateFromPost');
       return '';
     }
   }
@@ -490,8 +491,8 @@ class BlogEntryFirestore implements BlogEntryRepository {
         if (newId.isNotEmpty) {
           migrationMap[post.id] = newId;
         }
-      } catch (e) {
-        AppConfig.logger.e("Error migrating Post ${post.id}: $e");
+      } catch (e, st) {
+        NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'batchMigrateFromPosts');
       }
     }
 

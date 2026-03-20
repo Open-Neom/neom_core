@@ -19,6 +19,14 @@ class CollectionEvent {
   int escalationLevel;           // 1, 2, 3, or 4 (suspended)
   int createdAt;
 
+  // ── v2: Enriched failure data ──
+  String failureReason;          // card_declined, insufficient_funds, expired_card, etc.
+  String failureMessage;         // Human-readable error from Stripe
+  String paymentMethodBrand;     // Visa, Mastercard, etc.
+  String paymentMethodLast4;     // Last 4 digits
+  String planName;               // Plan at time of failure
+  int nextRetryDate;             // When Stripe will retry (ms)
+
   CollectionEvent({
     this.id = '',
     this.userId = '',
@@ -35,6 +43,13 @@ class CollectionEvent {
     this.whatsappMessageId = '',
     this.escalationLevel = 1,
     this.createdAt = 0,
+    // v2
+    this.failureReason = '',
+    this.failureMessage = '',
+    this.paymentMethodBrand = '',
+    this.paymentMethodLast4 = '',
+    this.planName = '',
+    this.nextRetryDate = 0,
   });
 
   Map<String, dynamic> toJSON() {
@@ -54,6 +69,13 @@ class CollectionEvent {
       'whatsappMessageId': whatsappMessageId,
       'escalationLevel': escalationLevel,
       'createdAt': createdAt,
+      // v2
+      'failureReason': failureReason,
+      'failureMessage': failureMessage,
+      'paymentMethodBrand': paymentMethodBrand,
+      'paymentMethodLast4': paymentMethodLast4,
+      'planName': planName,
+      'nextRetryDate': nextRetryDate,
     };
   }
 
@@ -72,7 +94,14 @@ class CollectionEvent {
         whatsappSent = data['whatsappSent'] ?? false,
         whatsappMessageId = data['whatsappMessageId'] ?? '',
         escalationLevel = data['escalationLevel'] ?? 1,
-        createdAt = data['createdAt'] ?? 0;
+        createdAt = data['createdAt'] ?? 0,
+        // v2
+        failureReason = data['failureReason'] ?? '',
+        failureMessage = data['failureMessage'] ?? '',
+        paymentMethodBrand = data['paymentMethodBrand'] ?? '',
+        paymentMethodLast4 = data['paymentMethodLast4'] ?? '',
+        planName = data['planName'] ?? '',
+        nextRetryDate = data['nextRetryDate'] ?? 0;
 
   /// Human-readable type label
   String get typeLabel {
@@ -95,4 +124,26 @@ class CollectionEvent {
       default: return 'Nivel $escalationLevel';
     }
   }
+
+  /// Human-readable failure reason
+  String get failureReasonLabel {
+    switch (failureReason) {
+      case 'card_declined': return 'Tarjeta rechazada';
+      case 'insufficient_funds': return 'Fondos insuficientes';
+      case 'expired_card': return 'Tarjeta expirada';
+      case 'incorrect_cvc': return 'CVC incorrecto';
+      case 'processing_error': return 'Error de procesamiento';
+      case 'authentication_required': return 'Requiere autenticación 3DS';
+      case 'do_not_honor': return 'Banco rechazó la transacción';
+      case 'lost_card': return 'Tarjeta reportada perdida';
+      case 'stolen_card': return 'Tarjeta reportada robada';
+      default: return failureReason.isNotEmpty ? failureReason : 'Desconocido';
+    }
+  }
+
+  /// Formatted payment method
+  String get paymentMethodDisplay =>
+      paymentMethodBrand.isNotEmpty && paymentMethodLast4.isNotEmpty
+          ? '$paymentMethodBrand ****$paymentMethodLast4'
+          : '';
 }

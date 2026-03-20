@@ -8,6 +8,7 @@ import '../../domain/use_cases/notification_service.dart';
 import '../../domain/use_cases/user_service.dart';
 import '../firestore/constants/app_firestore_constants.dart';
 import '../firestore/user_firestore.dart';
+import '../../utils/neom_error_logger.dart';
 import 'app_hive_controller.dart';
 
 class AppInitializationController {
@@ -72,8 +73,8 @@ class AppInitializationController {
       } else {
         AppConfig.logger.d("FCM token unchanged, skipping update");
       }
-    } catch (e) {
-      AppConfig.logger.e("Error updating FCM token: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: '_updateFcmTokenIfNeeded');
     }
   }
 

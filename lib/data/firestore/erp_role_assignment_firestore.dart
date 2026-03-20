@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../app_config.dart';
 import '../../domain/model/erp_role_assignment.dart';
+import '../../utils/neom_error_logger.dart';
 import 'constants/app_firestore_collection_constants.dart';
 
 class ErpRoleAssignmentFirestore {
@@ -16,8 +17,8 @@ class ErpRoleAssignmentFirestore {
       if (doc.exists) {
         return ErpRoleAssignment.fromJSON(doc.data() as Map<String, dynamic>);
       }
-    } catch (e) {
-      AppConfig.logger.e("Error getting ERP role assignment: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getByUserId');
     }
     return null;
   }
@@ -29,8 +30,8 @@ class ErpRoleAssignmentFirestore {
       return snapshot.docs
           .map((doc) => ErpRoleAssignment.fromJSON(doc.data()))
           .toList();
-    } catch (e) {
-      AppConfig.logger.e("Error getting all ERP role assignments: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getAll');
       return [];
     }
   }
@@ -40,8 +41,8 @@ class ErpRoleAssignmentFirestore {
     try {
       await _collection.doc(assignment.userId).set(assignment.toJSON());
       AppConfig.logger.d("ERP role assignment upserted for: ${assignment.userId}");
-    } catch (e) {
-      AppConfig.logger.e("Error upserting ERP role assignment: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'upsert');
     }
   }
 
@@ -50,8 +51,8 @@ class ErpRoleAssignmentFirestore {
     try {
       await _collection.doc(userId).delete();
       AppConfig.logger.d("ERP role assignment removed for: $userId");
-    } catch (e) {
-      AppConfig.logger.e("Error removing ERP role assignment: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'remove');
     }
   }
 }

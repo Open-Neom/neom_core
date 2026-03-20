@@ -23,6 +23,7 @@ import '../../utils/enums/profile_type.dart';
 import '../../utils/enums/request_type.dart';
 import '../../utils/enums/usage_reason.dart';
 import '../../utils/enums/verification_level.dart';
+import '../../utils/neom_error_logger.dart';
 import '../../utils/position_utilities.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
@@ -91,8 +92,8 @@ class ProfileFirestore implements ProfileRepository {
       }
 
       AppConfig.logger.w('Profile $profileId not found - may be very old legacy profile');
-    } catch (e) {
-      AppConfig.logger.e('Error getting profile reference: $e');
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: '_getProfileDocumentReference');
     }
     return null;
   }
@@ -106,8 +107,8 @@ class ProfileFirestore implements ProfileRepository {
         return true;
       }
       AppConfig.logger.w('Profile $profileId not found for update');
-    } catch (e) {
-      AppConfig.logger.e('Error updating profile: $e');
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: '_updateProfileField');
     }
     return false;
   }
@@ -169,12 +170,12 @@ class ProfileFirestore implements ProfileRepository {
               facilityType: entry.value.type);
         }
       }
-    } catch (e) {
+    } catch (e, st) {
       if (await remove(userId: userId, profileId: profileId)) {
         AppConfig.logger.i("Profile Rollback");
         profileId = "";
       } else {
-        AppConfig.logger.e(e.toString());
+        NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'insert');
       }
     }
 
@@ -193,7 +194,8 @@ class ProfileFirestore implements ProfileRepository {
     }
 
     try {
-      // First try: Query by 'id' field (for profiles that have this field stored)
+      // First try: Query by 'id' field via collectionGroup
+      // (profiles live as subcollections under users/{email}/profiles/{profileId})
       final querySnapshot = await profileReference
           .where(AppFirestoreConstants.id, isEqualTo: profileId)
           .limit(1)
@@ -204,20 +206,19 @@ class ProfileFirestore implements ProfileRepository {
         profile = AppProfile.fromJSON(profileSnapshot.data());
         profile.id = profileSnapshot.id;
         AppConfig.logger.d("Profile found by 'id' field: ${profile.name}");
-      } else {
-        // Slug fallback: the profileId might be a vanity slug (e.g. 'serzenmontoya')
-        // from a web URL like /mate/serzenmontoya. Try resolving by slug field.
-        final slugProfile = await getBySlug(profileId);
-        if (slugProfile != null && slugProfile.id.isNotEmpty) {
-          profile = slugProfile;
-          AppConfig.logger.d("Profile found by 'slug' field: ${profile.name}");
-          return profile;
-        }
+        return profile;
+      }
 
-        // OPTIMIZED Fallback: Check recent profiles only instead of full collection scan
-        AppConfig.logger.w("Profile $profileId not found by 'id' or 'slug' field - checking recent profiles");
+      // Slug fallback
+      final slugProfile = await getBySlug(profileId);
+      if (slugProfile != null && slugProfile.id.isNotEmpty) {
+        profile = slugProfile;
+        AppConfig.logger.d("Profile found by 'slug' field: ${profile.name}");
+        return profile;
+      }
 
-        // Only check last 100 profiles to avoid excessive reads
+      // Fallback: Check recent profiles
+      try {
         final recentProfilesSnapshot = await profileReference
             .orderBy(AppFirestoreConstants.createdTime, descending: true)
             .limit(100)
@@ -228,20 +229,19 @@ class ProfileFirestore implements ProfileRepository {
             profile = AppProfile.fromJSON(doc.data());
             profile.id = doc.id;
             AppConfig.logger.d("Profile found in recent profiles: ${profile.name}");
-
-            // Update the profile to store 'id' field for future queries
             await doc.reference.update({'id': profileId});
-            AppConfig.logger.d("Updated legacy profile with 'id' field");
             break;
           }
         }
+      } catch (_) {
+        AppConfig.logger.w("Recent profiles fallback also failed");
       }
 
       if (profile.id.isEmpty) {
         AppConfig.logger.w("Profile $profileId not found");
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'retrieve');
       rethrow;
     }
 
@@ -282,8 +282,8 @@ class ProfileFirestore implements ProfileRepository {
         }
         AppConfig.logger.d("Profile not found by id or slug: $profileId");
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'retrieveSimple');
       rethrow;
     }
 
@@ -443,8 +443,8 @@ class ProfileFirestore implements ProfileRepository {
         profiles.add(profile);
         if (limit != null && profiles.length >= limit) break;
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getWithParameters');
     }
 
     return profiles;
@@ -460,8 +460,8 @@ class ProfileFirestore implements ProfileRepository {
           AppFirestoreCollectionConstants.profiles).doc(profileId).delete();
       AppConfig.logger.d(
           "Profile $profileId removed successfully from User $userId.");
-    } catch (e) {
-      AppConfig.logger.e(e);
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'remove');
       return false;
     }
 
@@ -498,8 +498,8 @@ class ProfileFirestore implements ProfileRepository {
       } else {
         AppConfig.logger.d("Profile not found");
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'retrieveFull');
       rethrow;
     }
 
@@ -530,8 +530,8 @@ class ProfileFirestore implements ProfileRepository {
       } else {
         AppConfig.logger.w("No profiles found in users/$userId/profiles");
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'retrieveByUserId');
     }
 
     AppConfig.logger.d("${profiles.length} profiles found for userId $userId");
@@ -592,8 +592,8 @@ class ProfileFirestore implements ProfileRepository {
           mainInstrumentProfiles[entry.key] = entry.value;
         }
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'retrieveProfilesByInstrument');
     }
 
     AppConfig.logger.d("${mainInstrumentProfiles.length} Profiles found");
@@ -630,8 +630,8 @@ class ProfileFirestore implements ProfileRepository {
           profiles[profile.id] = profile;
         }
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'retrieveFromList');
     }
 
     AppConfig.logger.d("${profiles.length} profiles found");
@@ -658,8 +658,8 @@ class ProfileFirestore implements ProfileRepository {
         AppConfig.logger.d("$profileId is now following $followedProfileId");
         return true;
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'followProfile');
     }
     return false;
   }
@@ -685,8 +685,8 @@ class ProfileFirestore implements ProfileRepository {
         AppConfig.logger.d("$profileId is now unfollowing $unfollowProfileId");
         return true;
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'unfollowProfile');
     }
     return false;
   }
@@ -714,8 +714,8 @@ class ProfileFirestore implements ProfileRepository {
         AppConfig.logger.d("$profileId has blocked $profileToBlock");
         return true;
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'blockProfile');
     }
     return false;
   }
@@ -741,8 +741,8 @@ class ProfileFirestore implements ProfileRepository {
         AppConfig.logger.d("$profileId has unblocked $profileToUnblock");
         return true;
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'unblockProfile');
     }
     return false;
   }
@@ -889,8 +889,8 @@ class ProfileFirestore implements ProfileRepository {
           .limit(1)
           .get();
       return querySnapshot.docs.isEmpty;
-    } catch (e) {
-      AppConfig.logger.e("isAvailableSlug error: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'isAvailableSlug');
       return false;
     }
   }
@@ -1118,8 +1118,8 @@ class ProfileFirestore implements ProfileRepository {
             ..id = document.id
       };
 
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'retrieveAllProfiles');
     }
 
     AppConfig.logger.t("${profiles.length} profiles found");
@@ -1194,8 +1194,8 @@ class ProfileFirestore implements ProfileRepository {
       }
 
       AppConfig.logger.d("${followersMap.length} Followers found");
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getFollowers');
       rethrow;
     }
     return followersMap;
@@ -1223,8 +1223,8 @@ class ProfileFirestore implements ProfileRepository {
       }
 
       AppConfig.logger.d("${followedMap.length} Followed found");
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getFollowed');
       rethrow;
     }
     return followedMap;
@@ -1331,8 +1331,8 @@ class ProfileFirestore implements ProfileRepository {
       }
 
       return fcmToken;
-    } catch (e) {
-      AppConfig.logger.e("Error retrieving FCM token for profile $profileId: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'retrievedFcmToken');
       return "";
     }
   }
@@ -1353,8 +1353,8 @@ class ProfileFirestore implements ProfileRepository {
         AppConfig.logger.w("Profile Name '$profileName' already in use");
         return false; // No disponible
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'isAvailableName');
       return false;
     }
 
@@ -1379,8 +1379,8 @@ class ProfileFirestore implements ProfileRepository {
         profile.id = doc.id;
         return profile;
       }
-    } catch (e) {
-      AppConfig.logger.e("getBySlug error: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getBySlug');
     }
     return null;
   }
@@ -1426,8 +1426,8 @@ class ProfileFirestore implements ProfileRepository {
         AppConfig.logger.t(
           "Itemlists not found");
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getProfileFeatures');
     }
 
     return profile;
@@ -1563,8 +1563,8 @@ class ProfileFirestore implements ProfileRepository {
           facilityProfiles[entry.key] = entry.value;
         }
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'retrieveProfilesByFacility');
     }
 
     AppConfig.logger.d("${facilityProfiles.length} Profiles found");
@@ -1645,8 +1645,8 @@ class ProfileFirestore implements ProfileRepository {
           hostProfiles[entry.key] = entry.value;
         }
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'retrieveProfilesByPlace');
     }
 
     AppConfig.logger.d("${hostProfiles.length} Profiles found");
@@ -1677,8 +1677,8 @@ class ProfileFirestore implements ProfileRepository {
       } else {
         user?.profiles = await retrieveByUserId(user.id);
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getByEmail');
     }
 
     return (user?.profiles.isNotEmpty ?? false) ? user!.profiles.first : null;
@@ -1774,8 +1774,8 @@ class ProfileFirestore implements ProfileRepository {
       }
 
       AppConfig.logger.d("Found ${results.length} profiles matching '$query'");
-    } catch (e) {
-      AppConfig.logger.e("Error searching profiles: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'searchByName');
     }
 
     return results;
@@ -1828,8 +1828,8 @@ class ProfileFirestore implements ProfileRepository {
 
       AppConfig.logger.i("¡Migración completada! Se corrigieron $totalUpdated perfiles legacy.");
 
-    } catch (e) {
-      AppConfig.logger.e("Error fatal en el script de migración: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'backfillAllProfileIds');
     }
   }
 

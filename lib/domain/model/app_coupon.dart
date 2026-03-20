@@ -10,6 +10,7 @@ class AppCoupon {
   double ownerAmount;
   String description;
   CouponType type;
+  String planId;
 
   int usageLimit;
   List<String>? usedBy;
@@ -28,6 +29,7 @@ class AppCoupon {
     this.ownerAmount = 1,
     this.description = "",
     this.type = CouponType.oneMonthFree,
+    this.planId = '',
     this.usageLimit = 100,
     this.usedBy,
     this.productIds,
@@ -50,6 +52,7 @@ class AppCoupon {
       'ownerAmount': ownerAmount,
       'description': description,
       'type': type.name,
+      'planId': planId,
       'usageLimit': usageLimit,
       'usedBy': usedBy,
       'productIds': productIds,
@@ -67,6 +70,7 @@ class AppCoupon {
     ownerAmount = data["ownerAmount"] ?? 0,
     description = data["description"] ?? "",
     type = EnumToString.fromString(CouponType.values, data["type"]) ?? CouponType.oneMonthFree,
+    planId = data["planId"] ?? '',
     usageLimit = data["usageLimit"] ?? 25,
     usedBy = data["usedBy"]?.cast<String>() ?? [],
     productIds = data["productIds"]?.cast<String>() ?? [],

@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../app_config.dart';
 import '../../domain/model/subscription_plan.dart';
+import '../../utils/neom_error_logger.dart';
 import '../../utils/enums/app_in_use.dart';
 import '../../utils/enums/subscription_level.dart';
 import 'constants/app_firestore_collection_constants.dart';
@@ -40,8 +41,8 @@ class SubscriptionPlanFirestore {
 
         return sortedPlans;
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'SubscriptionPlanFirestore.getAll');
     }
     return plans;
   }
@@ -65,8 +66,8 @@ class SubscriptionPlanFirestore {
         }
         AppConfig.logger.d("${plans.length} plans found");
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'SubscriptionPlanFirestore.getPlansByType');
     }
     return plans;
   }
@@ -88,8 +89,8 @@ class SubscriptionPlanFirestore {
         
       }
       AppConfig.logger.d("SubscriptionPlan ${plan.level?.name} added with id ${plan.id}");
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'SubscriptionPlanFirestore.insert');
     }
 
     return planId;
@@ -104,8 +105,8 @@ class SubscriptionPlanFirestore {
       AppConfig.logger.d("Product $planId removed");
       return true;
 
-    } catch (e) {
-      AppConfig.logger.e(e.toString());      
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'SubscriptionPlanFirestore.remove');
     }
     return false;
   }

@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../app_config.dart';
 import '../../domain/model/app_coupon.dart';
 import '../../domain/repository/coupon_repository.dart';
+import '../../utils/neom_error_logger.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
 
@@ -29,13 +30,13 @@ class CouponFirestore implements CouponRepository {
     try {
       await couponsReference.doc(coupon.code).set(coupon.toJSON());
       AppConfig.logger.i("Coupon inserted with ID (code): $couponId");
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'insert');
     }
 
     return true;
   }
-  
+
   /// OPTIMIZED: Added limit to prevent scanning entire coupon collection
   /// For most use cases, only active coupons are needed
   @override
@@ -59,8 +60,8 @@ class CouponFirestore implements CouponRepository {
       }
 
       AppConfig.logger.d("${coupons.length} coupons found");
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'fetchAll');
     }
 
     return coupons;
@@ -82,8 +83,8 @@ class CouponFirestore implements CouponRepository {
       } else {
         AppConfig.logger.d("No coupon found with code $couponCode");
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getCouponByCode');
     }
 
     return coupon;
@@ -103,8 +104,8 @@ class CouponFirestore implements CouponRepository {
 
         AppConfig.logger.d("Coupon $couponId was updated to include usedBy $email");
         return true;
-      } catch (e) {
-        AppConfig.logger.e(e.toString());
+      } catch (e, st) {
+        NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'addUsedBy');
       }
 
       AppConfig.logger.d("Coupon $couponId was not updated");

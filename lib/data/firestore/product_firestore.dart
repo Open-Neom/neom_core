@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../app_config.dart';
 import '../../domain/model/app_product.dart';
 import '../../domain/repository/product_repository.dart';
+import '../../utils/neom_error_logger.dart';
 import '../../utils/enums/product_type.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
@@ -33,8 +34,8 @@ class ProductFirestore implements ProductRepository {
         }
         AppConfig.logger.d("${products.length} products found");
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ProductFirestore.retrieveProductsByType');
     }
     return products;
   }
@@ -58,8 +59,8 @@ class ProductFirestore implements ProductRepository {
         
       }
       AppConfig.logger.d("Product ${product.name} added with id ${product.id}");
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ProductFirestore.insert');
     }
 
     return productId;
@@ -76,8 +77,8 @@ class ProductFirestore implements ProductRepository {
       AppConfig.logger.d("Product ${product.id} removed");
       return true;
 
-    } catch (e) {
-      AppConfig.logger.e(e.toString());      
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ProductFirestore.remove');
     }
     return false;
   }

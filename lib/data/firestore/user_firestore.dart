@@ -19,6 +19,7 @@ import '../../utils/enums/place_type.dart';
 import '../../utils/enums/profile_type.dart';
 import '../../utils/enums/usage_reason.dart';
 import '../../utils/enums/user_role.dart';
+import '../../utils/neom_error_logger.dart';
 import '../../utils/position_utilities.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
@@ -55,8 +56,8 @@ class UserFirestore implements UserRepository {
       AppConfig.logger.d("User ${user.toString()} inserted successfully.");
       return true;
 
-    } catch (e) {
-      await remove(userId) ? AppConfig.logger.i("User rollback") : AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      await remove(userId) ? AppConfig.logger.i("User rollback") : NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'insert');
       return false;
     }
   }
@@ -75,8 +76,8 @@ class UserFirestore implements UserRepository {
           users.add(user);
         }
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getAll');
     }
 
     return users;
@@ -113,8 +114,8 @@ class UserFirestore implements UserRepository {
         } else {
           AppConfig.logger.w("No user found");
         }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getById');
     }
 
     return user;
@@ -134,39 +135,43 @@ class UserFirestore implements UserRepository {
           user.id = queryDocumentSnapshot.id;
 
           if(getProfile) {
-            AppProfile profile = AppProfile();
+            try {
+              AppProfile profile = AppProfile();
 
-            if(user.currentProfileId.isNotEmpty) {
-              profile = await ProfileFirestore().retrieve(user.currentProfileId);
-            }
-
-            // Fallback: si no encontró por currentProfileId, buscar por userId
-            if(profile.id.isEmpty) {
-              AppConfig.logger.d("Profile not found by currentProfileId, trying by userId ${user.id}");
-              user.profiles = await ProfileFirestore().retrieveByUserId(user.id);
-              if(user.profiles.isNotEmpty) {
-                profile = user.profiles.first;
+              if(user.currentProfileId.isNotEmpty) {
+                profile = await ProfileFirestore().retrieve(user.currentProfileId);
               }
-            }
 
-            if(profile.id.isNotEmpty) {
-              if(AppConfig.instance.appInUse == AppInUse.c) {
-                profile.chambers = await Sint.find<ChamberRepository>().fetchAll(ownerId: profile.id);
-                profile.chamberPresets?.clear();
-
-                CoreUtilities.getTotalPresets(profile.chambers!).forEach((key, value) {
-                  profile.chamberPresets!.add(key);
-                });
+              // Fallback: si no encontró por currentProfileId, buscar por userId
+              if(profile.id.isEmpty) {
+                AppConfig.logger.d("Profile not found by currentProfileId, trying by userId ${user.id}");
+                user.profiles = await ProfileFirestore().retrieveByUserId(user.id);
+                if(user.profiles.isNotEmpty) {
+                  profile = user.profiles.first;
+                }
               }
-              user.profiles = [profile];
-            } else {
-              AppConfig.logger.d("Profile for userId ${user.id} not found");
-            }
 
-            if(getProfileFeatures) {
-              if(user.profiles.isNotEmpty && user.profiles.first.id.isNotEmpty) {
-                user.profiles.first = await ProfileFirestore().getProfileFeatures(user.profiles.first);
+              if(profile.id.isNotEmpty) {
+                if(AppConfig.instance.appInUse == AppInUse.c) {
+                  profile.chambers = await Sint.find<ChamberRepository>().fetchAll(ownerId: profile.id);
+                  profile.chamberPresets?.clear();
+
+                  CoreUtilities.getTotalPresets(profile.chambers!).forEach((key, value) {
+                    profile.chamberPresets!.add(key);
+                  });
+                }
+                user.profiles = [profile];
+              } else {
+                AppConfig.logger.d("Profile for userId ${user.id} not found");
               }
+
+              if(getProfileFeatures) {
+                if(user.profiles.isNotEmpty && user.profiles.first.id.isNotEmpty) {
+                  user.profiles.first = await ProfileFirestore().getProfileFeatures(user.profiles.first);
+                }
+              }
+            } catch (e) {
+              AppConfig.logger.w("Profile retrieval failed for user ${user.id}: $e");
             }
           }
 
@@ -175,8 +180,8 @@ class UserFirestore implements UserRepository {
           AppConfig.logger.w("No user found");
         }
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getByEmail');
     }
 
     return null;
@@ -242,8 +247,8 @@ class UserFirestore implements UserRepository {
           }
         }
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getByProfileId');
     }
 
     return user;
@@ -257,8 +262,8 @@ class UserFirestore implements UserRepository {
     try {
       await userReference.doc(userId).delete();
       AppConfig.logger.d("User $userId removed successfully.");
-    } catch (e) {
-      AppConfig.logger.e(e);
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'remove');
       return false;
     }
 
@@ -274,8 +279,8 @@ class UserFirestore implements UserRepository {
       await userReference.doc(userId).update({AppFirestoreConstants.androidNotificationToken: token});
       AppConfig.logger.d("User $userId removed successfully.");
       return true;
-    } catch (e) {
-      AppConfig.logger.e(e);
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'updateAndroidNotificationToken');
       return false;
     }
   }
@@ -298,8 +303,8 @@ class UserFirestore implements UserRepository {
       AppConfig.logger.t("Email is available");
       return true;
 
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'isAvailableEmail');
       rethrow;
     }
   }
@@ -323,8 +328,8 @@ class UserFirestore implements UserRepository {
       AppConfig.logger.d("No phoneNumber found");
       return true;
 
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'isAvailablePhone');
       rethrow;
     }
   }
@@ -392,8 +397,8 @@ class UserFirestore implements UserRepository {
       DocumentSnapshot documentSnapshot = await userReference.doc(userId).get();
       await documentSnapshot.reference.update({AppFirestoreConstants.photoUrl: photoUrl});
 
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'updatePhotoUrl');
       return false;
     }
 
@@ -415,8 +420,8 @@ class UserFirestore implements UserRepository {
       });
       AppConfig.logger.d("Order $orderId is now at User $userId");
       return true;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'addOrderId');
     }
 
     return false;
@@ -436,8 +441,8 @@ class UserFirestore implements UserRepository {
       });
       AppConfig.logger.d("Order $orderId was removed from User $userId");
       return true;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'removeOrderId');
     }
 
     return false;
@@ -454,8 +459,8 @@ class UserFirestore implements UserRepository {
       AppConfig.logger.i("FCM Token successfully updated for User $userId");
 
       return true;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'updateFcmToken');
     }
 
     return false;
@@ -472,8 +477,8 @@ class UserFirestore implements UserRepository {
       DocumentSnapshot documentSnapshot = await userReference.doc(userId).get();
       await documentSnapshot.reference.update({AppFirestoreConstants.lastTimeOn: DateTime.now().millisecondsSinceEpoch});
       AppConfig.logger.t("LastTimeOn successfully updated for User $userId");
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'updateLastTimeOn');
     }
 
   }
@@ -490,8 +495,8 @@ class UserFirestore implements UserRepository {
         fcmToken = AppUser.fromJSON(documentSnapshot.data()).fcmToken;
         AppConfig.logger.i("FCM Token $fcmToken retrieved");
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'retrieveFcmToken');
     }
 
     return fcmToken;
@@ -506,8 +511,8 @@ class UserFirestore implements UserRepository {
       await documentSnapshot.reference.update({AppFirestoreConstants.spotifyToken: spotifyToken});
       AppConfig.logger.i("Spotify Token successfully updated for User $userId");
       return true;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'updateSpotifyToken');
     }
 
     return false;
@@ -521,8 +526,8 @@ class UserFirestore implements UserRepository {
       await documentSnapshot.reference.update({AppFirestoreConstants.currentProfileId: currentProfileId});
       AppConfig.logger.i("CurrentProfileId successfully updated for User $userId");
       profile = await ProfileFirestore().retrieveFull(currentProfileId);
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'updateCurrentProfile');
     }
 
     return profile;
@@ -652,8 +657,8 @@ class UserFirestore implements UserRepository {
           users.add(user);
         }
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getWithParameters');
     }
 
     return users;
@@ -674,8 +679,8 @@ class UserFirestore implements UserRepository {
           }
         }
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getFCMTokens');
     }
 
     AppConfig.logger.d("${fcmTokens.length} FCM Tokens retrieved for user");
@@ -711,8 +716,8 @@ class UserFirestore implements UserRepository {
       await userReference.doc(userId).update({AppFirestoreConstants.userRole: userRole.name});
       AppConfig.logger.d("UserRole for $userId updated successfully.");
       return true;
-    } catch (e) {
-      AppConfig.logger.e(e);
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'updateUserRole');
       return false;
     }
   }
@@ -727,8 +732,8 @@ class UserFirestore implements UserRepository {
       });
       AppConfig.logger.d("$userId has added boughtItem $itemId");
       return true;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'addBoughtItem');
     }
     return false;
   }
@@ -744,8 +749,8 @@ class UserFirestore implements UserRepository {
       });
       AppConfig.logger.d("$userId has removed boughtItem $itemId");
       return true;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'removeBoughtItem');
     }
     return false;
   }
@@ -764,8 +769,8 @@ class UserFirestore implements UserRepository {
         AppFirestoreConstants.customerId: customerId,
       });
       AppConfig.logger.d("User $userId customerId value successfully updated to: $customerId");
-    } catch (e) {
-      AppConfig.logger.e(e);
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'updateCustomerId');
     }
   }
 
@@ -778,8 +783,8 @@ class UserFirestore implements UserRepository {
         AppFirestoreConstants.subscriptionId: subscriptionId,
       });
       AppConfig.logger.d("User $userId subscriptionId value successfully updated to: $subscriptionId");
-    } catch (e) {
-      AppConfig.logger.e(e);
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'updateSubscriptionId');
     }
   }
 
@@ -792,8 +797,8 @@ class UserFirestore implements UserRepository {
         AppFirestoreConstants.phoneNumber: phoneNumber,
       });
       AppConfig.logger.d("User $userId phoneNumber value successfully updated to: $phoneNumber");
-    } catch (e) {
-      AppConfig.logger.e(e);
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'updatePhoneNumber');
     }
   }
 
@@ -806,8 +811,8 @@ class UserFirestore implements UserRepository {
         AppFirestoreConstants.countryCode: countryCode,
       });
       AppConfig.logger.d("User $userId countryCode value successfully updated to: $countryCode");
-    } catch (e) {
-      AppConfig.logger.e(e);
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'updateCountryCode');
     }
   }
 
@@ -820,8 +825,8 @@ class UserFirestore implements UserRepository {
         AppFirestoreConstants.isVerified: isVerified,
       });
       AppConfig.logger.d("User $userId isVerified value successfully updated to: $isVerified");
-    } catch (e) {
-      AppConfig.logger.e(e);
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'setIsVerified');
     }
   }
 

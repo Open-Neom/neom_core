@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../app_config.dart';
 import '../../domain/model/subscription_event.dart';
+import '../../utils/neom_error_logger.dart';
 import 'constants/app_firestore_collection_constants.dart';
 
 class SubscriptionEventFirestore {
@@ -19,8 +20,8 @@ class SubscriptionEventFirestore {
       return snapshot.docs
           .map((doc) => SubscriptionEvent.fromJSON(doc.data()))
           .toList();
-    } catch (e) {
-      AppConfig.logger.e("Error getting recent subscription events: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'SubscriptionEventFirestore.getRecent');
       return [];
     }
   }
@@ -36,8 +37,8 @@ class SubscriptionEventFirestore {
       return snapshot.docs
           .map((doc) => SubscriptionEvent.fromJSON(doc.data()))
           .toList();
-    } catch (e) {
-      AppConfig.logger.e("Error getting alert subscription events: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'SubscriptionEventFirestore.getAlerts');
       return [];
     }
   }
@@ -52,8 +53,8 @@ class SubscriptionEventFirestore {
       return snapshot.docs
           .map((doc) => SubscriptionEvent.fromJSON(doc.data()))
           .toList();
-    } catch (e) {
-      AppConfig.logger.e("Error getting events for subscription: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'SubscriptionEventFirestore.getBySubscriptionId');
       return [];
     }
   }
@@ -67,8 +68,8 @@ class SubscriptionEventFirestore {
       if (event.id.isEmpty) event.id = docRef.id;
       await docRef.set(event.toJSON());
       AppConfig.logger.d("Subscription event inserted: ${event.id}");
-    } catch (e) {
-      AppConfig.logger.e("Error inserting subscription event: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'SubscriptionEventFirestore.insert');
     }
   }
 }

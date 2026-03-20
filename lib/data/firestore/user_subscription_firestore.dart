@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../app_config.dart';
 import '../../domain/model/user_subscription.dart';
+import '../../utils/neom_error_logger.dart';
 
 import '../../utils/enums/cancellation_reason.dart';
 import '../../utils/enums/subscription_status.dart';
@@ -16,8 +17,8 @@ class UserSubscriptionFirestore {
     try {
       await userSubscriptionsReference.doc(subscription.subscriptionId).set(subscription.toJSON());
       AppConfig.logger.d("Subscription inserted successfully: ${subscription.subscriptionId}");
-    } catch (e) {
-      AppConfig.logger.d("Error inserting subscription: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'UserSubscriptionFirestore.insert');
     }
   }
 
@@ -31,8 +32,8 @@ class UserSubscriptionFirestore {
       } else {
         AppConfig.logger.d("Subscription not found: $subscriptionId");
       }
-    } catch (e) {
-      AppConfig.logger.d("Error getting subscription: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'UserSubscriptionFirestore.getById');
     }
     return null;
   }
@@ -50,8 +51,8 @@ class UserSubscriptionFirestore {
 
       AppConfig.logger.d("${subscriptions.length} Subscriptions retrieved for user: $userId");
       return subscriptions;
-    } catch (e) {
-      AppConfig.logger.e("Error getting subscriptions for user: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'UserSubscriptionFirestore.getByUserId');
       return [];
     }
   }
@@ -66,8 +67,8 @@ class UserSubscriptionFirestore {
       }).toList();
       AppConfig.logger.d("All subscriptions retrieved.");
       return subscriptions;
-    } catch (e) {
-      AppConfig.logger.d("Error getting all subscriptions: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'UserSubscriptionFirestore.getAll');
       return [];
     }
   }
@@ -77,8 +78,8 @@ class UserSubscriptionFirestore {
     try {
       await userSubscriptionsReference.doc(subscriptionId).update(updates);
       AppConfig.logger.d("Subscription updated successfully: $subscriptionId");
-    } catch (e) {
-      AppConfig.logger.d("Error updating subscription: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'UserSubscriptionFirestore.update');
     }
   }
 
@@ -87,8 +88,8 @@ class UserSubscriptionFirestore {
     try {
       await userSubscriptionsReference.doc(subscriptionId).delete();
       AppConfig.logger.d("Subscription removed successfully: $subscriptionId");
-    } catch (e) {
-      AppConfig.logger.d("Error removing subscription: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'UserSubscriptionFirestore.remove');
     }
   }
 
@@ -100,8 +101,8 @@ class UserSubscriptionFirestore {
         AppFirestoreConstants.endReason: CancellationReason.userCancelled.name,
       });
       AppConfig.logger.d("Subscription cancelled successfully: $subscriptionId");
-    } catch (e) {
-      AppConfig.logger.d("Error cancelling subscription: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'UserSubscriptionFirestore.cancel');
     }
   }
 }

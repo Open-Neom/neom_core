@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../app_config.dart';
 import '../../domain/model/nupale/royalty_payout.dart';
+import '../../utils/neom_error_logger.dart';
 import '../../utils/enums/royalty_payout_status.dart';
 import 'constants/app_firestore_collection_constants.dart';
 
@@ -22,8 +23,8 @@ class RoyaltyPayoutFirestore {
         await royaltyPayoutsReference.doc(payout.id).update({'id': payout.id});
       }
       AppConfig.logger.d("RoyaltyPayout ${payout.id} inserted for ${payout.ownerEmail}");
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'RoyaltyPayoutFirestore.insert');
     }
 
     return payout.id;
@@ -43,8 +44,8 @@ class RoyaltyPayoutFirestore {
         payouts.add(RoyaltyPayout.fromJSON(doc.data()));
       }
       AppConfig.logger.d("Found ${payouts.length} payouts for $ownerEmail");
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'RoyaltyPayoutFirestore.fetchByOwner');
     }
 
     return payouts;
@@ -64,8 +65,8 @@ class RoyaltyPayoutFirestore {
         payouts.add(RoyaltyPayout.fromJSON(doc.data()));
       }
       AppConfig.logger.d("Found ${payouts.length} payouts for $month/$year");
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'RoyaltyPayoutFirestore.fetchByMonth');
     }
 
     return payouts;
@@ -79,8 +80,8 @@ class RoyaltyPayoutFirestore {
         'status': status.name,
       });
       return true;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'RoyaltyPayoutFirestore.updateStatus');
     }
 
     return false;
@@ -100,8 +101,8 @@ class RoyaltyPayoutFirestore {
       if (querySnapshot.docs.isNotEmpty) {
         return RoyaltyPayout.fromJSON(querySnapshot.docs.first.data());
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'RoyaltyPayoutFirestore.fetchByOwnerAndMonth');
     }
 
     return null;
@@ -122,8 +123,8 @@ class RoyaltyPayoutFirestore {
         payouts.add(RoyaltyPayout.fromJSON(doc.data()));
       }
       AppConfig.logger.d("Found ${payouts.length} unclaimed payouts");
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'RoyaltyPayoutFirestore.fetchUnclaimed');
     }
 
     return payouts;
@@ -145,8 +146,8 @@ class RoyaltyPayoutFirestore {
       for (var doc in querySnapshot.docs) {
         payouts.add(RoyaltyPayout.fromJSON(doc.data()));
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'RoyaltyPayoutFirestore.fetchByOwnerAndStatus');
     }
 
     return payouts;
@@ -161,8 +162,8 @@ class RoyaltyPayoutFirestore {
         'appCoinsDeposited': amount,
       });
       return true;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'RoyaltyPayoutFirestore.updateAppCoinsDeposited');
     }
 
     return false;
@@ -182,8 +183,8 @@ class RoyaltyPayoutFirestore {
         payouts.add(RoyaltyPayout.fromJSON(doc.data()));
       }
       AppConfig.logger.d("Found ${payouts.length} total payouts");
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'RoyaltyPayoutFirestore.fetchAll');
     }
 
     return payouts;

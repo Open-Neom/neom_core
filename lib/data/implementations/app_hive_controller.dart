@@ -16,6 +16,7 @@ import '../../utils/constants/app_hive_constants.dart';
 import '../../utils/constants/core_constants.dart';
 import '../../utils/enums/app_hive_box.dart';
 import '../../utils/enums/app_locale.dart';
+import '../../utils/neom_error_logger.dart';
 import '../../utils/platform/core_io.dart';
 
 class AppHiveController implements AppHiveService {
@@ -55,8 +56,8 @@ class AppHiveController implements AppHiveService {
 
     try {
       // await Hive.initFlutter();
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'init');
     }
   }
 
@@ -157,8 +158,8 @@ class AppHiveController implements AppHiveService {
         await box.put(AppHiveConstants.photoUrl, userServiceImpl.user.photoUrl);
         await box.put(AppHiveConstants.firstTime, false);
       }
-    } catch (e) {
-      AppConfig.logger.e('Error writing profile info: $e');
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'writeProfileInfo');
     }
 
   }
@@ -221,8 +222,8 @@ class AppHiveController implements AppHiveService {
       searchQueries.insert(0, query);
       if (searchQueries.length > 10) searchQueries = searchQueries.sublist(0, 10);
       await settingsBox.put(AppHiveConstants.search, searchQueries);
-    } catch(e) {
-      AppConfig.logger.e(e.toString());
+    } catch(e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'addQuery');
     }
   }
 
@@ -258,8 +259,8 @@ class AppHiveController implements AppHiveService {
     try {
       final profileBox = await getBox(AppHiveBox.profile.name);
       await profileBox.put(AppHiveConstants.appLocale, appLocale.name);
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'updateLocale');
     }
 
   }
@@ -296,8 +297,8 @@ class AppHiveController implements AppHiveService {
       firstTime = fTime;
       final profileBox = await getBox(AppHiveBox.profile.name);
       await profileBox.put(AppHiveConstants.firstTime, fTime);
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'setFirstTime');
     }
   }
 
@@ -308,8 +309,8 @@ class AppHiveController implements AppHiveService {
     try {
       final profileBox = await getBox(AppHiveBox.profile.name);
       await profileBox.put(AppHiveConstants.lastNotificationCheckDate, lastNotificationCheckDate);
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'setLastNotificationCheckDate');
     }
   }
 
@@ -321,8 +322,8 @@ class AppHiveController implements AppHiveService {
       final playerBox = await getBox(AppHiveBox.player.name);
       await playerBox.put(AppHiveConstants.lastIndex, lastIndex);
       await playerBox.put(AppHiveConstants.lastPos, lastPos);
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'setLastIndexPos');
     }
 
   }

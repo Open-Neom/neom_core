@@ -72,6 +72,7 @@ class AppProfile {
 
   ///These are retrieved from a Firebase Collection
   Map<String, Itemlist>? itemlists;
+  Map<String, Itemlist>? giglists;
   Map<String, Instrument>? instruments;
   Map<String, NeomChamber>? chambers;
   Map<String, NeomFrequency>? frequencies;
@@ -109,6 +110,43 @@ class AppProfile {
     this.verificationLevel = VerificationLevel.none,
     this.lastNameUpdate = 0,
     this.slug = "",
+    this.itemmates,
+    this.eventmates,
+    this.followers,
+    this.following,
+    this.unfollowing,
+    this.blockTo,
+    this.blockedBy,
+    this.posts,
+    this.blogEntries,
+    this.comments,
+    this.hiddenPosts,
+    this.hiddenComments,
+    this.reports,
+    this.bands,
+    this.events,
+    this.reviews,
+    this.favoriteItems,
+    this.savedItemlistIds,
+    this.chamberPresets,
+    this.watchingEvents,
+    this.goingEvents,
+    this.playingEvents,
+    this.requests,
+    this.sentRequests,
+    this.invitationRequests,
+    this.itemlists,
+    this.giglists,
+    this.instruments,
+    this.chambers,
+    this.frequencies,
+    this.genres,
+    this.facilities,
+    this.places,
+    this.badges,
+    this.influences,
+    this.lastReview,
+    this.bannedGenres,
   });
 
   /// Generates a URL slug from a profile name.
@@ -122,7 +160,9 @@ class AppProfile {
 
   @override
   String toString() {
-    return 'AppProfile{id: $id, name: $name, aboutMe: $aboutMe, photoUrl: $photoUrl, coverImgUrl: $coverImgUrl, mainFeature: $mainFeature, lastTimeOn: $lastTimeOn, isActive: $isActive, position: $position, address: $address, phoneNumber: $phoneNumber, type: $type, usageReason: $usageReason, reviewStars: $reviewStars, lastReview: $lastReview, itemmates: $itemmates, eventmates: $eventmates, followers: $followers, following: $following, unfollowing: $unfollowing, blockTo: $blockTo, blockedBy: $blockedBy, posts: $posts, blogEntries: $blogEntries, comments: $comments, hiddenPosts: $hiddenPosts, hiddenComments: $hiddenComments, bannedGenres: $bannedGenres, reports: $reports, bands: $bands, events: $events, reviews: $reviews, favoriteItems: $favoriteItems, chamberPresets: $chamberPresets, watchingEvents: $watchingEvents, goingEvents: $goingEvents, playingEvents: $playingEvents, requests: $requests, sentRequests: $sentRequests, invitationRequests: $invitationRequests, itemlists: $itemlists, instruments: $instruments, chambers: $chambers, frequencies: $frequencies, genres: $genres, facilities: $facilities, places: $places, directoryVisible: $directoryVisible, showPhone: $showPhone, verificationLevel: $verificationLevel, lastNameUpdate: $lastNameUpdate}';
+    return 'AppProfile{id: $id, name: $name, aboutMe: $aboutMe, photoUrl: $photoUrl, coverImgUrl: $coverImgUrl, mainFeature: $mainFeature, lastTimeOn: $lastTimeOn, isActive: $isActive, position: $position, address: $address, phoneNumber: $phoneNumber, type: $type, usageReason: $usageReason, reviewStars: $reviewStars, lastReview: $lastReview, itemmates: $itemmates, eventmates: $eventmates, followers: $followers, following: $following, unfollowing: $unfollowing, blockTo: $blockTo, blockedBy: $blockedBy, posts: $posts, blogEntries: $blogEntries, comments: $comments, hiddenPosts: $hiddenPosts, hiddenComments: $hiddenComments, bannedGenres: $bannedGenres, reports: $reports, bands: $bands, events: $events, reviews: $reviews, favoriteItems: $favoriteItems, chamberPresets: $chamberPresets, watchingEvents: $watchingEvents, goingEvents: $goingEvents, playingEvents: $playingEvents, requests: $requests, sentRequests: $sentRequests, invitationRequests: $invitationRequests, itemlists: $itemlists, instruments: $instruments, chambers: $chambers, frequencies: $frequencies, genres: $genres, facilities: $facilities, places: $places, directoryVisible: $directoryVisible, showPhone: $showPhone,'
+        ' verificationLevel: $verificationLevel, lastNameUpdate: $lastNameUpdate,'
+        ' slug: $slug, badges: $badges, influences: $influences, totalTipsReceived: $totalTipsReceived, giglists: $giglists}';
   }
 
   Map<String, dynamic> toJSON() {
@@ -176,6 +216,16 @@ class AppProfile {
       'verificationLevel': verificationLevel.name,
       'lastNameUpdate': lastNameUpdate,
       'slug': slug,
+      'itemlists': itemlists?.map((key, value) => MapEntry(key, value.toJSON())),
+      'giglists': giglists?.map((key, value) => MapEntry(key, value.toJSON())),
+      'instruments': instruments?.map((key, value) => MapEntry(key, value.toJSON())),
+      'chambers': chambers?.map((key, value) => MapEntry(key, value.toJSON())),
+      'frequencies': frequencies?.map((key, value) => MapEntry(key, value.toJSON())),
+      'genres': genres?.map((key, value) => MapEntry(key, value.toJSON())),
+      'facilities': facilities?.map((key, value) => MapEntry(key, value.toJSON())),
+      'places': places?.map((key, value) => MapEntry(key, value.toJSON())),
+
+
     };
   }
 
@@ -230,6 +280,8 @@ class AppProfile {
       'verificationLevel': verificationLevel.name,
       'lastNameUpdate': lastNameUpdate,
       'slug': slug,
+      'itemlists': itemlists?.map((key, value) => MapEntry(key, value.toJSON())),
+      'giglists': giglists?.map((key, value) => MapEntry(key, value.toJSON())),
       'facilities': facilities != null
           ? facilities!.map((key, facility) => MapEntry(key, facility.toJSON()))
           : {},
@@ -284,6 +336,13 @@ class AppProfile {
         verificationLevel = EnumToString.fromString(VerificationLevel.values, data["verificationLevel"] ?? VerificationLevel.none.name) ?? VerificationLevel.none,
         lastNameUpdate = data["lastNameUpdate"] ?? 0,
         slug = data["slug"] ?? "",
+        giglists = data["giglists"] != null
+            ? (data["giglists"] as Map).map((key, value) {
+          return MapEntry(
+              key.toString(),
+              Itemlist.fromJSON(Map<String, dynamic>.from(value))
+          );
+        }) : {},
         facilities = data["facilities"] != null
             ? (data["facilities"] as Map).map((key, value) {
           return MapEntry(

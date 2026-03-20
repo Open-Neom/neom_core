@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -59,6 +61,7 @@ class AppConfig {
     
     try {
       appInUse = app;
+      _initCrashlytics();
       await _getAppInfo();
       await _loadPackageInfo();
       if(app == AppInUse.e) {
@@ -66,6 +69,24 @@ class AppConfig {
       }
     } catch (e) {
       logger.e(e.toString());
+    }
+  }
+
+  void _initCrashlytics() {
+    try {
+      if (Firebase.apps.isEmpty || kIsWeb) return;
+
+      FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+
+      PlatformDispatcher.instance.onError = (error, stack) {
+        FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+        return true;
+      };
+
+      FirebaseCrashlytics.instance.setCustomKey('app', appInUse.name);
+      logger.d("Crashlytics initialized for ${appInUse.name}");
+    } catch (e) {
+      logger.w("Crashlytics init skipped: $e");
     }
   }
 

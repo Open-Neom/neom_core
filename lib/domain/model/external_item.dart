@@ -2,6 +2,7 @@ import 'package:enum_to_string/enum_to_string.dart';
 
 import '../../app_config.dart';
 import '../../utils/enums/external_media_source.dart';
+import '../../utils/neom_error_logger.dart';
 import '../../utils/enums/media_item_type.dart';
 
 class ExternalItem {
@@ -125,8 +126,8 @@ class ExternalItem {
         state: map['state'] ?? 0,
       );
       return externalItem;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ExternalItem.fromJSON');
       throw Exception('Error parsing song item: $e');
     }
   }

@@ -26,6 +26,7 @@ class AppRouteConstants {
   static const String timeline = "/timeline";
   static const String instruments = "/instrument";
   static const String instrumentsFav = '/instrument/fav';
+  static const String influences = '/influences';
   static const String frequency = "/frequency";
   static const String frequencyFav = '/frequency/fav';
   static const String genresFav = '/genres/fav';
@@ -159,6 +160,8 @@ class AppRouteConstants {
   static const String releaseUploadSummary  = '/onlinePositioning/summary';
 
   static const String analytics  = '/analytics';
+  static const String errorMonitor  = '/analytics/errorMonitor';
+  static const String flowMonitor  = '/analytics/flowMonitor';
 
   static const String generator  = '/generator';
   static const String chamber  = '/chamber';
@@ -183,7 +186,6 @@ class AppRouteConstants {
   static const String audioPlayerStats  = '/audioPlayer/stats';
 
   static const String wooWebView  = '/woo/webView';
-  static const String stripeWebView  = '/stripe/webview';
 
   static const String nupaleHome  = '/nupale/home';
   static const String nupaleItemDetails  = '/nupale/item/:itemId';
@@ -221,7 +223,7 @@ class AppRouteConstants {
   static const String gamesQuoteQuest = '/games/quoteQuest';
   static const String gamesVerseScramble = '/games/verseScramble';
   static const String gamesLiteraryChess = '/games/literaryChess';
-  static const String gamesFindYourBook = '/games/findYourBook';
+  static const String gamesLibroverso = '/games/libroverso';
   static const String gamesLibrinder = '/games/librinder';
   static const String gamesLibroTerapia = '/games/libroTerapia';
   static const String findOpponent = '/games/findOpponent';
@@ -276,14 +278,15 @@ class AppRouteConstants {
   static const String goLive = '/live/setup';
   static const String tipHistory = '/tip/history';
 
-  // ERP Financial Intelligence
-  static const String erpDashboard = '/erp/dashboard';
-  static const String erpSubscriptions = '/erp/subscriptions';
+  // Stripe Financial Intelligence
+  static const String stripeWebView  = '/stripe/webview';
+  static const String stripeDashboard = '/stripe/dashboard';
+  static const String stripeSubscriptions = '/stripe/subscriptions';
 
-  // Hub (Operations Center)
-  static const String hubDashboard = '/hub/dashboard';
-  static const String hubOperations = '/hub/operations';
-  static const String hubBenchmark = '/hub/benchmark';
+  // ERP Hub (Operations Center)
+  static const String erpDashboard = '/erp/dashboard';
+  static const String erpOperations = '/erp/operations';
+  static const String erpBenchmark = '/erp/benchmark';
 
   // Subscription status
   static const String subscriptionSuspended = '/subscription/suspended';

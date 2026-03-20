@@ -4,6 +4,7 @@ import 'package:upgrader/upgrader.dart';
 
 import '../app_config.dart';
 import '../domain/use_cases/home_service.dart';
+import '../utils/neom_error_logger.dart';
 import '../utils/constants/core_constants.dart';
 import '../utils/core_utilities.dart';
 
@@ -37,8 +38,8 @@ class RootPage extends StatelessWidget {
               homeService?.selectTab(CoreConstants.firstHomeTabIndex);
               return;
             }
-          } catch (e) {
-            AppConfig.logger.e(e.toString());
+          } catch (e, st) {
+            NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'onPopInvokedWithResult');
           }
 
           bool shouldPop = await showExitConfirmationDialog(context);

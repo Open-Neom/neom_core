@@ -4,4 +4,5 @@ enum CouponType {
   cartDiscount,
   freeShipping,
   oneMonthFree,
+  threeMonthsPlan,
 }

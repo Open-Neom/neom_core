@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../app_config.dart';
 import '../../domain/model/neom/neom_frequency.dart';
 import '../../domain/repository/frequency_repository.dart';
+import '../../utils/neom_error_logger.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
 
@@ -32,8 +33,8 @@ class FrequencyFirestore implements FrequencyRepository {
           }
         }
       }
-    } catch (e) {
-      AppConfig.logger.e("No frequencies found");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'FrequencyFirestore.retrieveFrequencies');
     }
 
     AppConfig.logger.d("${frequencies.length} frequencies found");
@@ -58,8 +59,8 @@ class FrequencyFirestore implements FrequencyRepository {
 
     AppConfig.logger.d("NeomFrequency $frequencyId removed");
     return true;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'FrequencyFirestore.removeFrequency');
       return false;
     }
   }
@@ -83,8 +84,8 @@ class FrequencyFirestore implements FrequencyRepository {
 
       AppConfig.logger.d("NeomFrequency ${frequency.id} added");
       return true;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'FrequencyFirestore.addFrequency');
       return false;
     }
   }
@@ -124,8 +125,8 @@ class FrequencyFirestore implements FrequencyRepository {
       });
 
       return true;
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'FrequencyFirestore.updateMainFrequency');
       return false;
     }
   }

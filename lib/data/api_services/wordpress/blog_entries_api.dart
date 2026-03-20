@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import '../../../app_config.dart';
 import '../../../app_properties.dart';
 import '../../../domain/model/wordpress/blog_entry.dart';
+import '../../../utils/neom_error_logger.dart';
 
 class BlogEntriesApi {
 
@@ -32,8 +33,8 @@ class BlogEntriesApi {
         AppConfig.logger.w('Failed to load blog entries: ${response.body}');
         throw Exception('Error loading blog entries');
       }
-    } catch (e) {
-      AppConfig.logger.e('Error retrieving blog entries: $e');
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getBlogEntries');
     }
 
     return entries;
