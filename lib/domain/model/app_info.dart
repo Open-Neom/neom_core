@@ -15,6 +15,7 @@ class AppInfo {
   bool maintenanceMode;
   bool releaseRevisionEnabled;
   bool demoReleaseEnabled;
+  bool showAds;
 
   AppInfo({
     this.version = "",
@@ -29,12 +30,13 @@ class AppInfo {
     this.maintenanceMode = false,
     this.releaseRevisionEnabled = false,
     this.demoReleaseEnabled = false,
+    this.showAds = false,
   });
 
 
   @override
   String toString() {
-    return 'AppInfo{version: $version, build: $build, googleLoginEnabled: $googleLoginEnabled, mediaPlayerEnabled: $mediaPlayerEnabled, orderNumber: $orderNumber, suggestedUrl: $suggestedUrl, hideNupale: $hideNupale, hideCasete: $hideCasete, hideWallet: $hideWallet, maintenanceMode: $maintenanceMode, releaseRevisionEnabled: $releaseRevisionEnabled, demoReleaseEnabled: $demoReleaseEnabled}';
+    return 'AppInfo{version: $version, build: $build, googleLoginEnabled: $googleLoginEnabled, mediaPlayerEnabled: $mediaPlayerEnabled, orderNumber: $orderNumber, suggestedUrl: $suggestedUrl, hideNupale: $hideNupale, hideCasete: $hideCasete, hideWallet: $hideWallet, maintenanceMode: $maintenanceMode, releaseRevisionEnabled: $releaseRevisionEnabled, demoReleaseEnabled: $demoReleaseEnabled, showAds: $showAds}';
   }
 
   AppInfo.fromJSON(dynamic data):
@@ -49,7 +51,8 @@ class AppInfo {
     hideWallet = data["hideWallet"] ?? false,
     maintenanceMode = data["maintenanceMode"] ?? false,
     releaseRevisionEnabled = data["releaseRevisionEnabled"] ?? false,
-    demoReleaseEnabled = data["demoReleaseEnabled"] ?? false;
+    demoReleaseEnabled = data["demoReleaseEnabled"] ?? false,
+    showAds = data["showAds"] ?? false;
 
 
   Map<String, dynamic> toJSON() {
@@ -66,6 +69,7 @@ class AppInfo {
       'maintenanceMode': maintenanceMode,
       'releaseRevisionEnabled': releaseRevisionEnabled,
       'demoReleaseEnabled': demoReleaseEnabled,
+      'showAds': showAds,
     };
   }
 
