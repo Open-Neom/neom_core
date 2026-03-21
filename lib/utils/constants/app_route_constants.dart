@@ -293,6 +293,7 @@ class AppRouteConstants {
 
   // Admin
   static const String slugMigration = '/admin/slug-migration';
+  static const String planManager = '/admin/plans';
 
   // Museum / Gallery
   static const String museumHome = '/museum';

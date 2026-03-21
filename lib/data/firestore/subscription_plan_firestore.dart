@@ -111,6 +111,35 @@ class SubscriptionPlanFirestore {
     return false;
   }
 
+  /// Updates a single field or multiple fields on an existing plan document.
+  Future<void> update(String planId, Map<String, dynamic> data) async {
+    try {
+      await subscriptionPlanReference.doc(planId).update(data);
+      AppConfig.logger.d("Plan $planId updated");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'SubscriptionPlanFirestore.update');
+    }
+  }
+
+  /// Backfill isLive field on plans that don't have it yet.
+  Future<int> backfillIsLive({bool defaultValue = true}) async {
+    int updated = 0;
+    try {
+      final snapshot = await subscriptionPlanReference.get();
+      for (final doc in snapshot.docs) {
+        final data = doc.data();
+        if (!data.containsKey('isLive')) {
+          await subscriptionPlanReference.doc(doc.id).update({'isLive': defaultValue});
+          updated++;
+        }
+      }
+      AppConfig.logger.d("backfillIsLive: $updated plans updated");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'SubscriptionPlanFirestore.backfillIsLive');
+    }
+    return updated;
+  }
+
   void insertSubscriptionPlans() async {
     SubscriptionPlanFirestore subscriptionPlanFirestore = SubscriptionPlanFirestore();
     List<SubscriptionPlan> subscriptionPlans = [];

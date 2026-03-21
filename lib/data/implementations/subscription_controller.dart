@@ -17,6 +17,7 @@ import '../../utils/enums/place_type.dart';
 import '../../utils/enums/profile_type.dart';
 import '../../utils/enums/subscription_level.dart';
 import '../../utils/enums/subscription_status.dart';
+import '../../utils/enums/user_role.dart';
 import '../firestore/profile_firestore.dart';
 import '../firestore/subscription_plan_firestore.dart';
 import '../../utils/neom_error_logger.dart';
@@ -54,14 +55,32 @@ class SubscriptionController extends SintController implements SubscriptionServi
     AppConfig.logger.t("Initializing Subscriptions");
     _subscriptionPlans = await SubscriptionPlanFirestore().getAll();
     if(_subscriptionPlans.isNotEmpty) {
-      for(SubscriptionPlan plan in _subscriptionPlans.values) {
+      // Filter by environment: isLive matches current mode (debug=test, release=live)
+      final isLiveMode = !kDebugMode || (userServiceImpl.user.userRole.value >= UserRole.developer.value);
+      _subscriptionPlans.removeWhere((_, plan) => plan.isLive != isLiveMode);
+
+      final keysToRemove = <String>[];
+
+      for(final entry in _subscriptionPlans.entries) {
+        final plan = entry.value;
         StripePrice? stripePrice = await Sint.find<StripeApiService>().getPrice(plan.priceId);
         if(stripePrice != null) {
           plan.price = Price.fromStripe(stripePrice);
+        } else {
+          // Price could not be fetched — plan belongs to the other Stripe
+          // environment (test vs live). Remove it so only valid plans show.
+          AppConfig.logger.w('Plan "${entry.key}" skipped: priceId ${plan.priceId} not found in current Stripe environment');
+          keysToRemove.add(entry.key);
         }
       }
 
-      setProfileTypePlans();
+      for (final key in keysToRemove) {
+        _subscriptionPlans.remove(key);
+      }
+
+      if(_subscriptionPlans.isNotEmpty) {
+        setProfileTypePlans();
+      }
     }
 
     await setActiveSubscriptions();
@@ -153,11 +172,19 @@ class SubscriptionController extends SintController implements SubscriptionServi
   void changeSubscriptionPlan(String planId) {
     AppConfig.logger.d("Changing Subscription Plan to: $planId");
 
-    if(selectedPlan.price != null) {
-      _selectedPlan = _subscriptionPlans[planId]!;
-      _selectedPlanName.value = selectedPlan.name;
-      _selectedPlanImgUrl.value = selectedPlan.imgUrl;
-      _selectedPrice.value = selectedPlan.price!;
+    try {
+      // Look up by map key first, then by plan.id field as fallback
+      SubscriptionPlan? plan = _subscriptionPlans[planId];
+      plan ??= _subscriptionPlans.values.where((p) => p.id == planId).firstOrNull;
+
+      if(plan != null && plan.price != null) {
+        _selectedPlan = plan;
+        _selectedPlanName.value = selectedPlan.name;
+        _selectedPlanImgUrl.value = selectedPlan.imgUrl;
+        _selectedPrice.value = selectedPlan.price!;
+      }
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'changeSubscriptionPlan');
     }
 
     update();

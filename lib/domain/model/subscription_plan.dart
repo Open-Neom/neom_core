@@ -15,6 +15,7 @@ class SubscriptionPlan {
 
   SubscriptionLevel? level;
   bool isActive;
+  bool isLive;
 
   Price? price;
   double? discount;
@@ -30,6 +31,7 @@ class SubscriptionPlan {
     this.level,
     this.price,
     this.isActive = true,
+    this.isLive = true,
     this.discount = 0.0,
     this.lastUpdated,
   });
@@ -45,6 +47,7 @@ class SubscriptionPlan {
       'level': level?.name,
       'price': price?.toJSON(),
       'isActive': isActive,
+      'isLive': isLive,
       'discount': discount,
       'lastUpdated': lastUpdated?.toIso8601String(),
     };
@@ -53,7 +56,7 @@ class SubscriptionPlan {
 
   @override
   String toString() {
-    return 'SubscriptionPlan{id: $id, name: $name, imgUrl: $imgUrl, href: $href, productId: $productId, priceId: $priceId, level: $level, isActive: $isActive, price: $price, discount: $discount, lastUpdated: $lastUpdated}';
+    return 'SubscriptionPlan{id: $id, name: $name, imgUrl: $imgUrl, href: $href, productId: $productId, priceId: $priceId, level: $level, isActive: $isActive, isLive: $isLive, price: $price, discount: $discount, lastUpdated: $lastUpdated}';
   }
 
   SubscriptionPlan.fromJSON(dynamic data)
@@ -66,6 +69,7 @@ class SubscriptionPlan {
         level = EnumToString.fromString(SubscriptionLevel.values, data['level'] ?? SubscriptionLevel.basic.name) ?? SubscriptionLevel.basic,
         price = data['price'] != null ? Price.fromJSON(data['price']) : null,
         isActive = data['isActive'] ?? true,
+        isLive = data['isLive'] ?? true,
         discount = data['discount'] != null ? double.parse(data['discount'].toString()) : 0.0,
         lastUpdated = data['lastUpdated'] != null ? DateTime.parse(data['lastUpdated']) : null;
 }
