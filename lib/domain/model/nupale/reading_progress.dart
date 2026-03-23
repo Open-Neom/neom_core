@@ -4,6 +4,8 @@ class ReadingProgress {
 
   final String itemId;
   final String itemName;
+  final String itemImgUrl;
+  final String itemOwnerName;
   final int maxPageReached;
   final int totalPages;
   final int sessionCount;
@@ -15,6 +17,8 @@ class ReadingProgress {
   ReadingProgress({
     required this.itemId,
     required this.itemName,
+    this.itemImgUrl = '',
+    this.itemOwnerName = '',
     this.maxPageReached = 0,
     this.totalPages = 0,
     this.sessionCount = 0,
@@ -74,6 +78,25 @@ class ReadingProgress {
       totalPagesRead: totalPagesRead,
       pagesViewed: allPagesViewed,
       lastReadTime: lastRead,
+    );
+  }
+
+  ReadingProgress copyWith({
+    String? itemImgUrl,
+    String? itemOwnerName,
+  }) {
+    return ReadingProgress(
+      itemId: itemId,
+      itemName: itemName,
+      itemImgUrl: itemImgUrl ?? this.itemImgUrl,
+      itemOwnerName: itemOwnerName ?? this.itemOwnerName,
+      maxPageReached: maxPageReached,
+      totalPages: totalPages,
+      sessionCount: sessionCount,
+      totalReadingTime: totalReadingTime,
+      totalPagesRead: totalPagesRead,
+      pagesViewed: pagesViewed,
+      lastReadTime: lastReadTime,
     );
   }
 

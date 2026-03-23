@@ -40,16 +40,7 @@ class AppProperties {
   static Future<void> readProperties() async {
     AppConfig.logger.t("readProperties");
 
-    if (kIsWeb) {
-      try {
-        await CloudProperties.loadFromCloud();
-        return;
-      } catch (e, st) {
-        NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'readProperties');
-      }
-    }
-
-    // Mobile or Cloud Functions fallback: load from local asset
+    // All platforms: load from local asset (properties.json)
     try {
       String jsonString = await rootBundle.loadString(DataAssets.propertiesJsonPath);
       appProperties = jsonDecode(jsonString);
@@ -93,6 +84,10 @@ class AppProperties {
 
   static String getJammingDefaultImgUrl() {
     return appProperties['jammingLogo'] ?? '';
+  }
+
+  static String getSaiaName() {
+    return appProperties['saiaName'] ?? 'Itzli';
   }
 
   static String getLinksUrl() {

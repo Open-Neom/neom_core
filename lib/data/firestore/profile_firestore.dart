@@ -755,16 +755,22 @@ class ProfileFirestore implements ProfileRepository {
     String address = await PositionUtilities.getFormattedAddressFromPosition(newPosition);
 
     // OPTIMIZED: Use helper method instead of fetching ALL profiles
-    final success = await _updateProfileField(profileId, {
+    // Only include address if geocoding succeeded — don't overwrite with empty string
+    final data = <String, dynamic>{
       AppFirestoreConstants.position: jsonEncode(newPosition),
-      AppFirestoreConstants.address: address,
-    });
+    };
+    if (address.isNotEmpty) {
+      data[AppFirestoreConstants.address] = address;
+    }
+    final success = await _updateProfileField(profileId, data);
 
     if (success) {
       AppConfig.logger.d("$profileId location updated");
     }
     return success;
   }
+
+
 
 
   @override

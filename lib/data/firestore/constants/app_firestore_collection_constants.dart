@@ -82,7 +82,7 @@ class AppFirestoreCollectionConstants {
   static const String scheduledPosts = "scheduledPosts";
   static const String creatorAnalytics = "creatorAnalytics";
 
-  static const String itzliDevices = "itzliDevices";
+  static const String saiaDevices = "saiaDevices";
 
   static const String erpRoleAssignments = "erpRoleAssignments";
   static const String financialSnapshots = "financialSnapshots";

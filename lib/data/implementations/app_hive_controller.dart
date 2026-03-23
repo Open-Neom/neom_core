@@ -267,7 +267,7 @@ class AppHiveController implements AppHiveService {
 
   @override
   void setLocale(AppLocale appLocale) {
-    AppConfig.logger.d("Updating GetX locale to ${appLocale.name}");
+    AppConfig.logger.d("Updating Sint locale to ${appLocale.name}");
 
     Locale locale = Sint.deviceLocale!;
 

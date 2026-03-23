@@ -294,6 +294,8 @@ class AppRouteConstants {
   // Admin
   static const String slugMigration = '/admin/slug-migration';
   static const String planManager = '/admin/plans';
+  static const String couponManager = '/admin/coupons';
+  static const String sponsorManager = '/admin/sponsors';
 
   // Museum / Gallery
   static const String museumHome = '/museum';

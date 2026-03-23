@@ -5,4 +5,5 @@ enum CouponType {
   freeShipping,
   oneMonthFree,
   threeMonthsPlan,
+  planTrial, // Free trial of a specific plan for N months
 }
