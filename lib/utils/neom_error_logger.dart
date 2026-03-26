@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
 
 import '../app_config.dart';
 
@@ -38,11 +38,15 @@ class NeomErrorLogger {
     required String module,
     required String operation,
     bool fatal = false,
+    bool skipDebug = true,
   }) async {
+
+
     final errorMessage = error.toString();
 
     // 1. Always log locally
     AppConfig.logger.e('[$module/$operation] $errorMessage');
+    if (kDebugMode && skipDebug) return;
 
     // 2. Send to Crashlytics
     _recordToCrashlytics(error, stackTrace, module, operation, fatal);

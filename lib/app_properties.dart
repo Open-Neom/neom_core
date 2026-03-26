@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
 import 'app_config.dart';
 import 'cloud_properties.dart';
@@ -72,6 +71,16 @@ class AppProperties {
       sourceUrl = names[appInUse.name]?.toString() ?? '';
     }
     return sourceUrl;
+  }
+
+  /// Get the web domain for a source app (e.g. "cyberneom.xyz", "gigmeout.com").
+  /// Used by promo cards to build web URLs for content viewing.
+  static String getAppSourceDomain(AppInUse appInUse) {
+    final domains = appProperties['appSourceDomains'];
+    if (domains is Map) {
+      return domains[appInUse.name]?.toString() ?? '';
+    }
+    return '';
   }
 
   static String getAppBotName() {

@@ -16,6 +16,7 @@ import 'item_list.dart';
 import 'neom/neom_chamber.dart';
 import 'neom/neom_frequency.dart';
 import 'place.dart';
+import 'profile_skill.dart';
 import 'review.dart';
 
 class AppProfile {
@@ -79,6 +80,7 @@ class AppProfile {
   Map<String, Genre>? genres;
   Map<String, Facility>? facilities;
   Map<String, Place>? places;
+  Map<String, ProfileSkill>? skills;
 
   List<String>? badges;
   List<Influence>? influences;
@@ -86,6 +88,7 @@ class AppProfile {
 
   bool directoryVisible;
   bool showPhone;
+  String portfolioUrl;
   VerificationLevel verificationLevel;
   int lastNameUpdate = 0;
   String slug;
@@ -106,6 +109,7 @@ class AppProfile {
     this.type = ProfileType.general,
     this.directoryVisible = true,
     this.showPhone = true,
+    this.portfolioUrl = "",
     this.totalTipsReceived = 0,
     this.verificationLevel = VerificationLevel.none,
     this.lastNameUpdate = 0,
@@ -143,6 +147,7 @@ class AppProfile {
     this.genres,
     this.facilities,
     this.places,
+    this.skills,
     this.badges,
     this.influences,
     this.lastReview,
@@ -213,6 +218,7 @@ class AppProfile {
       'totalTipsReceived': totalTipsReceived,
       'directoryVisible': directoryVisible,
       'showPhone': showPhone,
+      'portfolioUrl': portfolioUrl,
       'verificationLevel': verificationLevel.name,
       'lastNameUpdate': lastNameUpdate,
       'slug': slug,
@@ -224,7 +230,7 @@ class AppProfile {
       'genres': genres?.map((key, value) => MapEntry(key, value.toJSON())),
       'facilities': facilities?.map((key, value) => MapEntry(key, value.toJSON())),
       'places': places?.map((key, value) => MapEntry(key, value.toJSON())),
-
+      'skills': skills?.map((key, value) => MapEntry(key, value.toJSON())),
 
     };
   }
@@ -277,6 +283,7 @@ class AppProfile {
       'totalTipsReceived': totalTipsReceived,
       'directoryVisible': directoryVisible,
       'showPhone': showPhone,
+      'portfolioUrl': portfolioUrl,
       'verificationLevel': verificationLevel.name,
       'lastNameUpdate': lastNameUpdate,
       'slug': slug,
@@ -285,6 +292,7 @@ class AppProfile {
       'facilities': facilities != null
           ? facilities!.map((key, facility) => MapEntry(key, facility.toJSON()))
           : {},
+      'skills': skills?.map((key, value) => MapEntry(key, value.toJSON())),
     };
   }
 
@@ -333,6 +341,7 @@ class AppProfile {
         totalTipsReceived = data["totalTipsReceived"] ?? 0,
         directoryVisible = data["directoryVisible"] ?? true,
         showPhone = data["showPhone"] ?? true,
+        portfolioUrl = data["portfolioUrl"] ?? "",
         verificationLevel = EnumToString.fromString(VerificationLevel.values, data["verificationLevel"] ?? VerificationLevel.none.name) ?? VerificationLevel.none,
         lastNameUpdate = data["lastNameUpdate"] ?? 0,
         slug = data["slug"] ?? "",
@@ -348,6 +357,13 @@ class AppProfile {
           return MapEntry(
               key.toString(),
               Facility.fromJSON(Map<String, dynamic>.from(value))
+          );
+        }) : {},
+        skills = data["skills"] != null
+            ? (data["skills"] as Map).map((key, value) {
+          return MapEntry(
+              key.toString(),
+              ProfileSkill.fromJSON(Map<String, dynamic>.from(value))
           );
         }) : {};
 
@@ -373,6 +389,7 @@ class AppProfile {
         totalTipsReceived = 0,
         directoryVisible = true,
         showPhone = true,
+        portfolioUrl = "",
         verificationLevel = EnumToString.fromString(VerificationLevel.values, data["verificationLevel"] ?? VerificationLevel.none.name) ?? VerificationLevel.none,
         slug = data["slug"] ?? "";
 

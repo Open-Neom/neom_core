@@ -949,6 +949,15 @@ class ProfileFirestore implements ProfileRepository {
     });
   }
 
+  Future<bool> updateSkills(String profileId, Map<String, dynamic> skillsMap) async {
+    AppConfig.logger.d("Updating skills for profile $profileId");
+    return await _updateProfileField(profileId, {'skills': skillsMap});
+  }
+
+  Future<bool> updatePortfolioUrl(String profileId, String url) async {
+    return await _updateProfileField(profileId, {'portfolioUrl': url});
+  }
+
   Future<bool> updateUsageReason(String profileId, UsageReason reason) async {
     AppConfig.logger.i("Updating Profile $profileId with new usage reason as ${reason.name}");
 

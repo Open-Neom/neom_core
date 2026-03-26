@@ -70,6 +70,9 @@ class Event {
   String recurringTime; // "HH:mm"
   String roomId; // linked NeomRoom for ongoing interaction
 
+  // Google Calendar sync
+  String googleCalendarId; // Google Calendar event ID for bi-directional sync
+
   static String generateSlug(String title) {
     return title.toLowerCase()
       .replaceAll(RegExp(r'\s+'), '-')
@@ -115,6 +118,7 @@ class Event {
       this.recurringDays = const [],
       this.recurringTime = '',
       this.roomId = '',
+      this.googleCalendarId = '',
   });
 
   @override
@@ -147,7 +151,8 @@ class Event {
     isRecurring = false,
     recurringDays = const [],
     recurringTime = '',
-    roomId = '';
+    roomId = '',
+    googleCalendarId = '';
 
   Event.fromJSON(dynamic data):
       id = data["id"] ?? "",
@@ -193,7 +198,8 @@ class Event {
       isRecurring = data["isRecurring"] ?? false,
       recurringDays = List<int>.from(data["recurringDays"]?.cast<int>() ?? []),
       recurringTime = data["recurringTime"] ?? '',
-      roomId = data["roomId"] ?? '';
+      roomId = data["roomId"] ?? '',
+      googleCalendarId = data["googleCalendarId"] ?? '';
 
   Map<String, dynamic> toJSON() => {
     'id': id,
@@ -234,6 +240,7 @@ class Event {
     'recurringDays': recurringDays,
     'recurringTime': recurringTime,
     'roomId': roomId,
+    'googleCalendarId': googleCalendarId,
   };
 
 }

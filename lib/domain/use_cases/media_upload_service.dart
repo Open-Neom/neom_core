@@ -49,4 +49,10 @@ abstract class MediaUploadService {
   /// Nombre del archivo de release por índice.
   String getReleaseFileName(int index);
 
+  /// Add release file bytes from external source (web modal).
+  void addWebReleaseFileBytes(String fileName, Uint8List bytes) {}
+
+  /// Reemplaza los bytes del media seleccionado (usado después de crop en web).
+  void setMediaBytes(Uint8List bytes) {}
+
 }

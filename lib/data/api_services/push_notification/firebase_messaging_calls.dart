@@ -267,8 +267,8 @@ class FirebaseMessagingCalls {
     {required AppProfile fromProfile, required String title, required String message,
       String toProfileId = '', String imgUrl = '', String referenceId = ''}) {
 
-    String notificationTitle = title.tr;
-    String notificationBody = message.isNotEmpty ? message : fromProfile.name;
+    String notificationTitle = '${fromProfile.name} ${title.tr}';
+    String notificationBody = message;
     int channelId = notificationType.value;
     String channelKey = notificationType.name;
 

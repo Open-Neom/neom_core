@@ -18,6 +18,7 @@ import '../../utils/enums/owner_type.dart';
 import '../../utils/enums/subscription_level.dart';
 import '../../utils/enums/subscription_status.dart';
 import '../../utils/enums/user_role.dart';
+import '../../utils/enums/verification_level.dart';
 import '../firestore/app_release_item_firestore.dart';
 import '../firestore/itemlist_firestore.dart';
 import '../firestore/profile_firestore.dart';
@@ -585,11 +586,32 @@ class UserController extends SintController implements UserService {
         }
 
         _userSubscription = subscriptions.firstWhereOrNull((subscription) => subscription.status == SubscriptionStatus.active);
+
+        // Check if active subscription has a scheduled cancellation that has passed
+        if (_userSubscription != null && _userSubscription!.endDate > 0) {
+          final now = DateTime.now().millisecondsSinceEpoch;
+          if (now >= _userSubscription!.endDate) {
+            AppConfig.logger.i('Subscription ${_userSubscription!.subscriptionId} has passed its end date — marking as cancelled');
+            UserSubscriptionFirestore().cancel(_userSubscription!.subscriptionId);
+            // Reset profile verification level back to general
+            if (user.profiles.isNotEmpty) {
+              final profile = user.profiles.first;
+              ProfileFirestore().updateVerificationLevel(profile.id, VerificationLevel.none);
+              profile.verificationLevel = VerificationLevel.none;
+            }
+            _userSubscription = null;
+            _subscriptionLevel = SubscriptionLevel.freemium;
+            updateSubscriptionId('');
+            return;
+          }
+        }
+
         if(userSubscription?.subscriptionId == user.subscriptionId) {
           _subscriptionLevel = userSubscription?.level ?? SubscriptionLevel.freemium;
           AppConfig.logger.d('User ${userSubscription?.subscriptionId} is the same as ${user.subscriptionId} for ${subscriptionLevel.name}');
         } else if(userSubscription?.subscriptionId.isNotEmpty ?? false) {
           user.subscriptionId = userSubscription?.subscriptionId ?? '';
+          _subscriptionLevel = userSubscription?.level ?? SubscriptionLevel.freemium;
           AppConfig.logger.d('User subscription is different from user.subscriptionId');
         }
       } else if(user.subscriptionId.isNotEmpty) {
@@ -614,14 +636,20 @@ class UserController extends SintController implements UserService {
 
   @override
   Future<void> setUserSubscription(UserSubscription subscription) async {
-    AppConfig.logger.d('Setting userSubscription with subscriptionId: ${subscription.subscriptionId}');
+    AppConfig.logger.d('Setting userSubscription with subscriptionId: ${subscription.subscriptionId}, level: ${subscription.level?.name}');
 
     try {
       _userSubscription = subscription;
+      // Also update subscriptionLevel so the UI reflects the change immediately
+      if (subscription.status == SubscriptionStatus.active && subscription.level != null) {
+        _subscriptionLevel = subscription.level!;
+        AppConfig.logger.d('Updated _subscriptionLevel to ${_subscriptionLevel.name}');
+      }
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'setUserSubscription');
     }
 
+    update();
   }
 
   @override

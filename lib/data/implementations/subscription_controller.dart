@@ -17,7 +17,6 @@ import '../../utils/enums/place_type.dart';
 import '../../utils/enums/profile_type.dart';
 import '../../utils/enums/subscription_level.dart';
 import '../../utils/enums/subscription_status.dart';
-import '../../utils/enums/user_role.dart';
 import '../firestore/profile_firestore.dart';
 import '../firestore/subscription_plan_firestore.dart';
 import '../../utils/neom_error_logger.dart';
@@ -55,8 +54,10 @@ class SubscriptionController extends SintController implements SubscriptionServi
     AppConfig.logger.t("Initializing Subscriptions");
     _subscriptionPlans = await SubscriptionPlanFirestore().getAll();
     if(_subscriptionPlans.isNotEmpty) {
-      // Filter by environment: isLive matches current mode (debug=test, release=live)
-      final isLiveMode = !kDebugMode || (userServiceImpl.user.userRole.value >= UserRole.developer.value);
+      // Filter by environment: debug=test plans only, release=live plans only.
+      // Role does NOT affect which environment is used — admins in debug
+      // should still see test plans to avoid hitting the live Stripe API.
+      final isLiveMode = !kDebugMode;
       _subscriptionPlans.removeWhere((_, plan) => plan.isLive != isLiveMode);
 
       final keysToRemove = <String>[];
@@ -120,6 +121,11 @@ class SubscriptionController extends SintController implements SubscriptionServi
         break;
     }
 
+    if (_profilePlans.isEmpty) {
+      AppConfig.logger.w('No plans available for profile type: $profileType');
+      return;
+    }
+
     _selectedPlan = _profilePlans.values.first;
     _selectedPlanName.value = selectedPlan.name;
     _selectedPlanImgUrl.value = selectedPlan.imgUrl;
@@ -133,7 +139,7 @@ class SubscriptionController extends SintController implements SubscriptionServi
     AppConfig.logger.d("Paying Subscription for: ${subscriptionPlan.name} from route: $fromRoute");
 
     try {
-      Sint.toNamed(AppRouteConstants.orderConfirmation, arguments: [subscriptionPlan, fromRoute, profileType.value]);
+      Sint.toNamed(AppRouteConstants.orderConfirmation, arguments: [subscriptionPlan, fromRoute, profileType]);
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'paySubscription');
     }
@@ -146,20 +152,40 @@ class SubscriptionController extends SintController implements SubscriptionServi
     AppConfig.logger.d("Cancelling Subscription");
 
     try {
-      if(userServiceImpl.userSubscription?.subscriptionId.isNotEmpty ?? false) {
-        if(await Sint.find<StripeApiService>().cancelSubscription(userServiceImpl.userSubscription!.subscriptionId)) {
-          userServiceImpl.updateSubscriptionId('');
-          UserSubscriptionFirestore().cancel(userServiceImpl.userSubscription!.subscriptionId);
-          userServiceImpl.userSubscription = null;
-          Sint.offAllNamed(AppRouteConstants.home);
-          Sint.snackbar(
-              'Suscripción Cancelada Satisfactoriamente',
-              'Tu suscripción a ${('${userServiceImpl.userSubscription?.level?.name ?? ''} Plan').tr} fue cancelada.',
-              snackPosition: SnackPosition.bottom,
-          );
-        } else {
+      final subscription = userServiceImpl.userSubscription;
+      if (subscription == null || subscription.subscriptionId.isEmpty) return;
 
-        }
+      final planName = subscription.level?.name ?? '';
+      final periodEndSeconds = await Sint.find<StripeApiService>().cancelSubscription(subscription.subscriptionId);
+
+      if (periodEndSeconds > 0) {
+        // Stripe will keep the subscription active until period end
+        final endDateMs = periodEndSeconds * 1000;
+        subscription.endDate = endDateMs;
+
+        // Store scheduled cancellation in Firestore (keeps status active until end date)
+        UserSubscriptionFirestore().scheduleCancellation(subscription.subscriptionId, endDateMs);
+
+        final endDate = DateTime.fromMillisecondsSinceEpoch(endDateMs);
+        final formattedDate = '${endDate.day}/${endDate.month}/${endDate.year}';
+
+        AppConfig.logger.i('Subscription $planName scheduled to cancel on $formattedDate');
+
+        Sint.snackbar(
+          'cancellationScheduled'.tr,
+          'subscriptionActiveUntil'.tr
+              .replaceAll('@plan', planName)
+              .replaceAll('@date', formattedDate),
+          snackPosition: SnackPosition.bottom,
+          duration: const Duration(seconds: 5),
+        );
+      } else {
+        AppConfig.logger.e('Failed to cancel subscription with Stripe');
+        Sint.snackbar(
+          'error'.tr,
+          'cancellationError'.tr,
+          snackPosition: SnackPosition.bottom,
+        );
       }
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'cancelSubscription');
@@ -286,19 +312,30 @@ class SubscriptionController extends SintController implements SubscriptionServi
     AppConfig.logger.d("Setting Active Subscriptions");
 
     if(_activeSubscriptions.isEmpty) {
-      List<UserSubscription> subscriptions = await UserSubscriptionFirestore().getAll();
-      if(subscriptions.isNotEmpty) {
-        for(UserSubscription subscription in subscriptions) {
-          if(subscription.status == SubscriptionStatus.active && subscription.level != null) {
-            if(_activeSubscriptions[subscription.level] == null) {
-              _activeSubscriptions[subscription.level!] = [];
-            }
-            _activeSubscriptions[subscription.level]?.add(subscription);
-          }
-        }
-      }
+      await _loadActiveSubscriptions();
     } else {
       AppConfig.logger.d("Active Subscriptions already loaded");
+    }
+  }
+
+  @override
+  Future<void> refreshActiveSubscriptions() async {
+    AppConfig.logger.d("Refreshing Active Subscriptions (forced reload)");
+    _activeSubscriptions.clear();
+    await _loadActiveSubscriptions();
+  }
+
+  Future<void> _loadActiveSubscriptions() async {
+    List<UserSubscription> subscriptions = await UserSubscriptionFirestore().getAll();
+    if(subscriptions.isNotEmpty) {
+      for(UserSubscription subscription in subscriptions) {
+        if(subscription.status == SubscriptionStatus.active && subscription.level != null) {
+          if(_activeSubscriptions[subscription.level] == null) {
+            _activeSubscriptions[subscription.level!] = [];
+          }
+          _activeSubscriptions[subscription.level]?.add(subscription);
+        }
+      }
     }
   }
 

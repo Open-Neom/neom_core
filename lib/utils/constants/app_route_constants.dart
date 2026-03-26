@@ -2,6 +2,7 @@ class AppRouteConstants {
 
   static const String root = "/";
   static const String notFound = "/not-found";
+  static const String termsConditions = "/terms";
   static const String login = "/login";
   static const String forgotPassword = "/forgot_password";
   static const String forgotPasswordSending = "/forgot_password/sending";
@@ -280,6 +281,8 @@ class AppRouteConstants {
 
   // Stripe Financial Intelligence
   static const String stripeWebView  = '/stripe/webview';
+  static const String stripeCheckoutSuccess  = '/suscripcion-confirmada';
+  static const String stripeCheckoutCancel   = '/suscripcion-fallida';
   static const String stripeDashboard = '/stripe/dashboard';
   static const String stripeSubscriptions = '/stripe/subscriptions';
 
@@ -290,6 +293,9 @@ class AppRouteConstants {
 
   // Subscription status
   static const String subscriptionSuspended = '/subscription/suspended';
+
+  // FIL Guadalajara
+  static const String filGuadalajara = '/fil-guadalajara';
 
   // Admin
   static const String slugMigration = '/admin/slug-migration';

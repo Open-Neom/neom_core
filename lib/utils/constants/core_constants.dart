@@ -39,12 +39,12 @@ class CoreConstants {
   static const int maxLocationNameLength = 20;
   static const int significantDistanceKM = 5;
   static const int directoryLimit = 20;
-  static const int mainItemFeedTurn = 2;
-  static const int secondaryItemFeedTurn = 2;
-  static const int sponsorsFeedTurn = 5;
-  static const int articlesFeedTurn = 5;
-  static const int booksFeedTurn = 7;
-  static const int gamesFeedTurn = 9;
+  static const int mainItemFeedTurn = 4;
+  static const int secondaryItemFeedTurn = 6;
+  static const int sponsorsFeedTurn = 8;
+  static const int articlesFeedTurn = 10;
+  static const int booksFeedTurn = 12;
+  static const int gamesFeedTurn = 14;
 
   static const itemTab = 'items';
   static const goingTab = 'going';

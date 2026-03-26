@@ -233,8 +233,18 @@ class MapsController extends SintController implements MapsService {
         apiHeaders: await const GoogleApiHeaders().getHeaders(),
       );
 
+      // placeId may be null if API returns only 'place' field (format: "places/ChIJ...")
+      final effectivePlaceId = (prediction.placeId?.isNotEmpty == true)
+          ? prediction.placeId!
+          : (prediction.place?.replaceFirst('places/', '') ?? '');
+
+      if (effectivePlaceId.isEmpty) {
+        AppConfig.logger.w('predictionToGooglePlace: No placeId in prediction');
+        return place;
+      }
+
       PlaceDetails placeDetails = await places.getDetailsByPlaceId(
-          prediction.placeId ?? '',
+          effectivePlaceId,
           language: Sint.locale?.languageCode
       );
 

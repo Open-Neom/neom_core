@@ -93,7 +93,21 @@ class UserSubscriptionFirestore {
     }
   }
 
-  // Update a subscription by its ID
+  /// Schedule cancellation: keeps subscription active until [endDate], then auto-cancels.
+  Future<void> scheduleCancellation(String subscriptionId, int endDateMs) async {
+    try {
+      await userSubscriptionsReference.doc(subscriptionId).update({
+        AppFirestoreConstants.status: SubscriptionStatus.active.name,
+        AppFirestoreConstants.endReason: CancellationReason.userCancelled.name,
+        AppFirestoreConstants.endDate: endDateMs,
+      });
+      AppConfig.logger.d("Subscription $subscriptionId scheduled to cancel at $endDateMs");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'UserSubscriptionFirestore.scheduleCancellation');
+    }
+  }
+
+  /// Immediately mark a subscription as cancelled.
   Future<void> cancel(String subscriptionId) async {
     try {
       await userSubscriptionsReference.doc(subscriptionId).update({

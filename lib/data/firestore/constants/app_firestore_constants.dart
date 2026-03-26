@@ -153,6 +153,7 @@ class AppFirestoreConstants {
   static const String subscriptionExpiration = "subscriptionExpiration";
   static const String level = "level";
   static const String endReason = "endReason";
+  static const String endDate = "endDate";
   static const String userId = "userId";
   static const String usageReason = "usageReason";
   static const String usedBy = "usedBy";
