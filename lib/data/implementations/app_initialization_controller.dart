@@ -6,9 +6,9 @@ import '../../app_config.dart';
 import '../../domain/use_cases/audio_player_invoker_service.dart';
 import '../../domain/use_cases/notification_service.dart';
 import '../../domain/use_cases/user_service.dart';
+import '../../utils/neom_error_logger.dart';
 import '../firestore/constants/app_firestore_constants.dart';
 import '../firestore/user_firestore.dart';
-import '../../utils/neom_error_logger.dart';
 import 'app_hive_controller.dart';
 
 class AppInitializationController {

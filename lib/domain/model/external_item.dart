@@ -2,8 +2,8 @@ import 'package:enum_to_string/enum_to_string.dart';
 
 import '../../app_config.dart';
 import '../../utils/enums/external_media_source.dart';
-import '../../utils/neom_error_logger.dart';
 import '../../utils/enums/media_item_type.dart';
+import '../../utils/neom_error_logger.dart';
 
 class ExternalItem {
   

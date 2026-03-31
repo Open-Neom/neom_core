@@ -5,9 +5,9 @@ import '../../../domain/model/blog_entry.dart';
 import '../../../domain/model/post.dart';
 import '../../../utils/constants/core_constants.dart';
 import '../../../utils/enums/post_type.dart';
+import '../../../utils/neom_error_logger.dart';
 import '../blog_entry_firestore.dart';
 import '../constants/app_firestore_collection_constants.dart';
-import '../../../utils/neom_error_logger.dart';
 import '../constants/app_firestore_constants.dart';
 
 /// Service to migrate Post.blogEntry documents to the new BlogEntry collection.

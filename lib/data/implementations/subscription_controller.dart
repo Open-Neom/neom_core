@@ -17,9 +17,9 @@ import '../../utils/enums/place_type.dart';
 import '../../utils/enums/profile_type.dart';
 import '../../utils/enums/subscription_level.dart';
 import '../../utils/enums/subscription_status.dart';
+import '../../utils/neom_error_logger.dart';
 import '../firestore/profile_firestore.dart';
 import '../firestore/subscription_plan_firestore.dart';
-import '../../utils/neom_error_logger.dart';
 import '../firestore/user_subscription_firestore.dart';
 
 class SubscriptionController extends SintController implements SubscriptionService {

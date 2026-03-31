@@ -2,8 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../app_config.dart';
 import '../../domain/model/nupale/royalty_payout.dart';
-import '../../utils/neom_error_logger.dart';
 import '../../utils/enums/royalty_payout_status.dart';
+import '../../utils/neom_error_logger.dart';
 import 'constants/app_firestore_collection_constants.dart';
 
 class RoyaltyPayoutFirestore {

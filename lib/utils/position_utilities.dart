@@ -2,8 +2,8 @@ import 'package:geolocator/geolocator.dart';
 
 import '../app_config.dart';
 import '../data/implementations/geolocator_controller.dart';
-import 'neom_error_logger.dart';
 import '../domain/model/address.dart';
+import 'neom_error_logger.dart';
 import 'platform/core_geocoding.dart';
 
 class PositionUtilities {

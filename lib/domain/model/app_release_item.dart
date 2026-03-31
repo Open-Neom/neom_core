@@ -6,9 +6,10 @@ import '../../utils/enums/release_status.dart';
 import '../../utils/enums/release_type.dart';
 import 'ia_info.dart';
 import 'place.dart';
+import 'playable_item.dart';
 import 'price.dart';
 
-class AppReleaseItem {
+class AppReleaseItem implements PlayableItem {
 
   String id; ///ID FOR ITEM ON DB OR WC
   String name; ///NAME OF ITEM
@@ -65,9 +66,6 @@ class AppReleaseItem {
   /// AI assistant configuration for this item
   IaInfo? iaInfo;
 
-  /// Total page views across all users and reading sessions
-  int totalPageViews;
-
   /// URL slug for vanity URLs (e.g., emxi.org/quemando-mis-razones)
   String slug;
 
@@ -75,6 +73,41 @@ class AppReleaseItem {
   bool isSuspended;
   String? suspendedBy;
   String? suspendedReason;
+
+  // ── Playback fields (for PlayableItem interface) ──
+  /// Streaming URL for audio/video playback (same as previewUrl for most items).
+  String? streamingUrl;
+  /// Track number within an album/itemlist.
+  int? trackNumber;
+  /// Disc number for multi-disc releases.
+  int? discNumber;
+  /// Audio quality (0=low, 5=lossless).
+  int? quality;
+  /// Local file path for offline playback.
+  String? localPath;
+  /// Owner profile ID (for internal routing).
+  String? ownerProfileId;
+  /// Total page views (books/articles).
+  int totalPageViews;
+
+  // ── PlayableItem interface implementation ──
+  @override
+  String get streamUrl => streamingUrl ?? previewUrl;
+  @override
+  bool get isInternal => true;
+  @override
+  String get ownerId => ownerProfileId ?? ownerEmail;
+  @override
+  String get displayDuration {
+    if (duration <= 0) return '';
+    final d = Duration(seconds: duration);
+    final h = d.inHours;
+    final m = d.inMinutes.remainder(60);
+    final s = d.inSeconds.remainder(60);
+    return h > 0
+        ? '${h}h ${m.toString().padLeft(2, '0')}m'
+        : '${m}:${s.toString().padLeft(2, '0')}';
+  }
 
   AppReleaseItem({
     this.id = '',
@@ -116,11 +149,17 @@ class AppReleaseItem {
     this.externalUrl,
     this.webPreviewUrl,
     this.iaInfo,
-    this.totalPageViews = 0,
     this.slug = '',
     this.isSuspended = false,
     this.suspendedBy,
     this.suspendedReason,
+    this.streamingUrl,
+    this.trackNumber,
+    this.discNumber,
+    this.quality,
+    this.localPath,
+    this.ownerProfileId,
+    this.totalPageViews = 0,
   });
 
   @override
@@ -167,11 +206,16 @@ class AppReleaseItem {
         externalUrl = data["externalUrl"]?.toString(),
         webPreviewUrl = data["webPreviewUrl"]?.toString(),
         iaInfo = data["iaInfo"] != null ? IaInfo.fromJSON(data["iaInfo"] as Map<String, dynamic>) : null,
-        totalPageViews = data["totalPageViews"] ?? 0,
         slug = data["slug"] ?? '',
         isSuspended = data["isSuspended"] ?? false,
         suspendedBy = data["suspendedBy"],
-        suspendedReason = data["suspendedReason"];
+        suspendedReason = data["suspendedReason"],
+        totalPageViews = data["totalPageViews"] ?? 0,
+        streamingUrl = data["streamingUrl"],
+        trackNumber = data["trackNumber"],
+        quality = data["quality"],
+        localPath = data["localPath"],
+        ownerProfileId = data["ownerProfileId"];
   
   /// Returns true if this release item contains audio content (audiobook, song, podcast, etc.)
   /// Used to route to audio player instead of book details
@@ -262,7 +306,6 @@ class AppReleaseItem {
     'externalUrl': externalUrl,
     'webPreviewUrl': webPreviewUrl,
     'iaInfo': iaInfo?.toJSON(),
-    'totalPageViews': totalPageViews,
     'slug': slug,
     'isSuspended': isSuspended,
     'suspendedBy': suspendedBy,

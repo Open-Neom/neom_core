@@ -1,10 +1,11 @@
 import '../model/app_media_item.dart';
 import '../model/app_release_item.dart';
+import '../model/playable_item.dart';
 import 'audio_handler_service.dart';
 
 abstract class AudioPlayerInvokerService {
 
-  Future<void> init({List<AppReleaseItem>? releaseItems, List<AppMediaItem>? mediaItems,
+  Future<void> init({List<PlayableItem>? items, List<AppReleaseItem>? releaseItems, List<AppMediaItem>? mediaItems,
     int index = 0, bool fromMiniPlayer = false, bool isOffline = false, bool recommend = true,
     bool fromDownloads = false, bool shuffle = false, String? playlistBox, bool playItem = true,});
 

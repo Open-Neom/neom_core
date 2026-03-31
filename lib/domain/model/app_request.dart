@@ -1,9 +1,8 @@
 import 'package:enum_to_string/enum_to_string.dart';
 
-
 import '../../utils/enums/game_request_type.dart';
-import '../../utils/neom_error_logger.dart';
 import '../../utils/enums/request_decision.dart';
+import '../../utils/neom_error_logger.dart';
 import 'event_offer.dart';
 import 'instrument.dart';
 

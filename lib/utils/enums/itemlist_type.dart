@@ -1,18 +1,16 @@
 enum ItemlistType {
-  playlist("playlist"),
-  giglist("giglist"),
-  readlist("readlist"),
-  publication('publication'),
-  single("single"),
-  ep("ep"),
-  album("album"),
-  demo('demo'),
-  audiobook("audiobook"),
-  podcast("podcast"),
-  radioStation("radioStation");
-
-  final String value;
-  const ItemlistType(this.value);
+  playlist,
+  giglist,
+  readlist,
+  publication,
+  single,
+  ep,
+  album,
+  demo,
+  audiobook,
+  podcast,
+  radioStation,
+  meditation;
 
   bool get isAudio =>
       this == ItemlistType.playlist ||
@@ -22,6 +20,7 @@ enum ItemlistType {
       this == ItemlistType.demo ||
       this == ItemlistType.audiobook ||
       this == ItemlistType.podcast ||
-      this == ItemlistType.radioStation;
+      this == ItemlistType.radioStation ||
+      this == ItemlistType.meditation;
 
 }

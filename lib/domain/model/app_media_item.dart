@@ -4,10 +4,12 @@ import 'package:enum_to_string/enum_to_string.dart';
 
 import '../../app_config.dart';
 import '../../utils/enums/app_media_source.dart';
-import '../../utils/neom_error_logger.dart';
 import '../../utils/enums/media_item_type.dart';
+import '../../utils/neom_error_logger.dart';
 
-class AppMediaItem {
+import 'playable_item.dart';
+
+class AppMediaItem implements PlayableItem {
   
   String id;
   String name;
@@ -67,6 +69,33 @@ class AppMediaItem {
   bool isSuspended;
   String? suspendedBy;
   String? suspendedReason;
+
+  // ── PlayableItem interface ──
+  @override
+  String get streamUrl => url;
+  @override
+  MediaItemType? get mediaType => type;
+  @override
+  String get previewUrl => permaUrl;
+  @override
+  bool get isInternal => false; // AppMediaItem = external sources
+  @override
+  bool get isBookContent {
+    if (type != null) return type == MediaItemType.pdf;
+    final path = Uri.tryParse(url.toLowerCase())?.path ?? url.toLowerCase();
+    return path.endsWith('.pdf') || path.endsWith('.epub');
+  }
+  @override
+  String get displayDuration {
+    if (duration <= 0) return '';
+    final d = Duration(seconds: duration);
+    final h = d.inHours;
+    final m = d.inMinutes.remainder(60);
+    final s = d.inSeconds.remainder(60);
+    return h > 0
+        ? '${h}h ${m.toString().padLeft(2, '0')}m'
+        : '${m}:${s.toString().padLeft(2, '0')}';
+  }
 
   AppMediaItem({
     this.id = '',

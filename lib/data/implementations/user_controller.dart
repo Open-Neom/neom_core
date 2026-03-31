@@ -19,13 +19,13 @@ import '../../utils/enums/subscription_level.dart';
 import '../../utils/enums/subscription_status.dart';
 import '../../utils/enums/user_role.dart';
 import '../../utils/enums/verification_level.dart';
+import '../../utils/neom_error_logger.dart';
 import '../firestore/app_release_item_firestore.dart';
 import '../firestore/itemlist_firestore.dart';
 import '../firestore/profile_firestore.dart';
 import '../firestore/user_firestore.dart';
 import '../firestore/user_subscription_firestore.dart';
 import 'app_hive_controller.dart';
-import '../../utils/neom_error_logger.dart';
 import 'geolocator_controller.dart';
 
 class UserController extends SintController implements UserService {

@@ -2,9 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../app_config.dart';
 import '../../domain/model/subscription_plan.dart';
-import '../../utils/neom_error_logger.dart';
 import '../../utils/enums/app_in_use.dart';
 import '../../utils/enums/subscription_level.dart';
+import '../../utils/neom_error_logger.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
 

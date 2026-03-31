@@ -9,7 +9,6 @@ import 'package:http/http.dart' as http;
 import '../../utils/enums/release_type.dart';
 import '../app_config.dart';
 import '../app_properties.dart';
-import 'neom_error_logger.dart';
 import '../domain/model/app_media_item.dart';
 import '../domain/model/app_profile.dart';
 import '../domain/model/app_release_item.dart';
@@ -32,6 +31,7 @@ import 'enums/itemlist_type.dart';
 import 'enums/media_item_type.dart';
 import 'enums/profile_type.dart';
 import 'enums/usage_reason.dart';
+import 'neom_error_logger.dart';
 import 'platform/core_exit_app.dart';
 import 'position_utilities.dart';
 
@@ -295,6 +295,46 @@ class CoreUtilities {
       AppConfig.logger.d("${genreList.length} loaded genres from json");
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'loadGenres');
+    }
+
+    return genreList;
+  }
+
+  static Future<List<Genre>> loadReleaseGenres() async {
+    AppConfig.logger.t("loadReleaseGenres");
+    List<Genre> genreList = [];
+
+    try {
+      String genreStr = await rootBundle.loadString(DataAssets.releaseGenresJsonPath);
+      List<dynamic> genresJSON = jsonDecode(genreStr);
+
+      for (var genreJSON in genresJSON) {
+        genreList.add(Genre.fromJsonDefault(genreJSON));
+      }
+
+      AppConfig.logger.d("${genreList.length} loaded release genres from json");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'loadReleaseGenres');
+    }
+
+    return genreList;
+  }
+
+  static Future<List<Genre>> loadReleaseSubgenres() async {
+    AppConfig.logger.t("loadReleaseSubgenres");
+    List<Genre> genreList = [];
+
+    try {
+      String genreStr = await rootBundle.loadString(DataAssets.releaseSubgenresJsonPath);
+      List<dynamic> genresJSON = jsonDecode(genreStr);
+
+      for (var genreJSON in genresJSON) {
+        genreList.add(Genre.fromJsonDefault(genreJSON));
+      }
+
+      AppConfig.logger.d("${genreList.length} loaded release subgenres from json");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'loadReleaseSubgenres');
     }
 
     return genreList;

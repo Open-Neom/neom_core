@@ -5,10 +5,10 @@ import 'package:firebase_storage/firebase_storage.dart';
 
 import '../../app_config.dart';
 import '../../domain/repository/app_upload_repository.dart';
-import '../../utils/neom_error_logger.dart';
 import '../../utils/enums/app_media_type.dart';
 import '../../utils/enums/media_type.dart';
 import '../../utils/enums/media_upload_destination.dart';
+import '../../utils/neom_error_logger.dart';
 import '../../utils/platform/core_io.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
@@ -51,11 +51,12 @@ class AppUploadFirestore implements AppUploadRepository {
           break;
       }
 
+      final subFolder = _subFolder(uploadDestination);
       final fileName = "${uploadDestination.name.toLowerCase()}_$mediaId$extension";
-      AppConfig.logger.d('uploadMediaFile - uploading to: $folderName/$fileName');
+      AppConfig.logger.d('uploadMediaFile - uploading to: $folderName/$subFolder/$fileName');
 
       final Uint8List bytes = await file.readAsBytes();
-      UploadTask uploadTask = storageRef.child(folderName).child(fileName).putData(bytes);
+      UploadTask uploadTask = storageRef.child(folderName).child(subFolder).child(fileName).putData(bytes);
       TaskSnapshot storageSnap = await uploadTask;
 
       fileUrl = await storageSnap.ref.getDownloadURL();
@@ -94,8 +95,9 @@ class AppUploadFirestore implements AppUploadRepository {
           break;
       }
 
+      final subFolder = _subFolder(uploadDestination);
       final fileName = "${uploadDestination.name.toLowerCase()}_$mediaId$extension";
-      UploadTask uploadTask = storageRef.child(folderName).child(fileName).putData(bytes);
+      UploadTask uploadTask = storageRef.child(folderName).child(subFolder).child(fileName).putData(bytes);
       TaskSnapshot storageSnap = await uploadTask;
 
       fileUrl = await storageSnap.ref.getDownloadURL();
@@ -137,5 +139,21 @@ class AppUploadFirestore implements AppUploadRepository {
     }
     return releaseItemUrl;
   }
+
+  /// Maps upload destination to a subfolder name for organized storage.
+  String _subFolder(MediaUploadDestination destination) => switch (destination) {
+    MediaUploadDestination.post => 'posts',
+    MediaUploadDestination.thumbnail => 'thumbnails',
+    MediaUploadDestination.event => 'events',
+    MediaUploadDestination.profile => 'profiles',
+    MediaUploadDestination.cover => 'covers',
+    MediaUploadDestination.comment => 'comments',
+    MediaUploadDestination.message => 'messages',
+    MediaUploadDestination.itemlist => 'itemlists',
+    MediaUploadDestination.releaseItem => 'releases',
+    MediaUploadDestination.sponsor => 'sponsors',
+    MediaUploadDestination.ad => 'ads',
+    MediaUploadDestination.room => 'rooms',
+  };
 
 }

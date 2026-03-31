@@ -3,5 +3,7 @@ enum MediaSearchType {
   playlist,
   book,
   readlist,
-  audiobook
+  audiobook,
+  podcast,
+  meditation
 }

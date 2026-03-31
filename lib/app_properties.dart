@@ -1,12 +1,13 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
+
 import 'app_config.dart';
 import 'cloud_properties.dart';
-import 'utils/neom_error_logger.dart';
 import 'domain/model/price.dart';
 import 'utils/constants/data_assets.dart';
 import 'utils/enums/app_currency.dart';
 import 'utils/enums/app_in_use.dart';
+import 'utils/neom_error_logger.dart';
 
 class AppProperties {
 

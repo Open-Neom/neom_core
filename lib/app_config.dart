@@ -44,6 +44,8 @@ class AppConfig {
   Map<String, Itemlist> releaseItemlists = {};
   ItemlistType defaultItemlistType = ItemlistType.playlist;
 
+  // Release upload modal is now handled via ReleaseUploadService.showUploadModal()
+
   // Cross-Promo Properties
   List<AppInUse> promoSources = [];
   int timelinePromoFrequency = 10;

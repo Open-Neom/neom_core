@@ -5,10 +5,10 @@ import 'package:geolocator/geolocator.dart';
 import '../../app_config.dart';
 import '../../domain/use_cases/geolocator_service.dart';
 import '../../utils/constants/core_constants.dart';
+import '../../utils/neom_error_logger.dart';
 import '../../utils/platform/core_geocoding.dart';
 import '../../utils/platform/core_geolocation.dart';
 import '../../utils/position_utilities.dart';
-import '../../utils/neom_error_logger.dart';
 import '../firestore/profile_firestore.dart';
 
 class GeoLocatorController implements GeoLocatorService {

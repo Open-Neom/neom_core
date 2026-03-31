@@ -12,4 +12,3 @@ abstract class ImageEditorService {
   Future<Uint8List?> cropImageBytes(BuildContext context, Uint8List bytes, {double aspectRatio = 1.0}) async => null;
 
 }
-

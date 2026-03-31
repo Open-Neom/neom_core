@@ -34,4 +34,6 @@ abstract class ReleaseUploadService {
   void setSelectedBand(Band band);
   void setAsSolo();
 
+  /// Show the release upload modal (web only).
+  void showUploadModal(BuildContext context) {}
 }

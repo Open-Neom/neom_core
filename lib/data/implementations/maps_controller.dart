@@ -22,8 +22,8 @@ import '../../domain/model/place.dart';
 import '../../domain/use_cases/maps_service.dart';
 import '../../domain/use_cases/user_service.dart';
 import '../../utils/constants/core_constants.dart';
-import '../../utils/platform/core_geolocation.dart';
 import '../../utils/neom_error_logger.dart';
+import '../../utils/platform/core_geolocation.dart';
 import '../../utils/position_utilities.dart';
 
 //TODO Move to neom_maps_service or something specific out of neom_core

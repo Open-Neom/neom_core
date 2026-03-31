@@ -4,9 +4,9 @@ import 'package:upgrader/upgrader.dart';
 
 import '../app_config.dart';
 import '../domain/use_cases/home_service.dart';
-import '../utils/neom_error_logger.dart';
 import '../utils/constants/core_constants.dart';
 import '../utils/core_utilities.dart';
+import '../utils/neom_error_logger.dart';
 
 class RootPage extends StatelessWidget {
 

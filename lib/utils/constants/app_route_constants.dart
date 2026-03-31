@@ -17,6 +17,7 @@ class AppRouteConstants {
   static const String introPlace = "/intro/place";
   static const String introReason = "/intro/reason";
   static const String introAddImage = "/intro/addImage";
+  static const String introSimple = "/intro/simple";
   static const String introCreating = "/intro/creating";
   static const String introWelcome = "/intro/welcome";
   static const String createAdditionalProfile = "/create/additionalProfile";
@@ -103,6 +104,7 @@ class AppRouteConstants {
   static const String privacyAndTerms = '/privacyAndTerms';
   static const String settingsPrivacy = '/settingsAndPrivacy';
   static const String settingsAccount = '/settings/account';
+  static const String billing = '/settings/billing';
   static const String settingsNotification = '/settings/notification';
   static const String subscriptionPlans = '/subscription/plans';
   static const String contentPreferences = '/content/preferences';
@@ -167,6 +169,7 @@ class AppRouteConstants {
   static const String generator  = '/generator';
   static const String chamber  = '/chamber';
   static const String chamberPresets  = '/chamber/presets';
+  static const String chamberExperiences  = '/chamber/experiences';
   static const String oscilloscopeFullscreen  = '/oscilloscope/fullscreen';
   static const String flockingFullscreen  = '/flocking/fullscreen';
   static const String breathingFullscreen  = '/breathing/fullscreen';
@@ -174,6 +177,8 @@ class AppRouteConstants {
   static const String vr360MonoFullscreen  = '/360/vr/mono/fullscreen';
   static const String vr360StereoFullscreen  = '/360/vr/stereo/fullscreen';
   static const String fractalFullscreen  = '/fractal/fullscreen';
+  static const String neomaticsFullscreen  = '/neomatics/fullscreen';
+  static const String neuromandalaFullscreen  = '/neuromandala/fullscreen';
 
   static const String audioPlayer  = '/audioPlayer';
   static const String audioPlayerMedia  = '/audioPlayer/media';
