@@ -20,6 +20,10 @@ abstract class StripeApiService {
   Future<List<StripePrice>> getProductPrices(String productId);
   Future<Map<String, List<StripePrice>>> getRecurringPricesFromStripe();
   Future<Map<String, dynamic>> createPaymentIntent(String amount, String currency);
+  Future<StripeCheckoutSession> createPaymentCheckoutSessionUrl(String email, {
+    required int amountInCents, required String currency, required String productName,
+    String productDescription = '', String orderId = '',
+  });
   Future<StripeCheckoutSession> createFilCheckoutSession(String email, {int amount = 5000});
   Future<String> createBillingPortalSession(String customerId, {String returnUrl = ''});
   Future<Map<String, dynamic>?> getSubscriptionInfo(String subscriptionId);

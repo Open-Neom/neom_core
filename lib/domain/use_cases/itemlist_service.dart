@@ -24,4 +24,13 @@ abstract class ItemlistService {
 
   bool checkIsLoading();
 
+  TextEditingController get newItemlistNameController;
+  set newItemlistNameController(TextEditingController newItemlistNameController);
+
+  TextEditingController get newItemlistDescController;
+  set newItemlistDescController(TextEditingController newItemlistDescController);
+
+  bool get isPublicNewItemlist;
+  set isPublicNewItemlist(bool isPublic);
+
 }

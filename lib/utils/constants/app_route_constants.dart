@@ -288,6 +288,8 @@ class AppRouteConstants {
   static const String stripeWebView  = '/stripe/webview';
   static const String stripeCheckoutSuccess  = '/suscripcion-confirmada';
   static const String stripeCheckoutCancel   = '/suscripcion-fallida';
+  static const String stripePaymentSuccess   = '/pago-confirmado';
+  static const String stripePaymentCancel    = '/pago-fallido';
   static const String stripeDashboard = '/stripe/dashboard';
   static const String stripeSubscriptions = '/stripe/subscriptions';
 
@@ -299,7 +301,10 @@ class AppRouteConstants {
   // Subscription status
   static const String subscriptionSuspended = '/subscription/suspended';
 
-  // FIL Guadalajara
+  // FIL
+  static const String fil = '/fil';
+  static const String filSlug = '/fil/:slug';
+  static const String filSlugInfo = '/fil/:slug/info';
   static const String filGuadalajara = '/fil-guadalajara';
 
   // Admin
