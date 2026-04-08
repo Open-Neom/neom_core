@@ -40,6 +40,7 @@ class AppConfig {
   AuthStatus authStatus = AuthStatus.notDetermined;
   bool isGuestMode = true;
   bool isAdminMode = false;
+  bool showBetaFeatures = false;
 
   Map<String, Itemlist> releaseItemlists = {};
   ItemlistType defaultItemlistType = ItemlistType.playlist;
@@ -61,13 +62,18 @@ class AppConfig {
 
     if (_isInitialized) return;
     _isInitialized = true;
-    
+
     try {
       appInUse = app;
       _initCrashlytics();
-      await _getAppInfo();
+      // _getAppInfo() does a Firestore round-trip and is only used by
+      // selectRootPage() to detect outdated client builds — it does NOT
+      // need to block the first frame. Fire it in the background so the
+      // splash can show immediately; selectRootPage() falls through to
+      // the home page if the data has not arrived yet.
+      unawaited(_getAppInfo());
       await _loadPackageInfo();
-      if(app == AppInUse.e) {
+      if (app == AppInUse.e) {
         defaultItemlistType = ItemlistType.readlist;
       }
     } catch (e) {
