@@ -5,7 +5,7 @@ import 'package:sint/sint.dart';
 import '../../app_config.dart';
 import '../../domain/model/app_profile.dart';
 import '../../domain/model/app_user.dart';
-import '../../domain/model/band.dart';
+import '../../domain/model/collective.dart';
 import '../../domain/model/user_subscription.dart';
 import '../../domain/repository/chamber_repository.dart';
 import '../../domain/use_cases/login_service.dart';
@@ -35,7 +35,7 @@ class UserController extends SintController implements UserService {
   AppUser _user = AppUser();
   AppProfile _profile = AppProfile();
   AppProfile _newProfile = AppProfile();
-  Band _band = Band();
+  Collective _collective = Collective();
 
   bool _isNewUser = false;
 
@@ -214,7 +214,7 @@ class UserController extends SintController implements UserService {
     _newProfile.posts = [];
     _newProfile.hiddenPosts = [];
     _newProfile.reports = [];
-    _newProfile.bands = [];
+    _newProfile.collectives = [];
     _newProfile.events = [];
     _newProfile.reviews = [];
     _newProfile.watchingEvents = [];
@@ -250,7 +250,7 @@ class UserController extends SintController implements UserService {
     _newProfile.posts = [];
     _newProfile.hiddenPosts = [];
     _newProfile.reports = [];
-    _newProfile.bands = [];
+    _newProfile.collectives = [];
     _newProfile.events = [];
     _newProfile.reviews = [];
 
@@ -709,14 +709,14 @@ class UserController extends SintController implements UserService {
   SubscriptionLevel get subscriptionLevel => _subscriptionLevel;
 
   @override
-  Band get band => _band;
+  Collective get collective => _collective;
 
   @override
   OwnerType get itemlistOwnerType => _itemlistOwnerType;
 
   @override
-  set band(Band band) {
-    _band = band;
+  set collective(Collective collective) {
+    _collective = collective;
   }
 
   @override

@@ -21,7 +21,7 @@ class Price {
 
   Price.fromJSON(dynamic data) :
         amount = (data["amount"] == null) ? 0.0 : double.parse(data["amount"].toString()),
-        currency = (data["currency"] == null) ? AppCurrency.appCoin : EnumToString.fromString(AppCurrency.values, data["currency"])!;
+        currency = EnumToString.fromString(AppCurrency.values, data["currency"] ?? AppCurrency.appCoin.name) ?? AppCurrency.appCoin;
 
   Price.fromStripe(StripePrice stripePrice) :
         amount = stripePrice.unitAmount,

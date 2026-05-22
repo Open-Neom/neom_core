@@ -90,14 +90,14 @@ class Sponsor {
     phoneNumber = data["phoneNumber"] ?? "",
     countryCode = data["countryCode"] ?? "",
     description = data["description"] ?? "",
-    profileId = data["ownerId"] ?? "",
+    profileId = data["profileId"] ?? "",
     imgUrl = data["imgUrl"] ?? AppProperties.getNoImageUrl(),
     ownerId = data["ownerId"] ?? "",
     type = EnumToString.fromString(SponsorType.values, data["type"] ?? SponsorType.publicSpace.name) ?? SponsorType.publicSpace,
-    address = Address.fromJSON(data["address"]),
+    address = Address.fromJSON(data["address"] ?? {}),
     position = CoreUtilities.JSONtoPosition(data["position"]),
     isActive = data["isActive"] ?? true,
     externalUrl = data["externalUrl"] ?? "",
-    galleryImgUrls = data["galleryImgUrls"].cast<String>() ?? [];
+    galleryImgUrls = data["galleryImgUrls"]?.cast<String>() ?? [];
 
 }

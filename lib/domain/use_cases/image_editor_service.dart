@@ -11,4 +11,11 @@ abstract class ImageEditorService {
   /// Web crop — takes raw bytes, shows crop UI, returns cropped bytes.
   Future<Uint8List?> cropImageBytes(BuildContext context, Uint8List bytes, {double aspectRatio = 1.0}) async => null;
 
+  /// Full image editor — opens pro editor with paint, text, filters, crop, blur, emoji.
+  /// Returns edited image bytes or null if cancelled.
+  Future<Uint8List?> openFullEditor(BuildContext context, {Uint8List? imageBytes, String? imageUrl}) async => null;
+
+  /// AI background removal — returns PNG bytes with transparent background.
+  Future<Uint8List?> removeBackground(Uint8List imageBytes) async => null;
+
 }

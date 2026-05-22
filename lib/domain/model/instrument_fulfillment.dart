@@ -37,9 +37,9 @@ class InstrumentFulfillment {
 
 
   InstrumentFulfillment.fromJSON(Map<dynamic, dynamic> data) :
-    id = data["id"] ?? 0,
-    instrument = Instrument.fromJSON(data["instrument"]),
-    isFulfilled = data["isFulfilled"] ?? "",
+    id = data["id"] ?? "",
+    instrument = Instrument.fromJSON(data["instrument"] ?? const {}),
+    isFulfilled = data["isFulfilled"] ?? false,
     profileId = data["profileId"] ?? "",
     profileImgUrl = data["profileImgUrl"] ?? "",
     profileName = data["profileName"] ?? "",

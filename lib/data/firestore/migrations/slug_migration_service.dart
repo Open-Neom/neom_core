@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../app_config.dart';
 import '../../../domain/model/app_profile.dart';
 import '../../../domain/model/app_release_item.dart';
-import '../../../domain/model/band.dart';
+import '../../../domain/model/collective.dart';
 import '../../../domain/model/blog_entry.dart';
 import '../../../domain/model/event.dart';
 import '../../../domain/model/post.dart';
@@ -12,7 +12,7 @@ import '../constants/app_firestore_collection_constants.dart';
 
 /// Backfill service to populate the `slug` field on existing Firestore documents.
 ///
-/// Supports 6 collections: profiles, appReleaseItems, blog, events, bands, posts.
+/// Supports 6 collections: profiles, appReleaseItems, blog, events, collectives, posts.
 /// Uses a local Set for collision detection (no per-doc queries).
 /// WriteBatch commits every 500 documents.
 class SlugMigrationService {
@@ -55,10 +55,10 @@ class SlugMigrationService {
       fallbackFields: ['ownerName'],
     ),
     _CollectionConfig(
-      name: AppFirestoreCollectionConstants.bands,
-      label: 'Bands',
+      name: AppFirestoreCollectionConstants.collectives,
+      label: 'Collectives',
       sourceField: 'name',
-      generateSlug: Band.generateSlug,
+      generateSlug: Collective.generateSlug,
       fallbackFields: ['email'],
     ),
     _CollectionConfig(

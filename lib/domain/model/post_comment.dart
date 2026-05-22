@@ -64,18 +64,18 @@ class PostComment {
   PostComment.fromJSON(dynamic data):
         text = data["text"] ?? "",
         likedProfiles = List.from(data["likedProfiles"] ?? []),
-        type = EnumToString.fromString(AppMediaType.values, data["type"]) ?? AppMediaType.text,
+        type = EnumToString.fromString(AppMediaType.values, data["type"] ?? AppMediaType.text.name) ?? AppMediaType.text,
         isHidden = data["isHidden"] ?? false,
         ownerId = data["ownerId"] ?? '',
         ownerImgUrl = data["ownerImgUrl"] ?? '',
         ownerName = data["ownerName"] ?? '',
-        postOwnerId = data["postOwnerId"],
-        mediaUrl = data["mediaUrl"],
-        createdTime = data["createdTime"],
-        modifiedTime = data["modifiedTime"],
-        replies = data["replies"].map<CommentReply>((item) {
+        postOwnerId = data["postOwnerId"] ?? '',
+        mediaUrl = data["mediaUrl"] ?? '',
+        createdTime = data["createdTime"] ?? 0,
+        modifiedTime = data["modifiedTime"] ?? 0,
+        replies = (data["replies"] as List?)?.map<CommentReply>((item) {
           return CommentReply.fromJSON(item);
-        }).toList(),
+        }).toList() ?? const [],
         postId = data["postId"] ?? "";
 
 }

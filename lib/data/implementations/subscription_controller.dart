@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:sint/sint.dart';
 
@@ -72,12 +73,28 @@ class SubscriptionController extends SintController implements SubscriptionServi
           // environment (test vs live). Remove it so only valid plans show.
           AppConfig.logger.w('Plan "${entry.key}" skipped: priceId ${plan.priceId} not found in current Stripe environment');
           keysToRemove.add(entry.key);
+          continue;
+        }
+
+        // Optional yearly price
+        if (plan.priceIdYearly.isNotEmpty) {
+          try {
+            final yearlyStripe = await Sint.find<StripeApiService>().getPrice(plan.priceIdYearly);
+            if (yearlyStripe != null) {
+              plan.priceYearly = Price.fromStripe(yearlyStripe);
+            }
+          } catch (e) {
+            AppConfig.logger.w('Yearly price not available for plan "${entry.key}": $e');
+          }
         }
       }
 
       for (final key in keysToRemove) {
         _subscriptionPlans.remove(key);
       }
+
+      // Enrich founder plans with remaining seats from Firestore counters
+      await _loadFounderCounters();
 
       if(_subscriptionPlans.isNotEmpty) {
         setProfileTypePlans();
@@ -114,7 +131,7 @@ class SubscriptionController extends SintController implements SubscriptionServi
               && lv != SubscriptionLevel.premium.value;
         });
       // case ProfileType.researcher:
-      case ProfileType.band:
+      case ProfileType.collective:
       _profilePlans.removeWhere((s, p) =>
       (p.level?.value ?? 0) < SubscriptionLevel.professional.value);
       default:
@@ -323,6 +340,35 @@ class SubscriptionController extends SintController implements SubscriptionServi
     AppConfig.logger.d("Refreshing Active Subscriptions (forced reload)");
     _activeSubscriptions.clear();
     await _loadActiveSubscriptions();
+  }
+
+  /// Reads `/founders_counters/{tier}` for every plan that carries a
+  /// `founderTier` slug and patches `founderSeatsRemaining`/`founderSeatsTotal`.
+  ///
+  /// Expected counter doc shape:
+  /// `{ seatsTotal: 200, seatsSold: int, closed: bool }`.
+  Future<void> _loadFounderCounters() async {
+    try {
+      final founderPlans = _subscriptionPlans.values.where((p) => p.isFounderPlan).toList();
+      if (founderPlans.isEmpty) return;
+
+      final db = FirebaseFirestore.instance;
+      for (final plan in founderPlans) {
+        try {
+          final snap = await db.doc('founders_counters/${plan.founderTier}').get();
+          if (!snap.exists) continue;
+          final data = snap.data() ?? const <String, dynamic>{};
+          final total = (data['seatsTotal'] as num?)?.toInt() ?? 0;
+          final sold = (data['seatsSold'] as num?)?.toInt() ?? 0;
+          plan.founderSeatsTotal = total;
+          plan.founderSeatsRemaining = (total - sold).clamp(0, total);
+        } catch (e) {
+          AppConfig.logger.w('Failed to load founder counter ${plan.founderTier}: $e');
+        }
+      }
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'loadFounderCounters');
+    }
   }
 
   Future<void> _loadActiveSubscriptions() async {

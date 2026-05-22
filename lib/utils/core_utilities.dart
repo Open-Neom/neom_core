@@ -12,8 +12,8 @@ import '../app_properties.dart';
 import '../domain/model/app_media_item.dart';
 import '../domain/model/app_profile.dart';
 import '../domain/model/app_release_item.dart';
-import '../domain/model/band.dart';
-import '../domain/model/band_member.dart';
+import '../domain/model/collective.dart';
+import '../domain/model/collective_member.dart';
 import '../domain/model/event.dart';
 import '../domain/model/external_item.dart';
 import '../domain/model/facility.dart';
@@ -376,40 +376,40 @@ class CoreUtilities {
     return matchedInstruments;
   }
 
-  static List<Instrument> getBandInstrumentMatches(Band band, Map<String,Instrument> profileInstruments) {
+  static List<Instrument> getCollectiveInstrumentMatches(Collective collective, Map<String,Instrument> profileInstruments) {
 
-    List<Instrument> bandInstrumentMatches = [];
+    List<Instrument> collectiveInstrumentMatches = [];
 
     try {
-      for (var bandMember in band.members!.values) {
-        if(profileInstruments.containsKey(bandMember.instrument!.id)
-            && bandMember.profileId.isEmpty) {
-          bandInstrumentMatches.add(profileInstruments[bandMember.instrument!.id] ?? Instrument());
+      for (var collectiveMember in collective.members!.values) {
+        if(profileInstruments.containsKey(collectiveMember.instrument!.id)
+            && collectiveMember.profileId.isEmpty) {
+          collectiveInstrumentMatches.add(profileInstruments[collectiveMember.instrument!.id] ?? Instrument());
         }
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getBandInstrumentMatches');
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getCollectiveInstrumentMatches');
     }
 
-    return bandInstrumentMatches;
+    return collectiveInstrumentMatches;
   }
 
-  static Map<String, Instrument> getBandMemberInstrumentMatches(List<BandMember> bandMembers, Map<String,Instrument> profileInstruments) {
+  static Map<String, Instrument> getCollectiveMemberInstrumentMatches(List<CollectiveMember> collectiveMembers, Map<String,Instrument> profileInstruments) {
 
-    Map<String, Instrument> bandInstrumentMatches = {};
+    Map<String, Instrument> collectiveInstrumentMatches = {};
 
     try {
-      for (var bandMember in bandMembers) {
-        if(profileInstruments.containsKey(bandMember.instrument!.id)
-            && bandMember.profileId.isEmpty) {
-          bandInstrumentMatches[profileInstruments[bandMember.instrument!.id]!.id] = profileInstruments[bandMember.instrument!.id] ?? Instrument();
+      for (var collectiveMember in collectiveMembers) {
+        if(profileInstruments.containsKey(collectiveMember.instrument!.id)
+            && collectiveMember.profileId.isEmpty) {
+          collectiveInstrumentMatches[profileInstruments[collectiveMember.instrument!.id]!.id] = profileInstruments[collectiveMember.instrument!.id] ?? Instrument();
         }
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getBandMemberInstrumentMatches');
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getCollectiveMemberInstrumentMatches');
     }
 
-    return bandInstrumentMatches;
+    return collectiveInstrumentMatches;
   }
 
   static bool fulfillmentMatchedRequirements({

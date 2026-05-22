@@ -8,7 +8,7 @@ import '../../utils/enums/event_status.dart';
 import '../../utils/enums/event_type.dart';
 import '../../utils/enums/usage_reason.dart';
 import 'app_media_item.dart';
-import 'band_fulfillment.dart';
+import 'collective_fulfillment.dart';
 import 'instrument_fulfillment.dart';
 import 'place.dart';
 import 'price.dart';
@@ -50,7 +50,7 @@ class Event {
 
   List<AppMediaItem>? appMediaItems;
   List<InstrumentFulfillment>? instrumentsFulfillment;
-  List<BandFulfillment>? bandsFulfillment;
+  List<CollectiveFulfillment>? collectivesFulfillment;
   List<String>? watchingProfiles;
   List<String>? goingProfiles;
   int guestsLimit;
@@ -104,7 +104,7 @@ class Event {
       this.isFulfilled = false,
       this.appMediaItems,
       this.instrumentsFulfillment,
-      this.bandsFulfillment,
+      this.collectivesFulfillment,
       this.watchingProfiles,
       this.goingProfiles,
       this.isOnline = false,
@@ -123,7 +123,7 @@ class Event {
 
   @override
   String toString() {
-    return 'Event{id: $id, name: $name, description: $description, imgUrl: $imgUrl, coverImgUrl: $coverImgUrl, ownerId: $ownerId, ownerName: $ownerName, ownerEmail: $ownerEmail, public: $public, createdTime: $createdTime, eventDate: $eventDate, reason: $reason, genres: $genres, itemPercentageCoverage: $itemPercentageCoverage, distanceKm: $distanceKm, paymentPrice: $paymentPrice, coverPrice: $coverPrice, type: $type, status: $status, isFulfilled: $isFulfilled, place: $place, position: $position, appMediaItems: $appMediaItems, instrumentsFulfillment: $instrumentsFulfillment, bandsFulfillment: $bandsFulfillment, watchingProfiles: $watchingProfiles, goingProfiles: $goingProfiles, guestsLimit: $guestsLimit, isOnline: $isOnline, isTest: $isTest}';
+    return 'Event{id: $id, name: $name, description: $description, imgUrl: $imgUrl, coverImgUrl: $coverImgUrl, ownerId: $ownerId, ownerName: $ownerName, ownerEmail: $ownerEmail, public: $public, createdTime: $createdTime, eventDate: $eventDate, reason: $reason, genres: $genres, itemPercentageCoverage: $itemPercentageCoverage, distanceKm: $distanceKm, paymentPrice: $paymentPrice, coverPrice: $coverPrice, type: $type, status: $status, isFulfilled: $isFulfilled, place: $place, position: $position, appMediaItems: $appMediaItems, instrumentsFulfillment: $instrumentsFulfillment, collectivesFulfillment: $collectivesFulfillment, watchingProfiles: $watchingProfiles, goingProfiles: $goingProfiles, guestsLimit: $guestsLimit, isOnline: $isOnline, isTest: $isTest}';
   }
 
   Event.createBasic(this.name, desc):
@@ -183,8 +183,8 @@ class Event {
       instrumentsFulfillment = data["instrumentsFulfillment"]?.map<InstrumentFulfillment>((item) {
         return InstrumentFulfillment.fromJSON(item);
       }).toList()  ?? [],
-      bandsFulfillment = data["bandsFulfillment"]?.map<BandFulfillment>((item) {
-        return BandFulfillment.fromJSON(item);
+      collectivesFulfillment = data["collectivesFulfillment"]?.map<CollectiveFulfillment>((item) {
+        return CollectiveFulfillment.fromJSON(item);
       }).toList() ?? [],
       watchingProfiles = List.from(data["watchingProfiles"]?.cast<String>() ?? []),
       goingProfiles = List.from(data["goingProfiles"]?.cast<String>() ?? []),
@@ -226,9 +226,9 @@ class Event {
     'place': place?.toJSON() ?? Place().toJSON(),
     'isFulfilled': isFulfilled,
     'instrumentsFulfillment': instrumentsFulfillment?.map((instrumentFulfillment) => instrumentFulfillment.toJSON()).toList(),
-    'bandsFulfillment': bandsFulfillment?.map((bandFulfillment) => bandFulfillment.toJSON()).toList(),
-    'watchingProfiles': [],
-    'goingProfiles': [],
+    'collectivesFulfillment': collectivesFulfillment?.map((collectiveFulfillment) => collectiveFulfillment.toJSON()).toList(),
+    'watchingProfiles': watchingProfiles ?? [],
+    'goingProfiles': goingProfiles ?? [],
     'isOnline': isOnline,
     'url': url,
     'isTest': isTest,

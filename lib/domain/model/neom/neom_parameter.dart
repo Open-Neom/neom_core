@@ -30,10 +30,10 @@ class NeomParameter {
 
 
   NeomParameter.fromJSON(Map<dynamic, dynamic> data) :
-    x = data["x"],
-    y = data["y"],
-    z = data["z"],
-    volume = data["volume"];
+    x = (data["x"] ?? 0).toDouble(),
+    y = (data["y"] ?? 0).toDouble(),
+    z = (data["z"] ?? 0).toDouble(),
+    volume = (data["volume"] ?? 0.5).toDouble();
 
 
   NeomParameter.forNeomChambersCollection(NeomParameter neomParameter) :

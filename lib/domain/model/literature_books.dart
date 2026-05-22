@@ -24,7 +24,10 @@ class LiteraryBook {
         .whereType<String>()
         .toList() ?? [];
 
-    final formats = json['formats'] as Map<String, dynamic>? ?? {};
+    final formatsRaw = json['formats'];
+    final Map<String, dynamic> formats = formatsRaw is Map
+        ? Map<String, dynamic>.from(formatsRaw)
+        : <String, dynamic>{};
     final coverUrl = formats['image/jpeg'] as String? ?? '';
     final htmlUrl = formats['text/html'] as String?
         ?? formats['text/html; charset=utf-8'] as String?

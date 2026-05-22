@@ -47,16 +47,16 @@ class FacilityCommodity {
   
   
   FacilityCommodity.fromJSON(Map<dynamic, dynamic> data):
-        wifi = data["wifi"],
-        parking = data["parking"],
-        roomService = data["roomService"],
-        audioEquipment = data["audioEquipment"],
-        musicalInstruments = data["musicalInstruments"],
-        acousticConditioning = data['acousticConditioning'],
-        childAllowance = data["childAllowance"],
-        smokingAllowance = data["smokingAllowance"],
-        smokeDetector = data["smokeDetector"],
-        publicBathroom = data["publicBathroom"],
-        privateBathroom = data["privateBathroom"],
-        sharedPlace = data["sharedPlace"];
+        wifi = data["wifi"] ?? true,
+        parking = data["parking"] ?? true,
+        roomService = data["roomService"] ?? false,
+        audioEquipment = data["audioEquipment"] ?? true,
+        musicalInstruments = data["musicalInstruments"] ?? false,
+        acousticConditioning = data['acousticConditioning'] ?? false,
+        childAllowance = data["childAllowance"] ?? false,
+        smokingAllowance = data["smokingAllowance"] ?? false,
+        smokeDetector = data["smokeDetector"] ?? false,
+        publicBathroom = data["publicBathroom"] ?? true,
+        privateBathroom = data["privateBathroom"] ?? false,
+        sharedPlace = data["sharedPlace"] ?? true;
 }

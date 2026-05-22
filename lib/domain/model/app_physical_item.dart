@@ -53,9 +53,9 @@ class AppPhysicalItem {
     ownerImgUrl = data["ownerImgUrl"] ?? "",
     duration = data["duration"] ?? 0,
     previewUrl = data["previewUrl"] ?? "",
-    size = EnumToString.fromString(AppItemSize.values, data["size"] ?? AppItemSize.letter) ?? AppItemSize.letter,
-    type = EnumToString.fromString(AppItemType.values, data["type"] ?? AppItemType.a) ?? AppItemType.a,
-    genres = List<Genre>.from(data["genres"].map((model)=> Genre.fromJson(model))),
+    size = EnumToString.fromString(AppItemSize.values, data["size"] ?? AppItemSize.letter.name) ?? AppItemSize.letter,
+    type = EnumToString.fromString(AppItemType.values, data["type"] ?? AppItemType.a.name) ?? AppItemType.a,
+    genres = List<Genre>.from((data["genres"] as List?)?.map((model)=> Genre.fromJson(model)) ?? const []),
     publisher = data["publisher"] ?? "",
     publishedDate = data["publishedDate"] ?? "";
 

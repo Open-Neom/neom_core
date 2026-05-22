@@ -1,3 +1,5 @@
+import 'dart:math' show pow;
+
 import 'package:enum_to_string/enum_to_string.dart';
 
 import '../../app_config.dart';
@@ -86,12 +88,14 @@ class ExternalItem {
   factory ExternalItem.fromJSON(dynamic map) {
     try {
       AppConfig.logger.t("ExternalItem fromJSON: ${map['name'] ?? ''} with id ${map['id'] ?? ''}");
-      int dur = 30;
+      int dur = 0;
 
       if(map['duration'] is String && map['duration'].toString().contains(":")) {
         final List<String> parts = map['duration'].toString().split(':');
         for (int i = 0; i < parts.length; i++) {
-          dur += int.parse(parts[i]) * (60 ^ (parts.length - i - 1));
+          // NC-46 fix: el operador `^` es XOR bit a bit, no exponente.
+          // Usamos `pow(60, n)` para calcular HH:MM:SS correctamente.
+          dur += (int.tryParse(parts[i]) ?? 0) * pow(60, parts.length - i - 1).toInt();
         }
       } else if(map['duration'] is int) {
         dur = map['duration'];

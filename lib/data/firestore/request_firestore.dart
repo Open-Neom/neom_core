@@ -200,14 +200,14 @@ class RequestFirestore implements RequestRepository {
   }
 
 
-  Future<bool> removeBandRequests(String bandId) async {
-    AppConfig.logger.t("Removing Band $bandId requests");
+  Future<bool> removeCollectiveRequests(String collectiveId) async {
+    AppConfig.logger.t("Removing Collective $collectiveId requests");
 
     bool requestsRemoved = false;
 
     try {
       QuerySnapshot querySnapshot = await requestsReference
-          .where(AppFirestoreConstants.bandId, isEqualTo: bandId)
+          .where(AppFirestoreConstants.collectiveId, isEqualTo: collectiveId)
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
@@ -221,10 +221,10 @@ class RequestFirestore implements RequestRepository {
         requestsRemoved = true;
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'RequestFirestore.removeBandRequests');
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'RequestFirestore.removeCollectiveRequests');
     }
 
-    AppConfig.logger.d("Requests removed for band $bandId");
+    AppConfig.logger.d("Requests removed for collective $collectiveId");
     return requestsRemoved;
   }
 

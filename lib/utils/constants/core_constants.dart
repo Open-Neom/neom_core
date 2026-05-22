@@ -68,8 +68,18 @@ class CoreConstants {
   static const List<String> listCategory = ['All posts', 'Media', 'Events', 'Videos', 'Questions', 'Polls'];
 
   static const double cameraPositionZoom = 20;
-  static const int imageQuality = 100;
-  static const int videoQuality = 100;
+  /// Image compression quality (0-100). 80 = ~80% size reduction with minimal visible loss.
+  static const int imageQuality = 80;
+  /// Thumbnail quality for video previews and small images.
+  static const int thumbnailQuality = 50;
+  /// Video thumbnail quality (used by VideoCompress).
+  static const int videoThumbnailQuality = 50;
+  /// Max image dimension (width or height) before upload. Images are resized to fit.
+  static const int imageMaxWidth = 1920;
+  static const int imageMaxHeight = 1920;
+  /// Profile/avatar image max dimension (smaller for avatars).
+  static const int profileImageMaxWidth = 800;
+  static const int profileImageMaxHeight = 800;
 
   static const String wifi = "Wi-FI";
   static const String km = "KM";

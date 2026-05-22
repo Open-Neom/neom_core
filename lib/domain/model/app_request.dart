@@ -11,7 +11,7 @@ class AppRequest {
   String id = "";
   String from = "";
   String to = "";
-  String bandId = ""; //in case "from" is part of a colective or band
+  String collectiveId = ""; //in case "from" is part of a collective
   String eventId = ""; //event or room (roomId for games: {hostId}_{gameType}_{guestId})
   String positionRequestedId = "";
   int createdTime = 0;
@@ -35,7 +35,7 @@ class AppRequest {
       this.message = "",
       this.unread = true,
       this.eventId = "",
-      this.bandId = "",
+      this.collectiveId = "",
       this.positionRequestedId = "",
       this.instrument,
       this.percentageCoverage = 0,
@@ -152,22 +152,23 @@ class AppRequest {
 
   @override
   String toString() {
-    return 'AppRequest{id: $id, from: $from, to: $to, bandId: $bandId, eventId: $eventId, createdTime: $createdTime, expiresAt: $expiresAt, newOffer: $newOffer, message: $message, unread: $unread, instrument: $instrument, percentageCoverage: $percentageCoverage, distanceKm: $distanceKm, requestDecision: $requestDecision, gameRequestType: $gameRequestType}';
+    return 'AppRequest{id: $id, from: $from, to: $to, collectiveId: $collectiveId, eventId: $eventId, createdTime: $createdTime, expiresAt: $expiresAt, newOffer: $newOffer, message: $message, unread: $unread, instrument: $instrument, percentageCoverage: $percentageCoverage, distanceKm: $distanceKm, requestDecision: $requestDecision, gameRequestType: $gameRequestType}';
   }
 
 
   AppRequest.fromJSON(dynamic data) {
     try {
+      id = data["id"] ?? "";
       from = data["from"] ?? "";
       to = data["to"] ?? "";
-      createdTime = data["createdTime"] ?? data["createdTime"] ?? 0; // Support legacy createdTime
+      createdTime = data["createdTime"] ?? 0;
       expiresAt = data["expiresAt"] ?? 0;
       if(data["newOffer"] != null) {
         newOffer = EventOffer.fromJSON(data["newOffer"]);
       }
       message = data["message"] ?? "";
-      unread = data["unread"] ?? "";
-      bandId = data["bandId"] ?? "";
+      unread = data["unread"] ?? true;
+      collectiveId = data["collectiveId"] ?? "";
       eventId = data["eventId"] ?? "";
       positionRequestedId = data["positionRequestedId"] ?? "";
       instrument = data["instrument"] != null ? Instrument.fromJSON(data["instrument"]) : null;
@@ -192,7 +193,7 @@ class AppRequest {
     'message': message,
     'unread': unread,
     'eventId': eventId,
-    'bandId': bandId,
+    'collectiveId': collectiveId,
     'instrument': instrument?.toJSON(),
     'percentageCoverage': percentageCoverage,
     'distanceKm': distanceKm,
@@ -205,7 +206,7 @@ class AppRequest {
     String? id,
     String? from,
     String? to,
-    String? bandId,
+    String? collectiveId,
     String? eventId,
     String? positionRequestedId,
     int? createdTime,
@@ -223,7 +224,7 @@ class AppRequest {
       id: id ?? this.id,
       from: from ?? this.from,
       to: to ?? this.to,
-      bandId: bandId ?? this.bandId,
+      collectiveId: collectiveId ?? this.collectiveId,
       eventId: eventId ?? this.eventId,
       positionRequestedId: positionRequestedId ?? this.positionRequestedId,
       createdTime: createdTime ?? this.createdTime,

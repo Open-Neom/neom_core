@@ -5,7 +5,7 @@ import '../../utils/enums/owner_type.dart';
 import '../../utils/enums/subscription_level.dart';
 import '../model/app_profile.dart';
 import '../model/app_user.dart';
-import '../model/band.dart';
+import '../model/collective.dart';
 import '../model/user_subscription.dart';
 
 abstract class UserService {
@@ -50,8 +50,8 @@ abstract class UserService {
 
   SubscriptionLevel get subscriptionLevel;
 
-  Band get band;
-  set band(Band band);
+  Collective get collective;
+  set collective(Collective collective);
 
   OwnerType get itemlistOwnerType;
   set itemlistOwnerType(OwnerType ownerType);

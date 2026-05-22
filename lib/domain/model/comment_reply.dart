@@ -1,5 +1,3 @@
-import 'package:enum_to_string/enum_to_string.dart';
-
 import '../../utils/enums/app_media_type.dart';
 
 class CommentReply {
@@ -47,7 +45,9 @@ class CommentReply {
     id = data["id"],
     text = data["text"],
     likeCount = data["likeCount"],
-    mediaType = EnumToString.fromString(AppMediaType.values, data["mediaType"]),
+    mediaType = AppMediaType.values
+        .where((e) => e.name == data["mediaType"])
+        .firstOrNull,
     isHidden = data["isHidden"],
     profileId = data["profileId"],
     createdTime = data["createdTime"],

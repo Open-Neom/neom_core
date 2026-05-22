@@ -1,6 +1,6 @@
 enum SearchType {
   any,
-  bands,
+  collectives,
   events,
   mediaItems,
   profiles,

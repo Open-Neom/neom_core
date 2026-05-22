@@ -1,4 +1,5 @@
 enum InboxRoomType {
   profile,
-  band
+  collective,
+  collectiveChannel,
 }

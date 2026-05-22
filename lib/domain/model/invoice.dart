@@ -35,10 +35,10 @@ class Invoice {
   Invoice.fromJSON(dynamic data) :
     id = data["id"] ?? "",
     description = data["description"] ?? "",
-    toUser = AppUser.fromJSON(data["toUser"]),
+    toUser = AppUser.fromJSON(data["toUser"] ?? {}),
     orderId = data["orderId"] ?? "",
     createdTime = data["createdTime"] ?? 0,
-    transaction = AppTransaction.fromJSON(data["transaction"]),
-    address = Address.fromJSON(data["address"]);
+    transaction = AppTransaction.fromJSON(data["transaction"] ?? {}),
+    address = Address.fromJSON(data["address"] ?? {});
 
 }

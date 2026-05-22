@@ -82,7 +82,7 @@ class AppCoupon {
     ownerEmail = data["ownerEmail"] ?? "",
     ownerAmount = data["ownerAmount"] ?? 0,
     description = data["description"] ?? "",
-    type = EnumToString.fromString(CouponType.values, data["type"]) ?? CouponType.oneMonthFree,
+    type = EnumToString.fromString(CouponType.values, data["type"] ?? "") ?? CouponType.oneMonthFree,
     planId = data["planId"] ?? '',
     usageLimit = data["usageLimit"] ?? 25,
     durationMonths = data["durationMonths"] ?? 1,

@@ -48,7 +48,7 @@ class AppFirestoreConstants {
   static const String savedByProfiles = "savedByProfiles";
 
   static const String events = "events";
-  static const String bands = "bands";
+  static const String collectives = "collectives";
 
   static const String ownerId = "ownerId";
   static const String createdTime = "createdTime";
@@ -89,12 +89,12 @@ class AppFirestoreConstants {
   static const String referenceId = 'referenceId';
   static const String unread = 'unread';
   static const String eventId = 'eventId';
-  static const String bandId = 'bandId';
+  static const String collectiveId = 'collectiveId';
   static const String to = 'to';
   static const String from = 'from';
   static const String requestDecision = 'requestDecision';
   static const String instrumentsFulfillment = 'instrumentsFulfillment';
-  static const String bandsFulfillment = 'bandsFulfillment';
+  static const String collectivesFulfillment = 'collectivesFulfillment';
   static const String isFulfilled = 'isFulfilled';
 
   static const String usageCount = 'usageCount';

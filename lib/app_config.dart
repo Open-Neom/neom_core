@@ -40,7 +40,21 @@ class AppConfig {
   AuthStatus authStatus = AuthStatus.notDetermined;
   bool isGuestMode = true;
   bool isAdminMode = false;
+
+  // ------------------------------------------------------------------
+  // Itzli launch gates
+  // ------------------------------------------------------------------
+  // showBetaFeatures : master switch global. Con `false` ocultamos en
+  //   producción funciones que aún no tienen el pulido de lanzamiento
+  //   (InterComm, Booking, VST, DAW, etc.).
+  // hasEarlyAccess   : habilita el concepto de "early access" a nivel
+  //   de app. Cuando es `true`, las funciones marcadas como earlyAccess
+  //   se muestran a usuarios con el nivel de suscripción suficiente
+  //   (ver SubscriptionResolver.hasEarlyAccess). Cuando es `false`,
+  //   quedan completamente ocultas para todos, útil como kill switch.
+  // ------------------------------------------------------------------
   bool showBetaFeatures = false;
+  bool hasEarlyAccess = true;
 
   Map<String, Itemlist> releaseItemlists = {};
   ItemlistType defaultItemlistType = ItemlistType.playlist;

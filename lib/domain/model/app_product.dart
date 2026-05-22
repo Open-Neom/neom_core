@@ -68,8 +68,8 @@ class AppProduct {
       'reviewStars': reviewStars,
       'lastReview': lastReview?.toJSON() ?? Review().toJSON(),
       'reviewIds': reviewIds,
-      'createdTime': DateTime.now().millisecondsSinceEpoch,
-      'updatedTime': DateTime.now().millisecondsSinceEpoch,
+      'createdTime': createdTime,
+      'updatedTime': updatedTime,
       'ownerEmail': ownerEmail
     };
   }

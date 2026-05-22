@@ -21,14 +21,14 @@ class EventActivity {
 
   Map<String, dynamic> toJSON() {
     return <String, dynamic>{
-      'id': name,
+      'id': id,
       'name': name,
       'description': description,
     };
   }
 
   EventActivity.fromJSON(dynamic data) :
-    id = data["name"] ?? "",
+    id = data["id"] ?? "",
     name = data["name"] ?? "",
     description = data["description"] ?? "";
 

@@ -116,14 +116,19 @@ class Facility {
     id = data["id"] ?? "",
     name = data["name"] ?? "",
     description = data["description"] ?? "",
-    address = Address.fromJSON(data["address"]),
+    address = Address.fromJSON(data["address"] ?? {}),
     ownerName = data["ownerName"] ?? "",
     ownerId = data["ownerId"] ?? "",
     ownerImgUrl = data["ownerImgUrl"] ?? AppProperties.getNoImageUrl(),
     position = CoreUtilities.JSONtoPosition(data["position"]),
     type = EnumToString.fromString(FacilityType.values, data["type"] ?? "producer") ?? FacilityType.publisher,
-    galleryImgUrls = data["galleryImgUrls"].cast<String>() ?? [],
-    bookings = data["bookings"].cast<String>() ?? [],
+    reviewStars = (data["reviewStars"] ?? 0).toDouble(),
+    price = Price.fromJSON(data["price"] ?? {}),
+    facilityCommodity = FacilityCommodity.fromJSON(data["facilityCommodity"] ?? {}),
+    isActive = data["isActive"] ?? true,
+    isMain = data["isMain"] ?? true,
+    galleryImgUrls = data["galleryImgUrls"]?.cast<String>() ?? [],
+    bookings = data["bookings"]?.cast<String>() ?? [],
     reviews = data["reviews"]?.cast<String>() ?? [];
 
   Facility.addBasic(this.type);

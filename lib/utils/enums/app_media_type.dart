@@ -7,7 +7,8 @@ enum AppMediaType {
   gif('gif'),
   youtube('mp4'),
   audio('mp3'),
-  sharedPost('post');
+  sharedPost('post'),
+  poll('poll');
 
   final String value;
   const AppMediaType(this.value);

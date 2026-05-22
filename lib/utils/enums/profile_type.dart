@@ -3,7 +3,7 @@ enum ProfileType {
   appArtist('appArtist'), ///ARTIST PROFILE
   facilitator('facilitator'), ///FACILITATOR OF SERVICES FOR ARTISTS
   host('host'), ///HOST OF EVENTS OR OWNER OF VENUES
-  band('band'), ///BAND OR COLLECTIVE FOR ARTISTS
+  collective('collective'), ///COLLECTIVE FOR ARTISTS
   researcher("researcher"), ///RESEARCHER TO PUBLISH PDFs
   broadcaster('broadcaster'); ///PROFILE FOR AUDIO CONTENT CREATORS
 

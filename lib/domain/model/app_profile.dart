@@ -56,7 +56,7 @@ class AppProfile {
   List<String>? bannedGenres;
   List<String>? reports;
 
-  List<String>? bands;
+  List<String>? collectives;
   List<String>? events;
   List<String>? reviews;
 
@@ -127,7 +127,7 @@ class AppProfile {
     this.hiddenPosts,
     this.hiddenComments,
     this.reports,
-    this.bands,
+    this.collectives,
     this.events,
     this.reviews,
     this.favoriteItems,
@@ -165,7 +165,7 @@ class AppProfile {
 
   @override
   String toString() {
-    return 'AppProfile{id: $id, name: $name, aboutMe: $aboutMe, photoUrl: $photoUrl, coverImgUrl: $coverImgUrl, mainFeature: $mainFeature, lastTimeOn: $lastTimeOn, isActive: $isActive, position: $position, address: $address, phoneNumber: $phoneNumber, type: $type, usageReason: $usageReason, reviewStars: $reviewStars, lastReview: $lastReview, itemmates: $itemmates, eventmates: $eventmates, followers: $followers, following: $following, unfollowing: $unfollowing, blockTo: $blockTo, blockedBy: $blockedBy, posts: $posts, blogEntries: $blogEntries, comments: $comments, hiddenPosts: $hiddenPosts, hiddenComments: $hiddenComments, bannedGenres: $bannedGenres, reports: $reports, bands: $bands, events: $events, reviews: $reviews, favoriteItems: $favoriteItems, chamberPresets: $chamberPresets, watchingEvents: $watchingEvents, goingEvents: $goingEvents, playingEvents: $playingEvents, requests: $requests, sentRequests: $sentRequests, invitationRequests: $invitationRequests, itemlists: $itemlists, instruments: $instruments, chambers: $chambers, frequencies: $frequencies, genres: $genres, facilities: $facilities, places: $places, directoryVisible: $directoryVisible, showPhone: $showPhone,'
+    return 'AppProfile{id: $id, name: $name, aboutMe: $aboutMe, photoUrl: $photoUrl, coverImgUrl: $coverImgUrl, mainFeature: $mainFeature, lastTimeOn: $lastTimeOn, isActive: $isActive, position: $position, address: $address, phoneNumber: $phoneNumber, type: $type, usageReason: $usageReason, reviewStars: $reviewStars, lastReview: $lastReview, itemmates: $itemmates, eventmates: $eventmates, followers: $followers, following: $following, unfollowing: $unfollowing, blockTo: $blockTo, blockedBy: $blockedBy, posts: $posts, blogEntries: $blogEntries, comments: $comments, hiddenPosts: $hiddenPosts, hiddenComments: $hiddenComments, bannedGenres: $bannedGenres, reports: $reports, collectives: $collectives, events: $events, reviews: $reviews, favoriteItems: $favoriteItems, chamberPresets: $chamberPresets, watchingEvents: $watchingEvents, goingEvents: $goingEvents, playingEvents: $playingEvents, requests: $requests, sentRequests: $sentRequests, invitationRequests: $invitationRequests, itemlists: $itemlists, instruments: $instruments, chambers: $chambers, frequencies: $frequencies, genres: $genres, facilities: $facilities, places: $places, directoryVisible: $directoryVisible, showPhone: $showPhone,'
         ' verificationLevel: $verificationLevel, lastNameUpdate: $lastNameUpdate,'
         ' slug: $slug, badges: $badges, influences: $influences, totalTipsReceived: $totalTipsReceived, giglists: $giglists}';
   }
@@ -201,7 +201,7 @@ class AppProfile {
       'hiddenPosts': hiddenPosts,
       'hiddenComments': hiddenComments,
       'reports': reports,
-      'bands': bands,
+      'collectives': collectives,
       'events': events,
       'reviews': reviews,
       'favoriteItems': favoriteItems,
@@ -266,7 +266,7 @@ class AppProfile {
       'hiddenPosts': hiddenPosts,
       'hiddenComments': hiddenComments,
       'reports': reports,
-      'bands': bands,
+      'collectives': collectives,
       'events': events,
       'reviews': reviews,
       'favoriteItems': favoriteItems,
@@ -324,7 +324,7 @@ class AppProfile {
         hiddenPosts = data["hiddenPosts"]?.cast<String>() ?? [],
         hiddenComments = data["hiddenComments"]?.cast<String>() ?? [],
         reports = data["reports"]?.cast<String>() ?? [],
-        bands = data["bands"]?.cast<String>() ?? [],
+        collectives = data["collectives"]?.cast<String>() ?? [],
         events = data["events"]?.cast<String>() ?? [],
         reviews = data["reviews"]?.cast<String>() ?? [],
         favoriteItems = data["favoriteItems"]?.cast<String>() ?? [],

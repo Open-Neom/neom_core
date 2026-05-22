@@ -1,5 +1,9 @@
 # Changelog — neom_core
 
+## 2026-04-16
+- Add `createEventBands` route to AppRouteConstants
+- Add `noCollectivematesWereFound`, `loadingPossibleCollectivemates` to CommonTranslationConstants
+
 ## 2026-03-14
 - Add `isActive` getter to `MiniPlayerService` interface
 - Add `hubBenchmark` route constant

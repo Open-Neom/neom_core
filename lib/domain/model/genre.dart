@@ -62,9 +62,9 @@ class Genre {
 
 
   Genre.fromJSON(Map<dynamic, dynamic> data) :
-    id = data["name"],
-    name = data["name"],
-    description = data["description"];
+    id = data["id"] ?? data["name"] ?? "",
+    name = data["name"] ?? "",
+    description = data["description"] ?? "";
 
 
   static List<Genre> listFromJSON(List<String> genres) {

@@ -1,6 +1,6 @@
 import '../app_config.dart';
 import '../data/firestore/app_release_item_firestore.dart';
-import '../data/firestore/band_firestore.dart';
+import '../data/firestore/collective_firestore.dart';
 import '../data/firestore/blog_entry_firestore.dart';
 import '../data/firestore/event_firestore.dart';
 import '../data/firestore/post_firestore.dart';
@@ -88,12 +88,12 @@ class SlugRouter {
       },
     ),
     SlugRoute(
-      type: 'band',
+      type: 'collective',
       priority: 3,
       resolve: (slug) async {
-        final band = await BandFirestore().getBySlug(slug);
-        if (band != null && band.id.isNotEmpty) {
-          return SlugMatch(type: 'band', id: band.id, slug: slug, entity: band);
+        final collective = await CollectiveFirestore().getBySlug(slug);
+        if (collective != null && collective.id.isNotEmpty) {
+          return SlugMatch(type: 'collective', id: collective.id, slug: slug, entity: collective);
         }
         return null;
       },

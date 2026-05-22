@@ -56,3 +56,27 @@ class Platform {
 
 /// No-op exit function for web.
 void exit(int code) {}
+
+/// Stub Process class for web.
+class Process {
+  static Future<ProcessResult> run(
+    String executable,
+    List<String> arguments, {
+    String? workingDirectory,
+    Map<String, String>? environment,
+    bool includeParentEnvironment = true,
+    bool runInShell = false,
+  }) async {
+    return ProcessResult(0, 0, '', '');
+  }
+}
+
+/// Stub ProcessResult class for web.
+class ProcessResult {
+  final int pid;
+  final int exitCode;
+  final dynamic stdout;
+  final dynamic stderr;
+
+  ProcessResult(this.pid, this.exitCode, this.stdout, this.stderr);
+}

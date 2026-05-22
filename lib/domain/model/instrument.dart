@@ -43,7 +43,7 @@ class Instrument {
 
   Map<String, dynamic> toJSON() {
     return <String, dynamic>{
-      'id': name,
+      'id': id,
       'name': name,
       'description': description,
       'instrumentLevel': instrumentLevel.name,
@@ -64,10 +64,10 @@ class Instrument {
 
 
   Instrument.fromJSON(dynamic data) :
-    id = data["name"] ?? "",
+    id = data["id"] ?? data["name"] ?? "",
     name = data["name"] ?? "",
     description = data["description"] ?? "",
-    instrumentLevel = EnumToString.fromString(InstrumentLevel.values, data["instrumentLevel"]) ?? InstrumentLevel.notDetermined,
+    instrumentLevel = EnumToString.fromString(InstrumentLevel.values, data["instrumentLevel"] ?? InstrumentLevel.notDetermined.name) ?? InstrumentLevel.notDetermined,
     isMain = data["isMain"] ?? false,
     isFavorite = data["isFavorite"] ?? false,
     model = data["model"] ?? "";

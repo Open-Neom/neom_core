@@ -90,8 +90,8 @@ class AppUser {
         photoUrl = data["photoUrl"] ?? "",
         userRole =  EnumToString.fromString(UserRole.values, data["userRole"] ?? UserRole.subscriber.name) ?? UserRole.subscriber,
 
-        isVerified = data["isVerified"] ?? true,
-        isBanned = data["isBanned"] ?? true,
+        isVerified = data["isVerified"] ?? false,
+        isBanned = data["isBanned"] ?? false,
         androidNotificationToken = data["androidNotificationToken"] ?? "",
         profiles = [],
         // wallet = Wallet.fromJSON(data["wallet"] ?? {}),
@@ -156,6 +156,7 @@ class AppUser {
       'orderIds': orderIds,
       'releaseItemIds': releaseItemIds,
       'boughtItems': boughtItems,
+      'couponCode': couponCode,
       'referralCode': referralCode,
       'createdDate': createdDate,
       'lastTimeOn': lastTimeOn,

@@ -33,7 +33,7 @@ class NeomFrequency {
 
   Map<String, dynamic> toJSON() {
     return <String, dynamic>{
-      'id': frequency,
+      'id': id,
       'name': name,
       'scaleDegree': EnumToString.convertToString(scaleDegree),
       'isRoot': isRoot,
@@ -45,10 +45,10 @@ class NeomFrequency {
   }
 
   NeomFrequency.fromJSON(dynamic data) :
-    id = data["id"].toString(),
+    id = data["id"]?.toString() ?? "",
     name = data["name"] ?? "",
     description = data["description"] ?? "",
-    frequency = double.parse(data["frequency"].toString()),
+    frequency = double.tryParse(data["frequency"]?.toString() ?? "") ?? 345,
     scaleDegree = EnumToString.fromString(ScaleDegree.values, data["scaleDegree"] ?? ScaleDegree.tonic.name) ?? ScaleDegree.tonic,
     isRoot = data["isRoot"] ?? false,
     isMain = data["isMain"] ?? false,

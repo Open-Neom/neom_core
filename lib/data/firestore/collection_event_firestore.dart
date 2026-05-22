@@ -88,4 +88,21 @@ class CollectionEventFirestore {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'insert');
     }
   }
+
+  /// Marks a collection event as having had its WhatsApp reminder sent. Used
+  /// from the Cobranza panel so ops can confirm contact was made when the
+  /// automated send didn't trigger or was done manually.
+  Future<bool> markWhatsappSent(String eventId, {String messageId = 'manual'}) async {
+    if (eventId.isEmpty) return false;
+    try {
+      await _collection.doc(eventId).update({
+        'whatsappSent': true,
+        'whatsappMessageId': messageId,
+      });
+      return true;
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'markWhatsappSent');
+      return false;
+    }
+  }
 }

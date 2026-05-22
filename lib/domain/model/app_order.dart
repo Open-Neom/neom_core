@@ -59,7 +59,7 @@ class AppOrder {
     url = data["url"] ?? "",
     createdTime = data["createdTime"] ?? 0,
     customerEmail = data["customerEmail"] ?? "",
-    customerType = EnumToString.fromString(ProfileType.values, data["type"] ?? ProfileType.general.value) ?? ProfileType.general,
+    customerType = EnumToString.fromString(ProfileType.values, data["customerType"] ?? data["type"] ?? ProfileType.general.value) ?? ProfileType.general,
     couponId = data["couponId"] ?? "",
     invoiceIds = data["invoiceIds"]?.cast<String>() ?? [],
     product = AppProduct.fromJSON(data["product"] ?? {}),

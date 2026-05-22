@@ -127,7 +127,7 @@ class ActivityFeed {
     bool isEvent = true, String? message}) :
         id = '',
         ownerId = isResponse ? request.from : request.to,
-        activityReferenceId = isEvent ? request.eventId : request.bandId,
+        activityReferenceId = isEvent ? request.eventId : request.collectiveId,
         profileId = fromProfile.id,
         profileName = fromProfile.name,
         profileImgUrl = fromProfile.photoUrl,

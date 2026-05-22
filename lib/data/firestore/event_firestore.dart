@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../app_config.dart';
 import '../../domain/model/app_profile.dart';
 import '../../domain/model/app_request.dart';
-import '../../domain/model/band_fulfillment.dart';
+import '../../domain/model/collective_fulfillment.dart';
 import '../../domain/model/event.dart';
 import '../../domain/model/instrument_fulfillment.dart';
 import '../../domain/repository/event_repository.dart';
@@ -11,7 +11,7 @@ import '../../utils/constants/core_constants.dart';
 import '../../utils/enums/event_action.dart';
 import '../../utils/neom_error_logger.dart';
 import 'activity_feed_firestore.dart';
-import 'band_firestore.dart';
+import 'collective_firestore.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
 import 'post_firestore.dart';
@@ -131,10 +131,10 @@ class EventFirestore implements EventRepository {
       await PostFirestore().removeEventPost(event.ownerId, event.id);
       await ActivityFeedFirestore().removeEventActivity(event.id);
       await RequestFirestore().removeEventRequests(event.id);
-      if(event.bandsFulfillment?.isNotEmpty ?? false) {
-        for (var bandFulfillment in event.bandsFulfillment!) {
-          if(bandFulfillment.hasAccepted) {
-            await BandFirestore().removePlayingEvent(bandFulfillment.bandId, event.id);
+      if(event.collectivesFulfillment?.isNotEmpty ?? false) {
+        for (var collectiveFulfillment in event.collectivesFulfillment!) {
+          if(collectiveFulfillment.hasAccepted) {
+            await CollectiveFirestore().removePlayingEvent(collectiveFulfillment.collectiveId, event.id);
           }
         }
       }
@@ -347,8 +347,8 @@ class EventFirestore implements EventRepository {
         AppFirestoreConstants.isFulfilled: true
       });
 
-      //TODO Create Band Algorithm
-      //BandFirestore().insert(band)
+      //TODO Create Collective Algorithm
+      //CollectiveFirestore().insert(collective)
 
       AppConfig.logger.i("Event $eventId has been fulfilled");
     } catch (e, st) {
@@ -448,39 +448,39 @@ class EventFirestore implements EventRepository {
   }
 
   @override
-  Future<bool> fulfillBand(String bandId, AppProfile itemmate, Event event) async {
-  AppConfig.logger.d("Fulfilling band $bandId for event ${event.id}");
+  Future<bool> fulfillCollective(String collectiveId, AppProfile itemmate, Event event) async {
+  AppConfig.logger.d("Fulfilling collective $collectiveId for event ${event.id}");
 
   try {
 
-    BandFulfillment previousBandFulfillment = BandFulfillment(bandId: bandId);
-    for (var fulfillment in event.bandsFulfillment ?? []) {
-      if(bandId == fulfillment.bandId) {
-        previousBandFulfillment = fulfillment;
+    CollectiveFulfillment previousCollectiveFulfillment = CollectiveFulfillment(collectiveId: collectiveId);
+    for (var fulfillment in event.collectivesFulfillment ?? []) {
+      if(collectiveId == fulfillment.collectiveId) {
+        previousCollectiveFulfillment = fulfillment;
       }
     }
 
-    BandFulfillment bandFulfillment = BandFulfillment(
-      bandName: previousBandFulfillment.bandName,
-      bandImgUrl: previousBandFulfillment.bandImgUrl,
-      bandId: previousBandFulfillment.bandId,
+    CollectiveFulfillment collectiveFulfillment = CollectiveFulfillment(
+      collectiveName: previousCollectiveFulfillment.collectiveName,
+      collectiveImgUrl: previousCollectiveFulfillment.collectiveImgUrl,
+      collectiveId: previousCollectiveFulfillment.collectiveId,
       hasAccepted: true
     );
 
     // OPTIMIZED: Use direct update instead of get().then()
     final docRef = eventsReference.doc(event.id);
     await docRef.update({
-      AppFirestoreConstants.bandsFulfillment:
-          FieldValue.arrayRemove([previousBandFulfillment.toJSON()])
+      AppFirestoreConstants.collectivesFulfillment:
+          FieldValue.arrayRemove([previousCollectiveFulfillment.toJSON()])
     });
     await docRef.update({
-      AppFirestoreConstants.bandsFulfillment:
-          FieldValue.arrayUnion([bandFulfillment.toJSON()])
+      AppFirestoreConstants.collectivesFulfillment:
+          FieldValue.arrayUnion([collectiveFulfillment.toJSON()])
     });
 
-    AppConfig.logger.i("Band ${bandFulfillment.bandName} has been fulfilled");
+    AppConfig.logger.i("Collective ${collectiveFulfillment.collectiveName} has been fulfilled");
   } catch (e, st) {
-    NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'EventFirestore.fulfillBand');
+    NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'EventFirestore.fulfillCollective');
     return false;
   }
 

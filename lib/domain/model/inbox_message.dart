@@ -19,6 +19,9 @@ class InboxMessage {
 
   List<String> likedProfiles;
 
+  bool isPinned;
+  String pollId;
+
   InboxMessage({
     this.id = "",
     this.ownerId = "",
@@ -31,12 +34,14 @@ class InboxMessage {
     this.mediaUrl = "",
     this.referenceId = "",
     this.audioDuration = 0,
-    this.likedProfiles = const []
+    this.likedProfiles = const [],
+    this.isPinned = false,
+    this.pollId = "",
   });
 
   @override
   String toString() {
-    return 'InboxMessage{id: $id, ownerId: $ownerId, profileName: $profileName, profileImgUrl: $profileImgUrl, text: $text, createdTime: $createdTime, seenTime: $seenTime, type: $type, mediaUrl: $mediaUrl, referenceId: $referenceId, audioDuration: $audioDuration, likedProfiles: $likedProfiles}';
+    return 'InboxMessage{id: $id, ownerId: $ownerId, profileName: $profileName, profileImgUrl: $profileImgUrl, text: $text, createdTime: $createdTime, seenTime: $seenTime, type: $type, mediaUrl: $mediaUrl, referenceId: $referenceId, audioDuration: $audioDuration, likedProfiles: $likedProfiles, isPinned: $isPinned, pollId: $pollId}';
   }
 
   Map<String, dynamic> toJSON() {
@@ -46,12 +51,15 @@ class InboxMessage {
       'profileName': profileName,
       'profileImgUrl': profileImgUrl,
       'text': text,
-      'createdTime': DateTime.now().millisecondsSinceEpoch,
+      'createdTime': createdTime,
+      'seenTime': seenTime,
       'type': type.name,
       'mediaUrl': mediaUrl,
       'referenceId': referenceId,
       'audioDuration': audioDuration,
-      'likedProfiles': likedProfiles
+      'likedProfiles': likedProfiles,
+      'isPinned': isPinned,
+      'pollId': pollId,
     };
   }
 
@@ -69,6 +77,8 @@ class InboxMessage {
     mediaUrl = data["mediaUrl"] ?? "",
     referenceId = data["referenceId"] ?? "",
     audioDuration = data["audioDuration"] ?? 0,
-    likedProfiles = List.from(data["likedProfiles"] ?? []);
+    likedProfiles = List.from(data["likedProfiles"] ?? []),
+    isPinned = data["isPinned"] ?? false,
+    pollId = data["pollId"] ?? "";
 
 }

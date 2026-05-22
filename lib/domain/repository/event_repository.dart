@@ -19,6 +19,6 @@ abstract class EventRepository {
   Future<bool> unFulfilled(String eventId);
   Future<bool> addGoingProfile({required String eventId, required String profileId});
   Future<bool> removeGoingProfile({required String eventId, required String profileId});
-  Future<bool> fulfillBand(String bandId, AppProfile mate, Event event);
+  Future<bool> fulfillCollective(String collectiveId, AppProfile mate, Event event);
 
 }

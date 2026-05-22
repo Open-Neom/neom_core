@@ -29,7 +29,7 @@ class BlogEntry {
   factory BlogEntry.fromJson(Map<String, dynamic> json) {
 
     String title = (json['title']?['rendered'].toString() ?? '');
-    title = title..replaceAll(RegExp(r'<[^>]*>'), '');
+    title = title.replaceAll(RegExp(r'<[^>]*>'), '');
 
     String htmlContent = (json['content']?['rendered'].toString() ?? '');
     final document = html_parser.parse(htmlContent);

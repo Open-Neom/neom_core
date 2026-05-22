@@ -88,8 +88,8 @@ abstract class ProfileRepository {
   Future<bool> addComment(String profileId, String commentId);
   Future<bool> removeComment(String profileId, String commentId);
   Future<bool> hideComment(String profileId, String commentId);
-  Future<bool> addBand({required String profileId, required String bandId});
-  Future<bool> removeBand({required String profileId, required String bandId});
+  Future<bool> addCollective({required String profileId, required String collectiveId});
+  Future<bool> removeCollective({required String profileId, required String collectiveId});
   Future<bool> removeRequest(String profileId, String requestId, RequestType requestType);
   Future<bool> addRequest(String profileId, String requestId, RequestType requestType);
   // Future<bool> addToWallet(String profileId, double amount, {AppCurrency appCurrency = AppCurrency.appCoin});

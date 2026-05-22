@@ -7,7 +7,11 @@ class AppFirestoreCollectionConstants {
   static const String activityFeedItems = "activityFeedItems";
   static const String globalActivityFeed = "globalActivityFeed";
 
-  static const String bands = "bands";
+  static const String collectives = "collectives";
+  static const String collectiveChannels = "channels";
+  static const String collectiveFiles = "files";
+  static const String collectiveNotes = "notes";
+  static const String collectivePolls = "polls";
   static const String genres = "genres";
   static const String members = "members";
 

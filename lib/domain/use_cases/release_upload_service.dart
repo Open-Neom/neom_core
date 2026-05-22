@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 
 import '../../utils/enums/release_type.dart';
-import '../model/band.dart';
+import '../model/collective.dart';
 import '../model/genre.dart';
 
 abstract class ReleaseUploadService {
@@ -31,7 +31,7 @@ abstract class ReleaseUploadService {
   void setItemlistName();
   void setItemlistDesc();
   bool validateItemlistNameDesc();
-  void setSelectedBand(Band band);
+  void setSelectedCollective(Collective collective);
   void setAsSolo();
 
   /// Show the release upload modal (web only).

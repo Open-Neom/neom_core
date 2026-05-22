@@ -41,6 +41,7 @@ class AppRouteConstants {
   static const String profileDetails = '/profile/:profileId';
   static const String profileEdit = '/profile/edit';
   static const String profileRemove = '/profile/remove';
+  static const String saiaProfile = '/profile/saia';
   static const String spotifyPlaylists = '/spotify/playlists';
   static const String finishingSpotifySync = '/spotify/synchronization';
 
@@ -67,13 +68,15 @@ class AppRouteConstants {
   static const String mediaUpload = '/media/upload';
   static const String imageFullScreen = '/image/fullscreen';
   static const String videoFullScreen = '/video/fullscreen';
+  static const String imageEditor = '/image/editor';
   static const String videoEditor = '/video/editor';
 
   static const String createEventType = '/createEvent/type';
   static const String createNeomEventType = '/neom/createEvent/type';
   static const String createEventActivities = '/neom/createEvent/activities';
-  static const String createEventBandOrMusicians = '/createEvent/bandOrMusicians';
+  static const String createEventCollectiveOrMusicians = '/createEvent/collectiveOrMusicians';
   static const String createEventBands = '/createEvent/bands';
+  static const String createEventCollectives = '/createEvent/collectives';
   static const String createEventLists = '/createEvent/lists';
   static const String createEventItems = '/createEvent/items';
   static const String createEventInstruments = '/createEvent/instruments';
@@ -90,15 +93,15 @@ class AppRouteConstants {
   static const String feedActivityDrawer = '/drawer/activity';
   static const String calendar = '/calendar';
 
-  static const String bands = '/bands';
-  static const String bandsRoom = '/bands/room';
-  static const String bandDetails = '/band/:bandId';
-  static const String bandLists = '/band/lists';
-  static const String bandListItems = '/band/list/items';
-  static const String createBandAddImage = '/createBand/addImage';
-  static const String createBandInstruments = '/createBand/instruments';
-  static const String createBandReason = '/createBand/reason';
-  static const String createBandSummary = '/createBand/summary';
+  static const String collectives = '/collectives';
+  static const String collectivesRoom = '/collectives/room';
+  static const String collectiveDetails = '/collective/:collectiveId';
+  static const String collectiveLists = '/collective/lists';
+  static const String collectiveListItems = '/collective/list/items';
+  static const String createCollectiveAddImage = '/createCollective/addImage';
+  static const String createCollectiveInstruments = '/createCollective/instruments';
+  static const String createCollectiveReason = '/createCollective/reason';
+  static const String createCollectiveSummary = '/createCollective/summary';
 
   static const String privacySafety = '/privacyAndSafety';
   static const String privacyAndTerms = '/privacyAndTerms';
@@ -115,6 +118,13 @@ class AppRouteConstants {
   static const String previousVersion = '/previous-version';
   static const String underConstruction = '/under-construction';
   static const String verifyEmail = '/verify-email';
+
+  // Saia bench runner (neom_ia_bench). Mirrors SaiaBenchRoutes.* constants.
+  // Hosts that wire the bench module register SintPages with these names.
+  static const String saiaBench = '/iaBench';
+  static const String saiaBenchRunner = '/iaBench/run';
+  static const String saiaBenchResult = '/iaBench/result';
+  static const String saiaBenchCompare = '/iaBench/compare';
 
   static const String booking = '/booking';
   static const String bookingPlaces = '/booking/places';
@@ -151,7 +161,7 @@ class AppRouteConstants {
 
   static const String releaseUpload  = '/releaseUpload';
   static const String releaseUploadType  = '/releaseUpload/type';
-  static const String releaseUploadBandOrSolo  = '/releaseUpload/bandOrSolo';
+  static const String releaseUploadCollectiveOrSolo  = '/releaseUpload/collectiveOrSolo';
   static const String releaseUploadInstr  = '/releaseUpload/instr';
   static const String releaseUploadCover  = '/releaseUpload/cover';
   static const String releaseUploadGenres  = '/releaseUpload/genres';
@@ -167,6 +177,10 @@ class AppRouteConstants {
   static const String flowMonitor  = '/analytics/flowMonitor';
 
   static const String generator  = '/generator';
+  static const String levitation  = '/levitation';
+  static const String levitationLab  = '/levitation/lab';
+  static const String levitationSimChamber  = '/levitation/sim-chamber';
+  static const String levitationSimTransport  = '/levitation/sim-transport';
   static const String chamber  = '/chamber';
   static const String chamberPresets  = '/chamber/presets';
   static const String chamberExperiences  = '/chamber/experiences';
@@ -222,18 +236,18 @@ class AppRouteConstants {
 
   static const String learning = '/learning';
 
-  static const String games = '/games';
-  static const String gamesWordChain = '/games/wordChain';
-  static const String gamesStoryBuilder = '/games/storyBuilder';
-  static const String gamesStories = '/games/stories';
-  static const String gamesQuoteQuest = '/games/quoteQuest';
-  static const String gamesVerseScramble = '/games/verseScramble';
-  static const String gamesLiteraryChess = '/games/literaryChess';
-  static const String gamesLibroverso = '/games/libroverso';
-  static const String gamesLibrinder = '/games/librinder';
-  static const String gamesLibroTerapia = '/games/libroTerapia';
-  static const String findOpponent = '/games/findOpponent';
-  static const String multiplayerChess = '/games/multiplayerChess';
+  static const String games = '/juegos';
+  static const String gamesWordChain = '/juegos/wordChain';
+  static const String gamesStoryBuilder = '/juegos/storyBuilder';
+  static const String gamesStories = '/juegos/stories';
+  static const String gamesQuoteQuest = '/juegos/quoteQuest';
+  static const String gamesVerseScramble = '/juegos/verseScramble';
+  static const String gamesLiteraryChess = '/juegos/literaryChess';
+  static const String gamesLibroverso = '/juegos/libroverso';
+  static const String gamesLibrinder = '/juegos/librinder';
+  static const String gamesLibroTerapia = '/juegos/libroTerapia';
+  static const String findOpponent = '/juegos/findOpponent';
+  static const String multiplayerChess = '/juegos/multiplayerChess';
 
   // Shop
   static const String shopCart = '/shop/cart';
@@ -248,6 +262,7 @@ class AppRouteConstants {
   static const String shopAddresses = '/shop/addresses';
   static const String shopRefundRequest = '/shop/refund/request';
   static const String shopReview = '/shop/review';
+  static const String shopHub = '/shop/hub';
   static const String shopSellerDashboard = '/shop/seller';
   static const String shopSellerOrderDetail = '/shop/seller/order/:orderId';
   static const String shopSellerProducts = '/shop/seller/products';
@@ -294,7 +309,7 @@ class AppRouteConstants {
   static const String stripeSubscriptions = '/stripe/subscriptions';
 
   // ERP Hub (Operations Center)
-  static const String erpDashboard = '/erp/dashboard';
+  static const String erp = '/erp';
   static const String erpOperations = '/erp/operations';
   static const String erpBenchmark = '/erp/benchmark';
 
@@ -338,7 +353,7 @@ class AppRouteConstants {
   static String postPath(String id, {String slug = ''}) => '/post/${_slugOrId(id, slug)}';
   static String postFullScreenPath(String id, {String slug = ''}) => '/post/${_slugOrId(id, slug)}/fullscreen';
   static String eventPath(String id, {String slug = ''}) => '/event/${_slugOrId(id, slug)}';
-  static String bandPath(String id, {String slug = ''}) => '/band/${_slugOrId(id, slug)}';
+  static String collectivePath(String id, {String slug = ''}) => '/collective/${_slugOrId(id, slug)}';
   static String itemPath(String id, {String slug = ''}) => '/item/${_slugOrId(id, slug)}';
   static String profilePath(String id, {String slug = ''}) => '/profile/${_slugOrId(id, slug)}';
   static String requestPath(String id) => '/request/$id';

@@ -35,15 +35,15 @@ class ProfileSkill {
   }
 
   ProfileSkill.fromJSON(dynamic data) :
-    id = data['name'] ?? '',
+    id = data['id'] ?? data['name'] ?? '',
     name = data['name'] ?? '',
     description = data['description'] ?? '',
-    experienceLevel = EnumToString.fromString(ExperienceLevel.values, data['experienceLevel']) ?? ExperienceLevel.beginner,
+    experienceLevel = EnumToString.fromString(ExperienceLevel.values, data['experienceLevel'] ?? ExperienceLevel.beginner.name) ?? ExperienceLevel.beginner,
     price = (data['price'] ?? 0).toDouble();
 
   Map<String, dynamic> toJSON() {
     return <String, dynamic>{
-      'id': name,
+      'id': id,
       'name': name,
       'description': description,
       'experienceLevel': experienceLevel.name,

@@ -6,7 +6,7 @@ import '../../utils/enums/event_type.dart';
 import '../../utils/enums/usage_reason.dart';
 import '../model/app_media_item.dart';
 import '../model/app_profile.dart';
-import '../model/band.dart';
+import '../model/collective.dart';
 import '../model/instrument.dart';
 
 abstract class EventService {
@@ -54,14 +54,14 @@ abstract class EventService {
 
   void setVocalTypeToFulfill(String vocalType);
 
-  void addBandToFestival(Band band);
-  void removeBandFromFestival(Band band);
-  void addBandsToFestival();
-  void setSelectedBand(Band selectedBand);
+  void addCollectiveToFestival(Collective collective);
+  void removeCollectiveFromFestival(Collective collective);
+  void addCollectivesToFestival();
+  void setSelectedCollective(Collective selectedCollective);
   void lookupForMusicians();
-  void gotoBandDetails(Band band);
+  void gotoCollectiveDetails(Collective collective);
 
-  Future<void> sendBandEventRequest(String bandId);
+  Future<void> sendCollectiveEventRequest(String collectiveId);
   Future<void> sendProfileEventInvitations();
   void addInvitedProfile(AppProfile mate, Instrument instr);
   void setCurrency(String chosenCurrency);

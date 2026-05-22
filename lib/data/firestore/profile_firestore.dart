@@ -1096,25 +1096,25 @@ class ProfileFirestore implements ProfileRepository {
   }
 
   @override
-  Future<bool> addBand(
-      {required String profileId, required String bandId}) async {
-    AppConfig.logger.t("Add band $bandId for profile $profileId");
+  Future<bool> addCollective(
+      {required String profileId, required String collectiveId}) async {
+    AppConfig.logger.t("Add collective $collectiveId for profile $profileId");
 
     // OPTIMIZED: Use helper method instead of fetching ALL profiles
     return await _updateProfileField(profileId, {
-      AppFirestoreConstants.bands: FieldValue.arrayUnion([bandId])
+      AppFirestoreConstants.collectives: FieldValue.arrayUnion([collectiveId])
     });
   }
 
 
   @override
-  Future<bool> removeBand(
-      {required String profileId, required String bandId}) async {
-    AppConfig.logger.t("Remove band $bandId for profile $profileId");
+  Future<bool> removeCollective(
+      {required String profileId, required String collectiveId}) async {
+    AppConfig.logger.t("Remove collective $collectiveId for profile $profileId");
 
     // OPTIMIZED: Use helper method instead of fetching ALL profiles
     return await _updateProfileField(profileId, {
-      AppFirestoreConstants.bands: FieldValue.arrayRemove([bandId])
+      AppFirestoreConstants.collectives: FieldValue.arrayRemove([collectiveId])
     });
   }
 

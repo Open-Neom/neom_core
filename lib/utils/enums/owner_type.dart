@@ -1,6 +1,6 @@
 enum OwnerType {
   profile,
-  band,
+  collective,
   woo,
   external,
   notDefined

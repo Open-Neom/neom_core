@@ -18,9 +18,9 @@ class Hashtag {
 
 
   Hashtag.fromJSON(Map<dynamic, dynamic> data) :
-    id = data["id"],
-    postIds = List.from(data["postIds"]),
-    createdTime = data["createdTime"];
+    id = data["id"] ?? "",
+    postIds = List.from(data["postIds"] ?? const []),
+    createdTime = data["createdTime"] ?? 0;
 
 
   Map<String, dynamic> toJSON()=> {

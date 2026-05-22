@@ -1,3 +1,5 @@
+import 'package:enum_to_string/enum_to_string.dart';
+
 import '../../utils/enums/booking_status.dart';
 
 
@@ -51,6 +53,8 @@ class Booking {
         placeId = data["placeId"] ?? "",
         eventId = data["eventId"] ?? "",
         date = data["date"] ?? 0,
-        bookingStatus = data["bookingStatus"] ?? BookingStatus.notDefined,
+        bookingStatus = EnumToString.fromString(
+                BookingStatus.values, data["bookingStatus"] ?? '') ??
+            BookingStatus.notDefined,
         orderId = data["orderId"] ?? "";
 }

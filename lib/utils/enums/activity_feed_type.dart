@@ -13,7 +13,7 @@ enum ActivityFeedType {
   request,
   sentRequest,
   eventInvitationRequest,
-  bandInvitationRequest,
+  collectiveInvitationRequest,
   acceptedRequest,
   declinedRequest,
   eventFulfilled,
@@ -45,4 +45,6 @@ enum ActivityFeedType {
   communityInvite,
   // Scheduled posts
   scheduledPostPublished,
+  // Shop / marketplace
+  shopSale,
 }
