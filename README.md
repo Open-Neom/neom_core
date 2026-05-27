@@ -54,12 +54,12 @@ and the main application (neom_app). It is not typically used to build direct UI
 Example of consuming a core service interface (e.g., in neom_posts):
 Dart
 // In a controller from another module (e.g., neom_posts)
-import 'package:get/get.dart';
+import 'package:sint/sint.dart';
 import 'package:neom_core/core/domain/use_cases/user_service.dart'; // Import the interface from neom_core
 
-class MyFeatureController extends GetxController {
+class MyFeatureController extends SintController {
     // Inject the UserService interface
-    final UserService _userService = Get.find<UserService>();
+    final UserService _userService = Sint.find<UserService>();
 
     void displayUserName() {
         print("Current User: ${_userService.user.name}");
@@ -69,18 +69,18 @@ class MyFeatureController extends GetxController {
 Registering the implementation at the Composition Root (e.g., in neom_app/lib/root_binding.dart):
 Dart
 // In your main application's RootBinding
-import 'package:get/get.dart';
+import 'package:sint/sint.dart';
 import 'package:neom_core/core/domain/use_cases/user_service.dart'; // Interface from neom_core
 import 'package:neom_core/core/data/implementations/user_controller.dart'; // Implementation from neom_core
 
-class RootBinding extends Bindings {
+class RootBinding extends SintBinding {
     @override
     List<Bind> dependencies() {
         return [
             // Register the concrete implementation (UserController)
             Bind.put(UserController(), permanent: true),
             // Bind the interface (UserService) to the concrete implementation
-            Bind.lazyPut<UserService>(() => Get.find<UserController>(), fenix: true),
+            Bind.lazyPut<UserService>(() => Sint.find<UserController>(), fenix: true),
             // ... other core service bindings
         ];
     }
@@ -89,7 +89,7 @@ class RootBinding extends Bindings {
 🛠️ Dependencies
 neom_core relies on the following key packages to provide its foundational functionalities:
 •	flutter: The Flutter SDK.
-•	get: For state management and robust dependency injection.
+•	sint: For state management and robust dependency injection.
 •	Firebase SDKs: firebase_core, cloud_firestore, cloud_functions, firebase_storage, firebase_auth, firebase_messaging,
     firebase_crashlytics for comprehensive backend services.
 •	Authentication: google_sign_in, sign_in_with_apple, googleapis_auth for various user authentication methods.

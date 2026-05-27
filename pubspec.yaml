@@ -24,6 +24,8 @@ dependencies:
   googleapis_auth: ^2.0.0
 
   logger: ^2.7.0
+  rxdart: ^0.28.0
+  web: ^1.1.0
   http: ^1.6.0
   hive_flutter: ^1.1.0
 
