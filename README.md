@@ -38,14 +38,14 @@ neom_core is the backbone of the Open Neom platform, responsible for:
 
 
 📦 Installation
-Add neom_core as a Git dependency in your pubspec.yaml file:
+Add neom_core to your `pubspec.yaml` dependencies:
 
+```yaml
 dependencies:
-    neom_core:
-        git:
-            url: https://github.com/Open-Neom/neom_core.git
+  neom_core: ^2.0.0
+```
 
-Then, run flutter pub get in your project's root directory.
+Then, run `flutter pub get` in your project's root directory.
 
 🚀 Usage
 As a foundational package, neom_core is primarily consumed by other domain-specific Neom modules (e.g., neom_auth, neom_home, neom_posts)
