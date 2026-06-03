@@ -1149,9 +1149,10 @@ class ProfileFirestore implements ProfileRepository {
 
     // OPTIMIZED: Use helper method instead of fetching ALL profiles
     String requestsToUpdate = switch (requestType) {
-      RequestType.received => AppFirestoreConstants.requests,
       RequestType.sent => AppFirestoreConstants.sentRequests,
       RequestType.invitation => AppFirestoreConstants.invitationRequests,
+      // received + all semantic kinds map to the default received mailbox.
+      _ => AppFirestoreConstants.requests,
     };
 
     final success = await _updateProfileField(profileId, {
@@ -1172,9 +1173,10 @@ class ProfileFirestore implements ProfileRepository {
 
     // OPTIMIZED: Use helper method instead of fetching ALL profiles
     String requestsToRemove = switch (requestType) {
-      RequestType.received => AppFirestoreConstants.requests,
       RequestType.sent => AppFirestoreConstants.sentRequests,
       RequestType.invitation => AppFirestoreConstants.invitationRequests,
+      // received + all semantic kinds map to the default received mailbox.
+      _ => AppFirestoreConstants.requests,
     };
 
     final success = await _updateProfileField(profileId, {

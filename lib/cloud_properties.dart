@@ -39,6 +39,8 @@ class CloudProperties {
         return 'https://us-central1-gig-me-out.cloudfunctions.net/secureOpsWeb';
       case AppInUse.c:
         return 'https://us-central1-cyberneom-app.cloudfunctions.net/secureOpsWeb';
+      case AppInUse.i:
+        return 'https://us-central1-itzli-app.cloudfunctions.net/secureOpsWeb';
       case AppInUse.e:
       default:
         return 'https://secureopsweb-uzmgogia7a-uc.a.run.app';

@@ -1,11 +1,14 @@
 import 'dart:typed_data';
 
+abstract class FileSystemEntity {
+  final String path;
+  FileSystemEntity(this.path);
+}
+
 /// Stub File class for web platform.
 /// Provides the same API surface as dart:io File.
-class File {
-  final String path;
-
-  File(this.path);
+class File extends FileSystemEntity {
+  File(String path) : super(path);
 
   factory File.fromUri(Uri uri) => File(uri.path);
 
@@ -32,14 +35,13 @@ class File {
 }
 
 /// Stub Directory class for web platform.
-class Directory {
-  final String path;
-
-  Directory(this.path);
+class Directory extends FileSystemEntity {
+  Directory(String path) : super(path);
 
   Future<bool> exists() async => false;
   bool existsSync() => false;
   Future<Directory> create({bool recursive = false}) async => this;
+  Stream<FileSystemEntity> list({bool recursive = false, bool followLinks = true}) => const Stream.empty();
 }
 
 /// Stub Platform class for web platform.

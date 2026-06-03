@@ -47,4 +47,6 @@ enum ActivityFeedType {
   scheduledPostPublished,
   // Shop / marketplace
   shopSale,
+  // Royalties (ERP payout to author)
+  royaltyPaid,
 }

@@ -396,5 +396,38 @@ class RequestFirestore implements RequestRepository {
     return requests;
   }
 
+  /// Retrieves pending change-approval requests (content edits, ERP sensitive
+  /// changes) for support+ reviewers. These are requests with 'to' = 'appBot'
+  /// and pending status carrying a change payload.
+  Future<List<AppRequest>> retrieveChangeApprovalRequests({int limit = 50}) async {
+    AppConfig.logger.t("Retrieving Change Approval Requests (limit: $limit)");
+    List<AppRequest> requests = <AppRequest>[];
+
+    try {
+      QuerySnapshot querySnapshot = await requestsReference
+          .where(AppFirestoreConstants.to, isEqualTo: 'appBot')
+          .where(AppFirestoreConstants.requestDecision, isEqualTo: RequestDecision.pending.name)
+          .orderBy(AppFirestoreConstants.createdTime, descending: true)
+          .limit(limit)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        for (var snapshot in querySnapshot.docs) {
+          AppRequest request = AppRequest.fromJSON(snapshot.data());
+          request.id = snapshot.id;
+          if (request.isChangeApprovalRequest) {
+            requests.add(request);
+            AppConfig.logger.t('Change approval request ${request.id} retrieved');
+          }
+        }
+      }
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'RequestFirestore.retrieveChangeApprovalRequests');
+    }
+
+    AppConfig.logger.d("${requests.length} change approval requests found");
+    return requests;
+  }
+
 
 }

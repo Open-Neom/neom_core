@@ -14,6 +14,7 @@ enum ItemlistType {
 
   bool get isAudio =>
       this == ItemlistType.playlist ||
+      this == ItemlistType.giglist ||
       this == ItemlistType.single ||
       this == ItemlistType.ep ||
       this == ItemlistType.album ||

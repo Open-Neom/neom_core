@@ -269,6 +269,7 @@ class AppRouteConstants {
   static const String shopProductEdit = '/shop/seller/product/edit';
   static const String shopSellerInventory = '/shop/seller/inventory';
   static const String shopSellerStats = '/shop/seller/stats';
+  static const String shopRoyalties = '/shop/seller/royalties';
   static const String shopSupport = '/shop/support';
   static const String shopCatalog = '/shop/admin/catalog';
   static const String shopGlobalInventory = '/shop/admin/inventory';

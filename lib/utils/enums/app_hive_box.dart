@@ -17,7 +17,8 @@ enum AppHiveBox {
   posts(true),         // Feed cache with limit
   visitedProfiles(true), // Recently visited profiles cache
   inbox(false),        // Messages cache
-  syncQueue(false);    // Offline actions queue
+  syncQueue(false),    // Offline actions queue
+  cache(false);        // Local library and general cache
 
   final bool limit;
   const AppHiveBox(this.limit);
