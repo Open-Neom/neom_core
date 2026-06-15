@@ -58,6 +58,9 @@ class AppRouteConstants {
 
   static const String inbox = '/inbox';
   static const String inboxRoom = '/inbox/room';
+  /// Public support entry — gated by auth; once logged in/registered it opens
+  /// the user's `_support` room for in-platform follow-up (e.g. emxi.org/soporte).
+  static const String supportEntry = '/soporte';
   static const String postDetails = '/post/:postId';
   static const String postDetailsFullScreen = '/post/:postId/fullscreen';
   static const String post = '/post';
@@ -92,6 +95,7 @@ class AppRouteConstants {
   static const String feedActivity = '/feed/activity';
   static const String feedActivityDrawer = '/drawer/activity';
   static const String calendar = '/calendar';
+  static const String agenda = '/agenda';
 
   static const String collectives = '/collectives';
   static const String collectivesRoom = '/collectives/room';
@@ -157,6 +161,9 @@ class AppRouteConstants {
 
   static const String services = '/services';
   static const String quotation = '/quotation';
+  /// Public, human-friendly Spanish alias for the quotation (cotizador) page,
+  /// e.g. https://emxi.org/cotizacion — maps to the same QuotationPage.
+  static const String cotizacion = '/cotizacion';
   static const String appItemQuotation = '/appItems/quotation';
 
   static const String releaseUpload  = '/releaseUpload';
@@ -294,6 +301,7 @@ class AppRouteConstants {
   static const String communityCreate = '/community/create';
   static const String creatorAnalytics = '/creator/analytics';
   static const String trackAnalytics = '/creator/analytics/track';
+  static const String call = '/call';
   static const String liveDiscover = '/live';
   static const String liveHost = '/live/host';
   static const String liveListener = '/live/listener';
@@ -309,10 +317,21 @@ class AppRouteConstants {
   static const String stripeDashboard = '/stripe/dashboard';
   static const String stripeSubscriptions = '/stripe/subscriptions';
 
+  // CRM — Customer Profile / Portal (client self-view + staff view)
+  static const String customerProfile = '/customer';
+
   // ERP Hub (Operations Center)
+  static const String erpHub = '/erp/hub';
   static const String erp = '/erp';
+  static const String erpCrm = '/erp/crm';
+  static const String erpSupport = '/erp/support';
   static const String erpOperations = '/erp/operations';
   static const String erpBenchmark = '/erp/benchmark';
+
+  // Kanban
+  static const String kanbanDashboard = '/kanban/dashboard';
+  static const String kanbanBoard = '/kanban/board';
+  static const String kanbanSettings = '/kanban/settings';
 
   // Subscription status
   static const String subscriptionSuspended = '/subscription/suspended';

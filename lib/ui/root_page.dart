@@ -4,6 +4,8 @@ import 'package:upgrader/upgrader.dart';
 
 import '../app_config.dart';
 import '../domain/use_cases/home_service.dart';
+import '../domain/use_cases/login_service.dart';
+import '../domain/use_cases/user_service.dart';
 import '../utils/constants/core_constants.dart';
 import '../utils/core_utilities.dart';
 import '../utils/neom_error_logger.dart';
@@ -52,13 +54,19 @@ class RootPage extends StatelessWidget {
               child:
               /// homePage == null ? rootPage : Stack(
                  /// children: [
-                    Obx(()=>AppConfig.instance.selectRootPage(
-                        rootPage: rootPage,
-                        homePage: homePage,
-                        splashPage: splashPage,
-                        onGoingPage: onGoingPage,
-                        previousVersionPage: previousVersionPage
-                    ),),
+                    Obx(() {
+                      if (!Sint.isRegistered<LoginService>() || !Sint.isRegistered<UserService>()) {
+                        final dummy = true.obs;
+                        dummy.value;
+                      }
+                      return AppConfig.instance.selectRootPage(
+                          rootPage: rootPage,
+                          homePage: homePage,
+                          splashPage: splashPage,
+                          onGoingPage: onGoingPage,
+                          previousVersionPage: previousVersionPage
+                      );
+                    }),
                     ///DEPRECATED
                     // if (Sint.isRegistered<UserService>() && Sint.find<UserService>().user.id.isNotEmpty && miniPlayer != null
                     //     && (homeService?.timelineReady ?? false) && (homeService?.mediaPlayerEnabled ?? false))

@@ -5,9 +5,10 @@ enum UserRole {
   support(2),
   /// ERP / Laboral — financial monitoring and business intelligence access
   erp(3),
-  developer(4),
-  admin(5),
-  superAdmin(6);
+  pos(4),
+  developer(5),
+  admin(6),
+  superAdmin(7);
 
   final int value;
 

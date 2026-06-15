@@ -10,7 +10,6 @@ import '../../utils/position_utilities.dart';
 import 'activity_feed_firestore.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
-import 'profile_firestore.dart';
 
 class PostFirestore implements PostRepository {
 
@@ -157,13 +156,33 @@ class PostFirestore implements PostRepository {
     bool wasDeleted = false;
     try {
       await postsReference.doc(postId).delete();
-      wasDeleted = await ProfileFirestore().removePost(profileId, postId);
+      wasDeleted = await _removeProfilePost(profileId, postId);
       await ActivityFeedFirestore().removePostActivity(postId);
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.remove');
     }
 
     return wasDeleted;
+  }
+
+  Future<bool> _removeProfilePost(String profileId, String postId) async {
+    try {
+      final querySnapshot = await FirebaseFirestore.instance
+          .collectionGroup(AppFirestoreCollectionConstants.profiles)
+          .where('id', isEqualTo: profileId)
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        await querySnapshot.docs.first.reference.update({
+          AppFirestoreConstants.posts: FieldValue.arrayRemove([postId])
+        });
+        return true;
+      }
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: '_removeProfilePost');
+    }
+    return false;
   }
 
   Future<bool> update(Post post) async {
@@ -313,7 +332,7 @@ class PostFirestore implements PostRepository {
       if (querySnapshot.docs.isNotEmpty) {
         for (var postSnapshot in querySnapshot.docs) {
           await postSnapshot.reference.delete();
-          wasDeleted = await ProfileFirestore().removePost(ownerId, postSnapshot.reference.id);
+          wasDeleted = await _removeProfilePost(ownerId, postSnapshot.reference.id);
           await ActivityFeedFirestore().removePostActivity(postSnapshot.reference.id);
           wasDeleted = true;
           AppConfig.logger.d('Removed event post ${postSnapshot.id}');

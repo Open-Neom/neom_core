@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:geolocator/geolocator.dart';
 
-import '../../app_config.dart';
-import '../../utils/core_utilities.dart';
+import '../../utils/neom_logger.dart';
+import '../../utils/position_parser.dart';
 import '../../utils/enums/profile_type.dart';
 import '../../utils/enums/usage_reason.dart';
 import '../../utils/enums/verification_level.dart';
@@ -28,6 +28,11 @@ class AppProfile {
   String coverImgUrl;
   String mainFeature;
   int lastTimeOn = 0;
+
+  /// Considered "online" when active within the last 5 minutes.
+  bool get isOnline =>
+      lastTimeOn > 0 &&
+      DateTime.now().millisecondsSinceEpoch - lastTimeOn < 5 * 60 * 1000;
 
   bool isActive;
   Position? position;
@@ -171,7 +176,7 @@ class AppProfile {
   }
 
   Map<String, dynamic> toJSON() {
-    AppConfig.logger.t("Profile toJSON");
+    neomLogger.t("Profile toJSON");
     return <String, dynamic> {
       'id': id,
       'name': name,
@@ -236,7 +241,7 @@ class AppProfile {
   }
 
   Map<String, dynamic> toJSONWithFacilities() {
-    AppConfig.logger.t("Profile toJSON");
+    neomLogger.t("Profile toJSON");
     return <String, dynamic> {
       'id': id,
       'name': name,
@@ -307,7 +312,7 @@ class AppProfile {
         reviewStars = double.tryParse(data["reviewStars"].toString()) ?? 10,
         mainFeature = data["mainFeature"] ?? "",
         isActive = data["isActive"] ?? true,
-        position = CoreUtilities.JSONtoPosition(data["position"]),
+        position = PositionParser.JSONtoPosition(data["position"]),
         address = data["address"] ?? '',
         phoneNumber = data["phoneNumber"] ?? '',
         bannedGenres = data["bannedGenres"]?.cast<String>() ?? [],
@@ -395,7 +400,7 @@ class AppProfile {
 
 
   Map<String, dynamic> toProfileInstrumentsJSON() {
-    AppConfig.logger.d("Profile toJSON for Firestore with no Id");
+    neomLogger.d("Profile toJSON for Firestore with no Id");
     return <String, dynamic>{
       'id': id,
       'name': name,

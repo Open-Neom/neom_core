@@ -88,6 +88,14 @@ class CoreConstants {
   static const String spotify = "Spotify";
 
   static const String appBot = "appBot";
+  /// Dedicated participant key for the Customer Support thread (separate from
+  /// appBot, which is reserved for announcements). Room id is simply
+  /// `{profileId}_support` — like any 1:1 room, easy to create & track from ERP.
+  static const String appSupport = "support";
+  /// Shared internal team channel key. The room id is fixed (`team_room`) so all
+  /// staff converge in one place — the team's home inside the platform.
+  static const String appTeam = "team";
+  static const String teamRoomId = "team_room";
   static const String referenceId = "referenceId";
 
   //TODO Change with env and flavour to bot of each app

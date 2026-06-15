@@ -4,8 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-import 'app_config.dart';
-import 'app_properties.dart';
+import 'utils/neom_logger.dart';
 import 'utils/constants/data_assets.dart';
 import 'utils/enums/app_in_use.dart';
 import 'utils/neom_error_logger.dart';
@@ -15,9 +14,11 @@ import 'utils/neom_error_logger.dart';
 /// Reads from the shared config map loaded by [AppProperties].
 /// Call [init] after AppProperties loads the JSON.
 class CloudProperties {
+  static AppInUse? appInUse;
+  static dynamic appProperties = {};
 
   /// Shared config loaded by AppProperties.
-  static dynamic get _config => AppProperties.appProperties;
+  static dynamic get _config => appProperties;
 
   /// Service account JSON (mobile only).
   static dynamic serviceAccount = {};
@@ -34,7 +35,7 @@ class CloudProperties {
 
   /// Returns the secureOpsWeb URL for the current app.
   static String _getSecureOpsWebUrl() {
-    switch (AppConfig.instance.appInUse) {
+    switch (appInUse ?? AppInUse.o) {
       case AppInUse.g:
         return 'https://us-central1-gig-me-out.cloudfunctions.net/secureOpsWeb';
       case AppInUse.c:
@@ -47,13 +48,16 @@ class CloudProperties {
     }
   }
 
+  /// Exposes the secureOpsWeb URL publicly.
+  static String getSecureOpsWebUrl() => _getSecureOpsWebUrl();
+
   /// Loads config from Cloud Functions on web.
   /// Stores into [AppProperties.appProperties] so both classes share the same data.
   static Future<void> loadFromCloud() async {
     final data = await callSecureOps({'action': 'getConfig'});
-    AppProperties.appProperties = data;
+    appProperties = data;
     isSecureMode = true;
-    AppConfig.logger.t("Properties loaded from Cloud Functions (${(data as Map).length} keys)");
+    neomLogger.t("Properties loaded from Cloud Functions (${(data as Map).length} keys)");
   }
 
   // ═══════════════════════════════════════════
@@ -238,15 +242,15 @@ class CloudProperties {
     // On web, service account assets are publicly accessible via the browser.
     // Skip loading — push notifications are handled via Cloud Functions.
     if (kIsWeb) {
-      AppConfig.logger.t("readServiceAccount skipped on web (security)");
+      neomLogger.t("readServiceAccount skipped on web (security)");
       return;
     }
 
-    AppConfig.logger.t("readServiceAccount");
+    neomLogger.t("readServiceAccount");
     try {
       String jsonString = await rootBundle.loadString(DataAssets.serviceAccountJsonPath);
       serviceAccount = jsonDecode(jsonString);
-      AppConfig.logger.t("Service Account Loaded (${(serviceAccount as Map).length} keys)");
+      neomLogger.t("Service Account Loaded (${(serviceAccount as Map).length} keys)");
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'readServiceAccount');
       return;

@@ -4,7 +4,7 @@ import 'dart:math' show min;
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:geolocator/geolocator.dart';
 
-import '../../utils/core_utilities.dart';
+import '../../utils/position_parser.dart';
 import '../../utils/enums/post_type.dart';
 import '../../utils/enums/verification_level.dart';
 import 'post_comment.dart';
@@ -126,7 +126,7 @@ class Post {
         externalUrl = data["externalUrl"] ?? "",
         createdTime = data["createdTime"] ?? 0,
         modifiedTime = data["modifiedTime"] ?? 0,
-        position = CoreUtilities.JSONtoPosition(data["position"]),
+        position = PositionParser.JSONtoPosition(data["position"]),
         location = data["location"] ?? "",
         likedProfiles = List.from(data["likedProfiles"] ?? []),
         sharedProfiles = List.from(data["sharedProfiles"] ?? []),
@@ -143,7 +143,7 @@ class Post {
         mediaOwner = data["mediaOwner"] ?? "",
         referenceId = data["referenceId"] ?? "",
         lastInteraction = data["lastInteraction"] ?? 0,
-        aspectRatio = data["aspectRatio"] ?? 1,
+        aspectRatio = (data["aspectRatio"] as num?)?.toDouble() ?? 1.0,
         textStyleId = data["textStyleId"] ?? '',
         originalPostId = data["originalPostId"],
         originalOwnerId = data["originalOwnerId"],

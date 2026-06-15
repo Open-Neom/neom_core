@@ -80,7 +80,11 @@ class AppInitializationController {
 
   static Future<void> initAudioHandler() async {
     if (kIsWeb) return;
-    Future.microtask(() => Sint.find<AudioPlayerInvokerService>().initAudioHandler());
+    if (Sint.isRegistered<AudioPlayerInvokerService>()) {
+      Future.microtask(() => Sint.find<AudioPlayerInvokerService>().initAudioHandler());
+    } else {
+      AppConfig.logger.d("AudioPlayerInvokerService is not registered, skipping initAudioHandler.");
+    }
   }
 
   static Future<String> getFcmToken() async {

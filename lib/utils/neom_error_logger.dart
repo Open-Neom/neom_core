@@ -3,7 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
 
-import '../app_config.dart';
+import 'neom_logger.dart';
 
 /// Centralized error logger that sends errors to Firebase Crashlytics
 /// and stores aggregated error counts in Firestore for the error monitor.
@@ -15,6 +15,8 @@ import '../app_config.dart';
 /// }
 /// ```
 class NeomErrorLogger {
+  static String appInUseName = 'unknown';
+  static String appVersion = 'unknown';
 
   static const String _errorLogsCollection = 'errorLogs';
 
@@ -45,7 +47,7 @@ class NeomErrorLogger {
     final errorMessage = error.toString();
 
     // 1. Always log locally
-    AppConfig.logger.e('[$module/$operation] $errorMessage');
+    neomLogger.e('[$module/$operation] $errorMessage');
     if (kDebugMode && skipDebug) return;
 
     // 2. Send to Crashlytics
@@ -73,7 +75,7 @@ class NeomErrorLogger {
     required String module,
     required String operation,
   }) {
-    AppConfig.logger.e('[$module/$operation] $error');
+    neomLogger.e('[$module/$operation] $error');
     _recordToCrashlytics(error, stackTrace, module, operation, false);
   }
 
@@ -90,8 +92,8 @@ class NeomErrorLogger {
       final crashlytics = FirebaseCrashlytics.instance;
       crashlytics.setCustomKey('module', module);
       crashlytics.setCustomKey('operation', operation);
-      crashlytics.setCustomKey('app', AppConfig.instance.appInUse.name);
-      crashlytics.setCustomKey('appVersion', AppConfig.instance.appVersion);
+      crashlytics.setCustomKey('app', appInUseName);
+      crashlytics.setCustomKey('appVersion', appVersion);
 
       crashlytics.recordError(
         error,
@@ -208,7 +210,7 @@ class NeomErrorLogger {
         });
       }
     } catch (e) {
-      AppConfig.logger.e('NeomErrorLogger flush failed: $e');
+      neomLogger.e('NeomErrorLogger flush failed: $e');
     } finally {
       _isFlushing = false;
       // If more errors accumulated during flush, flush again
@@ -239,9 +241,9 @@ class NeomErrorLogger {
       }
       await batch.commit();
 
-      AppConfig.logger.d('NeomErrorLogger: All error counts reset');
+      neomLogger.d('NeomErrorLogger: All error counts reset');
     } catch (e) {
-      AppConfig.logger.e('NeomErrorLogger: Reset failed: $e');
+      neomLogger.e('NeomErrorLogger: Reset failed: $e');
     }
   }
 

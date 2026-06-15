@@ -8,7 +8,6 @@ import '../../utils/constants/core_constants.dart';
 import '../../utils/neom_error_logger.dart';
 import '../../utils/platform/core_geocoding.dart';
 import '../../utils/platform/core_geolocation.dart';
-import '../../utils/position_utilities.dart';
 import '../firestore/profile_firestore.dart';
 
 class GeoLocatorController implements GeoLocatorService {
@@ -148,13 +147,13 @@ class GeoLocatorController implements GeoLocatorService {
   Future<Position?> updateLocation(String profileId, Position? currentPosition) async {
     AppConfig.logger.t("Updating Location for ProfileId $profileId");
 
-    Position? newPosition = Position(longitude: 0, latitude: 0, timestamp: DateTime.now(),
-        accuracy: 0, altitude: 0, heading: 0, speed: 0, speedAccuracy: 0, altitudeAccuracy: 1, headingAccuracy: 1);
+    Position? newPosition = Position(longitude: 0.0, latitude: 0.0, timestamp: DateTime.now(),
+        accuracy: 0.0, altitude: 0.0, heading: 0.0, speed: 0.0, speedAccuracy: 0.0, altitudeAccuracy: 1.0, headingAccuracy: 1.0);
 
     try {
       newPosition =  (await getCurrentPosition());
       if(currentPosition != null && newPosition != null) {
-        int distance = PositionUtilities.distanceBetweenPositionsRounded(currentPosition, newPosition);
+        int distance = (Geolocator.distanceBetween(currentPosition.latitude, currentPosition.longitude, newPosition.latitude, newPosition.longitude) / 1000).round();
         if(distance > CoreConstants.significantDistanceKM){
           AppConfig.logger.t("GpsLocation would be updated as distance difference is significant");
           if(await ProfileFirestore().updatePosition(profileId, newPosition)){
@@ -206,7 +205,7 @@ class GeoLocatorController implements GeoLocatorService {
         Position searchPos = Position(
           latitude: currentPos.latitude + dir[0],
           longitude: currentPos.longitude + dir[1],
-          timestamp: DateTime.now(), accuracy: 0, altitude: 0, heading: 0, speed: 0, speedAccuracy: 0, altitudeAccuracy: 0, headingAccuracy: 0,
+          timestamp: DateTime.now(), accuracy: 0.0, altitude: 0.0, heading: 0.0, speed: 0.0, speedAccuracy: 0.0, altitudeAccuracy: 0.0, headingAccuracy: 0.0,
         );
 
         await _addPlaceToSet(searchPos, areaSuggestions);

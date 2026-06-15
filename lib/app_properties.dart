@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
 
-import 'app_config.dart';
+import 'utils/neom_logger.dart';
 import 'cloud_properties.dart';
 import 'domain/model/price.dart';
 import 'utils/constants/data_assets.dart';
@@ -20,7 +20,8 @@ class AppProperties {
 
   AppProperties._internal(); // Constructor privado para Singleton
 
-  static dynamic appProperties = {};
+  static dynamic get appProperties => CloudProperties.appProperties;
+  static set appProperties(dynamic val) => CloudProperties.appProperties = val;
 
   /// Flag para garantizar que `readProperties()` solo se llame una vez
   static bool _isPropertiesRead = false;
@@ -38,7 +39,7 @@ class AppProperties {
   /// so that secrets never reach the client. On mobile, falls back to the
   /// local asset file for offline support.
   static Future<void> readProperties() async {
-    AppConfig.logger.t("readProperties");
+    neomLogger.t("readProperties");
 
     // All platforms: load from local asset (properties.json)
     try {
@@ -52,6 +53,17 @@ class AppProperties {
 
   static String getAppName() {
     return appProperties['appName'] ?? '';
+  }
+
+  /// Default sale-point / branch (sucursal) name for this app's POS.
+  /// Each app declares it in its own properties.json (`defaultSalePoint`),
+  /// e.g. EMXI → "Librería". Falls back to the app name, then "POS", so the
+  /// POS module stays agnostic and never hardcodes a branch name.
+  static String getDefaultSalePoint() {
+    final v = appProperties['defaultSalePoint'];
+    if (v is String && v.isNotEmpty) return v;
+    final name = getAppName();
+    return name.isNotEmpty ? name : 'POS';
   }
 
   /// Returns the display name for a given AppInUse source.

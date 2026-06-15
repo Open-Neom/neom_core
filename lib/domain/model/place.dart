@@ -4,7 +4,7 @@ import 'package:enum_to_string/enum_to_string.dart';
 import 'package:geolocator/geolocator.dart';
 
 import '../../app_properties.dart';
-import '../../utils/core_utilities.dart';
+import '../../utils/position_parser.dart';
 import '../../utils/enums/place_type.dart';
 import 'address.dart';
 import 'place_commodity.dart';
@@ -99,7 +99,7 @@ class Place {
     ownerName = data["ownerName"] ?? "",
     ownerId = data["ownerId"] ?? "",
     ownerImgUrl = data["ownerImgUrl"] ?? AppProperties.getNoImageUrl(),
-    position = CoreUtilities.JSONtoPosition(data["position"]),
+    position = PositionParser.JSONtoPosition(data["position"]),
     type = EnumToString.fromString(PlaceType.values, data["type"] ?? PlaceType.publicSpace.name) ?? PlaceType.publicSpace,
     galleryImgUrls = data["galleryImgUrls"]?.cast<String>() ?? [],
     bookings = data["bookings"]?.cast<String>() ?? [],

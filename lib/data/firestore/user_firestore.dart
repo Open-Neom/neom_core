@@ -708,6 +708,32 @@ class UserFirestore implements UserRepository {
   //   return false;
   // }
 
+  /// Returns the current profile ids of all users whose role is at or above
+  /// [minRole] — used to notify staff (e.g. approvers of an ERP request) by
+  /// their required permission level.
+  Future<List<String>> getProfileIdsByMinRole(UserRole minRole) async {
+    final names = UserRole.values
+        .where((r) => r.value >= minRole.value)
+        .map((r) => r.name)
+        .toList();
+    if (names.isEmpty) return [];
+    try {
+      final snapshot = await userReference
+          .where(AppFirestoreConstants.userRole, whereIn: names)
+          .get();
+      final ids = <String>[];
+      for (final doc in snapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        final pid = (data['currentProfileId'] ?? '').toString();
+        if (pid.isNotEmpty) ids.add(pid);
+      }
+      return ids;
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getProfileIdsByMinRole');
+      return [];
+    }
+  }
+
   @override
   Future<bool> updateUserRole(String userId, UserRole userRole) async {
     AppConfig.logger.d("Updating UserRole to ${userRole.name} for User $userId");

@@ -40,10 +40,10 @@ class MapsController extends SintController implements MapsService {
   AppProfile profile = AppProfile();
   Position? referencePosition;
   final Rx<Position> _placePosition = Position(
-      latitude: 0,
-      longitude: 0,
-      timestamp: DateTime.now(), accuracy: 0, altitude: 0, heading: 0, speed: 0, speedAccuracy: 0,
-      altitudeAccuracy: 1, headingAccuracy: 1
+      latitude: 0.0,
+      longitude: 0.0,
+      timestamp: DateTime.now(), accuracy: 0.0, altitude: 0.0, heading: 0.0, speed: 0.0, speedAccuracy: 0.0,
+      altitudeAccuracy: 1.0, headingAccuracy: 1.0
   ).obs;
   Location location = Location(latitude: 0, longitude: 0);
   final Rx<Prediction> prediction = Prediction().obs;
@@ -251,10 +251,10 @@ class MapsController extends SintController implements MapsService {
       place.name = placeDetails.displayName?.text ?? '' ;
       place.address = await PositionUtilities.getAddressFromFormattedAddress(placeDetails.formattedAddress ?? '');
       place.position = Position(
-          latitude: placeDetails.location?.latitude ?? 0,
-          longitude: placeDetails.location?.longitude ?? 0,
-          timestamp: DateTime.now(), accuracy: 0, altitude: 0, heading: 0, speed: 0, speedAccuracy: 0,
-          altitudeAccuracy: 1, headingAccuracy: 1
+          latitude: placeDetails.location?.latitude ?? 0.0,
+          longitude: placeDetails.location?.longitude ?? 0.0,
+          timestamp: DateTime.now(), accuracy: 0.0, altitude: 0.0, heading: 0.0, speed: 0.0, speedAccuracy: 0.0,
+          altitudeAccuracy: 1.0, headingAccuracy: 1.0
       );
       AppConfig.logger.i(place.toString());
     } catch (e, st) {

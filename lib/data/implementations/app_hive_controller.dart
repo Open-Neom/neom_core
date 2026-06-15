@@ -7,7 +7,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sint/sint.dart';
 
-import '../../app_config.dart';
+import '../../utils/neom_logger.dart';
 import '../../domain/model/app_release_item.dart';
 import '../../domain/model/item_list.dart';
 import '../../domain/use_cases/app_hive_service.dart';
@@ -52,7 +52,7 @@ class AppHiveController implements AppHiveService {
     if (_isInitialized) return;
     _isInitialized = true;
 
-    AppConfig.logger.t('AppHive Controller Initialization');
+    neomLogger.t('AppHive Controller Initialization');
 
     try {
       // await Hive.initFlutter();
@@ -70,9 +70,9 @@ class AppHiveController implements AppHiveService {
 
   @override
   Future<Box> openHiveBox(String boxName, {bool limit = false}) async {
-    AppConfig.logger.t('openHiveBox $boxName');
+    neomLogger.t('openHiveBox $boxName');
     final box = await Hive.openBox(boxName).onError((error, stackTrace) async {
-      AppConfig.logger.e('Failed to open $boxName Box');
+      neomLogger.e('Failed to open $boxName Box');
       if (!kIsWeb) {
         final dir = await getApplicationDocumentsDirectory();
         final dirPath = dir.path;
@@ -86,7 +86,7 @@ class AppHiveController implements AppHiveService {
     });
 
     if (limit && box.length > 500) {
-      AppConfig.logger.w("Box $boxName would be cleared as it exceeded the limit");
+      neomLogger.w("Box $boxName would be cleared as it exceeded the limit");
       box.clear();
     }
 
@@ -101,7 +101,7 @@ class AppHiveController implements AppHiveService {
 
   @override
   Future<void> fetchProfileInfo() async {
-    AppConfig.logger.d('fetchProfileInfo');
+    neomLogger.d('fetchProfileInfo');
 
     final profileBox = await getBox(AppHiveBox.profile.name);
     userServiceImpl.user.id = profileBox.get(AppHiveConstants.userId, defaultValue: '');
@@ -145,7 +145,7 @@ class AppHiveController implements AppHiveService {
 
   @override
   Future<void> writeProfileInfo({bool overwrite = false}) async {
-    AppConfig.logger.d('writeProfileInfo');
+    neomLogger.d('writeProfileInfo');
     try {
       final box = await getBox(AppHiveBox.profile.name);
 
@@ -166,7 +166,7 @@ class AppHiveController implements AppHiveService {
 
   @override
   Future<void> fetchCachedData() async {
-    AppConfig.logger.d('fetchCachedData');
+    neomLogger.d('fetchCachedData');
     // Usa un cast seguro (as Map<dynamic, dynamic>?) y el operador ?.
     final releasesBox = await getBox(AppHiveBox.releases.name);
 
@@ -199,14 +199,14 @@ class AppHiveController implements AppHiveService {
 
   @override
   Future<void> fetchSettingsData() async {
-    AppConfig.logger.d('fetchSettingsData');
+    neomLogger.d('fetchSettingsData');
     final settingsBox = await getBox(AppHiveBox.settings.name);
     searchQueries = settingsBox.get(AppHiveConstants.searchQueries, defaultValue: []) as List;
   }
 
   @override
   Future<void> setSearchQueries(List searchQueries) async {
-    AppConfig.logger.d('setSearchQueries');
+    neomLogger.d('setSearchQueries');
     final settingsBox = await getBox(AppHiveBox.settings.name);
     await settingsBox.put(AppHiveConstants.searchQueries, searchQueries);
   }
@@ -254,7 +254,7 @@ class AppHiveController implements AppHiveService {
 
   @override
   Future<void> updateLocale(AppLocale appLocale) async {
-    AppConfig.logger.d("Setting locale preference to ${appLocale.name}");
+    neomLogger.d("Setting locale preference to ${appLocale.name}");
 
     try {
       final profileBox = await getBox(AppHiveBox.profile.name);
@@ -267,7 +267,7 @@ class AppHiveController implements AppHiveService {
 
   @override
   void setLocale(AppLocale appLocale) {
-    AppConfig.logger.d("Updating Sint locale to ${appLocale.name}");
+    neomLogger.d("Updating Sint locale to ${appLocale.name}");
 
     Locale locale = Sint.deviceLocale!;
 
@@ -291,7 +291,7 @@ class AppHiveController implements AppHiveService {
 
   @override
   Future<void> setFirstTime(bool fTime) async {
-    AppConfig.logger.t("Setting firsTime to $firstTime");
+    neomLogger.t("Setting firsTime to $firstTime");
 
     try {
       firstTime = fTime;
@@ -304,7 +304,7 @@ class AppHiveController implements AppHiveService {
 
   @override
   Future<void> setLastNotificationCheckDate(int lastNotificationCheckDate) async {
-    AppConfig.logger.d("Setting last time notification were checked");
+    neomLogger.d("Setting last time notification were checked");
 
     try {
       final profileBox = await getBox(AppHiveBox.profile.name);
@@ -316,7 +316,7 @@ class AppHiveController implements AppHiveService {
 
   @override
   Future<void> setLastIndexPos({required int? lastIndex, required int lastPos}) async {
-    AppConfig.logger.d("Setting last time notification were checked");
+    neomLogger.d("Setting last time notification were checked");
 
     try {
       final playerBox = await getBox(AppHiveBox.player.name);

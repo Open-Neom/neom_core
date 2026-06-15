@@ -5,7 +5,7 @@ import 'package:enum_to_string/enum_to_string.dart';
 import 'package:geolocator/geolocator.dart';
 
 import '../../app_properties.dart';
-import '../../utils/core_utilities.dart';
+import '../../utils/position_parser.dart';
 import '../../utils/enums/facilitator_type.dart';
 import 'address.dart';
 import 'facility_commodity.dart';
@@ -70,7 +70,7 @@ class Facility {
     reviewStars = queryDocumentSnapshot.get("reviewStars"),
     price = Price.fromJSON(queryDocumentSnapshot.get("price")),
     facilityCommodity = FacilityCommodity.fromJSON(queryDocumentSnapshot.get("facilityCommodity")),
-    position= CoreUtilities.JSONtoPosition(queryDocumentSnapshot.get("position")),
+    position= PositionParser.JSONtoPosition(queryDocumentSnapshot.get("position")),
     isActive = queryDocumentSnapshot.get("isActive"),
     isMain = queryDocumentSnapshot.get("isMain"),
     galleryImgUrls = List.from(queryDocumentSnapshot.get("galleryImgUrls") ?? []),
@@ -120,7 +120,7 @@ class Facility {
     ownerName = data["ownerName"] ?? "",
     ownerId = data["ownerId"] ?? "",
     ownerImgUrl = data["ownerImgUrl"] ?? AppProperties.getNoImageUrl(),
-    position = CoreUtilities.JSONtoPosition(data["position"]),
+    position = PositionParser.JSONtoPosition(data["position"]),
     type = EnumToString.fromString(FacilityType.values, data["type"] ?? "producer") ?? FacilityType.publisher,
     reviewStars = (data["reviewStars"] ?? 0).toDouble(),
     price = Price.fromJSON(data["price"] ?? {}),

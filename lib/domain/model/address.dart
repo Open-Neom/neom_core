@@ -1,4 +1,4 @@
-import '../../app_config.dart';
+import '../../utils/neom_logger.dart';
 import '../../utils/neom_error_logger.dart';
 
 
@@ -42,7 +42,7 @@ class Address {
         zipCode = data["zipCode"] ?? "";
 
   String getAddressSimple()  {
-    AppConfig.logger.d("Getting address simple from address: ${toJSON().toString()}");
+    neomLogger.d("Getting address simple from address: ${toJSON().toString()}");
 
     String address = "";
 

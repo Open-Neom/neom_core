@@ -16,6 +16,10 @@ class AppCoupon {
   int durationMonths; // How many months the benefit lasts (1, 3, 6, 12)
   int expiresAt;      // Coupon expiration timestamp (ms). 0 = no expiration
   int createdAt;      // When the coupon was created (ms)
+  /// Acquisition source/attribution: which agent or campaign generated this
+  /// coupon (e.g. 'agent:serzen', 'campaign:feria2026'). Lets the CRM measure
+  /// the funnel per agent/channel once the lead redeems it.
+  String source;
   List<String>? usedBy;
 
   List<String>? productIds;
@@ -37,6 +41,7 @@ class AppCoupon {
     this.durationMonths = 1,
     this.expiresAt = 0,
     this.createdAt = 0,
+    this.source = '',
     this.usedBy,
     this.productIds,
     this.excludedProductIds,
@@ -67,6 +72,7 @@ class AppCoupon {
       'durationMonths': durationMonths,
       'expiresAt': expiresAt,
       'createdAt': createdAt,
+      'source': source,
       'usedBy': usedBy,
       'productIds': productIds,
       'excludedProductIds': excludedProductIds,
@@ -88,6 +94,7 @@ class AppCoupon {
     durationMonths = data["durationMonths"] ?? 1,
     expiresAt = data["expiresAt"] ?? 0,
     createdAt = data["createdAt"] ?? 0,
+    source = data["source"] ?? '',
     usedBy = data["usedBy"]?.cast<String>() ?? [],
     productIds = data["productIds"]?.cast<String>() ?? [],
     excludedProductIds = data["excludedProductIds"]?.cast<String>() ?? [],

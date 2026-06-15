@@ -34,7 +34,6 @@ import 'itemlist_firestore.dart';
 import 'mate_firestore.dart';
 import 'place_firestore.dart';
 import 'post_firestore.dart';
-import 'user_firestore.dart';
 
 class ProfileFirestore implements ProfileRepository {
 
@@ -1682,7 +1681,7 @@ class ProfileFirestore implements ProfileRepository {
     }
 
     try {
-      user = await UserFirestore().getByEmail(email.toLowerCase());
+      user = await _getUserByEmail(email.toLowerCase());
 
       if(user?.currentProfileId.isNotEmpty ?? false) {
         profile = await retrieve(user!.currentProfileId);
@@ -1699,6 +1698,24 @@ class ProfileFirestore implements ProfileRepository {
     }
 
     return (user?.profiles.isNotEmpty ?? false) ? user!.profiles.first : null;
+  }
+
+  Future<AppUser?> _getUserByEmail(String email) async {
+    try {
+      QuerySnapshot querySnapshot = await usersReference.where(AppFirestoreConstants.email, isEqualTo: email).limit(1).get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        var queryDocumentSnapshot = querySnapshot.docs.first;
+        if (queryDocumentSnapshot.exists) {
+          AppUser user = AppUser.fromJSON(queryDocumentSnapshot.data());
+          user.id = queryDocumentSnapshot.id;
+          return user;
+        }
+      }
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: '_getUserByEmail');
+    }
+    return null;
   }
 
   /// Search profiles by name (case-insensitive partial match)

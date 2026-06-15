@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:enum_to_string/enum_to_string.dart';
 
-import '../../app_config.dart';
+import '../../utils/neom_logger.dart';
 import '../../utils/enums/app_media_source.dart';
 import '../../utils/enums/media_item_type.dart';
 import '../../utils/neom_error_logger.dart';
@@ -141,7 +141,7 @@ class AppMediaItem implements PlayableItem {
 
   factory AppMediaItem.fromJSON(dynamic map) {
     try {
-      AppConfig.logger.t("AppMediaItem fromJSON: ${map['name'] ?? ''} with id ${map['id'] ?? ''}");
+      neomLogger.t("AppMediaItem fromJSON: ${map['name'] ?? ''} with id ${map['id'] ?? ''}");
       int dur = 30;
 
       if (map['duration'] is String && map['duration'].toString().contains(":")) {

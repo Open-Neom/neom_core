@@ -7,7 +7,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 
 import '../../utils/enums/release_type.dart';
-import '../app_config.dart';
+import 'neom_logger.dart';
 import '../app_properties.dart';
 import '../domain/model/app_media_item.dart';
 import '../domain/model/app_profile.dart';
@@ -33,51 +33,15 @@ import 'enums/profile_type.dart';
 import 'enums/usage_reason.dart';
 import 'neom_error_logger.dart';
 import 'platform/core_exit_app.dart';
-import 'position_utilities.dart';
+import 'position_parser.dart';
 
 
 class CoreUtilities {
 
   // ignore: non_constant_identifier_names
-  static Position JSONtoPosition(dynamic positionSnapshot){
-    Position position = Position(
-        longitude: 0, latitude: 0,
-        timestamp: DateTime.now(),
-        accuracy: 0, altitude: 0,
-        heading: 0, speed: 0, speedAccuracy: 0,
-        altitudeAccuracy: 1, headingAccuracy: 1
-    );
-    try {
-      if(positionSnapshot != null && positionSnapshot != "null") {
-        dynamic positionJSON = jsonDecode(positionSnapshot);
-        double longitude = double.tryParse(positionJSON['longitude'].toString()) ?? 0;
-        double latitude = double.tryParse(positionJSON['latitude'].toString()) ?? 0;
-        DateTime timestamp = DateTime.now();
-        double accuracy = double.tryParse(positionJSON['accuracy'].toString()) ?? 0;
-        double altitude = double.tryParse(positionJSON['altitude'].toString()) ?? 0;
-        double heading = double.tryParse(positionJSON['heading'].toString()) ?? 0;
-        double speed = double.tryParse(positionJSON['speed'].toString()) ?? 0;
-        double speedAccuracy = double.tryParse(positionJSON['speed_accuracy'].toString()) ?? 0;
-        bool isMocked = positionJSON['is_mocked'];
-
-        position = Position(longitude: longitude,
-            latitude: latitude,
-            timestamp: timestamp,
-            accuracy: accuracy,
-            altitude: altitude,
-            heading: heading,
-            speed: speed,
-            speedAccuracy: speedAccuracy,
-            isMocked: isMocked,
-            altitudeAccuracy: 1,
-            headingAccuracy: 1
-        );
-      }
-    } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'JSONtoPosition');
-    }
-
-    return position;
+  @deprecated
+  static Position JSONtoPosition(dynamic positionSnapshot) {
+    return PositionParser.JSONtoPosition(positionSnapshot);
   }
 
 
@@ -201,7 +165,7 @@ class CoreUtilities {
     for (var profileId in profileIds) {
       compositeKeyBuffer.write("${profileId}_");
     }
-    AppConfig.logger.d(compositeKeyBuffer.toString());
+    neomLogger.d(compositeKeyBuffer.toString());
     return compositeKeyBuffer.toString();
   }
 
@@ -281,7 +245,7 @@ class CoreUtilities {
   }
 
   static Future<List<Genre>> loadGenres() async {
-    AppConfig.logger.t("loadGenres");
+    neomLogger.t("loadGenres");
     List<Genre> genreList = [];
 
     try {
@@ -292,7 +256,7 @@ class CoreUtilities {
         genreList.add(Genre.fromJsonDefault(genreJSON));
       }
 
-      AppConfig.logger.d("${genreList.length} loaded genres from json");
+      neomLogger.d("${genreList.length} loaded genres from json");
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'loadGenres');
     }
@@ -301,7 +265,7 @@ class CoreUtilities {
   }
 
   static Future<List<Genre>> loadReleaseGenres() async {
-    AppConfig.logger.t("loadReleaseGenres");
+    neomLogger.t("loadReleaseGenres");
     List<Genre> genreList = [];
 
     try {
@@ -312,7 +276,7 @@ class CoreUtilities {
         genreList.add(Genre.fromJsonDefault(genreJSON));
       }
 
-      AppConfig.logger.d("${genreList.length} loaded release genres from json");
+      neomLogger.d("${genreList.length} loaded release genres from json");
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'loadReleaseGenres');
     }
@@ -321,7 +285,7 @@ class CoreUtilities {
   }
 
   static Future<List<Genre>> loadReleaseSubgenres() async {
-    AppConfig.logger.t("loadReleaseSubgenres");
+    neomLogger.t("loadReleaseSubgenres");
     List<Genre> genreList = [];
 
     try {
@@ -332,7 +296,7 @@ class CoreUtilities {
         genreList.add(Genre.fromJsonDefault(genreJSON));
       }
 
-      AppConfig.logger.d("${genreList.length} loaded release subgenres from json");
+      neomLogger.d("${genreList.length} loaded release subgenres from json");
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'loadReleaseSubgenres');
     }
@@ -342,20 +306,20 @@ class CoreUtilities {
 
 
   static Map<String, AppItemState> getItemMatches(Map<String, AppMediaItem> totalItems, List<String> profileItems) {
-    AppConfig.logger.t("Get Item Matches for ${totalItems.length} total items");
+    neomLogger.t("Get Item Matches for ${totalItems.length} total items");
     Map<String, AppItemState> matchedItems = <String, AppItemState>{};
 
     try {
       totalItems.forEach((itemId, item) {
         if(profileItems.contains(itemId)) {
           matchedItems[itemId] = getItemState(item.state);
-          AppConfig.logger.t("Adding Item Id: $itemId - Name: ${item.name}");
+          neomLogger.t("Adding Item Id: $itemId - Name: ${item.name}");
         }
       });
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getItemMatches');
     }
-    AppConfig.logger.d("Total ItemmMatches: ${matchedItems.length}");
+    neomLogger.d("Total ItemmMatches: ${matchedItems.length}");
     return matchedItems;
   }
 
@@ -420,7 +384,7 @@ class CoreUtilities {
     UsageReason profileReason = UsageReason.any,
     int profileDistanceKm = 0})
   {
-    AppConfig.logger.t("Fulfillment Matched Requirements");
+    neomLogger.t("Fulfillment Matched Requirements");
 
     bool requirementsMatched = false;
 
@@ -442,7 +406,7 @@ class CoreUtilities {
   }
 
   Future<bool> isAvailableMediaUrl(String mediaUrl) async {
-    AppConfig.logger.t("Verifying if mediaUrl is available: $mediaUrl");
+    neomLogger.t("Verifying if mediaUrl is available: $mediaUrl");
 
     bool isAvailable = true;
     try {
@@ -503,13 +467,14 @@ class CoreUtilities {
     SplayTreeMap<double, AppProfile> sortedProfiles = SplayTreeMap<double, AppProfile>();
 
     for (var mate in profiles) {
-      double distanceBetweenProfiles = PositionUtilities.distanceBetweenPositions(
-          currentPosition, mate.position!);
+      double distanceBetweenProfiles = Geolocator.distanceBetween(
+          currentPosition.latitude, currentPosition.longitude,
+          mate.position!.latitude, mate.position!.longitude) / 1000;
       distanceBetweenProfiles = distanceBetweenProfiles + Random().nextDouble();
       sortedProfiles[distanceBetweenProfiles] = mate;
     }
 
-    AppConfig.logger.d("Sorted Profiles ${sortedProfiles.length}");
+    neomLogger.d("Sorted Profiles ${sortedProfiles.length}");
     return Map.from(sortedProfiles);
   }
 

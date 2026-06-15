@@ -40,9 +40,11 @@ class MateController extends SintController implements MateService {
 
       profile = userServiceImpl.profile;
 
-      if(Sint.arguments != null && Sint.arguments is List<String>) {
-        if(Sint.arguments.isNotEmpty) {
-          mateIds = Sint.arguments;
+      if (SintRoot.treeInitialized) {
+        if (Sint.arguments != null && Sint.arguments is List<String>) {
+          if (Sint.arguments.isNotEmpty) {
+            mateIds = Sint.arguments;
+          }
         }
       }
 

@@ -4,7 +4,7 @@ import 'package:enum_to_string/enum_to_string.dart';
 import 'package:geolocator/geolocator.dart';
 
 import '../../app_properties.dart';
-import '../../utils/core_utilities.dart';
+import '../../utils/position_parser.dart';
 import '../../utils/enums/sponsor_type.dart';
 import 'address.dart';
 
@@ -95,7 +95,7 @@ class Sponsor {
     ownerId = data["ownerId"] ?? "",
     type = EnumToString.fromString(SponsorType.values, data["type"] ?? SponsorType.publicSpace.name) ?? SponsorType.publicSpace,
     address = Address.fromJSON(data["address"] ?? {}),
-    position = CoreUtilities.JSONtoPosition(data["position"]),
+    position = PositionParser.JSONtoPosition(data["position"]),
     isActive = data["isActive"] ?? true,
     externalUrl = data["externalUrl"] ?? "",
     galleryImgUrls = data["galleryImgUrls"]?.cast<String>() ?? [];

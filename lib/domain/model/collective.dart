@@ -4,7 +4,7 @@ import 'package:enum_to_string/enum_to_string.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:sint/sint.dart';
 
-import '../../utils/core_utilities.dart';
+import '../../utils/position_parser.dart';
 import '../../utils/enums/usage_reason.dart';
 import 'collective_member.dart';
 import 'genre.dart';
@@ -168,7 +168,7 @@ class Collective {
         isActive = data["isActive"] ?? true,
         createdTime = data["createdTime"] ?? 0,
         lastSession = data["lastSession"] ?? 0,
-        position = CoreUtilities.JSONtoPosition(data["position"]),
+        position = PositionParser.JSONtoPosition(data["position"]),
         bannedGenres = data["bannedGenres"]?.cast<String>() ?? [],
         itemmates = data["itemmates"]?.cast<String>() ?? [],
         eventmates = data["eventmates"]?.cast<String>() ?? [],

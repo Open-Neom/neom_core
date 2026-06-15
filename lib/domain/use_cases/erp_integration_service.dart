@@ -70,12 +70,13 @@ abstract class ErpIntegrationService {
   Future<bool> recordPosSale({
     required String nodeId,
     required List<Map<String, dynamic>> lineItems,
-    required String paymentMethod, // efectivo | tarjeta | emxiCoin | mixto
+    required String paymentMethod, // efectivo | tarjeta | tarjeta_mp | emxiCoin | mixto
     String buyerName,
     String buyerEmail,
     String cashierId,
     String sessionId,
     double discountPercent,
+    String cardAuthCode, // card-terminal folio/authorization (e.g. MercadoPago)
   });
 
   /// Submits a POS refund / void for approval (sensitive: money out + restock).
@@ -171,4 +172,10 @@ abstract class ErpIntegrationService {
     String reference = '',
     String notes = '',
   });
+
+  /// Resolves an ecosystem account from an email or phone number so the POS can
+  /// link an in-person sale to an existing user (user→client fusion). Returns
+  /// `{id, name, email, phoneNumber, currentProfileId, subscriptionId}` or null
+  /// when no match is found.
+  Future<Map<String, dynamic>?> lookupAppUser(String query);
 }

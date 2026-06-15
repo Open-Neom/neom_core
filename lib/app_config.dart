@@ -4,11 +4,13 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:logger/logger.dart';
+import 'utils/neom_logger.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sint/sint.dart';
 
 import 'app_properties.dart';
+import 'cloud_properties.dart';
+import 'utils/neom_error_logger.dart';
 import 'data/firestore/app_info_firestore.dart';
 import 'data/implementations/app_hive_controller.dart';
 import 'domain/model/app_info.dart';
@@ -21,7 +23,7 @@ import 'utils/enums/itemlist_type.dart';
 
 class AppConfig {
 
-  static final logger = Logger();
+  static final logger = neomLogger;
 
   static final AppConfig _instance = AppConfig._internal();
   static AppConfig get instance => _instance;
@@ -79,6 +81,8 @@ class AppConfig {
 
     try {
       appInUse = app;
+      CloudProperties.appInUse = app;
+      NeomErrorLogger.appInUseName = app.name;
       _initCrashlytics();
       // _getAppInfo() does a Firestore round-trip and is only used by
       // selectRootPage() to detect outdated client builds — it does NOT
@@ -87,6 +91,7 @@ class AppConfig {
       // the home page if the data has not arrived yet.
       unawaited(_getAppInfo());
       await _loadPackageInfo();
+      NeomErrorLogger.appVersion = appVersion;
       if (app == AppInUse.e) {
         defaultItemlistType = ItemlistType.readlist;
       }

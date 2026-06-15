@@ -2,7 +2,7 @@ import 'dart:math' show pow;
 
 import 'package:enum_to_string/enum_to_string.dart';
 
-import '../../app_config.dart';
+import '../../utils/neom_logger.dart';
 import '../../utils/enums/external_media_source.dart';
 import '../../utils/enums/media_item_type.dart';
 import '../../utils/neom_error_logger.dart';
@@ -87,7 +87,7 @@ class ExternalItem {
 
   factory ExternalItem.fromJSON(dynamic map) {
     try {
-      AppConfig.logger.t("ExternalItem fromJSON: ${map['name'] ?? ''} with id ${map['id'] ?? ''}");
+      neomLogger.t("ExternalItem fromJSON: ${map['name'] ?? ''} with id ${map['id'] ?? ''}");
       int dur = 0;
 
       if(map['duration'] is String && map['duration'].toString().contains(":")) {

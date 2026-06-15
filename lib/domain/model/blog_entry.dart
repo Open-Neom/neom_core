@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:geolocator/geolocator.dart';
 
-import '../../utils/core_utilities.dart';
+import '../../utils/position_parser.dart';
 import '../../utils/enums/verification_level.dart';
 
 /// Modelo independiente para entradas de blog.
@@ -122,7 +122,7 @@ class BlogEntry {
         createdTime = data["createdTime"] ?? 0,
         modifiedTime = data["modifiedTime"] ?? 0,
         publishedTime = data["publishedTime"] ?? 0,
-        position = CoreUtilities.JSONtoPosition(data["position"]),
+        position = PositionParser.JSONtoPosition(data["position"]),
         location = data["location"] ?? "",
         isDraft = data["isDraft"] ?? true,
         isHidden = data["isHidden"] ?? false,

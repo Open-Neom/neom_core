@@ -1,5 +1,18 @@
 # Changelog — neom_core
 
+## Unreleased - System updates
+- Actualizaciones de estabilidad y compatibilidad.
+
+## Unreleased - Dedicated support room (`{profileId}_support`)
+- New `CoreConstants.appSupport = "support"` + `InboxFirestore.getOrCreateSupportRoom(profileId)` → a per-user **Customer Support** thread (`{profileId}_support`), separate from the appBot announcements room and **behaving like a normal 1:1 chat** (the user writes). Marked `Inbox.isSupportRoom = true` (backfilled) so the ERP lists **every** support room the moment it's created (`streamRecentSupportRooms` now queries `isSupportRoom == true`, client-sorted). Support messages are plaintext (multiple agents + Itzli read them).
+
+## Unreleased - Inbox support handoff state (Itzli ↔ Atención al Cliente)
+- `Inbox` gains customer-support handoff fields: `handlerMode` ('itzli'|'human'), `needsHuman`, `assignedSupportId`, `lastHumanAt`, `lastUserAt`.
+- `InboxFirestore`: `setSupportHandoff(roomId, data)`, `streamSupportQueue()` / `getSupportQueue()` (threads needing a human, most-recently-active first). Builds on the existing per-user `getOrCreateAppBotRoom` thread so Itzli and human agents share one continuous conversation.
+
+## [Unreleased] - Role-targeted request notifications
+- `UserFirestore.getProfileIdsByMinRole(UserRole)` — returns current profile ids of users at or above a role, so request flows can notify the staff allowed to approve them.
+
 ## [Unreleased] - Change-Approval support in AppRequest
 - `RequestType` enum unified: adds semantic kinds (`collaboration`, `gameInvitation`, `dawInvitation`, `releaseApproval`, `changeApproval`) alongside mailbox values (`received`, `sent`, `invitation`).
 - `AppRequest`: new persisted `type` field + generic `payload` map; getters (`isGameRequest`, `isReleaseApprovalRequest`, `isChangeApprovalRequest`, `isDawInvitation`) now evaluate the enum instead of parsing the id.

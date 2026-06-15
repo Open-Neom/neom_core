@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:geolocator/geolocator.dart';
 
-import '../../app_config.dart';
-import '../../utils/core_utilities.dart';
+import '../../utils/neom_logger.dart';
+import '../../utils/position_parser.dart';
 import '../../utils/enums/itemlist_type.dart';
 import '../../utils/enums/owner_type.dart';
 import 'app_media_item.dart';
@@ -99,7 +99,7 @@ class Itemlist {
     externalItems = data["externalItems"]?.map<ExternalItem>((item) {
       return ExternalItem.fromJSON(item);
     }).toList() ?? [],
-    position = CoreUtilities.JSONtoPosition(data["position"]),
+    position = PositionParser.JSONtoPosition(data["position"]),
     type = EnumToString.fromString(ItemlistType.values, data["type"] ?? ItemlistType.playlist.name) ?? ItemlistType.playlist,
     ownerType = EnumToString.fromString(OwnerType.values, data["ownerType"] ?? OwnerType.profile.name) ?? OwnerType.profile,
     createdTime = data["createdTime"],
@@ -168,7 +168,7 @@ class Itemlist {
 
   int getTotalItems() {
     int totalItems = allItems.length;
-    AppConfig.logger.t("Retrieving $totalItems Total Items.");
+    neomLogger.t("Retrieving $totalItems Total Items.");
     return totalItems;
   }
 
@@ -200,13 +200,13 @@ class Itemlist {
       }
     }
 
-    AppConfig.logger.t("Retrieving ${imgUrls.length} total Images for itemlist $name.");
+    neomLogger.t("Retrieving ${imgUrls.length} total Images for itemlist $name.");
     return imgUrls.toList();
   }
 
   dynamic getItem(String itemId) {
     if (itemId.isEmpty) {
-      AppConfig.logger.w("Item ID cannot be empty when searching itemlist: $name");
+      neomLogger.w("Item ID cannot be empty when searching itemlist: $name");
       return null;
     }
 

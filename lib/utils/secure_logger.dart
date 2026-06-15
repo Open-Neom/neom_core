@@ -1,4 +1,4 @@
-import 'package:neom_core/app_config.dart';
+import 'neom_logger.dart';
 
 /// Security-aware logging wrapper that redacts sensitive data before output.
 ///
@@ -65,17 +65,17 @@ class SecureLogger {
 
   /// Debug log with tag and redaction.
   static void d(String tag, String message) {
-    AppConfig.logger.d('[$tag] ${sanitize(message)}');
+    neomLogger.d('[$tag] ${sanitize(message)}');
   }
 
   /// Info log with tag and redaction.
   static void i(String tag, String message) {
-    AppConfig.logger.i('[$tag] ${sanitize(message)}');
+    neomLogger.i('[$tag] ${sanitize(message)}');
   }
 
   /// Warning log with tag and redaction.
   static void w(String tag, String message) {
-    AppConfig.logger.w('[$tag] ${sanitize(message)}');
+    neomLogger.w('[$tag] ${sanitize(message)}');
   }
 
   /// Error log with tag, redaction, and optional error/stackTrace.
@@ -83,9 +83,9 @@ class SecureLogger {
     final sanitizedMsg = sanitize(message);
     final sanitizedError = error != null ? sanitize(error.toString()) : null;
     if (sanitizedError != null) {
-      AppConfig.logger.e('[$tag] $sanitizedMsg | Error: $sanitizedError');
+      neomLogger.e('[$tag] $sanitizedMsg | Error: $sanitizedError');
     } else {
-      AppConfig.logger.e('[$tag] $sanitizedMsg');
+      neomLogger.e('[$tag] $sanitizedMsg');
     }
   }
 

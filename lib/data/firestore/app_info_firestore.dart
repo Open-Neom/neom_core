@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import '../../app_config.dart';
+import '../../utils/neom_logger.dart';
 import '../../domain/model/app_info.dart';
 import '../../domain/repository/app_info_repository.dart';
 import '../../utils/neom_error_logger.dart';
@@ -15,7 +15,7 @@ class AppInfoFirestore implements AppInfoRepository {
 
   @override
   Future<AppInfo> retrieve() async {
-    AppConfig.logger.t("Retrieving App Info from Firestore");
+    neomLogger.t("Retrieving App Info from Firestore");
     AppInfo appInfo = AppInfo();
 
     try {
@@ -23,7 +23,7 @@ class AppInfoFirestore implements AppInfoRepository {
           .doc(AppFirestoreCollectionConstants.app).get();
       if (documentSnapshot.exists) {
         appInfo = AppInfo.fromJSON(documentSnapshot.data());
-        AppConfig.logger.t("App Info Found: ${appInfo.toString()}");
+        neomLogger.t("App Info Found: ${appInfo.toString()}");
       }
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'retrieve');

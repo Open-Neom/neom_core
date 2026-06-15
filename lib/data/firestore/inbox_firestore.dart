@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../app_config.dart';
+import '../../app_properties.dart';
+import '../../utils/enums/user_role.dart';
 import '../../domain/model/app_profile.dart';
 import '../../domain/model/inbox.dart';
 import '../../domain/model/inbox_message.dart';
@@ -14,6 +16,7 @@ import '../../utils/enums/inbox_room_type.dart';
 import '../../utils/neom_error_logger.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
+import 'user_firestore.dart';
 
 class InboxFirestore implements InboxRepository {
   
@@ -89,6 +92,71 @@ class InboxFirestore implements InboxRepository {
       return false;
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'InboxFirestore.handleLikeMessage');
+      return false;
+    }
+  }
+
+  DocumentReference _messageRef(String inboxId, String messageId) => inboxReference
+      .doc(inboxId)
+      .collection(AppFirestoreCollectionConstants.messages)
+      .doc(messageId);
+
+  /// Toggle a multi-emoji reaction on a message (reactions: emoji → profileIds).
+  Future<bool> reactToMessage(String inboxId, String messageId, String emoji,
+      String profileId, {bool remove = false}) async {
+    try {
+      await _messageRef(inboxId, messageId).update({
+        'reactions.$emoji': remove
+            ? FieldValue.arrayRemove([profileId])
+            : FieldValue.arrayUnion([profileId]),
+      });
+      return true;
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'InboxFirestore.reactToMessage');
+      return false;
+    }
+  }
+
+  /// Pin / unpin a message.
+  Future<bool> setMessagePinned(String inboxId, String messageId, bool pinned) async {
+    try {
+      await _messageRef(inboxId, messageId).update({'isPinned': pinned});
+      return true;
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'InboxFirestore.setMessagePinned');
+      return false;
+    }
+  }
+
+  /// Increments the thread reply count on the parent message.
+  Future<void> incrementReplyCount(String inboxId, String parentMessageId) async {
+    try {
+      await _messageRef(inboxId, parentMessageId).update({'replyCount': FieldValue.increment(1)});
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'InboxFirestore.incrementReplyCount');
+    }
+  }
+
+  /// Casts a single vote on an inline poll: removes the voter from every option
+  /// then adds them to [optionIndex] (one vote per person).
+  Future<bool> votePoll(String inboxId, String messageId, int optionIndex, String profileId) async {
+    try {
+      final ref = _messageRef(inboxId, messageId);
+      await FirebaseFirestore.instance.runTransaction((tx) async {
+        final snap = await tx.get(ref);
+        final data = snap.data() as Map<String, dynamic>?;
+        if (data == null) return;
+        final poll = Map<String, dynamic>.from(data['pollData'] ?? {});
+        final votes = Map<String, dynamic>.from(poll['votes'] ?? {});
+        votes.updateAll((k, v) => (List<String>.from(v ?? []))..remove(profileId));
+        final key = optionIndex.toString();
+        votes[key] = (List<String>.from(votes[key] ?? []))..add(profileId);
+        poll['votes'] = votes;
+        tx.update(ref, {'pollData': poll});
+      });
+      return true;
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'InboxFirestore.votePoll');
       return false;
     }
   }
@@ -233,7 +301,12 @@ class InboxFirestore implements InboxRepository {
 
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'InboxFirestore.getOrCreateInboxRoom');
-      rethrow;
+      
+      // Fallback for offline mesh swarm:
+      // Construct the inbox room ID locally if Firestore is unreachable,
+      // allowing active swarm peers to engage in messaging.
+      inbox.id = inboxRoomId;
+      inbox.profileIds = [profile.id, itemmate.id];
     }
 
     AppConfig.logger.d(inbox.toString());
@@ -268,6 +341,106 @@ class InboxFirestore implements InboxRepository {
     });
   }
 
+  /// Dedicated Customer Support thread per user (`{profileId}_support`),
+  /// separate from the appBot announcements room. Marked `isSupportRoom: true`
+  /// so the ERP lists it the moment it's created.
+  Future<Inbox> getOrCreateSupportRoom(String profileId) async {
+    Inbox inbox = Inbox();
+    final inboxRoomId = "${profileId}_${CoreConstants.appSupport}";
+    try {
+      final doc = await inboxReference.doc(inboxRoomId).get();
+      if (doc.exists) {
+        final data = doc.data();
+        if (data != null) {
+          inbox = Inbox.fromJSON(data as Map<String, dynamic>);
+          inbox.id = doc.id;
+        }
+        // Backfill the marker on rooms created before this flag existed.
+        if (!inbox.isSupportRoom) {
+          inbox.isSupportRoom = true;
+          await inboxReference.doc(inboxRoomId)
+              .set({'isSupportRoom': true}, SetOptions(merge: true));
+        }
+      } else {
+        inbox.id = inboxRoomId;
+        inbox.profileIds = [profileId];
+        inbox.isSupportRoom = true;
+        inbox.createdTime = DateTime.now().millisecondsSinceEpoch;
+        await inboxReference.doc(inboxRoomId).set(inbox.toJSON());
+        // Official-channel welcome: simply make it clear that support lives here
+        // (web + app). No comparisons, no mention of other channels.
+        final appName = AppProperties.getAppName();
+        await addMessage(inboxRoomId, InboxMessage(
+          ownerId: CoreConstants.appBot,
+          profileName: appName,
+          text: 'Bienvenido a Atención y Soporte de $appName. Este es tu canal '
+              'oficial de atención, disponible en la web y en la app. Escríbenos '
+              'por aquí y con gusto te ayudamos.',
+          referenceId: 'system',
+          createdTime: DateTime.now().millisecondsSinceEpoch,
+        ));
+      }
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'InboxFirestore.getOrCreateSupportRoom');
+    }
+    return inbox;
+  }
+
+  /// Shared internal team channel (`team_room`) — the staff's home inside the
+  /// platform. Members are everyone at [UserRole.support] or above; the caller's
+  /// id is always merged in so they appear in their own inbox list. Plaintext.
+  Future<Inbox> getOrCreateTeamRoom(String currentProfileId) async {
+    Inbox inbox = Inbox();
+    const inboxRoomId = CoreConstants.teamRoomId;
+    try {
+      // Resolve current staff so the channel lists everyone (best-effort).
+      List<String> staffIds = [];
+      try {
+        staffIds = await UserFirestore().getProfileIdsByMinRole(UserRole.support);
+      } catch (_) {}
+      if (currentProfileId.isNotEmpty && !staffIds.contains(currentProfileId)) {
+        staffIds.add(currentProfileId);
+      }
+
+      final doc = await inboxReference.doc(inboxRoomId).get();
+      if (doc.exists) {
+        final data = doc.data();
+        if (data != null) {
+          inbox = Inbox.fromJSON(data as Map<String, dynamic>);
+          inbox.id = doc.id;
+        }
+        // Keep membership in sync (new staff / first open) + backfill marker.
+        final merged = {...inbox.profileIds, ...staffIds}.toList();
+        final needsUpdate = !inbox.isTeamRoom || merged.length != inbox.profileIds.length;
+        if (needsUpdate) {
+          inbox.isTeamRoom = true;
+          inbox.profileIds = merged;
+          await inboxReference.doc(inboxRoomId)
+              .set({'isTeamRoom': true, 'profileIds': merged}, SetOptions(merge: true));
+        }
+      } else {
+        inbox.id = inboxRoomId;
+        inbox.profileIds = staffIds;
+        inbox.isTeamRoom = true;
+        inbox.createdTime = DateTime.now().millisecondsSinceEpoch;
+        await inboxReference.doc(inboxRoomId).set(inbox.toJSON());
+        final appName = AppProperties.getAppName();
+        await addMessage(inboxRoomId, InboxMessage(
+          ownerId: CoreConstants.appBot,
+          profileName: appName,
+          text: 'Este es el canal interno del equipo de $appName. Coordinen aquí '
+              'la atención, ventas y operación — todo en un solo lugar, dentro de '
+              'la plataforma.',
+          referenceId: 'system',
+          createdTime: DateTime.now().millisecondsSinceEpoch,
+        ));
+      }
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'InboxFirestore.getOrCreateTeamRoom');
+    }
+    return inbox;
+  }
+
   @override
   Future<Inbox> getOrCreateAppBotRoom(String profileId) async {
     AppConfig.logger.t("getOrCreateAppBotRoom for profile $profileId");
@@ -299,6 +472,78 @@ class InboxFirestore implements InboxRepository {
 
     AppConfig.logger.d(inbox.toString());
     return inbox;
+  }
+
+  /// Updates the customer-support handoff state of a room (Itzli ↔ human).
+  Future<void> setSupportHandoff(String roomId, Map<String, dynamic> data) async {
+    try {
+      await inboxReference.doc(roomId).set(data, SetOptions(merge: true));
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'InboxFirestore.setSupportHandoff');
+    }
+  }
+
+  /// Live queue of support threads that need a human agent (Atención al
+  /// Cliente), most recently active first.
+  Stream<List<Inbox>> streamSupportQueue() {
+    return inboxReference
+        .where('isSupportRoom', isEqualTo: true)
+        .snapshots()
+        .map((snap) {
+          final rooms = snap.docs.map((d) {
+            final inbox = Inbox.fromJSON(d.data());
+            inbox.id = d.id;
+            return inbox;
+          }).toList();
+
+          final filtered = rooms.where((r) {
+            return r.needsHuman ||
+                (r.handlerMode == 'human' && r.lastUserAt > r.lastHumanAt);
+          }).toList();
+
+          filtered.sort((a, b) => b.lastUserAt.compareTo(a.lastUserAt));
+          return filtered;
+        });
+  }
+
+  /// All support threads (every `{profileId}_support` room), most recently
+  /// active first — so the ERP lists each one the moment it's created.
+  /// Sorted client-side to avoid excluding rooms missing the order field.
+  Stream<List<Inbox>> streamRecentSupportRooms({int limit = 100}) {
+    return inboxReference
+        .where('isSupportRoom', isEqualTo: true)
+        .limit(limit)
+        .snapshots()
+        .map((snap) {
+          final rooms = snap.docs.map((d) {
+            final inbox = Inbox.fromJSON(d.data());
+            inbox.id = d.id;
+            return inbox;
+          }).toList();
+          rooms.sort((a, b) {
+            final byUser = b.lastUserAt.compareTo(a.lastUserAt);
+            return byUser != 0 ? byUser : b.createdTime.compareTo(a.createdTime);
+          });
+          return rooms;
+        });
+  }
+
+  /// One-shot fetch of the support queue (needs-human threads).
+  Future<List<Inbox>> getSupportQueue() async {
+    try {
+      final snap = await inboxReference
+          .where('needsHuman', isEqualTo: true)
+          .orderBy('lastUserAt', descending: true)
+          .get();
+      return snap.docs.map((d) {
+        final inbox = Inbox.fromJSON(d.data());
+        inbox.id = d.id;
+        return inbox;
+      }).toList();
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'InboxFirestore.getSupportQueue');
+      return [];
+    }
   }
 
   @override

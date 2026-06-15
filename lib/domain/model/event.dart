@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:geolocator/geolocator.dart';
 
-import '../../utils/core_utilities.dart';
+import '../../utils/position_parser.dart';
 import '../../utils/enums/event_status.dart';
 import '../../utils/enums/event_type.dart';
 import '../../utils/enums/usage_reason.dart';
@@ -177,7 +177,7 @@ class Event {
       coverPrice = Price.fromJSON(data["coverPrice"] ?? {}),
       type = EnumToString.fromString(EventType.values, data["type"] ?? EventType.rehearsal.name) ?? EventType.rehearsal,
       status = EnumToString.fromString(EventStatus.values, data["status"] ?? EventStatus.draft.name) ?? EventStatus.draft,
-      position =  CoreUtilities.JSONtoPosition(data["position"]),
+      position =  PositionParser.JSONtoPosition(data["position"]),
       place =  Place.fromJSON(data["place"] ?? {}),
       isFulfilled = data["isFulfilled"] ?? false,
       instrumentsFulfillment = data["instrumentsFulfillment"]?.map<InstrumentFulfillment>((item) {

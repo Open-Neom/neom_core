@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:geolocator/geolocator.dart';
 
-import '../../../app_config.dart';
-import '../../../utils/core_utilities.dart';
+import '../../../utils/neom_logger.dart';
+import '../../../utils/position_parser.dart';
 import '../../../utils/enums/owner_type.dart';
 import 'neom_chamber_preset.dart';
 
@@ -64,7 +64,7 @@ class NeomChamber {
     chamberPresets =  data["chamberPresets"]?.map<NeomChamberPreset>((preset) {
       return NeomChamberPreset.fromJSON(preset);
     }).toList() ?? [],
-    position = CoreUtilities.JSONtoPosition(data["position"]),
+    position = PositionParser.JSONtoPosition(data["position"]),
     ownerType = EnumToString.fromString(OwnerType.values, data["ownerType"] ?? OwnerType.profile.name) ?? OwnerType.profile;
 
 
@@ -119,7 +119,7 @@ class NeomChamber {
       }
     }
 
-    AppConfig.logger.t("Retrieving ${imgUrls.length} total Images for itemlist $name.");
+    neomLogger.t("Retrieving ${imgUrls.length} total Images for itemlist $name.");
     return imgUrls;
   }
 
