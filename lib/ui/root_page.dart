@@ -9,6 +9,7 @@ import '../domain/use_cases/user_service.dart';
 import '../utils/constants/core_constants.dart';
 import '../utils/core_utilities.dart';
 import '../utils/neom_error_logger.dart';
+import '../utils/neom_js_helper.dart';
 
 class RootPage extends StatelessWidget {
 
@@ -30,6 +31,9 @@ class RootPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      NeomJsHelper.hideLoadingSplash();
+    });
     return PopScope(
         canPop: false,
         onPopInvokedWithResult: (didPop, result) async {

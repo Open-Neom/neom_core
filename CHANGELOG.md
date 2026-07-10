@@ -1,5 +1,9 @@
 # Changelog — neom_core
 
+## [1.1.0] - 2026-07-09
+- Optimize core root page and JS helper stub/web bridge configurations.
+
+
 ## Unreleased - System updates
 - Actualizaciones de estabilidad y compatibilidad.
 
