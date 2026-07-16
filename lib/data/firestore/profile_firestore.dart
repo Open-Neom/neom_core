@@ -626,6 +626,7 @@ class ProfileFirestore implements ProfileRepository {
         for (var profileSnapshot in querySnapshot.docs) {
           AppProfile profile = AppProfile.fromJSON(profileSnapshot.data());
           profile.id = profileSnapshot.id;
+          profile.email = profileSnapshot.reference.parent.parent?.id ?? "";
           profiles[profile.id] = profile;
         }
       }
@@ -1127,9 +1128,10 @@ class ProfileFirestore implements ProfileRepository {
 
       profiles = {
         for (var document in querySnapshot.docs)
-          if (document.data().containsKey('name')) document.id: AppProfile
+          if (document.data().containsKey('name')) document.id: (AppProfile
               .fromJSON(document.data())
             ..id = document.id
+            ..email = document.reference.parent.parent?.id ?? "")
       };
 
     } catch (e, st) {

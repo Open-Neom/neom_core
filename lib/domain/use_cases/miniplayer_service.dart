@@ -13,4 +13,5 @@ abstract class MiniPlayerService {
   /// Whether the miniplayer is currently visible (has an active media item).
   bool get isActive;
 
+  bool get isWebPlayerRetractedValue;
 }

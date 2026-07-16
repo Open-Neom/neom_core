@@ -26,29 +26,29 @@ class OrganicPromoItem {
   /// Build the web URL for this promo item.
   /// Uses slug if available, falls back to itemType/id.
   String get webUrl {
-    final sourceUrl = AppProperties.getAppSourceUrl(sourceApp);
-    if (sourceUrl.isEmpty) return '';
+    final domain = AppProperties.getAppSourceDomain(sourceApp);
+    if (domain.isEmpty) return '';
+
+    final baseUrl = 'https://${domain.startsWith('www.') ? domain : 'www.$domain'}';
 
     // Use slug if available
-    if (slug.isNotEmpty) return '$sourceUrl/$slug';
+    if (slug.isNotEmpty) return '$baseUrl/$slug';
 
     // Try to extract slug from deepLink
     if (deepLink.isNotEmpty) {
       try {
-        final uri = Uri.tryParse(deepLink);
-        if (uri != null && uri.pathSegments.length >= 2) {
-          return '$sourceUrl/${uri.pathSegments.sublist(1).join('/')}';
-        }
+        final cleanPath = deepLink.replaceFirst(RegExp(r'^[a-zA-Z0-9\+\-\.]+://'), '');
+        return '$baseUrl/$cleanPath';
       } catch (_) {}
     }
 
     // Fallback: build from itemType and id
     final type = _itemTypeToPath(itemType);
     if (type.isNotEmpty && id.isNotEmpty) {
-      return '$sourceUrl/$type/$id';
+      return '$baseUrl/$type/$id';
     }
 
-    return sourceUrl;
+    return baseUrl;
   }
 
   static String _itemTypeToPath(String itemType) {

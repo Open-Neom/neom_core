@@ -1,11 +1,12 @@
 # Changelog — neom_core
 
+## [2.1.1] - 2026-07-16
+- Add email field to AppProfile for corporate search filtering.
+- Add muteVideoPlayer() to MediaPlayerService interface.
+- Support email deserialization from parent reference in ProfileFirestore.
+
 ## [1.1.0] - 2026-07-09
 - Optimize core root page and JS helper stub/web bridge configurations.
-
-
-## Unreleased - System updates
-- Actualizaciones de estabilidad y compatibilidad.
 
 ## Unreleased - Dedicated support room (`{profileId}_support`)
 - New `CoreConstants.appSupport = "support"` + `InboxFirestore.getOrCreateSupportRoom(profileId)` → a per-user **Customer Support** thread (`{profileId}_support`), separate from the appBot announcements room and **behaving like a normal 1:1 chat** (the user writes). Marked `Inbox.isSupportRoom = true` (backfilled) so the ERP lists **every** support room the moment it's created (`streamRecentSupportRooms` now queries `isSupportRoom == true`, client-sorted). Support messages are plaintext (multiple agents + Itzli read them).

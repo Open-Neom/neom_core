@@ -22,6 +22,7 @@ import 'review.dart';
 class AppProfile {
 
   String id;
+  String email = "";
   String name;
   String aboutMe;
   String photoUrl;
@@ -179,6 +180,7 @@ class AppProfile {
     neomLogger.t("Profile toJSON");
     return <String, dynamic> {
       'id': id,
+      'email': email,
       'name': name,
       'position': jsonEncode(position),
       'address': address,
@@ -244,6 +246,7 @@ class AppProfile {
     neomLogger.t("Profile toJSON");
     return <String, dynamic> {
       'id': id,
+      'email': email,
       'name': name,
       'position': jsonEncode(position),
       'address': address,
@@ -303,6 +306,7 @@ class AppProfile {
 
   AppProfile.fromJSON(dynamic data) :
         id = data["id"] ?? "",
+        email = data["email"] ?? "",
         name = data["name"] ?? "",
         photoUrl = data["photoUrl"] ?? "",
         coverImgUrl = data["coverImgUrl"] ?? "",
