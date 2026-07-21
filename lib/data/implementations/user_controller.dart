@@ -198,6 +198,10 @@ class UserController extends SintController implements UserService {
   }
 
   void setNewProfileInfo() {
+    _newProfile.name = user.name;
+    if (_newProfile.name.isNotEmpty) {
+      _newProfile.slug = AppProfile.generateSlug(_newProfile.name);
+    }
     _newProfile.photoUrl = user.photoUrl;
     _newProfile.coverImgUrl = user.photoUrl;
     _newProfile.mainFeature = CoreUtilities.getProfileMainFeature(_newProfile);
