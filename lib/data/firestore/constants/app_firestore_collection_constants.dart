@@ -41,6 +41,7 @@ class AppFirestoreCollectionConstants {
 
   static const String users = "users";
   static const String events = "events";
+  static const String tickets = "tickets";
   static const String comments = "comments";
   static const String requests = "requests";
 

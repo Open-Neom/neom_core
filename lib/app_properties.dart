@@ -100,6 +100,14 @@ class AppProperties {
     return appProperties['appBotName'] ?? '';
   }
 
+  /// Jamendo API client ID for the "Dominio Público" (Creative Commons)
+  /// section. Each app declares its own key in properties.json
+  /// (`jamendoClientId`) after registering a free application at
+  /// https://developer.jamendo.com. Empty string means "not configured".
+  static String getJamendoClientId() {
+    return appProperties['jamendoClientId'] ?? '';
+  }
+
   static String getAppLogoUrl() {
     return appProperties['appLogoUrl'] ?? '';
   }

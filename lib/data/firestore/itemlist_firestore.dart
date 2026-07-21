@@ -394,4 +394,26 @@ class ItemlistFirestore implements ItemlistRepository {
     return false;
   }
 
+  @override
+  Future<Itemlist?> getBySlug(String slug) async {
+    if (slug.isEmpty) return null;
+
+    try {
+      final querySnapshot = await itemlistReference
+          .where('slug', isEqualTo: slug)
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        final doc = querySnapshot.docs.first;
+        final itemlist = Itemlist.fromJSON(doc.data());
+        itemlist.id = doc.id;
+        return itemlist;
+      }
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ItemlistFirestore.getBySlug');
+    }
+    return null;
+  }
+
 }

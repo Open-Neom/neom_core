@@ -91,6 +91,7 @@ class AppRouteConstants {
 
   static const String eventDetails = '/event/:eventId';
   static const String events = '/event';
+  static const String eventTicketScanner = '/event/ticket-scanner';
 
   static const String feedActivity = '/feed/activity';
   static const String feedActivityDrawer = '/drawer/activity';

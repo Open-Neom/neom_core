@@ -14,6 +14,7 @@ abstract class ItemlistRepository {
   Future<bool> deleteMediaItem({required String itemlistId, required String itemId});
 
   Future<Itemlist> retrieve(String itemlistId);
+  Future<Itemlist?> getBySlug(String slug);
   Future<String> insert(Itemlist itemlist);
   Future<bool> delete(String itemlistId);
 

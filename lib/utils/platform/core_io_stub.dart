@@ -5,12 +5,28 @@ abstract class FileSystemEntity {
   FileSystemEntity(this.path);
 }
 
+/// Stub FileStat class for web platform.
+/// Mirrors the dart:io FileStat fields used across the codebase.
+class FileStat {
+  final DateTime modified;
+  final int size;
+  const FileStat(this.modified, this.size);
+}
+
 /// Stub File class for web platform.
 /// Provides the same API surface as dart:io File.
 class File extends FileSystemEntity {
   File(String path) : super(path);
 
   factory File.fromUri(Uri uri) => File(uri.path);
+
+  Future<FileStat> stat() async =>
+      FileStat(DateTime.fromMillisecondsSinceEpoch(0), 0);
+  FileStat statSync() => FileStat(DateTime.fromMillisecondsSinceEpoch(0), 0);
+  Directory get parent {
+    final idx = path.lastIndexOf('/');
+    return Directory(idx > 0 ? path.substring(0, idx) : '.');
+  }
 
   bool existsSync() => false;
   int lengthSync() => 0;

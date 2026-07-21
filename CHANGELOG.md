@@ -1,3 +1,6 @@
+
+## [2.0.0-unreleased] - 2026-07-21
+- Refactor and compatibility updates for app_properties.dart, app_firestore_collection_constants.dart, itemlist_firestore.dart, app_release_item.dart, item_list.dart and 6 more.
 # Changelog — neom_core
 
 ## [2.1.1] - 2026-07-16

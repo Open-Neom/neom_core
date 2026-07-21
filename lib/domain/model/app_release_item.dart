@@ -66,6 +66,10 @@ class AppReleaseItem implements PlayableItem {
   /// URL slug for vanity URLs (e.g., emxi.org/quemando-mis-razones)
   String slug;
 
+  String dominantColor;
+  bool isExplicit;
+  String isrc;
+
   /// Content moderation fields
   bool isSuspended;
   String? suspendedBy;
@@ -147,6 +151,9 @@ class AppReleaseItem implements PlayableItem {
     this.externalUrl,
     this.webPreviewUrl,
     this.slug = '',
+    this.dominantColor = '',
+    this.isExplicit = false,
+    this.isrc = '',
     this.isSuspended = false,
     this.suspendedBy,
     this.suspendedReason,
@@ -204,6 +211,9 @@ class AppReleaseItem implements PlayableItem {
         externalUrl = data["externalUrl"]?.toString(),
         webPreviewUrl = data["webPreviewUrl"]?.toString(),
         slug = data["slug"] ?? '',
+        dominantColor = data["dominantColor"] ?? '',
+        isExplicit = data["isExplicit"] ?? false,
+        isrc = data["isrc"] ?? '',
         isSuspended = data["isSuspended"] ?? false,
         suspendedBy = data["suspendedBy"],
         suspendedReason = data["suspendedReason"],
@@ -304,6 +314,9 @@ class AppReleaseItem implements PlayableItem {
     'externalUrl': externalUrl,
     'webPreviewUrl': webPreviewUrl,
     'slug': slug,
+    'dominantColor': dominantColor,
+    'isExplicit': isExplicit,
+    'isrc': isrc,
     'isSuspended': isSuspended,
     'suspendedBy': suspendedBy,
     'suspendedReason': suspendedReason,
