@@ -34,5 +34,7 @@ abstract class StripeApiService {
   Future<List<Map<String, dynamic>>> getDisputes({int limit = 20});
   Future<List<Map<String, dynamic>>> getPayouts({int limit = 20});
   Future<List<Map<String, dynamic>>> getInvoices({String? customerId, int limit = 20, String? status});
+  Future<bool> verifySession(String sessionId);
+
 
 }
