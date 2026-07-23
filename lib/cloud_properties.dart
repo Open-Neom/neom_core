@@ -137,6 +137,22 @@ class CloudProperties {
     }
   }
 
+  /// Verifies a Stripe Checkout Session via Cloud Function without exposing secret key.
+  static Future<bool> verifyStripeSession(String sessionId) async {
+    if (sessionId.isEmpty) return false;
+    try {
+      final callable = FirebaseFunctions.instance.httpsCallable('verifyStripeSession');
+      final result = await callable.call({'sessionId': sessionId});
+      if (result.data != null && result.data is Map) {
+        final map = Map<String, dynamic>.from(result.data as Map);
+        return map['isPaid'] == true;
+      }
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'verifyStripeSession');
+    }
+    return false;
+  }
+
   /// Calls secureOps Cloud Function to proxy a Stripe API call.
   /// [isLive] determines whether to use the live or test Stripe key.
   static Future<Map<String, dynamic>?> stripeProxy({
