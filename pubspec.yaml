@@ -33,18 +33,18 @@ dependencies:
   path_provider: ^2.1.5
 
   geolocator: ^14.0.2
-  geocoding: ^4.0.0
+  geocoding: ^5.0.0
   google_maps_flutter: ^2.16.0
-  google_api_headers: ^5.1.0
+  google_api_headers: ^5.1.2
   neom_maps_services: ^2.0.0
   neom_google_places: ^2.0.1
 
-  upgrader: ^12.5.0
-  package_info_plus: ^9.0.0
+  upgrader: ^13.5.0
+  package_info_plus: ^9.0.1
 
-  in_app_purchase: ^3.2.3
+  in_app_purchase: ^3.2.4
+  in_app_purchase_android: ^0.4.0+11
 
-  in_app_purchase_android: ^0.4.0+10
   in_app_purchase_storekit: ^0.4.8+1
   html: ^0.15.6
   uuid: ^4.5.3
