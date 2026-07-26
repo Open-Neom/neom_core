@@ -59,6 +59,8 @@ class AppReleaseItem implements PlayableItem {
   List<String>? externalArtists; ///Out of the app
   Map<String, String>? featInternalArtists; ///key: artistId - value: name
   List<String>? likedProfiles; ///LIST OF PROFILEIDS IN CASE OF MORE DETAILS. ALSO TO KNOW NUMBER OF LIKES WITH LIST.LENGHT
+  List<String>? sharedProfiles;
+  List<String>? commentIds;
 
   String? externalUrl; ///URL FOR ITEM IN WEB
   String? webPreviewUrl; ///URL FOR Preview IN WEB
@@ -208,6 +210,8 @@ class AppReleaseItem implements PlayableItem {
         externalArtists = List.from(data["externalArtists"]?.cast<String>() ?? []),
         featInternalArtists = data["featInternalArtists"] as Map<String,String>?,
         likedProfiles = List.from(data["likedProfiles"]?.cast<String>() ?? []),
+        sharedProfiles = List.from(data["sharedProfiles"]?.cast<String>() ?? []),
+        commentIds = List.from(data["commentIds"]?.cast<String>() ?? []),
         externalUrl = data["externalUrl"]?.toString(),
         webPreviewUrl = data["webPreviewUrl"]?.toString(),
         slug = data["slug"] ?? '',
@@ -311,6 +315,8 @@ class AppReleaseItem implements PlayableItem {
     'externalArtists': externalArtists,
     'featInternalArtists': featInternalArtists,
     'likedProfiles': likedProfiles,
+    'sharedProfiles': sharedProfiles,
+    'commentIds': commentIds,
     'externalUrl': externalUrl,
     'webPreviewUrl': webPreviewUrl,
     'slug': slug,
