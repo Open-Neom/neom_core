@@ -32,7 +32,7 @@ class AppHiveController implements AppHiveService {
 
   bool _isInitialized = false;
 
-  final userServiceImpl = Sint.find<UserService>();
+  UserService get userServiceImpl => Sint.find<UserService>();
   bool firstTime = false;
   int lastNotificationCheckDate = 0;
 
