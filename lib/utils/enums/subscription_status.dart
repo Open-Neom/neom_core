@@ -8,4 +8,5 @@ enum SubscriptionStatus {
   trial,         // Trial period of the subscription
   renewing,      // Subscription is in the process of renewing
   suspended,     // Subscription suspended due to overdue payment
+  pastDue,       // (kimi, 2026-07-23) Pago fallido, en periodo de gracia
 }

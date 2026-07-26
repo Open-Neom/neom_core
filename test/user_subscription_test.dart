@@ -104,4 +104,56 @@ void main() {
       expect(s.level, isNull);
     });
   });
+
+  // (kimi, 2026-07-23) Dunning: campos y getters del periodo de gracia.
+  group('UserSubscription — dunning', () {
+    test("'past_due' del webhook mapea a SubscriptionStatus.pastDue", () {
+      final s = UserSubscription.fromJSON({'status': 'past_due'});
+      expect(s.status, SubscriptionStatus.pastDue);
+      expect(s.isPastDue, isTrue);
+    });
+
+    test('campos de dunning ausentes usan defaults', () {
+      final s = UserSubscription.fromJSON(<String, dynamic>{});
+      expect(s.graceUntil, isNull);
+      expect(s.failedAttempts, 0);
+      expect(s.pendingDowngrade, isFalse);
+      expect(s.lastFailure, isNull);
+      expect(s.isInGracePeriod, isFalse);
+    });
+
+    test('round-trip preserva estado de dunning', () {
+      final original = UserSubscription(
+        status: SubscriptionStatus.pastDue,
+        graceUntil: 1700100000000,
+        failedAttempts: 3,
+        pendingDowngrade: true,
+      );
+      final restored = UserSubscription.fromJSON(original.toJSON());
+      expect(restored.status, SubscriptionStatus.pastDue);
+      expect(restored.graceUntil, 1700100000000);
+      expect(restored.failedAttempts, 3);
+      expect(restored.pendingDowngrade, isTrue);
+    });
+
+    test('isInGracePeriod requiere pastDue y graceUntil futuro', () {
+      final future = DateTime.now().millisecondsSinceEpoch + 86400000;
+      final past = DateTime.now().millisecondsSinceEpoch - 1000;
+      expect(
+        UserSubscription(status: SubscriptionStatus.pastDue, graceUntil: future)
+            .isInGracePeriod,
+        isTrue,
+      );
+      expect(
+        UserSubscription(status: SubscriptionStatus.pastDue, graceUntil: past)
+            .isInGracePeriod,
+        isFalse,
+      );
+      expect(
+        UserSubscription(status: SubscriptionStatus.active, graceUntil: future)
+            .isInGracePeriod,
+        isFalse,
+      );
+    });
+  });
 }

@@ -578,9 +578,13 @@ class UserController extends SintController implements UserService {
       List<UserSubscription> subscriptions = await UserSubscriptionFirestore().getByUserId(user.id);
 
       if(subscriptions.isNotEmpty) {
-        // Check for suspended subscription first
+        // Check for suspended subscription first.
+        // (kimi, 2026-07-23) Dunning: una suscripción past_due FUERA de su
+        // periodo de gracia también cuenta como suspendida; dentro de la
+        // gracia sigue dando acceso (ver selección de _userSubscription).
         final suspended = subscriptions.firstWhereOrNull(
-          (sub) => sub.status == SubscriptionStatus.suspended,
+          (sub) => sub.status == SubscriptionStatus.suspended ||
+              (sub.isPastDue && !sub.isInGracePeriod),
         );
         if (suspended != null) {
           _isSubscriptionSuspended = true;
@@ -589,7 +593,12 @@ class UserController extends SintController implements UserService {
           _isSubscriptionSuspended = false;
         }
 
-        _userSubscription = subscriptions.firstWhereOrNull((subscription) => subscription.status == SubscriptionStatus.active);
+        // (kimi, 2026-07-23) past_due dentro del periodo de gracia se trata
+        // como ACTIVA para la resolución de tier/acceso.
+        _userSubscription = subscriptions.firstWhereOrNull(
+          (subscription) => subscription.status == SubscriptionStatus.active ||
+              subscription.isInGracePeriod,
+        );
 
         // Check if active subscription has a scheduled cancellation that has passed
         if (_userSubscription != null && _userSubscription!.endDate > 0) {
