@@ -52,13 +52,12 @@ class EventFirestore implements EventRepository {
 
     try {
       if (querySnapshot.docs.isNotEmpty) {
-        AppConfig.logger.d("Snapshot is not empty");
         for (var postSnapshot in querySnapshot.docs) {
           final data = postSnapshot.data();
           if (data == null) continue;
           Event event = Event.fromJSON(data as Map<String, dynamic>);
           event.id = postSnapshot.id;
-          AppConfig.logger.d(event.toString());
+          AppConfig.logger.t(event.toString());
           events.add(event);
         }
         AppConfig.logger.d("${events.length} events found");

@@ -376,7 +376,10 @@ class AppRouteConstants {
   static String eventPath(String id, {String slug = ''}) => '/event/${_slugOrId(id, slug)}';
   static String collectivePath(String id, {String slug = ''}) => '/collective/${_slugOrId(id, slug)}';
   static String itemPath(String id, {String slug = ''}) => '/item/${_slugOrId(id, slug)}';
-  static String profilePath(String id, {String slug = ''}) => '/profile/${_slugOrId(id, slug)}';
+  static String profilePath(String id, {String slug = ''}) {
+    final target = _slugOrId(id, slug);
+    return target.startsWith('@') ? '/$target' : '/@$target';
+  }
   static String requestPath(String id) => '/request/$id';
   static String invitationPath(String id) => '/invitation/$id';
   static String orderPath(String id) => '/order/$id';

@@ -150,15 +150,22 @@ class SlugRouter {
     return match;
   }
 
-  /// Resolve a profile by slug — used for /p/{slug} short URLs.
-  static Future<SlugMatch?> resolveProfile(String slug) async {
-    if (slug.isEmpty) return null;
+  /// Resolve a profile by slug or ID — used for /@username or /u/{slug} URLs.
+  static Future<SlugMatch?> resolveProfile(String slugOrId) async {
+    if (slugOrId.isEmpty) return null;
 
-    AppConfig.logger.d('SlugRouter: resolving profile "$slug"');
-    final profile = await ProfileFirestore().getBySlug(slug);
+    AppConfig.logger.d('SlugRouter: resolving profile "$slugOrId"');
+    final profile = await ProfileFirestore().getBySlug(slugOrId);
     if (profile != null && profile.id.isNotEmpty) {
-      return SlugMatch(type: 'profile', id: profile.id, slug: slug, entity: profile);
+      return SlugMatch(type: 'profile', id: profile.id, slug: slugOrId, entity: profile);
     }
+
+    // Fallback: try by profile document ID
+    final profileById = await ProfileFirestore().retrieve(slugOrId);
+    if (profileById.id.isNotEmpty) {
+      return SlugMatch(type: 'profile', id: profileById.id, slug: profileById.slug, entity: profileById);
+    }
+
     return null;
   }
 
