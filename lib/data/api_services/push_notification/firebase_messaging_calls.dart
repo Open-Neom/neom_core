@@ -85,7 +85,37 @@ class FirebaseMessagingCalls {
       AppConfig.logger.d("Sending push notification to profile $toProfileId");
       AppConfig.logger.d("FCM Token: ${recipientFcmToken.substring(0, 20)}...");
 
-      // Build the payload
+      // Secure path: proxy via Cloud Function (no credentials on the device).
+      final sentViaCloud = await CloudProperties.sendNotificationViaCloud(
+        token: recipientFcmToken,
+        title: fromProfile.name,
+        body: message.isNotEmpty ? message : title.tr,
+        data: {
+          'fromId': fromProfile.id,
+          'fromName': fromProfile.name,
+          'fromImgUrl': fromProfile.photoUrl,
+          'toId': toProfileId,
+          'imgUrl': imgUrl,
+          'referenceId': referenceId,
+          'notificationType': notificationType.name,
+          'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+        },
+      );
+      if (sentViaCloud) {
+        AppConfig.logger.i("Push notification sent via Cloud Function to $toProfileId");
+        return http.Response('', 200);
+      }
+
+      // Legacy fallback: direct FCM v1 call. Only possible when a service
+      // account asset was explicitly loaded (admin tooling / debug builds).
+      String? accessToken = await getAccessToken();
+      if (accessToken == null || accessToken.isEmpty) {
+        AppConfig.logger.w("Push not sent: cloud proxy unavailable and no client "
+            "service account (expected on client builds — see readServiceAccount).");
+        return null;
+      }
+
+      // Build the legacy FCM v1 payload
       String body = jsonEncode(buildPrivatePayload(
         notificationType,
         fromProfile: fromProfile,
@@ -95,13 +125,6 @@ class FirebaseMessagingCalls {
         referenceId: referenceId,
         profileFCMToken: recipientFcmToken,
       ));
-
-      // Get OAuth access token
-      String? accessToken = await getAccessToken();
-      if (accessToken == null || accessToken.isEmpty) {
-        AppConfig.logger.e("Firebase Messaging Error: Could not obtain OAuth access token");
-        return null;
-      }
 
       // Build FCM URL
       String fcmUrl = AppGoogleUtilities.fcmGoogleAPIUrl.replaceFirst(
@@ -140,17 +163,43 @@ class FirebaseMessagingCalls {
 
     try {
 
+      // Secure path: proxy via Cloud Function to the all-users topic
+      // (no credentials on the device).
+      final sentViaCloud = await CloudProperties.sendNotificationViaCloud(
+        topic: AppFirestoreConstants.allUsers,
+        title: '${fromProfile.name} ${title.tr}',
+        body: message,
+        data: {
+          'fromId': fromProfile.id,
+          'fromName': fromProfile.name,
+          'fromImgUrl': fromProfile.photoUrl,
+          'toId': toProfileId,
+          'imgUrl': imgUrl,
+          'referenceId': referenceId,
+          'notificationType': notificationType.name,
+          'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+          'isPublic': 'true',
+        },
+      );
+      if (sentViaCloud) {
+        AppConfig.logger.i("Public push notification sent via Cloud Function (topic: ${AppFirestoreConstants.allUsers})");
+        return http.Response('', 200);
+      }
+
+      // Legacy fallback: direct FCM v1 call. Only possible when a service
+      // account asset was explicitly loaded (admin tooling / debug builds).
+      String? accessToken = await getAccessToken();
+      if (accessToken == null || accessToken.isEmpty) {
+        AppConfig.logger.w("Public push not sent: cloud proxy unavailable and no client "
+            "service account (expected on client builds — see readServiceAccount).");
+        return null;
+      }
+
       String body = jsonEncode(buildPublicPayload(notificationType, title: title, message: message,
           fromProfile: fromProfile, toProfileId: toProfileId, referenceId: referenceId, imgUrl: imgUrl));
 
       String fcmUrl = AppGoogleUtilities.fcmGoogleAPIUrl.replaceFirst(AppGoogleUtilities.projectId, AppProperties.getFirebaseProjectId());
       Uri uri = Uri.parse(fcmUrl);
-
-      String? accessToken = await getAccessToken(); // Llama a tu función para obtener el token
-      if (accessToken == null || accessToken.isEmpty) {
-        AppConfig.logger.e("Firebase Messaging Error: Access Token es nulo o vacío. No se puede enviar la notificación.");
-        return null; // O manejar el error de otra forma
-      }
 
       response = await http.post(
         uri,

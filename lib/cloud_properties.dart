@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'utils/neom_logger.dart';
@@ -115,17 +115,21 @@ class CloudProperties {
   }
 
   /// Calls secureOps Cloud Function to send a push notification server-side.
+  /// Targets a device [token] or, alternatively, an FCM [topic] (e.g. 'allUsers').
   /// Returns true if sent successfully, false otherwise.
   static Future<bool> sendNotificationViaCloud({
-    required String token,
+    String token = '',
+    String topic = '',
     required String title,
     required String body,
     Map<String, String>? data,
   }) async {
+    if (token.isEmpty && topic.isEmpty) return false;
     try {
       final result = await callSecureOps({
         'action': 'sendNotification',
-        'token': token,
+        if (token.isNotEmpty) 'token': token,
+        if (topic.isNotEmpty) 'topic': topic,
         'title': title,
         'body': body,
         'data': data ?? {},
@@ -255,14 +259,18 @@ class CloudProperties {
   // ═══════════════════════════════════════════
 
   static Future<void> readServiceAccount() async {
-    // On web, service account assets are publicly accessible via the browser.
-    // Skip loading — push notifications are handled via Cloud Functions.
-    if (kIsWeb) {
-      neomLogger.t("readServiceAccount skipped on web (security)");
+    // SECURITY: a service account JSON bundled in a client app is a critical
+    // leak — anyone can extract it from the APK/IPA and mint OAuth tokens.
+    // Push notifications are proxied via Cloud Functions (sendNotificationViaCloud).
+    // The asset is only loaded when explicitly allowed for admin tooling
+    // ('allowClientServiceAccount': true in properties.json) or in debug builds.
+    final bool allowClient = _config is Map && _config['allowClientServiceAccount'] == true;
+    if (kIsWeb || (!allowClient && !kDebugMode)) {
+      neomLogger.t("readServiceAccount skipped on client (security) — using Cloud Functions proxy");
       return;
     }
 
-    neomLogger.t("readServiceAccount");
+    neomLogger.t("readServiceAccount (allowClientServiceAccount=$allowClient, debug=$kDebugMode)");
     try {
       String jsonString = await rootBundle.loadString(DataAssets.serviceAccountJsonPath);
       serviceAccount = jsonDecode(jsonString);
@@ -295,6 +303,9 @@ class CloudProperties {
   }
 
   /// Returns Stripe secret key. Empty in secure mode — use stripeProxy() instead.
+  /// SECURITY: never ship this key in a client app; all Stripe calls must go
+  /// through the Cloud Functions proxy (stripeProxy).
+  @Deprecated('Use stripeProxy() — the secret key must never reach the client')
   static String getStripeSecretKey({bool isLive = true}) {
     return isLive
         ? (_config['stripeSecretLiveKey'] ?? '')
