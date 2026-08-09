@@ -10,16 +10,29 @@ import '../../utils/enums/media_type.dart';
 import '../../utils/enums/media_upload_destination.dart';
 import '../../utils/neom_error_logger.dart';
 import '../../utils/platform/core_io.dart';
+import '../../utils/upload_metadata_resolver.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
+import 'upload_task_platform.dart';
 
 class AppUploadFirestore implements AppUploadRepository {
 
   final postsReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.posts);
   final Reference storageRef = FirebaseStorage.instance.ref();
 
+  /// Firebase Storage error codes worth retrying (transient/network).
+  /// Everything else (unauthorized, quota, canceled, not-found…) fails fast.
+  static const Set<String> _retryableStorageCodes = {
+    'unknown',
+    'retry-limit-exceeded',
+    'invalid-checksum',
+    'server-file-wrong-size',
+  };
+
+  static const int _maxUploadAttempts = 3;
+
   @override
-  Future<String> uploadMediaFile(String mediaId, File file, MediaType mediaType, MediaUploadDestination uploadDestination) async {
+  Future<String> uploadMediaFile(String mediaId, File file, MediaType mediaType, MediaUploadDestination uploadDestination, {UploadProgressCallback? onProgress}) async {
     String fileUrl = "";
     try {
       AppConfig.logger.d('uploadMediaFile - mediaId: $mediaId, type: ${mediaType.name}, destination: ${uploadDestination.name}');
@@ -31,33 +44,34 @@ class AppUploadFirestore implements AppUploadRepository {
       AppConfig.logger.d('uploadMediaFile - file exists, size: ${file.lengthSync()} bytes');
 
       String folderName = '';
-      String extension = '';
       switch(mediaType) {
         case MediaType.image:
           folderName = AppFirestoreConstants.imagesFolder;
-          extension = '.jpg';
         case MediaType.video:
           folderName = AppFirestoreConstants.videosFolder;
-          extension = '.mp4';
         case MediaType.audio:
           folderName = AppFirestoreConstants.audiosFolder;
-          extension = '.mp3';
         case MediaType.document:
           folderName = AppFirestoreConstants.documentsFolder;
-          extension = '.pdf';
+        case MediaType.media:
         case MediaType.unknown:
           folderName = AppFirestoreConstants.miscFolder;
-        default:
-          break;
       }
+
+      // Preserve the real file extension (a .m4a must not be stored as .mp3);
+      // fall back to the historical per-type default for unknown sources.
+      final extension = UploadMetadataResolver.resolveExtension(
+          filePath: file.path, mediaType: mediaType);
+      final metadata = SettableMetadata(
+          contentType: UploadMetadataResolver.contentTypeForExtension(extension));
 
       final subFolder = _subFolder(uploadDestination);
       final fileName = "${uploadDestination.name.toLowerCase()}_$mediaId$extension";
-      AppConfig.logger.d('uploadMediaFile - uploading to: $folderName/$subFolder/$fileName');
+      AppConfig.logger.d('uploadMediaFile - uploading to: $folderName/$subFolder/$fileName ($metadata)');
 
-      final Uint8List bytes = await file.readAsBytes();
-      UploadTask uploadTask = storageRef.child(folderName).child(subFolder).child(fileName).putData(bytes);
-      TaskSnapshot storageSnap = await uploadTask;
+      final ref = storageRef.child(folderName).child(subFolder).child(fileName);
+      final storageSnap = await _uploadWithRetry(
+          () => startFileUpload(ref, file, metadata), onProgress: onProgress);
 
       fileUrl = await storageSnap.ref.getDownloadURL();
       AppConfig.logger.i('uploadMediaFile - success! URL: $fileUrl');
@@ -69,36 +83,35 @@ class AppUploadFirestore implements AppUploadRepository {
   }
 
   @override
-  Future<String> uploadMediaBytes(String mediaId, Uint8List bytes, MediaType mediaType, MediaUploadDestination uploadDestination) async {
+  Future<String> uploadMediaBytes(String mediaId, Uint8List bytes, MediaType mediaType, MediaUploadDestination uploadDestination, {UploadProgressCallback? onProgress}) async {
     String fileUrl = "";
     try {
       AppConfig.logger.d('uploadMediaBytes - mediaId: $mediaId, type: ${mediaType.name}, size: ${bytes.length} bytes');
 
       String folderName = '';
-      String extension = '';
       switch(mediaType) {
         case MediaType.image:
           folderName = AppFirestoreConstants.imagesFolder;
-          extension = '.jpg';
         case MediaType.video:
           folderName = AppFirestoreConstants.videosFolder;
-          extension = '.mp4';
         case MediaType.audio:
           folderName = AppFirestoreConstants.audiosFolder;
-          extension = '.mp3';
         case MediaType.document:
           folderName = AppFirestoreConstants.documentsFolder;
-          extension = '.pdf';
+        case MediaType.media:
         case MediaType.unknown:
           folderName = AppFirestoreConstants.miscFolder;
-        default:
-          break;
       }
+
+      final extension = UploadMetadataResolver.defaultExtensionFor(mediaType);
+      final metadata = SettableMetadata(
+          contentType: UploadMetadataResolver.contentTypeForExtension(extension));
 
       final subFolder = _subFolder(uploadDestination);
       final fileName = "${uploadDestination.name.toLowerCase()}_$mediaId$extension";
-      UploadTask uploadTask = storageRef.child(folderName).child(subFolder).child(fileName).putData(bytes);
-      TaskSnapshot storageSnap = await uploadTask;
+      final ref = storageRef.child(folderName).child(subFolder).child(fileName);
+      final storageSnap = await _uploadWithRetry(
+          () async => ref.putData(bytes, metadata), onProgress: onProgress);
 
       fileUrl = await storageSnap.ref.getDownloadURL();
       AppConfig.logger.i('uploadMediaBytes - success! URL: $fileUrl');
@@ -110,13 +123,16 @@ class AppUploadFirestore implements AppUploadRepository {
   }
 
   @override
-  Future<String> uploadReleaseItem(String fileName, File file, AppMediaType type) async {
+  Future<String> uploadReleaseItem(String fileName, File file, AppMediaType type, {UploadProgressCallback? onProgress}) async {
 
     String releaseItemUrl = '';
     try {
-      final Uint8List fileBytes = await file.readAsBytes();
-      UploadTask uploadTask = storageRef.child(AppFirestoreConstants.releaseItemsFolder).child('$fileName.${type.value}').putData(fileBytes);
-      TaskSnapshot storageSnap = await uploadTask;
+      final metadata = SettableMetadata(
+          contentType: UploadMetadataResolver.contentTypeForAppMediaType(type));
+      final ref = storageRef.child(AppFirestoreConstants.releaseItemsFolder)
+          .child('$fileName.${type.value}');
+      final storageSnap = await _uploadWithRetry(
+          () => startFileUpload(ref, file, metadata), onProgress: onProgress);
       releaseItemUrl = await storageSnap.ref.getDownloadURL();
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'uploadReleaseItem');
@@ -126,18 +142,61 @@ class AppUploadFirestore implements AppUploadRepository {
   }
 
   @override
-  Future<String> uploadReleaseItemBytes(String fileName, Uint8List bytes, AppMediaType type) async {
+  Future<String> uploadReleaseItemBytes(String fileName, Uint8List bytes, AppMediaType type, {UploadProgressCallback? onProgress}) async {
     String releaseItemUrl = '';
     try {
       AppConfig.logger.d('uploadReleaseItemBytes - $fileName (${bytes.length} bytes)');
-      UploadTask uploadTask = storageRef.child(AppFirestoreConstants.releaseItemsFolder).child('$fileName.${type.value}').putData(bytes);
-      TaskSnapshot storageSnap = await uploadTask;
+      final metadata = SettableMetadata(
+          contentType: UploadMetadataResolver.contentTypeForAppMediaType(type));
+      final ref = storageRef.child(AppFirestoreConstants.releaseItemsFolder)
+          .child('$fileName.${type.value}');
+      final storageSnap = await _uploadWithRetry(
+          () async => ref.putData(bytes, metadata), onProgress: onProgress);
       releaseItemUrl = await storageSnap.ref.getDownloadURL();
       AppConfig.logger.i('uploadReleaseItemBytes - success! URL: $releaseItemUrl');
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'uploadReleaseItemBytes');
     }
     return releaseItemUrl;
+  }
+
+  /// Runs one upload to completion with retries on transient Storage errors.
+  ///
+  /// The returned URL contract stays `String` (empty on total failure) for
+  /// backwards compatibility, but failure is no longer silent: it is logged
+  /// through [NeomErrorLogger] after [_maxUploadAttempts] attempts, and every
+  /// call site validates the empty result.
+  Future<TaskSnapshot> _uploadWithRetry(
+      Future<UploadTask> Function() start, {UploadProgressCallback? onProgress}) async {
+    int attempt = 0;
+    while (true) {
+      attempt++;
+      try {
+        final uploadTask = await start();
+        final progressSub = onProgress == null ? null
+            : uploadTask.snapshotEvents.listen((snapshot) {
+                if (snapshot.totalBytes > 0) {
+                  onProgress(snapshot.bytesTransferred / snapshot.totalBytes);
+                }
+              });
+        try {
+          return await uploadTask;
+        } finally {
+          await progressSub?.cancel();
+        }
+      } catch (e) {
+        final retryable = e is FirebaseException &&
+            _retryableStorageCodes.contains(e.code);
+        if (attempt >= _maxUploadAttempts || !retryable) {
+          AppConfig.logger.e('Upload failed definitively '
+              '(attempt $attempt/$_maxUploadAttempts, retryable: $retryable): $e');
+          rethrow;
+        }
+        AppConfig.logger.w('Transient upload error '
+            '(attempt $attempt/$_maxUploadAttempts): $e — retrying');
+        await Future.delayed(Duration(seconds: attempt));
+      }
+    }
   }
 
   /// Maps upload destination to a subfolder name for organized storage.
