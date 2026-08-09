@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 abstract class FileSystemEntity {
@@ -44,6 +45,7 @@ class File extends FileSystemEntity {
   Future<File> copy(String newPath) async => File(newPath);
   Future<File> rename(String newPath) async => File(newPath);
   Stream<List<int>> openRead([int? start, int? end]) => Stream.value(Uint8List(0));
+  StreamSink<List<int>> openWrite() => _StubIOSink();
   Uri get uri => Uri.parse(path);
 
   @override
@@ -97,4 +99,20 @@ class ProcessResult {
   final dynamic stderr;
 
   ProcessResult(this.pid, this.exitCode, this.stdout, this.stderr);
+}
+
+
+/// Stub IOSink for web platform — discards everything written to it.
+/// Mirrors the StreamSink<List<int>> surface used by streaming downloads.
+class _StubIOSink implements StreamSink<List<int>> {
+  @override
+  void add(List<int> event) {}
+  @override
+  void addError(Object error, [StackTrace? stackTrace]) {}
+  @override
+  Future<void> addStream(Stream<List<int>> stream) async {}
+  @override
+  Future<void> close() async {}
+  @override
+  Future<void> get done => Future.value();
 }
