@@ -52,6 +52,7 @@ void main() {
     test('isAudio covers exactly the audio types', () {
       final audio = {
         ItemlistType.playlist,
+        ItemlistType.giglist,
         ItemlistType.single,
         ItemlistType.ep,
         ItemlistType.album,
@@ -67,8 +68,10 @@ void main() {
       }
     });
 
-    test('non-audio itemlists are giglist/readlist/publication', () {
-      expect(ItemlistType.giglist.isAudio, isFalse);
+    test('non-audio itemlists are readlist/publication', () {
+      // giglist IS audio: it holds music (influences, gig releases) in the
+      // neom ecosystem — ytmusic albums map to ItemlistType.giglist.
+      expect(ItemlistType.giglist.isAudio, isTrue);
       expect(ItemlistType.readlist.isAudio, isFalse);
       expect(ItemlistType.publication.isAudio, isFalse);
     });

@@ -8,6 +8,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:neom_core/domain/model/app_request.dart';
 import 'package:neom_core/utils/enums/game_request_type.dart';
+import 'package:neom_core/utils/enums/request_type.dart';
 import 'package:neom_core/utils/enums/request_decision.dart';
 
 void main() {
@@ -98,27 +99,30 @@ void main() {
       expect(remaining.inMinutes, lessThanOrEqualTo(5));
     });
 
-    test('isGameRequest: true cuando gameRequestType != null', () {
-      final r = AppRequest(gameRequestType: GameRequestType.values.first);
+    test('isGameRequest: true cuando type == gameInvitation', () {
+      final r = AppRequest(type: RequestType.gameInvitation);
       expect(r.isGameRequest, isTrue);
     });
 
-    test('isGameRequest: false cuando gameRequestType == null', () {
+    test('isGameRequest: false con el type por defecto (collaboration)', () {
       expect(AppRequest().isGameRequest, isFalse);
     });
 
-    test('isReleaseApprovalRequest: requiere id con _release_ + eventId no vacío', () {
-      final r = AppRequest(id: 'abc_release_123', eventId: 'rel1');
+    test('isReleaseApprovalRequest: true cuando type == releaseApproval', () {
+      final r = AppRequest(type: RequestType.releaseApproval);
       expect(r.isReleaseApprovalRequest, isTrue);
     });
 
-    test('isReleaseApprovalRequest: false sin "_release_" en id', () {
-      final r = AppRequest(id: 'normal', eventId: 'rel1');
+    test('isReleaseApprovalRequest: los strings en id ya no clasifican (regresión del diseño)', () {
+      // Diseño vigente: la clasificación es por RequestType, no por
+      // heurísticas de id ("_release_", "_daw_") ni por gameRequestType.
+      final r = AppRequest(id: 'abc_release_123', eventId: 'rel1');
       expect(r.isReleaseApprovalRequest, isFalse);
     });
 
     test('isReleaseApprovalRequest: false si es game request', () {
       final r = AppRequest(
+        type: RequestType.gameInvitation,
         id: 'abc_release_123',
         eventId: 'rel1',
         gameRequestType: GameRequestType.values.first,
@@ -126,8 +130,8 @@ void main() {
       expect(r.isReleaseApprovalRequest, isFalse);
     });
 
-    test('isDawInvitation: requiere "_daw_" en id + eventId', () {
-      final r = AppRequest(id: 'u1_daw_42', eventId: 'proj1');
+    test('isDawInvitation: true cuando type == dawInvitation', () {
+      final r = AppRequest(type: RequestType.dawInvitation);
       expect(r.isDawInvitation, isTrue);
     });
 

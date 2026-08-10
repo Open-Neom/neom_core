@@ -31,13 +31,20 @@ void main() {
   });
 
   group('Inbox — toJSON', () {
-    test('contiene 4 llaves (NO id)', () {
+    test('contiene las 15 llaves vigentes (NO id)', () {
       final json = Inbox().toJSON();
+      // The id lives in the Firestore document path, never in the payload —
+      // that asymmetry is deliberate and must survive model growth.
       expect(json.containsKey('id'), isFalse);
-      expect(json.length, 4);
+      expect(json.length, 15);
       expect(
         json.keys,
-        containsAll(['isPrivate', 'lastMessage', 'profileIds', 'createdTime']),
+        containsAll([
+          'isPrivate', 'lastMessage', 'profileIds', 'createdTime',
+          'handlerMode', 'needsHuman', 'assignedSupportId', 'lastHumanAt',
+          'lastUserAt', 'isSupportRoom', 'isTeamRoom', 'csatScore', 'csatAt',
+          'supportTopic', 'summaryEmailedAt',
+        ]),
       );
     });
 
