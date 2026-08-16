@@ -69,7 +69,12 @@ class CloudProperties {
   static Future<Map<String, dynamic>> callSecureOps(Map<String, dynamic> data) async {
     if (kIsWeb) {
       final user = FirebaseAuth.instance.currentUser;
-      final isPublicAction = data['action'] == 'getConfig';
+      final isPublicAction = data['action'] == 'getConfig' ||
+          data['action'] == 'geminiProxy' ||
+          data['action'] == 'askSaia' ||
+          data['action'] == 'chat' ||
+          data['action'] == 'embeddingProxy' ||
+          data['action'] == 'synthesizeSpeech';
 
       if (user == null && !isPublicAction) {
         throw Exception('Authentication required — user not logged in');
