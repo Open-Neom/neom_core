@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
@@ -84,6 +85,7 @@ class AppConfig {
       CloudProperties.appInUse = app;
       NeomErrorLogger.appInUseName = app.name;
       _initCrashlytics();
+      _initFirestoreSettings();
       // _getAppInfo() does a Firestore round-trip and is only used by
       // selectRootPage() to detect outdated client builds — it does NOT
       // need to block the first frame. Fire it in the background so the
@@ -97,6 +99,20 @@ class AppConfig {
       }
     } catch (e) {
       logger.e(e.toString());
+    }
+  }
+
+  void _initFirestoreSettings() {
+    try {
+      if (Firebase.apps.isNotEmpty) {
+        FirebaseFirestore.instance.settings = const Settings(
+          persistenceEnabled: true,
+          cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+        );
+        logger.d("Firestore offline persistence & cache enabled");
+      }
+    } catch (e) {
+      logger.d("Firestore settings already configured or skipped: $e");
     }
   }
 

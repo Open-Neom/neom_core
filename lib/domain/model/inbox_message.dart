@@ -68,6 +68,8 @@ class InboxMessage {
     return 'InboxMessage{id: $id, ownerId: $ownerId, profileName: $profileName, profileImgUrl: $profileImgUrl, text: $text, createdTime: $createdTime, seenTime: $seenTime, type: $type, mediaUrl: $mediaUrl, referenceId: $referenceId, audioDuration: $audioDuration, likedProfiles: $likedProfiles, isPinned: $isPinned, pollId: $pollId, receivedMedia: $receivedMedia}';
   }
 
+  Map<String, dynamic> toJson() => toJSON();
+
   Map<String, dynamic> toJSON() {
     return <String, dynamic>{
       //'id': id,
@@ -114,6 +116,6 @@ class InboxMessage {
         .cast<String, List<String>>(),
     threadParentId = data["threadParentId"] ?? "",
     replyCount = data["replyCount"] ?? 0,
-    pollData = (data["pollData"] as Map?)?.map((k, v) => MapEntry(k.toString(), v))?.cast<String, dynamic>(),
+    pollData = (data["pollData"] as Map?)?.map((k, v) => MapEntry(k.toString(), v)).cast<String, dynamic>(),
     receivedMedia = data['receivedMedia'] ?? "";
 }

@@ -78,22 +78,20 @@ class NupaleSessionFirestore implements NupaleSessionRepository {
 
   @override
   Future<Map<String, NupaleSession>> retrieveFromList(List<String> sessionIds) async {
-    AppConfig.logger.d("Getting sessions from list");
+    AppConfig.logger.d("Getting ${sessionIds.length} sessions from list");
 
     Map<String, NupaleSession> sessions = {};
+    if (sessionIds.isEmpty) return sessions;
 
     try {
-      QuerySnapshot querySnapshot = await nupaleSessionsReference.get();
+      final docFutures = sessionIds.map((id) => nupaleSessionsReference.doc(id).get());
+      final snapshots = await Future.wait(docFutures);
 
-      if (querySnapshot.docs.isNotEmpty) {
-        AppConfig.logger.d("QuerySnapshot is not empty");
-        for (var documentSnapshot in querySnapshot.docs) {
-          if(sessionIds.contains(documentSnapshot.id)){
-            NupaleSession session = NupaleSession.fromJSON(documentSnapshot.data());
-            session.id = documentSnapshot.id;
-            AppConfig.logger.d("session ${session.id} was retrieved with details");
-            sessions[session.id] = session;
-          }
+      for (var doc in snapshots) {
+        if (doc.exists && doc.data() != null) {
+          NupaleSession session = NupaleSession.fromJSON(doc.data()!);
+          session.id = doc.id;
+          sessions[session.id] = session;
         }
       }
 
@@ -105,25 +103,30 @@ class NupaleSessionFirestore implements NupaleSessionRepository {
   }
 
   @override
-  Future<Map<String, NupaleSession>> fetchAll({String? itemId, bool skipTest = true}) async {
-    AppConfig.logger.d("Getting sessions from list");
+  Future<Map<String, NupaleSession>> fetchAll({String? itemId, bool skipTest = true, int limit = 200}) async {
+    AppConfig.logger.d("Getting sessions from list (limit: $limit)");
 
     Map<String, NupaleSession> sessions = {};
 
     try {
-      QuerySnapshot querySnapshot = await nupaleSessionsReference.get();
+      Query query = nupaleSessionsReference;
+      if (itemId != null) {
+        query = query.where(AppFirestoreConstants.itemId, isEqualTo: itemId);
+      }
+      query = query.limit(limit);
+
+      QuerySnapshot querySnapshot = await query.get();
 
       if (querySnapshot.docs.isNotEmpty) {
         AppConfig.logger.d("QuerySnapshot is not empty");
         for (var documentSnapshot in querySnapshot.docs) {
-
-          if(itemId == null || itemId == documentSnapshot.id){
-            NupaleSession session = NupaleSession.fromJSON(documentSnapshot.data());
-            if(skipTest && session.isTest) {
+          final data = documentSnapshot.data() as Map<String, dynamic>?;
+          if (data != null) {
+            NupaleSession session = NupaleSession.fromJSON(data);
+            if (skipTest && session.isTest) {
               continue;
             }
             session.id = documentSnapshot.id;
-            AppConfig.logger.t("session ${session.id} was retrieved with details");
             sessions[session.id] = session;
           }
         }

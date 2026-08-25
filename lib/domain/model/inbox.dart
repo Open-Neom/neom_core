@@ -69,6 +69,8 @@ class Inbox {
   }
 
 
+  Map<String, dynamic> toJson() => toJSON();
+
   Map<String, dynamic> toJSON() {
     return <String, dynamic>{
       'isPrivate': isPrivate,

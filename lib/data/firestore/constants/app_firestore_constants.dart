@@ -8,6 +8,7 @@ class AppFirestoreConstants {
   static const String chamberPresets = 'chamberPresets';
   static const String appReleaseItems = 'appReleaseItems';
   static const String externalItems = 'externalItems';
+  static const String itemId = 'itemId';
 
   ///DEPRECATED
   /// static const String productSales = "productSales";

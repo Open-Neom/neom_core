@@ -8,7 +8,8 @@ enum MediaItemType {
   pdf('pdf'),
   podcast('podcast'),
   song('song'),
-  video('video');
+  video('video'),
+  artwork('artwork');
 
   final String value;
   const MediaItemType(this.value);

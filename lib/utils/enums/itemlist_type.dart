@@ -10,7 +10,8 @@ enum ItemlistType {
   audiobook,
   podcast,
   radioStation,
-  meditation;
+  meditation,
+  gallery;
 
   bool get isAudio =>
       this == ItemlistType.playlist ||

@@ -4,5 +4,6 @@ enum ReleaseType {
   album, ///G
   demo, ///G
   episode, ///PODCAST
-  chapter; ///AUDIOBOOK
+  chapter, ///AUDIOBOOK
+  artwork; ///ARTWORK | PAINTING | SCULPTURE | VISUAL ART
 }

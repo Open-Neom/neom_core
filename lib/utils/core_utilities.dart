@@ -540,6 +540,8 @@ class CoreUtilities {
         itemType = MediaItemType.podcast;
       case ReleaseType.chapter:
         itemType = MediaItemType.audiobook;
+      case ReleaseType.artwork:
+        itemType = MediaItemType.artwork;
       default:
         itemType = MediaItemType.song;
     }

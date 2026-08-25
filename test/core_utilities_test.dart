@@ -98,6 +98,12 @@ void main() {
       expect(CoreUtilities.getMediaItemType(item), MediaItemType.audiobook);
     });
 
+    test('artwork → artwork', () {
+      final item =
+          AppReleaseItem(type: ReleaseType.artwork, previewUrl: 'painting.jpg');
+      expect(CoreUtilities.getMediaItemType(item), MediaItemType.artwork);
+    });
+
     test('ep / album / demo → song fallback', () {
       for (final t in [
         ReleaseType.ep,
