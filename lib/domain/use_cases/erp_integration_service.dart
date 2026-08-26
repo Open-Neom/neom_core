@@ -114,8 +114,15 @@ abstract class ErpIntegrationService {
     required String coverUrl,
   });
 
+  /// Updates the owner email and/or profile reference of an existing inventory item.
+  Future<bool> updateProductOwner({
+    required String bookId,
+    required String ownerEmail,
+    String ownerId,
+  });
+
   /// Registers a new product into the ERP inventory from the Point of Sale with
-  /// initial node stock and optional cover image. Returns the created book map.
+  /// initial node stock, optional cover image, and owner/author reference.
   Future<Map<String, dynamic>?> createPosProduct({
     required String nodeId,
     required String name,
@@ -124,6 +131,8 @@ abstract class ErpIntegrationService {
     required int stock,
     String barCode,
     String coverUrl,
+    String ownerEmail,
+    String ownerId,
     String cashierId,
   });
 
