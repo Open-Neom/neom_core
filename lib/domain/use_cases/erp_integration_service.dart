@@ -108,6 +108,25 @@ abstract class ErpIntegrationService {
     String notes,
   });
 
+  /// Updates the cover image URL of an existing inventory item in the ERP catalog.
+  Future<bool> updateProductCover({
+    required String bookId,
+    required String coverUrl,
+  });
+
+  /// Registers a new product into the ERP inventory from the Point of Sale with
+  /// initial node stock and optional cover image. Returns the created book map.
+  Future<Map<String, dynamic>?> createPosProduct({
+    required String nodeId,
+    required String name,
+    required String author,
+    required double price,
+    required int stock,
+    String barCode,
+    String coverUrl,
+    String cashierId,
+  });
+
   /// Accumulated, unpaid royalty balance for an author resolved by [authorEmail].
   /// Returns 0 when no wallet exists.
   Future<double> getAuthorWalletBalance(String authorEmail);
