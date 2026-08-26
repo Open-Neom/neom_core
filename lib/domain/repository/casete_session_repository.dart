@@ -6,6 +6,6 @@ abstract class CaseteSessionRepository {
   Future<bool> remove(String sessionId);
   Future<Map<String, CaseteSession>> retrieveFromList(List<String> sessionIds);
   Future<CaseteSession> retrieveSession(String orderId);
-  Future<Map<String, CaseteSession>> fetchAll({String? itemId, bool skipTest = true});
+  Future<Map<String, CaseteSession>> fetchAll({String? itemId, bool skipTest = true, int limit = 200});
 
 }

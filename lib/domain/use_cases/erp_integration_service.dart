@@ -96,6 +96,18 @@ abstract class ErpIntegrationService {
   /// returned money as a refund expense. [data] is the approved request payload.
   Future<bool> applyPosRefund(Map<String, dynamic> data);
 
+  /// Adjusts the physical stock of an item in [nodeId] (e.g. from an inventory recount
+  /// or correction in neom_pos by a user with UserRole.pos+). Returns true if the book
+  /// inventory was updated.
+  Future<bool> adjustPosStock({
+    required String nodeId,
+    required String bookId,
+    required int newStock,
+    required String reason,
+    String cashierId,
+    String notes,
+  });
+
   /// Accumulated, unpaid royalty balance for an author resolved by [authorEmail].
   /// Returns 0 when no wallet exists.
   Future<double> getAuthorWalletBalance(String authorEmail);
