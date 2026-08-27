@@ -93,6 +93,17 @@ class AppReleaseItem implements PlayableItem {
   /// Total page views (books/articles).
   int totalPageViews;
 
+  // ── Curatorial / Artwork fields (for ReleaseType.artwork) ──
+  String? artCategory;
+  String? artTechnique;
+  String? artMedium;
+  String? artDimensions;
+  String? artStyle;
+  bool artIsOriginal;
+  bool artIsSigned;
+  bool artIsFramed;
+  bool artIncludesShipping;
+
   // ── PlayableItem interface implementation ──
   @override
   String get streamUrl => streamingUrl ?? previewUrl;
@@ -166,11 +177,20 @@ class AppReleaseItem implements PlayableItem {
     this.localPath,
     this.ownerProfileId,
     this.totalPageViews = 0,
+    this.artCategory,
+    this.artTechnique,
+    this.artMedium,
+    this.artDimensions,
+    this.artStyle,
+    this.artIsOriginal = true,
+    this.artIsSigned = true,
+    this.artIsFramed = false,
+    this.artIncludesShipping = false,
   });
 
   @override
   String toString() {
-    return 'AppReleaseItem{id: $id, name: $name, description: $description, imgUrl: $imgUrl, galleryUrls: $galleryUrls, previewUrl: $previewUrl, duration: $duration, type: $type, status: $status, ownerEmail: $ownerEmail, ownerName: $ownerName, ownerType: $ownerType, categories: $categories, metaId: $metaId, metaName: $metaName, metaOwnerId: $metaOwnerId, instruments: $instruments, lyrics: $lyrics, language: $language, digitalPrice: $digitalPrice, physicalPrice: $physicalPrice, variations: $variations, publishedYear: $publishedYear, metaOwner: $metaOwner, place: $place, boughtUsers: $boughtUsers, createdTime: $createdTime, modifiedTime: $modifiedTime, state: $state, externalArtists: $externalArtists, featInternalArtists: $featInternalArtists, likedProfiles: $likedProfiles, externalUrl: $externalUrl}';
+    return 'AppReleaseItem{id: $id, name: $name, description: $description, imgUrl: $imgUrl, galleryUrls: $galleryUrls, previewUrl: $previewUrl, duration: $duration, type: $type, status: $status, ownerEmail: $ownerEmail, ownerName: $ownerName, ownerType: $ownerType, categories: $categories, metaId: $metaId, metaName: $metaName, metaOwnerId: $metaOwnerId, instruments: $instruments, lyrics: $lyrics, language: $language, digitalPrice: $digitalPrice, physicalPrice: $physicalPrice, variations: $variations, publishedYear: $publishedYear, metaOwner: $metaOwner, place: $place, boughtUsers: $boughtUsers, createdTime: $createdTime, modifiedTime: $modifiedTime, state: $state, externalArtists: $externalArtists, featInternalArtists: $featInternalArtists, likedProfiles: $likedProfiles, externalUrl: $externalUrl, artCategory: $artCategory, artTechnique: $artTechnique, artMedium: $artMedium, artDimensions: $artDimensions, artIsOriginal: $artIsOriginal, artIsSigned: $artIsSigned, artIsFramed: $artIsFramed, artIncludesShipping: $artIncludesShipping}';
   }
 
   AppReleaseItem.fromJSON(dynamic data) :
@@ -226,7 +246,16 @@ class AppReleaseItem implements PlayableItem {
         trackNumber = data["trackNumber"],
         quality = data["quality"],
         localPath = data["localPath"],
-        ownerProfileId = data["ownerProfileId"];
+        ownerProfileId = data["ownerProfileId"],
+        artCategory = data["artCategory"]?.toString(),
+        artTechnique = data["artTechnique"]?.toString(),
+        artMedium = data["artMedium"]?.toString(),
+        artDimensions = data["artDimensions"]?.toString(),
+        artStyle = data["artStyle"]?.toString(),
+        artIsOriginal = data["artIsOriginal"] ?? true,
+        artIsSigned = data["artIsSigned"] ?? false,
+        artIsFramed = data["artIsFramed"] ?? false,
+        artIncludesShipping = data["artIncludesShipping"] ?? false;
   
   /// Returns true if this release item contains audio content (audiobook, song, podcast, etc.)
   /// Used to route to audio player instead of book details
@@ -326,6 +355,15 @@ class AppReleaseItem implements PlayableItem {
     'isSuspended': isSuspended,
     'suspendedBy': suspendedBy,
     'suspendedReason': suspendedReason,
+    if (artCategory != null && artCategory!.isNotEmpty) 'artCategory': artCategory,
+    if (artTechnique != null && artTechnique!.isNotEmpty) 'artTechnique': artTechnique,
+    if (artMedium != null && artMedium!.isNotEmpty) 'artMedium': artMedium,
+    if (artDimensions != null && artDimensions!.isNotEmpty) 'artDimensions': artDimensions,
+    if (artStyle != null && artStyle!.isNotEmpty) 'artStyle': artStyle,
+    'artIsOriginal': artIsOriginal,
+    'artIsSigned': artIsSigned,
+    'artIsFramed': artIsFramed,
+    'artIncludesShipping': artIncludesShipping,
   };
 
 }
