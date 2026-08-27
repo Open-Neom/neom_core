@@ -155,6 +155,7 @@ class EventFirestore implements EventRepository {
             await CollectiveFirestore().removePlayingEvent(collectiveFulfillment.collectiveId, event.id);
           }
         }
+      }
       if (wasDeleted) invalidateCache();
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'EventFirestore.remove');
