@@ -48,6 +48,15 @@ class ProfileFirestore implements ProfileRepository {
   List<String> currentProfileIds = [];
   Map<String, AppProfile> profiles = <String, AppProfile>{};
 
+  static Map<String, AppProfile> _cachedAllProfiles = {};
+  static DateTime? _lastAllProfilesFetchTime;
+  static const Duration _allProfilesCacheTtl = Duration(minutes: 10);
+
+  static void invalidateAllProfilesCache() {
+    _cachedAllProfiles.clear();
+    _lastAllProfilesFetchTime = null;
+  }
+
   /// OPTIMIZED: Helper method to get a profile document reference by ID
   /// Uses the 'id' field stored in the document instead of FieldPath.documentId
   /// (collectionGroup queries don't support FieldPath.documentId with simple IDs)
@@ -1119,8 +1128,15 @@ class ProfileFirestore implements ProfileRepository {
   }
 
   @override
-  Future<Map<String, AppProfile>> retrieveAllProfiles({int limit = 0}) async {
-    AppConfig.logger.d("retrieveAllProfiles");
+  Future<Map<String, AppProfile>> retrieveAllProfiles({int limit = 0, bool forceRefresh = false}) async {
+    if (!forceRefresh && _cachedAllProfiles.isNotEmpty && _lastAllProfilesFetchTime != null &&
+        DateTime.now().difference(_lastAllProfilesFetchTime!) < _allProfilesCacheTtl) {
+      AppConfig.logger.d("retrieveAllProfiles returned from in-memory cache: ${_cachedAllProfiles.length} profiles");
+      profiles = Map<String, AppProfile>.from(_cachedAllProfiles);
+      return profiles;
+    }
+
+    AppConfig.logger.d("retrieveAllProfiles from Firestore");
 
     try {
       if (limit <= 0) limit = CoreConstants.profilesLimit;
@@ -1133,6 +1149,8 @@ class ProfileFirestore implements ProfileRepository {
             ..id = document.id
             ..email = document.reference.parent.parent?.id ?? "")
       };
+      _cachedAllProfiles = Map<String, AppProfile>.from(profiles);
+      _lastAllProfilesFetchTime = DateTime.now();
 
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'retrieveAllProfiles');

@@ -12,6 +12,15 @@ class NupaleSessionFirestore implements NupaleSessionRepository {
 
   final nupaleSessionsReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.nupaleSessions);
 
+  static Map<String, NupaleSession> _cachedAllSessions = {};
+  static DateTime? _lastAllSessionsFetchTime;
+  static const Duration _allSessionsCacheTtl = Duration(minutes: 5);
+
+  static void invalidateAllSessionsCache() {
+    _cachedAllSessions.clear();
+    _lastAllSessionsFetchTime = null;
+  }
+
   @override
   Future<String> insert(NupaleSession session) async {
     AppConfig.logger.d("Inserting session ${session.id}");
@@ -25,6 +34,7 @@ class NupaleSessionFirestore implements NupaleSessionRepository {
         session.id = documentReference.id;
       }
       AppConfig.logger.d("NupaleSession for ${session.itemName} was added with id ${session.id}");
+      invalidateAllSessionsCache();
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'NupaleSessionFirestore.insert');
     }
@@ -103,7 +113,13 @@ class NupaleSessionFirestore implements NupaleSessionRepository {
   }
 
   @override
-  Future<Map<String, NupaleSession>> fetchAll({String? itemId, bool skipTest = true, int limit = 200}) async {
+  Future<Map<String, NupaleSession>> fetchAll({String? itemId, bool skipTest = true, int limit = 200, bool forceRefresh = false}) async {
+    if (itemId == null && !forceRefresh && _cachedAllSessions.isNotEmpty && _lastAllSessionsFetchTime != null &&
+        DateTime.now().difference(_lastAllSessionsFetchTime!) < _allSessionsCacheTtl) {
+      AppConfig.logger.d("fetchAll returned from in-memory cache: ${_cachedAllSessions.length} sessions");
+      return Map<String, NupaleSession>.from(_cachedAllSessions);
+    }
+
     AppConfig.logger.d("Getting sessions from list (limit: $limit)");
 
     Map<String, NupaleSession> sessions = {};
@@ -130,6 +146,11 @@ class NupaleSessionFirestore implements NupaleSessionRepository {
             sessions[session.id] = session;
           }
         }
+      }
+
+      if (itemId == null) {
+        _cachedAllSessions = Map<String, NupaleSession>.from(sessions);
+        _lastAllSessionsFetchTime = DateTime.now();
       }
 
       AppConfig.logger.d("${sessions.length} sessions were retrieved");

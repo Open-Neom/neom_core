@@ -18,6 +18,15 @@ class BlogEntryFirestore implements BlogEntryRepository {
   // Pagination cache
   DocumentSnapshot? _lastCommunityDocument;
 
+  static List<BlogEntry> _cachedTimelineEntries = [];
+  static DateTime? _lastTimelineEntriesFetchTime;
+  static const Duration _timelineEntriesCacheTtl = Duration(minutes: 5);
+
+  static void invalidateTimelineCache() {
+    _cachedTimelineEntries.clear();
+    _lastTimelineEntriesFetchTime = null;
+  }
+
   /// Reset pagination cache.
   void resetPagination() {
     _lastCommunityDocument = null;
@@ -390,8 +399,15 @@ class BlogEntryFirestore implements BlogEntryRepository {
   Future<List<BlogEntry>> getLatestEntriesForTimeline({
     int limit = 20,
     int? lastPublishedTime,
+    bool forceRefresh = false,
   }) async {
-    AppConfig.logger.d("getLatestEntriesForTimeline - limit: $limit");
+    if (lastPublishedTime == null && !forceRefresh && _cachedTimelineEntries.isNotEmpty && _lastTimelineEntriesFetchTime != null &&
+        DateTime.now().difference(_lastTimelineEntriesFetchTime!) < _timelineEntriesCacheTtl) {
+      AppConfig.logger.d("getLatestEntriesForTimeline returned from in-memory cache: ${_cachedTimelineEntries.length} entries");
+      return List<BlogEntry>.from(_cachedTimelineEntries);
+    }
+
+    AppConfig.logger.d("getLatestEntriesForTimeline from Firestore - limit: $limit");
     List<BlogEntry> entries = [];
 
     try {
@@ -412,6 +428,11 @@ class BlogEntryFirestore implements BlogEntryRepository {
         BlogEntry entry = BlogEntry.fromJSON(doc.data());
         entry.id = doc.id;
         entries.add(entry);
+      }
+
+      if (lastPublishedTime == null) {
+        _cachedTimelineEntries = List<BlogEntry>.from(entries);
+        _lastTimelineEntriesFetchTime = DateTime.now();
       }
 
       AppConfig.logger.d("Latest entries for timeline: ${entries.length}");

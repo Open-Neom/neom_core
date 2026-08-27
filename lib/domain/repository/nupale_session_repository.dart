@@ -6,7 +6,7 @@ abstract class NupaleSessionRepository {
   Future<bool> remove(String sessionId);
   Future<Map<String, NupaleSession>> retrieveFromList(List<String> sessionIds);
   Future<NupaleSession> retrieveSession(String orderId);
-  Future<Map<String, NupaleSession>> fetchAll({String? itemId, bool skipTest = true, int limit = 200});
+  Future<Map<String, NupaleSession>> fetchAll({String? itemId, bool skipTest = true, int limit = 200, bool forceRefresh = false});
   Future<Map<String, NupaleSession>> fetchByReaderEmail(String email, {bool skipTest = true});
 
 }

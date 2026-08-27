@@ -22,10 +22,21 @@ class EventFirestore implements EventRepository {
   
   final eventsReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.events);
 
+  static final Map<String, Event> _cachedEvents = {};
+  static DateTime? _lastEventsFetchTime;
+  static const Duration _cacheTtl = Duration(minutes: 5);
+
+  static void invalidateCache() {
+    _cachedEvents.clear();
+    _lastEventsFetchTime = null;
+  }
 
   @override
   Future<Event> retrieve(String eventId) async {
     AppConfig.logger.t("Retrieving Event by ID: $eventId");
+    if (_cachedEvents.containsKey(eventId)) {
+      return _cachedEvents[eventId]!;
+    }
     Event event = Event();
 
     try {
@@ -34,32 +45,39 @@ class EventFirestore implements EventRepository {
         AppConfig.logger.t("Snapshot is not empty");
         event = Event.fromJSON(documentSnapshot.data() as Map<String, dynamic>);
         event.id = documentSnapshot.id;
+        _cachedEvents[event.id] = event;
         AppConfig.logger.t(event.toString());
       }
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'EventFirestore.retrieve');
     }
 
-
     return event;
   }
 
   @override
-  Future<List<Event>> retrieveEvents() async {
-    AppConfig.logger.d("Retrieving Events");
+  Future<List<Event>> retrieveEvents({bool forceRefresh = false}) async {
+    if (!forceRefresh && _cachedEvents.isNotEmpty && _lastEventsFetchTime != null &&
+        DateTime.now().difference(_lastEventsFetchTime!) < _cacheTtl) {
+      AppConfig.logger.d("Retrieving Events from in-memory cache: ${_cachedEvents.length} events");
+      return _cachedEvents.values.toList();
+    }
+
+    AppConfig.logger.d("Retrieving Events from Firestore");
     List<Event> events = [];
-    QuerySnapshot querySnapshot = await eventsReference.get();
 
     try {
+      QuerySnapshot querySnapshot = await eventsReference.get();
       if (querySnapshot.docs.isNotEmpty) {
         for (var postSnapshot in querySnapshot.docs) {
           final data = postSnapshot.data();
           if (data == null) continue;
           Event event = Event.fromJSON(data as Map<String, dynamic>);
           event.id = postSnapshot.id;
-          AppConfig.logger.t(event.toString());
           events.add(event);
+          _cachedEvents[event.id] = event;
         }
+        _lastEventsFetchTime = DateTime.now();
         AppConfig.logger.d("${events.length} events found");
         return events;
       }
@@ -112,6 +130,7 @@ class EventFirestore implements EventRepository {
       if(await ProfileFirestore().addEvent(event.ownerId, eventId, EventAction.organize)){
         AppConfig.logger.d("Event added to Profile");
       }
+      invalidateCache();
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'EventFirestore.insert');
     }
@@ -136,7 +155,7 @@ class EventFirestore implements EventRepository {
             await CollectiveFirestore().removePlayingEvent(collectiveFulfillment.collectiveId, event.id);
           }
         }
-      }
+      if (wasDeleted) invalidateCache();
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'EventFirestore.remove');
     }
@@ -146,8 +165,14 @@ class EventFirestore implements EventRepository {
 
 
   @override
-  Future<Map<String, Event>> getEvents() async {
-    AppConfig.logger.t("getEvents");
+  Future<Map<String, Event>> getEvents({bool forceRefresh = false}) async {
+    if (!forceRefresh && _cachedEvents.isNotEmpty && _lastEventsFetchTime != null &&
+        DateTime.now().difference(_lastEventsFetchTime!) < _cacheTtl) {
+      AppConfig.logger.d("getEvents returned from in-memory cache: ${_cachedEvents.length} events");
+      return Map<String, Event>.from(_cachedEvents);
+    }
+
+    AppConfig.logger.t("getEvents from Firestore");
     Map<String, Event> events = {};
 
     try {
@@ -162,9 +187,10 @@ class EventFirestore implements EventRepository {
         Event event = Event.fromJSON(data as Map<String, dynamic>);
         event.id = documentSnapshot.id;
         events[event.id] = event;
+        _cachedEvents[event.id] = event;
       }
 
-
+      _lastEventsFetchTime = DateTime.now();
       AppConfig.logger.d("${events.length} Events Found");
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'EventFirestore.getEvents');
@@ -426,6 +452,7 @@ class EventFirestore implements EventRepository {
     try {
       await eventsReference.doc(event.id).update(event.toJSON());
       AppConfig.logger.d("Event ${event.id} updated successfully");
+      invalidateCache();
       return true;
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'EventFirestore.update');

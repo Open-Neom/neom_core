@@ -48,7 +48,7 @@ abstract class EventService {
   void gotoEventSummary();
   void addEventImage();
 
-  void retrieveEvents();
+  void retrieveEvents({bool forceRefresh = false});
 
   void setInstrumentToFulfill({String selectedInstr = ""});
 

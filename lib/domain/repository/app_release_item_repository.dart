@@ -9,7 +9,7 @@ abstract class AppReleaseItemRepository {
   Future<void> insert(AppReleaseItem releaseItem);
   Future<bool> remove(AppReleaseItem releaseItem);
   Future<bool> addBoughtUser({required String releaseItemId, required String userId});
-  Future<Map<String, AppReleaseItem>> retrieveAll();
+  Future<Map<String, AppReleaseItem>> retrieveAll({bool forceRefresh = false});
   Future<bool> exists(String releaseItemId);
   Future<Map<String, AppReleaseItem>> retrieveByCategory(String category, {int limit = 30});
   Future<Map<String, AppReleaseItem>> retrieveByOwner(String ownerEmail, {int limit = 30});

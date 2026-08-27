@@ -47,15 +47,17 @@ class GeoLocatorController implements GeoLocatorService {
     try {
       if(currentPos.latitude != 0) {
         placeMarks = await placemarkFromCoordinates(currentPos.latitude, currentPos.longitude);
-        Placemark placeMark  = placeMarks[0];
-        String locality = placeMark.locality!;
-        String administrativeArea = placeMark.administrativeArea!;
-        String country = placeMark.country!;
+        if (placeMarks.isNotEmpty) {
+          Placemark placeMark = placeMarks[0];
+          String locality = placeMark.locality ?? "";
+          String administrativeArea = placeMark.administrativeArea ?? "";
+          String country = placeMark.country ?? "";
 
-        if(country.isNotEmpty) {
-          locality.isNotEmpty ?
-          address = "$locality, $country"
-              : address = "$administrativeArea, $country";
+          if(country.isNotEmpty) {
+            locality.isNotEmpty ?
+            address = "$locality, $country"
+                : address = "$administrativeArea, $country";
+          }
         }
       }
     } catch (e, st) {

@@ -19,7 +19,7 @@ abstract class ProfileRepository {
   Future<bool> remove({required String userId, required String profileId});
 
   Future<List<AppProfile>> retrieveByUserId(String userId);
-  Future<Map<String,AppProfile>> retrieveAllProfiles();
+  Future<Map<String,AppProfile>> retrieveAllProfiles({int limit = 0, bool forceRefresh = false});
   Future<List<AppProfile>> getWithParameters({
     bool needsPhone  = false, bool needsPosts = false,
     List<ProfileType>? profileTypes, FacilityType? facilityType, PlaceType? placeType,

@@ -8,9 +8,9 @@ abstract class EventRepository {
   Future<Event> retrieve(String eventId);
   Future<bool> update(Event event);
   Future<bool> remove(Event event);
-  Future<List<Event>> retrieveEvents();
+  Future<List<Event>> retrieveEvents({bool forceRefresh = false});
 
-  Future<Map<String, Event>> getEvents();
+  Future<Map<String, Event>> getEvents({bool forceRefresh = false});
   Future<Map<String, Event>> getEventsById(List<String> eventIds);
   Future<bool> fulfillInstrument(AppRequest appRequest, AppProfile mate, Event event);
   Future<bool> unfulfillInstrument(AppRequest appRequest, AppProfile mate, Event event);

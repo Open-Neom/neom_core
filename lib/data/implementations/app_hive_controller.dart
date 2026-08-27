@@ -329,7 +329,15 @@ class AppHiveController implements AppHiveService {
   }
 
   @override
-  String get releaseLastUpdate => _releaseLastUpdate;
+  String get releaseLastUpdate {
+    if (_releaseLastUpdate.isEmpty && Hive.isBoxOpen(AppHiveBox.releases.name)) {
+      try {
+        final box = Hive.box(AppHiveBox.releases.name);
+        _releaseLastUpdate = (box.get(AppHiveConstants.lastUpdate) as String?) ?? '';
+      } catch (_) {}
+    }
+    return _releaseLastUpdate;
+  }
 
   @override
   set releaseLastUpdate(String update) {

@@ -172,7 +172,7 @@ class AppConfig {
     final loginServiceImpl = Sint.find<LoginService>();
 
     authStatus = loginServiceImpl.getAuthStatus();
-    if(authStatus == AuthStatus.waiting) {
+    if(authStatus == AuthStatus.waiting || authStatus == AuthStatus.notDetermined) {
       return splashPage;
     } else if (lastStableBuild > buildNumber) {
       rootPage = previousVersionPage;

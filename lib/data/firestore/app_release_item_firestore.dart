@@ -16,6 +16,15 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
   final userReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.users);
   final profileReference = FirebaseFirestore.instance.collectionGroup(AppFirestoreCollectionConstants.profiles);
 
+  static Map<String, AppReleaseItem> _cachedAllReleaseItems = {};
+  static DateTime? _lastAllReleaseItemsFetchTime;
+  static const Duration _allReleaseItemsCacheTtl = Duration(minutes: 10);
+
+  static void invalidateAllReleaseItemsCache() {
+    _cachedAllReleaseItems.clear();
+    _lastAllReleaseItemsFetchTime = null;
+  }
+
   @override
   Future<String> insert(AppReleaseItem appReleaseItem) async {
     AppConfig.logger.d("Adding appReleaseItem to database collection");
@@ -42,6 +51,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
         releaseItemId = documentReference.id;
       }
 
+      invalidateAllReleaseItemsCache();
       AppConfig.logger.d("AppReleaseItem inserted into Firestore with id: $releaseItemId");
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'insert');
@@ -52,8 +62,14 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
   }
 
   @override
-  Future<Map<String, AppReleaseItem>> retrieveAll() async {
-    AppConfig.logger.t("Get all AppReleaseItem");
+  Future<Map<String, AppReleaseItem>> retrieveAll({bool forceRefresh = false}) async {
+    if (!forceRefresh && _cachedAllReleaseItems.isNotEmpty && _lastAllReleaseItemsFetchTime != null &&
+        DateTime.now().difference(_lastAllReleaseItemsFetchTime!) < _allReleaseItemsCacheTtl) {
+      AppConfig.logger.d("retrieveAll returned from in-memory cache: ${_cachedAllReleaseItems.length} releaseItems");
+      return Map<String, AppReleaseItem>.from(_cachedAllReleaseItems);
+    }
+
+    AppConfig.logger.t("Get all AppReleaseItem from Firestore");
 
     Map<String, AppReleaseItem> releaseItems = {};
     try {
@@ -68,6 +84,9 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
           }
         }
       }
+
+      _cachedAllReleaseItems = Map<String, AppReleaseItem>.from(releaseItems);
+      _lastAllReleaseItemsFetchTime = DateTime.now();
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'retrieveAll');
     }
@@ -131,6 +150,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
     AppConfig.logger.d("Removing appReleaseItem ${appReleaseItem.name} with id ${appReleaseItem.id} from database collection");
     try {
       await appReleaseItemReference.doc(appReleaseItem.id).delete();
+      invalidateAllReleaseItemsCache();
       return true;
     } catch (e) {
       AppConfig.logger.d(e.toString());
