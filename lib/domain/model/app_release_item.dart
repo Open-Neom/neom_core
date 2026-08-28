@@ -161,6 +161,8 @@ class AppReleaseItem implements PlayableItem {
     this.externalArtists,
     this.featInternalArtists,
     this.likedProfiles,
+    this.sharedProfiles,
+    this.commentIds,
     this.externalUrl,
     this.webPreviewUrl,
     this.slug = '',

@@ -10,6 +10,8 @@ import '../../utils/neom_error_logger.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
 
+import 'release_deduplication_service.dart';
+
 class AppReleaseItemFirestore implements AppReleaseItemRepository {
   
   final appReleaseItemReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.appReleaseItems);
@@ -36,8 +38,15 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
         final existing = await getBySlug(titleSlug);
         if (existing == null) {
           appReleaseItem.slug = titleSlug;
+        } else if (existing.id.isNotEmpty &&
+            (existing.ownerName.toLowerCase() == appReleaseItem.ownerName.toLowerCase() ||
+             existing.ownerEmail.toLowerCase() == appReleaseItem.ownerEmail.toLowerCase())) {
+          // Exact match already uploaded for this author — reuse document ID to prevent duplicate
+          AppConfig.logger.w("Duplicate release detected for '${appReleaseItem.name}' by ${appReleaseItem.ownerName}. Updating existing doc ${existing.id}");
+          releaseItemId = existing.id;
+          appReleaseItem.id = existing.id;
         } else {
-          // Collision: prepend ownerName → "javier-tupedo-quemando-mis-razones"
+          // Collision with another author: prepend ownerName
           appReleaseItem.slug = AppReleaseItem.generateSlug(
             '${appReleaseItem.ownerName} ${appReleaseItem.name}',
           );
@@ -74,15 +83,29 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
     Map<String, AppReleaseItem> releaseItems = {};
     try {
       QuerySnapshot querySnapshot = await appReleaseItemReference.get();
+      final List<AppReleaseItem> rawItems = [];
+
       for (var queryDocumentSnapshot in querySnapshot.docs) {
         if (queryDocumentSnapshot.exists) {
           AppReleaseItem releaseItem = AppReleaseItem.fromJSON(queryDocumentSnapshot.data());
           releaseItem.id = queryDocumentSnapshot.id;
 
           if(!releaseItem.isSuspended && (releaseItem.status == ReleaseStatus.publish || DateTime.fromMillisecondsSinceEpoch(releaseItem.createdTime).add(const Duration(days: 28)).millisecondsSinceEpoch < DateTime.now().millisecondsSinceEpoch)) {
-            releaseItems[releaseItem.id] = releaseItem;
+            rawItems.add(releaseItem);
           }
         }
+      }
+
+      // Apply automated in-memory deduplication so UI is clean immediately
+      final deduplicatedList = ReleaseDeduplicationService().deduplicateList(rawItems);
+      for (final item in deduplicatedList) {
+        releaseItems[item.id] = item;
+      }
+
+      // If duplicate records exist in Firestore, trigger background cleanup protocol
+      if (rawItems.length > deduplicatedList.length) {
+        AppConfig.logger.w("Detected ${rawItems.length - deduplicatedList.length} duplicate release(s) in Firestore. Triggering background cleanup...");
+        unawaited(ReleaseDeduplicationService().runAutomatedDeduplication());
       }
 
       _cachedAllReleaseItems = Map<String, AppReleaseItem>.from(releaseItems);
