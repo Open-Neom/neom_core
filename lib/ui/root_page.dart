@@ -53,7 +53,17 @@ class RootPage extends StatelessWidget {
         },
         child: UpgradeAlert(
               upgrader: Upgrader(
-                minAppVersion: AppConfig.instance.lastStableVersion,
+                // Only pass a version the parser can actually read.
+                // lastStableVersion starts empty and is filled by _getAppInfo(),
+                // which runs unawaited against Firestore — so on the first frame
+                // it is always '', and it stays '' forever when Firestore is
+                // unreachable or disabled for the project. Upgrader answered that
+                // with `FormatException: Cannot parse empty string into version`,
+                // which paints an error box over the app bar: precisely for the
+                // offline users these apps exist to serve.
+                minAppVersion: AppConfig.instance.lastStableVersion.isEmpty
+                    ? null
+                    : AppConfig.instance.lastStableVersion,
               ),
               child:
               /// homePage == null ? rootPage : Stack(

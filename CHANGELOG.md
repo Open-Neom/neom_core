@@ -1,3 +1,14 @@
+## [2026-09-03] - RootPage no rompe sin Firestore
+- `Upgrader` recibia `AppConfig.instance.lastStableVersion` sin comprobar que
+  tuviera valor. Ese campo arranca vacio y lo llena `_getAppInfo()`, que corre
+  con `unawaited` contra Firestore: en el primer frame siempre esta vacio, y
+  se queda asi para siempre si Firestore no responde o esta deshabilitado en
+  el proyecto. Upgrader contestaba `FormatException: Cannot parse empty string
+  into version` y pintaba la caja de error de Flutter sobre el app bar — justo
+  para el usuario offline al que estas apps sirven. Ahora solo se pasa
+  `minAppVersion` cuando hay una version que el parser pueda leer.
+- Verificado en dispositivo (Motorola edge 20 lite, Android 13).
+
 ## [2026-07-25] - Dependencias Externas
 - Actualizacion de dependencias externas a sus versiones mas recientes y compatibles.
 
