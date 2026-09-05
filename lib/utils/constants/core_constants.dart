@@ -23,6 +23,9 @@ class CoreConstants {
 
   static const int profilePostsLimit = 15;
   static const int timelineLimit = 10;
+  /// Events rendered on the timeline shelf. Bounds the events read on the
+  /// home screen, which otherwise fetched the whole collection.
+  static const int timelineEventsLimit = 20;
   static const int nextTimelineLimit = 10;
   static const int recentTimelineLimit = 10;
   static const int diverseTimelineLimit = 6;

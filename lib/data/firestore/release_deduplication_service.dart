@@ -47,11 +47,16 @@ class ReleaseDeduplicationService {
     String ownerKey = '';
 
     if (item.ownerProfileId != null && item.ownerProfileId!.trim().isNotEmpty) {
-      ownerKey = item.ownerProfileId!.trim().toLowerCase();
-    } else if (item.ownerName.trim().isNotEmpty) {
-      ownerKey = AppReleaseItem.generateSlug(item.ownerName.trim());
+      ownerKey = 'profile:${item.ownerProfileId!.trim().toLowerCase()}';
+    } else if (item.ownerSlug.trim().isNotEmpty) {
+      ownerKey = 'slug:${item.ownerSlug.trim().toLowerCase()}';
     } else if (item.ownerEmail.trim().isNotEmpty) {
-      ownerKey = item.ownerEmail.trim().toLowerCase();
+      ownerKey = 'email:${item.ownerEmail.trim().toLowerCase()}';
+    } else {
+      // A display name is not an identity: two authors can legitimately share
+      // both name and title. Keep records separate until a stable owner key is
+      // available instead of hiding one from the catalogue.
+      return item.id;
     }
 
     return '$titleSlug::$ownerKey';

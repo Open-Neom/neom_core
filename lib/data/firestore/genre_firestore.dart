@@ -7,12 +7,16 @@ import '../../domain/model/genre.dart';
 import '../../domain/repository/genre_repository.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
+import 'profile_document_locator.dart';
 
 class GenreFirestore implements GenreRepository {
 
   final logger = AppConfig.logger;
-  final profileReference = FirebaseFirestore.instance.collectionGroup(AppFirestoreCollectionConstants.profiles);
+  final _profileLocator = ProfileDocumentLocator();
 
+  /// `profiles/{profileId}/genres`, or null when the profile does not exist.
+  Future<CollectionReference?> _genresOf(String profileId) => _profileLocator.subcollection(
+      profileId, AppFirestoreCollectionConstants.genres);
 
   @override
   Future<Map<String,Genre>> retrieveGenres(profileId) async {
@@ -21,17 +25,13 @@ class GenreFirestore implements GenreRepository {
     Map<String, Genre> genres = {};
 
     try {
-      QuerySnapshot querySnapshot = await profileReference.get();
-      for (var document in querySnapshot.docs) {
-        if(document.id == profileId) {
-          QuerySnapshot qSnapshot = await document.reference
-              .collection(AppFirestoreCollectionConstants.genres).get();
+      final genresReference = await _genresOf(profileId);
+      if (genresReference == null) return genres;
 
-          for (var queryDocumentSnapshot in qSnapshot.docs) {
-            Genre genre = Genre.fromQueryDocumentSnapshot(queryDocumentSnapshot);
-            genres[genre.name] = genre;
-          }
-        }
+      final qSnapshot = await genresReference.get();
+      for (var queryDocumentSnapshot in qSnapshot.docs) {
+        Genre genre = Genre.fromQueryDocumentSnapshot(queryDocumentSnapshot);
+        genres[genre.name] = genre;
       }
     } catch (e) {
       logger.e("No genres found");
@@ -45,20 +45,13 @@ class GenreFirestore implements GenreRepository {
   Future<bool> removeGenre({required String profileId, required String genreId}) async {
     logger.d("Removing $genreId for by $profileId");
     try {
-      await profileReference.get()
-          .then((querySnapshot) async {
-        for (var document in querySnapshot.docs) {
-          if (document.id == profileId) {
-            await document.reference
-                .collection(AppFirestoreCollectionConstants.genres)
-                .doc(genreId)
-                .delete();
-          }
-        }
-      });
+      final genresReference = await _genresOf(profileId);
+      if (genresReference == null) return false;
 
-    logger.d("Genre $genreId removed");
-    return true;
+      await genresReference.doc(genreId).delete();
+
+      logger.d("Genre $genreId removed");
+      return true;
     } catch (e) {
       logger.e(e.toString());
       return false;
@@ -71,17 +64,10 @@ class GenreFirestore implements GenreRepository {
 
     Genre genreBasic = Genre.addBasic(genreId);
     try {
-      await profileReference.get()
-          .then((querySnapshot) async {
-        for (var document in querySnapshot.docs) {
-          if (document.id == profileId) {
-            await document.reference
-                .collection(AppFirestoreCollectionConstants.genres)
-                .doc(genreId)
-                .set(genreBasic.toJSON());
-          }
-        }
-      });
+      final genresReference = await _genresOf(profileId);
+      if (genresReference == null) return false;
+
+      await genresReference.doc(genreId).set(genreBasic.toJSON());
 
       logger.d("Genre $genreId added");
       return true;
@@ -98,31 +84,18 @@ class GenreFirestore implements GenreRepository {
     logger.d("Updating $genreId as main for $profileId");
 
     try {
-      await profileReference.get()
-          .then((querySnapshot) async {
-        for (var document in querySnapshot.docs) {
-          if (document.id == profileId) {
-            logger.i("Genre $genreId as main genre at genres collection");
-            await document.reference
-                .collection(AppFirestoreCollectionConstants.genres)
-                .doc(genreId)
-                .update({AppFirestoreConstants.isMain: true});
+      final genresReference = await _genresOf(profileId);
+      if (genresReference == null) return false;
 
-            logger.d("Genre $genreId as main genre at profile level");
+      logger.i("Genre $genreId as main genre at genres collection");
+      await genresReference.doc(genreId)
+          .update({AppFirestoreConstants.isMain: true});
 
-            //TODO Add to model
-            //document.reference.update({GigFirestoreConstants.mainGenre: genreId});
-
-            if(prevGenreId.isNotEmpty) {
-              logger.d("Genre $prevGenreId unset from main genre");
-              await document.reference
-                  .collection(AppFirestoreCollectionConstants.genres)
-                  .doc(prevGenreId)
-                  .update({AppFirestoreConstants.isMain: false});
-            }
-          }
-        }
-      });
+      if(prevGenreId.isNotEmpty) {
+        logger.d("Genre $prevGenreId unset from main genre");
+        await genresReference.doc(prevGenreId)
+            .update({AppFirestoreConstants.isMain: false});
+      }
 
       return true;
     } catch (e) {
@@ -130,6 +103,5 @@ class GenreFirestore implements GenreRepository {
       return false;
     }
   }
-
 
 }

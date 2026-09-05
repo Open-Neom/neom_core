@@ -8,6 +8,7 @@ import '../../domain/repository/mate_repository.dart';
 import '../../utils/enums/profile_type.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
+import 'profile_document_locator.dart';
 import 'facility_firestore.dart';
 import 'genre_firestore.dart';
 import 'instrument_firestore.dart';
@@ -18,40 +19,12 @@ class MateFirestore implements MateRepository {
   var logger = AppConfig.logger;
   final usersReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.users);
   final profileReference = FirebaseFirestore.instance.collectionGroup(AppFirestoreCollectionConstants.profiles);
+  final _profileLocator = ProfileDocumentLocator();
 
-  /// Helper method to get a profile document reference by ID
-  /// First tries 'id' field, then falls back to document.id scan
-  Future<DocumentReference?> _getProfileDocumentReference(String profileId) async {
-    if (profileId.isEmpty) {
-      logger.w('Cannot get profile reference: profileId is empty');
-      return null;
-    }
-
-    try {
-      // First try: Query by 'id' field
-      final querySnapshot = await profileReference
-          .where('id', isEqualTo: profileId)
-          .limit(1)
-          .get();
-
-      if (querySnapshot.docs.isNotEmpty) {
-        return querySnapshot.docs.first.reference;
-      }
-
-      // Fallback: Search by document ID (profiles use documentSnapshot.id)
-      logger.t('Profile not found by id field, searching by document ID...');
-      final allProfilesSnapshot = await profileReference.get();
-      for (var doc in allProfilesSnapshot.docs) {
-        if (doc.id == profileId) {
-          logger.t('Profile found by document ID scan');
-          return doc.reference;
-        }
-      }
-    } catch (e) {
-      logger.e('Error getting profile reference: $e');
-    }
-    return null;
-  }
+  /// Profile document for [profileId]. Delegates to the shared locator so the
+  /// indexed lookup and its memoization are not duplicated per repository.
+  Future<DocumentReference?> _getProfileDocumentReference(String profileId) =>
+      _profileLocator.locate(profileId);
 
   /// OPTIMIZED: Helper to update a profile field
   Future<bool> _updateProfileField(String profileId, Map<String, dynamic> data) async {
@@ -90,15 +63,15 @@ class MateFirestore implements MateRepository {
         mate = AppProfile.fromJSON(document.data());
         mate.id = document.id;
       } else {
-        // Fallback: Search by document ID (profiles use documentSnapshot.id)
-        logger.t('Mate not found by id field, searching by document ID...');
-        final allProfilesSnapshot = await profileReference.get();
-        for (var doc in allProfilesSnapshot.docs) {
-          if (doc.id == mateId) {
-            mate = AppProfile.fromJSON(doc.data());
-            mate.id = doc.id;
-            logger.t('Mate found by document ID scan');
-            break;
+        // Legacy profiles without an `id` field: the shared locator owns that
+        // scan and memoizes the result, so it is not repeated per mate.
+        final reference = await _profileLocator.locate(mateId);
+        if (reference != null) {
+          final document = await reference.get();
+          final data = document.data();
+          if (data != null) {
+            mate = AppProfile.fromJSON(data as Map<String, dynamic>);
+            mate.id = document.id;
           }
         }
       }

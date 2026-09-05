@@ -23,6 +23,13 @@ class NupaleSessionFirestore implements NupaleSessionRepository {
 
   @override
   Future<String> insert(NupaleSession session) async {
+    if (!AppConfig.instance.canPersistUserActivity) {
+      AppConfig.logger.d(
+        "Skipping Nupale session persistence for guest or unloaded user",
+      );
+      return session.id;
+    }
+
     AppConfig.logger.d("Inserting session ${session.id}");
 
     try {

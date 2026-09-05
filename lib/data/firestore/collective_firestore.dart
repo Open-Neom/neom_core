@@ -64,18 +64,35 @@ class CollectiveFirestore implements CollectiveRepository {
     return null;
   }
 
+  /// Whether [name] is still free as a band name.
+  ///
+  /// Lets the create form reject a duplicate before submitting, instead of
+  /// finding out after the user filled everything in.
+  Future<bool> isNameAvailable(String name) async {
+    if (name.trim().isEmpty) return false;
+    return await getBySlug(Collective.generateSlug(name)) == null;
+  }
+
   /// OPTIMIZED: Batch operations in parallel instead of sequential N+1
   @override
   Future<String> insert(Collective collective) async {
     logger.d("Inserting collective ${collective.name}");
     String collectiveId = "";
     try {
-      // Auto-generate slug if empty
+      // A band name is its address (`/a/{slug}`), so it has to be unique.
+      // This used to silently mutate the slug to "<emailPrefix>-<name>", which
+      // let two bands share a name and gave the second an unusable URL.
       if (collective.slug.isEmpty && collective.name.isNotEmpty) {
-        final titleSlug = Collective.generateSlug(collective.name);
-        final existing = await getBySlug(titleSlug);
-        final emailPrefix = collective.email.contains('@') ? collective.email.split('@').first : collective.email;
-        collective.slug = existing == null ? titleSlug : Collective.generateSlug('$emailPrefix ${collective.name}');
+        collective.slug = Collective.generateSlug(collective.name);
+      }
+
+      if (collective.slug.isNotEmpty) {
+        final existing = await getBySlug(collective.slug);
+        if (existing != null) {
+          logger.w("Collective name '${collective.name}' already taken by "
+              "${existing.id}; refusing to create a duplicate");
+          return '';
+        }
       }
 
       DocumentReference documentReference = await collectivesReference.add(collective.toJSON());

@@ -236,6 +236,34 @@ void main() {
         expect(results.docs.first.data()['name'], equals('John Doe'));
       });
     });
+
+    group('public directory query', () {
+      test('returns only profiles that explicitly opt into the directory', () async {
+        final profiles = fakeFirestore
+            .collection('users')
+            .doc('directory-test')
+            .collection('profiles');
+
+        await profiles.doc('visible').set({
+          'name': 'Visible',
+          'directoryVisible': true,
+        });
+        await profiles.doc('hidden').set({
+          'name': 'Hidden',
+          'directoryVisible': false,
+        });
+        await profiles.doc('legacy-missing-flag').set({
+          'name': 'Legacy',
+        });
+
+        final snapshot = await fakeFirestore
+            .collectionGroup('profiles')
+            .where('directoryVisible', isEqualTo: true)
+            .get();
+
+        expect(snapshot.docs.map((doc) => doc.id), ['visible']);
+      });
+    });
   });
 
   group('Null Safety Tests', () {

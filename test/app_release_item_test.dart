@@ -26,8 +26,11 @@ void main() {
       expect(r.ownerEmail, '');
       expect(r.ownerType, OwnerType.notDefined);
       expect(r.categories, isEmpty);
-      expect(r.isRental, isTrue,
-          reason: 'isRental default true por diseño (membresía da acceso)');
+      expect(
+        r.isRental,
+        isTrue,
+        reason: 'isRental default true por diseño (membresía da acceso)',
+      );
       expect(r.state, 0);
       expect(r.slug, '');
       expect(r.isSuspended, isFalse);
@@ -37,7 +40,10 @@ void main() {
 
   group('AppReleaseItem.streamUrl (PlayableItem)', () {
     test('usa streamingUrl cuando está presente', () {
-      final r = AppReleaseItem(streamingUrl: 'https://stream', previewUrl: 'https://preview');
+      final r = AppReleaseItem(
+        streamingUrl: 'https://stream',
+        previewUrl: 'https://preview',
+      );
       expect(r.streamUrl, 'https://stream');
     });
 
@@ -63,6 +69,71 @@ void main() {
     test('siempre true (AppReleaseItem es contenido interno)', () {
       expect(AppReleaseItem().isInternal, isTrue);
     });
+  });
+
+  group('AppReleaseItem public guest contract', () {
+    test('only published, non-suspended releases are publicly visible', () {
+      expect(
+        AppReleaseItem(status: ReleaseStatus.publish).isPubliclyVisible,
+        isTrue,
+      );
+      expect(
+        AppReleaseItem(status: ReleaseStatus.draft).isPubliclyVisible,
+        isFalse,
+      );
+      expect(
+        AppReleaseItem(
+          status: ReleaseStatus.publish,
+          isSuspended: true,
+        ).isPubliclyVisible,
+        isFalse,
+      );
+    });
+
+    test(
+      'public projection keeps book and author routing, not account state',
+      () {
+        final original = AppReleaseItem(
+          id: 'book-1',
+          name: 'Libro público',
+          description: 'Descripción',
+          status: ReleaseStatus.publish,
+          ownerName: 'Autora',
+          ownerEmail: 'private@example.test',
+          ownerProfileId: 'profile-1',
+          ownerSlug: 'autora',
+          boughtUsers: ['buyer-1'],
+          likedProfiles: ['profile-2'],
+          sharedProfiles: ['profile-3'],
+          commentIds: ['comment-1'],
+          metaOwnerId: 'private@example.test',
+          localPath: '/private/book.pdf',
+          state: 4,
+          suspendedBy: 'admin@example.test',
+          suspendedReason: 'internal note',
+        );
+
+        final projected = original.toPublicProjection();
+
+        expect(projected.id, original.id);
+        expect(projected.name, original.name);
+        expect(projected.description, original.description);
+        expect(projected.ownerName, original.ownerName);
+        expect(projected.ownerProfileId, original.ownerProfileId);
+        expect(projected.ownerSlug, original.ownerSlug);
+        expect(projected.ownerEmail, isEmpty);
+        expect(projected.metaOwnerId, isEmpty);
+        expect(projected.boughtUsers, isEmpty);
+        expect(projected.likedProfiles, isEmpty);
+        expect(projected.sharedProfiles, isEmpty);
+        expect(projected.commentIds, isEmpty);
+        expect(projected.localPath, isNull);
+        expect(projected.state, 0);
+        expect(projected.suspendedBy, isNull);
+        expect(projected.suspendedReason, isNull);
+        expect(original.ownerEmail, 'private@example.test');
+      },
+    );
   });
 
   group('AppReleaseItem.displayDuration', () {
@@ -93,18 +164,31 @@ void main() {
   group('AppReleaseItem.isAudioContent', () {
     test('true para mediaType audio (song, podcast, audiobook, etc.)', () {
       for (final t in [
-        MediaItemType.song, MediaItemType.podcast, MediaItemType.audiobook,
-        MediaItemType.binaural, MediaItemType.frequency, MediaItemType.nature,
+        MediaItemType.song,
+        MediaItemType.podcast,
+        MediaItemType.audiobook,
+        MediaItemType.binaural,
+        MediaItemType.frequency,
+        MediaItemType.nature,
         MediaItemType.neomPreset,
       ]) {
-        expect(AppReleaseItem(mediaType: t).isAudioContent, isTrue,
-            reason: '$t debe contar como audio');
+        expect(
+          AppReleaseItem(mediaType: t).isAudioContent,
+          isTrue,
+          reason: '$t debe contar como audio',
+        );
       }
     });
 
     test('false para mediaType book/pdf', () {
-      expect(AppReleaseItem(mediaType: MediaItemType.book).isAudioContent, isFalse);
-      expect(AppReleaseItem(mediaType: MediaItemType.pdf).isAudioContent, isFalse);
+      expect(
+        AppReleaseItem(mediaType: MediaItemType.book).isAudioContent,
+        isFalse,
+      );
+      expect(
+        AppReleaseItem(mediaType: MediaItemType.pdf).isAudioContent,
+        isFalse,
+      );
     });
 
     test('fallback a previewUrl cuando mediaType es null', () {
@@ -136,12 +220,21 @@ void main() {
 
   group('AppReleaseItem.isBookContent', () {
     test('true para mediaType book/pdf', () {
-      expect(AppReleaseItem(mediaType: MediaItemType.book).isBookContent, isTrue);
-      expect(AppReleaseItem(mediaType: MediaItemType.pdf).isBookContent, isTrue);
+      expect(
+        AppReleaseItem(mediaType: MediaItemType.book).isBookContent,
+        isTrue,
+      );
+      expect(
+        AppReleaseItem(mediaType: MediaItemType.pdf).isBookContent,
+        isTrue,
+      );
     });
 
     test('false para mediaType audio', () {
-      expect(AppReleaseItem(mediaType: MediaItemType.song).isBookContent, isFalse);
+      expect(
+        AppReleaseItem(mediaType: MediaItemType.song).isBookContent,
+        isFalse,
+      );
     });
 
     test('fallback a previewUrl con .pdf/.epub/.mobi', () {
@@ -161,17 +254,11 @@ void main() {
     });
 
     test('preserva acentos y ñ', () {
-      expect(
-        AppReleaseItem.generateSlug('Año del niño'),
-        'año-del-niño',
-      );
+      expect(AppReleaseItem.generateSlug('Año del niño'), 'año-del-niño');
     });
 
     test('elimina caracteres especiales', () {
-      expect(
-        AppReleaseItem.generateSlug('Hola! ¿Mundo?'),
-        'hola-mundo',
-      );
+      expect(AppReleaseItem.generateSlug('Hola! ¿Mundo?'), 'hola-mundo');
     });
   });
 

@@ -149,27 +149,25 @@ void main() {
     test('NC-12: watchingProfiles debería preservarse tras round-trip', () {
       // Bug: toJSON hardcodea `watchingProfiles: []`. Resultado: listas
       // de espectadores se borran en cada save.
-      final original = Event(
-        watchingProfiles: ['u1', 'u2', 'u3'],
-      );
+      final original = Event(watchingProfiles: ['u1', 'u2', 'u3']);
       final restored = Event.fromJSON(original.toJSON());
       expect(
         restored.watchingProfiles,
         original.watchingProfiles,
-        reason: 'NC-12: Event.toJSON serializa watchingProfiles como [] '
+        reason:
+            'NC-12: Event.toJSON serializa watchingProfiles como [] '
             'hardcodeado, perdiendo los IDs reales del modelo.',
       );
     });
 
     test('NC-12: goingProfiles debería preservarse tras round-trip', () {
-      final original = Event(
-        goingProfiles: ['u1', 'u2'],
-      );
+      final original = Event(goingProfiles: ['u1', 'u2']);
       final restored = Event.fromJSON(original.toJSON());
       expect(
         restored.goingProfiles,
         original.goingProfiles,
-        reason: 'NC-12: Event.toJSON serializa goingProfiles como [] '
+        reason:
+            'NC-12: Event.toJSON serializa goingProfiles como [] '
             'hardcodeado, perdiendo los IDs.',
       );
     });

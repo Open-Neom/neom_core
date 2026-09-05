@@ -44,6 +44,28 @@ class AppConfig {
   bool isGuestMode = true;
   bool isAdminMode = false;
 
+  /// Whether the current client may persist user-attributed activity.
+  ///
+  /// Guest mode is intentionally read-only. Requiring a loaded user as well
+  /// prevents the login/onboarding transition from writing analytics before
+  /// an account exists, even if guest mode has already been dismissed.
+  bool get canPersistUserActivity {
+    if (isGuestMode ||
+        !Sint.isRegistered<LoginService>() ||
+        !Sint.isRegistered<UserService>()) {
+      return false;
+    }
+
+    try {
+      final login = Sint.find<LoginService>();
+      return login.getAuthStatus() == AuthStatus.loggedIn &&
+          login.fbaUser != null &&
+          Sint.find<UserService>().user.id.isNotEmpty;
+    } catch (_) {
+      return false;
+    }
+  }
+
   // ------------------------------------------------------------------
   // Itzli launch gates
   // ------------------------------------------------------------------

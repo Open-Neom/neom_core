@@ -223,7 +223,13 @@ class UserFirestore implements UserRepository {
             profileDoc = doc;
             AppConfig.logger.t("Profile found in recent profiles");
             // Update legacy profile with 'id' field for future queries
-            await doc.reference.update({'id': profileId});
+            if (AppConfig.instance.canPersistUserActivity) {
+              await doc.reference.update({'id': profileId});
+            } else {
+              AppConfig.logger.d(
+                'Skipping legacy profile migration during guest read',
+              );
+            }
             break;
           }
         }

@@ -170,6 +170,28 @@ void main() {
       final json = AppUser(userRole: UserRole.admin).toJSON();
       expect(json['userRole'], 'admin');
     });
+
+    test('nunca serializa contraseñas, incluso para documentos legacy', () {
+      final legacyUser = AppUser.fromJSON({
+        'email': 'legacy@example.test',
+        'password': 'legacy-plaintext-secret',
+      });
+
+      // La lectura se conserva temporalmente para poder migrar datos antiguos.
+      expect(legacyUser.password, 'legacy-plaintext-secret');
+      expect(legacyUser.toJSON(), isNot(contains('password')));
+    });
+
+    test('toString nunca expone una contraseña legacy', () {
+      const secret = 'do-not-log-this-secret';
+      final legacyUser = AppUser.fromJSON({
+        'email': 'legacy@example.test',
+        'password': secret,
+      });
+
+      expect(legacyUser.toString(), isNot(contains(secret)));
+      expect(legacyUser.toString(), isNot(contains('password:')));
+    });
   });
 
   group('AppUser.toInvoiceJSON', () {

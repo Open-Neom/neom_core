@@ -9,44 +9,17 @@ import '../../utils/enums/facilitator_type.dart';
 import '../../utils/neom_error_logger.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
+import 'profile_document_locator.dart';
 
 class FacilityFirestore implements FacilityRepository {
 
   final profileReference = FirebaseFirestore.instance.collectionGroup(AppFirestoreCollectionConstants.profiles);
+  final _profileLocator = ProfileDocumentLocator();
 
-  /// Helper method to get a profile document reference by ID
-  /// First tries 'id' field, then falls back to document.id scan
-  Future<DocumentReference?> _getProfileDocumentReference(String profileId) async {
-    if (profileId.isEmpty) {
-      AppConfig.logger.w('Cannot get profile reference: profileId is empty');
-      return null;
-    }
-
-    try {
-      // First try: Query by 'id' field
-      final querySnapshot = await profileReference
-          .where('id', isEqualTo: profileId)
-          .limit(1)
-          .get();
-
-      if (querySnapshot.docs.isNotEmpty) {
-        return querySnapshot.docs.first.reference;
-      }
-
-      // Fallback: Search by document ID (profiles use documentSnapshot.id)
-      AppConfig.logger.t('Profile not found by id field, searching by document ID...');
-      final allProfilesSnapshot = await profileReference.get();
-      for (var doc in allProfilesSnapshot.docs) {
-        if (doc.id == profileId) {
-          AppConfig.logger.t('Profile found by document ID scan');
-          return doc.reference;
-        }
-      }
-    } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'FacilityFirestore._getProfileDocumentReference');
-    }
-    return null;
-  }
+  /// Profile document for [profileId]. Delegates to the shared locator so the
+  /// indexed lookup and its memoization are not duplicated per repository.
+  Future<DocumentReference?> _getProfileDocumentReference(String profileId) =>
+      _profileLocator.locate(profileId);
 
   @override
   Future<Map<String,Facility>> retrieveFacilities(profileId) async {

@@ -10,8 +10,11 @@
 /// (`ErpBook`, `ErpIncome`, …) — to keep `neom_core` free of any ERP
 /// dependency.
 ///
-/// Apps that do NOT bundle the ERP simply leave this unregistered; callers
-/// resolve it as `Sint.find<ErpIntegrationService?>()` and no-op when null.
+/// Apps that do NOT bundle the ERP simply leave this unregistered. Callers
+/// must guard with `Sint.isRegistered<ErpIntegrationService>()` (or use
+/// `Sint.findOrNull`) and no-op when absent — `Sint.find` throws on a missing
+/// dependency, and a nullable type argument resolves to a DIFFERENT injection
+/// key (`"ErpIntegrationService?"`), so it never matches this registration.
 abstract class ErpIntegrationService {
 
   /// Ingests a paid shop order into the ERP accounting layer.

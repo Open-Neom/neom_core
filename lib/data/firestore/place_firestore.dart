@@ -8,45 +8,18 @@ import '../../domain/repository/place_repository.dart';
 import '../../utils/enums/place_type.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
+import 'profile_document_locator.dart';
 
 class PlaceFirestore implements PlaceRepository {
 
   final logger = AppConfig.logger;
   final profileReference = FirebaseFirestore.instance.collectionGroup(AppFirestoreCollectionConstants.profiles);
+  final _profileLocator = ProfileDocumentLocator();
 
-  /// Helper method to get a profile document reference by ID
-  /// First tries 'id' field, then falls back to document.id scan
-  Future<DocumentReference?> _getProfileDocumentReference(String profileId) async {
-    if (profileId.isEmpty) {
-      logger.w('Cannot get profile reference: profileId is empty');
-      return null;
-    }
-
-    try {
-      // First try: Query by 'id' field
-      final querySnapshot = await profileReference
-          .where('id', isEqualTo: profileId)
-          .limit(1)
-          .get();
-
-      if (querySnapshot.docs.isNotEmpty) {
-        return querySnapshot.docs.first.reference;
-      }
-
-      // Fallback: Search by document ID (profiles use documentSnapshot.id)
-      logger.t('Profile not found by id field, searching by document ID...');
-      final allProfilesSnapshot = await profileReference.get();
-      for (var doc in allProfilesSnapshot.docs) {
-        if (doc.id == profileId) {
-          logger.t('Profile found by document ID scan');
-          return doc.reference;
-        }
-      }
-    } catch (e) {
-      logger.e('Error getting profile reference: $e');
-    }
-    return null;
-  }
+  /// Profile document for [profileId]. Delegates to the shared locator so the
+  /// indexed lookup and its memoization are not duplicated per repository.
+  Future<DocumentReference?> _getProfileDocumentReference(String profileId) =>
+      _profileLocator.locate(profileId);
 
   @override
   Future<Map<String,Place>> retrievePlaces(profileId) async {

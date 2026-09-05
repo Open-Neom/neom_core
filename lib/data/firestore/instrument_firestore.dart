@@ -7,12 +7,19 @@ import '../../domain/model/instrument.dart';
 import '../../domain/repository/instrument_repository.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
+import 'profile_document_locator.dart';
 
 class InstrumentFirestore implements InstrumentRepository {
 
   var logger = AppConfig.logger;
-  final profileReference = FirebaseFirestore.instance.collectionGroup(AppFirestoreCollectionConstants.profiles);
+  final _profileLocator = ProfileDocumentLocator();
+  final profileReference = FirebaseFirestore.instance
+      .collectionGroup(AppFirestoreCollectionConstants.profiles);
 
+  /// `profiles/{profileId}/instruments`, or null when the profile is unknown.
+  Future<CollectionReference?> _instrumentsOf(String profileId) =>
+      _profileLocator.subcollection(
+          profileId, AppFirestoreCollectionConstants.instruments);
 
   @override
   Future<Map<String,Instrument>> retrieveInstruments(profileId) async {
@@ -21,17 +28,14 @@ class InstrumentFirestore implements InstrumentRepository {
     Map<String, Instrument> instruments = {};
 
     try {
-      QuerySnapshot querySnapshot = await profileReference.get();
-      for (var document in querySnapshot.docs) {
-        if(document.id == profileId) {
-          QuerySnapshot qSnapshot = await document.reference
-              .collection(AppFirestoreCollectionConstants.instruments).get();
+      final instrumentsReference = await _instrumentsOf(profileId);
+      if (instrumentsReference == null) return instruments;
 
-          for (var queryDocumentSnapshot in qSnapshot.docs) {
-            Instrument instr = Instrument.fromJSON(queryDocumentSnapshot.data());
-            instruments[instr.name] = instr;
-          }
-        }
+      final qSnapshot = await instrumentsReference.get();
+      for (var queryDocumentSnapshot in qSnapshot.docs) {
+        Instrument instr = Instrument.fromJSON(
+            queryDocumentSnapshot.data() as Map<String, dynamic>);
+        instruments[instr.name] = instr;
       }
     } catch (e) {
       logger.e("No instruments found");
@@ -41,6 +45,8 @@ class InstrumentFirestore implements InstrumentRepository {
     return instruments;
   }
 
+  /// Fan-out read across every profile in the app. Intentionally unbounded —
+  /// it backs admin/analytics tooling, not any per-user screen.
   Future<Map<String, List<Instrument>>> retrieveAllInstruments() async {
     logger.t("Retrieving all Instruments for all Profiles");
 
@@ -60,7 +66,8 @@ class InstrumentFirestore implements InstrumentRepository {
             .get();
 
         for (var instrumentDoc in instrumentSnapshot.docs) {
-          Instrument instr = Instrument.fromJSON(instrumentDoc.data());
+          Instrument instr = Instrument.fromJSON(
+              instrumentDoc.data() as Map<String, dynamic>);
           instruments.add(instr);
         }
 
@@ -81,20 +88,13 @@ class InstrumentFirestore implements InstrumentRepository {
   Future<bool> removeInstrument({required String profileId, required String instrumentId}) async {
     logger.d("Removing $instrumentId for by $profileId");
     try {
-      await profileReference.get()
-          .then((querySnapshot) async {
-        for (var document in querySnapshot.docs) {
-          if (document.id == profileId) {
-            await document.reference
-                .collection(AppFirestoreCollectionConstants.instruments)
-                .doc(instrumentId)
-                .delete();
-          }
-        }
-      });
+      final instrumentsReference = await _instrumentsOf(profileId);
+      if (instrumentsReference == null) return false;
 
-    logger.d("Instrument $instrumentId removed");
-    return true;
+      await instrumentsReference.doc(instrumentId).delete();
+
+      logger.d("Instrument $instrumentId removed");
+      return true;
     } catch (e) {
       logger.e(e.toString());
       return false;
@@ -107,17 +107,10 @@ class InstrumentFirestore implements InstrumentRepository {
 
     Instrument instrumentBasic = Instrument.addBasic(instrumentId);
     try {
-      await profileReference.get()
-          .then((querySnapshot) async {
-        for (var document in querySnapshot.docs) {
-          if (document.id == profileId) {
-            await document.reference
-                .collection(AppFirestoreCollectionConstants.instruments)
-                .doc(instrumentId)
-                .set(instrumentBasic.toJSON());
-          }
-        }
-      });
+      final instrumentsReference = await _instrumentsOf(profileId);
+      if (instrumentsReference == null) return false;
+
+      await instrumentsReference.doc(instrumentId).set(instrumentBasic.toJSON());
 
       logger.d("Instrument $instrumentId added");
       return true;
@@ -134,32 +127,26 @@ class InstrumentFirestore implements InstrumentRepository {
     logger.d("Updating $instrumentId as main for $profileId");
 
     try {
-      await profileReference.get()
-          .then((querySnapshot) async {
-        for (var document in querySnapshot.docs) {
-          if (document.id == profileId) {
-            logger.i("Instrument $instrumentId as main instrument at instruments collection");
-            await document.reference
-                .collection(AppFirestoreCollectionConstants.instruments)
-                .doc(instrumentId)
-                .update({AppFirestoreConstants.isMain: true});
+      final profileDocument = await _profileLocator.locate(profileId);
+      if (profileDocument == null) return false;
 
-            logger.d("Instrument $instrumentId as main instrument at profile level");
+      final instrumentsReference = profileDocument
+          .collection(AppFirestoreCollectionConstants.instruments);
 
-            await document.reference.update({
-              AppFirestoreConstants.mainFeature: instrumentId
-            });
+      logger.i("Instrument $instrumentId as main instrument at instruments collection");
+      await instrumentsReference.doc(instrumentId)
+          .update({AppFirestoreConstants.isMain: true});
 
-            if(prevInstrId.isNotEmpty) {
-              logger.d("Instrument $prevInstrId unset from main instrument");
-              await document.reference
-                  .collection(AppFirestoreCollectionConstants.instruments)
-                  .doc(prevInstrId)
-                  .update({AppFirestoreConstants.isMain: false});
-            }
-          }
-        }
+      logger.d("Instrument $instrumentId as main instrument at profile level");
+      await profileDocument.update({
+        AppFirestoreConstants.mainFeature: instrumentId
       });
+
+      if(prevInstrId.isNotEmpty) {
+        logger.d("Instrument $prevInstrId unset from main instrument");
+        await instrumentsReference.doc(prevInstrId)
+            .update({AppFirestoreConstants.isMain: false});
+      }
 
       return true;
     } catch (e) {

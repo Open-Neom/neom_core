@@ -53,6 +53,7 @@ class AppFirestoreConstants {
 
   static const String ownerId = "ownerId";
   static const String createdTime = "createdTime";
+  static const String eventDate = "eventDate";
   static const String modifiedTime = "modifiedTime";
 
   static const String wrongPassword = 'wrong-password';

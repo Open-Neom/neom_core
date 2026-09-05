@@ -8,11 +8,16 @@ import '../../domain/repository/frequency_repository.dart';
 import '../../utils/neom_error_logger.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
+import 'profile_document_locator.dart';
 
 class FrequencyFirestore implements FrequencyRepository {
-  
-  final profileReference = FirebaseFirestore.instance.collectionGroup(AppFirestoreCollectionConstants.profiles);
 
+  final _profileLocator = ProfileDocumentLocator();
+
+  /// `profiles/{profileId}/frequencies`, or null when the profile is unknown.
+  Future<CollectionReference?> _frequenciesOf(String profileId) =>
+      _profileLocator.subcollection(
+          profileId, AppFirestoreCollectionConstants.frequencies);
 
   @override
   Future<Map<String, NeomFrequency>> retrieveFrequencies(profileId) async {
@@ -21,17 +26,14 @@ class FrequencyFirestore implements FrequencyRepository {
     Map<String, NeomFrequency> frequencies = {};
 
     try {
-      QuerySnapshot querySnapshot = await profileReference.get();
-      for (var document in querySnapshot.docs) {
-        if(document.id == profileId) {
-          QuerySnapshot qSnapshot = await document.reference
-              .collection(AppFirestoreCollectionConstants.frequencies).get();
+      final frequenciesReference = await _frequenciesOf(profileId);
+      if (frequenciesReference == null) return frequencies;
 
-          for (var queryDocumentSnapshot in qSnapshot.docs) {
-            NeomFrequency freq = NeomFrequency.fromJSON(queryDocumentSnapshot.data());
-            frequencies[freq.id] = freq;
-          }
-        }
+      final qSnapshot = await frequenciesReference.get();
+      for (var queryDocumentSnapshot in qSnapshot.docs) {
+        NeomFrequency freq = NeomFrequency.fromJSON(
+            queryDocumentSnapshot.data() as Map<String, dynamic>);
+        frequencies[freq.id] = freq;
       }
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'FrequencyFirestore.retrieveFrequencies');
@@ -45,20 +47,13 @@ class FrequencyFirestore implements FrequencyRepository {
   Future<bool> removeFrequency({required String profileId, required String frequencyId}) async {
     AppConfig.logger.d("Removing $frequencyId for by $profileId");
     try {
-      await profileReference.get()
-          .then((querySnapshot) async {
-        for (var document in querySnapshot.docs) {
-          if (document.id == profileId) {
-            await document.reference
-                .collection(AppFirestoreCollectionConstants.frequencies)
-                .doc(frequencyId)
-                .delete();
-          }
-        }
-      });
+      final frequenciesReference = await _frequenciesOf(profileId);
+      if (frequenciesReference == null) return false;
 
-    AppConfig.logger.d("NeomFrequency $frequencyId removed");
-    return true;
+      await frequenciesReference.doc(frequencyId).delete();
+
+      AppConfig.logger.d("NeomFrequency $frequencyId removed");
+      return true;
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'FrequencyFirestore.removeFrequency');
       return false;
@@ -70,17 +65,10 @@ class FrequencyFirestore implements FrequencyRepository {
     AppConfig.logger.d("Adding ${frequency.name} for by $profileId");
 
     try {
-      await profileReference.get()
-          .then((querySnapshot) async {
-        for (var document in querySnapshot.docs) {
-          if (document.id == profileId) {
-            await document.reference
-                .collection(AppFirestoreCollectionConstants.frequencies)
-                .doc(frequency.id)
-                .set(frequency.toJSON());
-          }
-        }
-      });
+      final frequenciesReference = await _frequenciesOf(profileId);
+      if (frequenciesReference == null) return false;
+
+      await frequenciesReference.doc(frequency.id).set(frequency.toJSON());
 
       AppConfig.logger.d("NeomFrequency ${frequency.id} added");
       return true;
@@ -97,32 +85,26 @@ class FrequencyFirestore implements FrequencyRepository {
     AppConfig.logger.d("Updating $frequencyId as main for $profileId");
 
     try {
-      await profileReference.get()
-          .then((querySnapshot) async {
-        for (var document in querySnapshot.docs) {
-          if (document.id == profileId) {
-            AppConfig.logger.i("NeomFrequency $frequencyId as main frequency at frequencies collection");
-            await document.reference
-                .collection(AppFirestoreCollectionConstants.frequencies)
-                .doc(frequencyId)
-                .update({AppFirestoreConstants.isMain: true});
+      final profileDocument = await _profileLocator.locate(profileId);
+      if (profileDocument == null) return false;
 
-            AppConfig.logger.d("NeomFrequency $frequencyId as main frequency at profile level");
+      final frequenciesReference = profileDocument
+          .collection(AppFirestoreCollectionConstants.frequencies);
 
-            await document.reference.update({
-              AppFirestoreConstants.mainFrequency: frequencyId
-            });
+      AppConfig.logger.i("NeomFrequency $frequencyId as main frequency at frequencies collection");
+      await frequenciesReference.doc(frequencyId)
+          .update({AppFirestoreConstants.isMain: true});
 
-            if(prevInstrId.isNotEmpty) {
-              AppConfig.logger.d("NeomFrequency $prevInstrId unset from main frequency");
-              await document.reference
-                  .collection(AppFirestoreCollectionConstants.frequencies)
-                  .doc(prevInstrId)
-                  .update({AppFirestoreConstants.isMain: false});
-            }
-          }
-        }
+      AppConfig.logger.d("NeomFrequency $frequencyId as main frequency at profile level");
+      await profileDocument.update({
+        AppFirestoreConstants.mainFrequency: frequencyId
       });
+
+      if(prevInstrId.isNotEmpty) {
+        AppConfig.logger.d("NeomFrequency $prevInstrId unset from main frequency");
+        await frequenciesReference.doc(prevInstrId)
+            .update({AppFirestoreConstants.isMain: false});
+      }
 
       return true;
     } catch (e, st) {

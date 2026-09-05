@@ -25,6 +25,7 @@ import '../../utils/enums/usage_reason.dart';
 import '../../utils/enums/verification_level.dart';
 import '../../utils/neom_error_logger.dart';
 import '../../utils/position_utilities.dart';
+import '../../utils/profile_directory_policy.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
 import 'facility_firestore.dart';
@@ -36,12 +37,13 @@ import 'place_firestore.dart';
 import 'post_firestore.dart';
 
 class ProfileFirestore implements ProfileRepository {
-
   final usersReference = FirebaseFirestore.instance.collection(
-      AppFirestoreCollectionConstants.users);
-  
+    AppFirestoreCollectionConstants.users,
+  );
+
   final profileReference = FirebaseFirestore.instance.collectionGroup(
-      AppFirestoreCollectionConstants.profiles);
+    AppFirestoreCollectionConstants.profiles,
+  );
 
   List<QueryDocumentSnapshot> _profileDocuments = [];
   Map<dynamic, AppProfile> sortedProfiles = {};
@@ -50,11 +52,32 @@ class ProfileFirestore implements ProfileRepository {
 
   static Map<String, AppProfile> _cachedAllProfiles = {};
   static DateTime? _lastAllProfilesFetchTime;
+  static Map<String, AppProfile> _cachedPublicProfiles = {};
+  static DateTime? _lastPublicProfilesFetchTime;
   static const Duration _allProfilesCacheTtl = Duration(minutes: 10);
 
   static void invalidateAllProfilesCache() {
     _cachedAllProfiles.clear();
     _lastAllProfilesFetchTime = null;
+    _cachedPublicProfiles.clear();
+    _lastPublicProfilesFetchTime = null;
+  }
+
+  AppProfile? _applyCurrentReadPolicy(AppProfile profile) {
+    final isPublicReader = !AppConfig.instance.canPersistUserActivity;
+    if (!ProfileDirectoryPolicy.canList(
+      profile,
+      isPublicReader: isPublicReader,
+    )) {
+      return null;
+    }
+
+    return isPublicReader
+        ? ProfileDirectoryPolicy.publicProjection(profile)
+        : ProfileDirectoryPolicy.applyFieldRedactions(
+            profile,
+            isPublicReader: false,
+          );
   }
 
   /// OPTIMIZED: Helper method to get a profile document reference by ID
@@ -62,7 +85,9 @@ class ProfileFirestore implements ProfileRepository {
   /// (collectionGroup queries don't support FieldPath.documentId with simple IDs)
   ///
   /// NOTE: Legacy fallback now uses limited scan instead of full collection scan
-  Future<DocumentReference?> _getProfileDocumentReference(String profileId) async {
+  Future<DocumentReference?> _getProfileDocumentReference(
+    String profileId,
+  ) async {
     // Validate profileId is not empty to avoid Firestore error
     if (profileId.isEmpty) {
       AppConfig.logger.w('Cannot get profile reference: profileId is empty');
@@ -82,7 +107,9 @@ class ProfileFirestore implements ProfileRepository {
 
       // OPTIMIZED Fallback: Query by 'name' prefix to limit results instead of full scan
       // This assumes profileId format or searches limited recent profiles
-      AppConfig.logger.w('Profile $profileId not found by id field - legacy profile without id field stored');
+      AppConfig.logger.w(
+        'Profile $profileId not found by id field - legacy profile without id field stored',
+      );
 
       // Try limited recent profiles only (avoid full collection scan)
       final limitedSnapshot = await profileReference
@@ -99,15 +126,25 @@ class ProfileFirestore implements ProfileRepository {
         }
       }
 
-      AppConfig.logger.w('Profile $profileId not found - may be very old legacy profile');
+      AppConfig.logger.w(
+        'Profile $profileId not found - may be very old legacy profile',
+      );
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: '_getProfileDocumentReference');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: '_getProfileDocumentReference',
+      );
     }
     return null;
   }
 
   /// OPTIMIZED: Helper method to update a single profile field
-  Future<bool> _updateProfileField(String profileId, Map<String, dynamic> data) async {
+  Future<bool> _updateProfileField(
+    String profileId,
+    Map<String, dynamic> data,
+  ) async {
     try {
       final docRef = await _getProfileDocumentReference(profileId);
       if (docRef != null) {
@@ -116,7 +153,12 @@ class ProfileFirestore implements ProfileRepository {
       }
       AppConfig.logger.w('Profile $profileId not found for update');
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: '_updateProfileField');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: '_updateProfileField',
+      );
     }
     return false;
   }
@@ -150,32 +192,36 @@ class ProfileFirestore implements ProfileRepository {
       if (profile.instruments != null) {
         for (final entry in profile.instruments!.entries) {
           await InstrumentFirestore().addInstrument(
-              profileId: profileId,
-              instrumentId: entry.key);
+            profileId: profileId,
+            instrumentId: entry.key,
+          );
         }
       }
 
       if (profile.genres != null) {
         for (final entry in profile.genres!.entries) {
           await GenreFirestore().addGenre(
-              profileId: profileId,
-              genreId: entry.key);
+            profileId: profileId,
+            genreId: entry.key,
+          );
         }
       }
 
       if (profile.places != null) {
         for (final entry in profile.places!.entries) {
           await PlaceFirestore().addPlace(
-              profileId: profileId,
-              placeType: entry.value.type);
+            profileId: profileId,
+            placeType: entry.value.type,
+          );
         }
       }
 
       if (profile.facilities != null) {
         for (final entry in profile.facilities!.entries) {
           await FacilityFirestore().addFacility(
-              profileId: profileId,
-              facilityType: entry.value.type);
+            profileId: profileId,
+            facilityType: entry.value.type,
+          );
         }
       }
     } catch (e, st) {
@@ -183,7 +229,12 @@ class ProfileFirestore implements ProfileRepository {
         AppConfig.logger.i("Profile Rollback");
         profileId = "";
       } else {
-        NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'insert');
+        NeomErrorLogger.recordError(
+          e,
+          st,
+          module: 'neom_core',
+          operation: 'insert',
+        );
       }
     }
 
@@ -214,7 +265,7 @@ class ProfileFirestore implements ProfileRepository {
         profile = AppProfile.fromJSON(profileSnapshot.data());
         profile.id = profileSnapshot.id;
         AppConfig.logger.d("Profile found by 'id' field: ${profile.name}");
-        return profile;
+        return _applyCurrentReadPolicy(profile) ?? AppProfile();
       }
 
       // Slug fallback
@@ -236,8 +287,16 @@ class ProfileFirestore implements ProfileRepository {
           if (doc.id == profileId) {
             profile = AppProfile.fromJSON(doc.data());
             profile.id = doc.id;
-            AppConfig.logger.d("Profile found in recent profiles: ${profile.name}");
-            await doc.reference.update({'id': profileId});
+            AppConfig.logger.d(
+              "Profile found in recent profiles: ${profile.name}",
+            );
+            if (AppConfig.instance.canPersistUserActivity) {
+              await doc.reference.update({'id': profileId});
+            } else {
+              AppConfig.logger.d(
+                'Skipping legacy profile migration during guest read',
+              );
+            }
             break;
           }
         }
@@ -249,13 +308,17 @@ class ProfileFirestore implements ProfileRepository {
         AppConfig.logger.w("Profile $profileId not found");
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'retrieve');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'retrieve',
+      );
       rethrow;
     }
 
-    return profile;
+    return _applyCurrentReadPolicy(profile) ?? AppProfile();
   }
-
 
   @override
   Future<AppProfile?> retrieveSimple(String profileId) async {
@@ -285,24 +348,39 @@ class ProfileFirestore implements ProfileRepository {
         // Slug fallback: try resolving by slug field for web vanity URLs
         final slugProfile = await getBySlug(profileId);
         if (slugProfile != null && slugProfile.id.isNotEmpty) {
-          AppConfig.logger.d("Profile found by 'slug' field: ${slugProfile.name}");
+          AppConfig.logger.d(
+            "Profile found by 'slug' field: ${slugProfile.name}",
+          );
           return slugProfile;
         }
         AppConfig.logger.d("Profile not found by id or slug: $profileId");
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'retrieveSimple');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'retrieveSimple',
+      );
       rethrow;
     }
 
-    return profile;
+    return profile == null ? null : _applyCurrentReadPolicy(profile);
   }
 
   @override
   Future<List<AppProfile>> getWithParameters({
-    bool needsPhone = false, bool needsPosts = false,
-    List<ProfileType>? profileTypes, FacilityType? facilityType, PlaceType? placeType,
-    List<UsageReason>? usageReasons, Position? currentPosition, int maxDistance = 150, int? limit, bool isFirstCall = true}) async {
+    bool needsPhone = false,
+    bool needsPosts = false,
+    List<ProfileType>? profileTypes,
+    FacilityType? facilityType,
+    PlaceType? placeType,
+    List<UsageReason>? usageReasons,
+    Position? currentPosition,
+    int maxDistance = 150,
+    int? limit,
+    bool isFirstCall = true,
+  }) async {
     AppConfig.logger.d("Get profiles by parameters");
 
     List<AppProfile> profiles = [];
@@ -322,11 +400,17 @@ class ProfileFirestore implements ProfileRepository {
         QuerySnapshot profileQuerySnapshot;
         if (profileTypes != null && profileTypes.length == 1) {
           profileQuerySnapshot = await profileReference
-              .where(AppFirestoreConstants.type, isEqualTo: profileTypes.first.name)
+              .where(
+                AppFirestoreConstants.type,
+                isEqualTo: profileTypes.first.name,
+              )
               .get();
         } else if (profileTypes != null && profileTypes.length <= 30) {
           profileQuerySnapshot = await profileReference
-              .where(AppFirestoreConstants.type, whereIn: profileTypes.map((t) => t.name).toList())
+              .where(
+                AppFirestoreConstants.type,
+                whereIn: profileTypes.map((t) => t.name).toList(),
+              )
               .get();
         } else {
           // Fallback: get all profiles when no type filter or too many types
@@ -338,14 +422,17 @@ class ProfileFirestore implements ProfileRepository {
         for (var queryDocumentSnapshot in _profileDocuments) {
           if (!queryDocumentSnapshot.exists) continue;
           AppProfile profile = AppProfile.fromJSON(
-              queryDocumentSnapshot.data());
+            queryDocumentSnapshot.data(),
+          );
           profile.id = queryDocumentSnapshot.id;
           unsortedProfiles.add(profile);
         }
 
         if (currentPosition != null) {
           sortedProfiles = CoreUtilities.sortProfilesByLocation(
-              currentPosition, unsortedProfiles);
+            currentPosition,
+            unsortedProfiles,
+          );
         } else {
           sortedProfiles = CoreUtilities.sortProfilesByName(unsortedProfiles);
         }
@@ -354,13 +441,16 @@ class ProfileFirestore implements ProfileRepository {
       for (var profile in sortedProfiles.values) {
         if (currentProfileIds.contains(profile.id)) continue;
         if (needsPhone && profile.phoneNumber.isEmpty) {
-          AppConfig.logger.t("Profile ${profile.id} ${profile.name} - ${profile.type.name} has no phoneNumber");
+          AppConfig.logger.t(
+            "Profile ${profile.id} ${profile.name} - ${profile.type.name} has no phoneNumber",
+          );
           continue;
         }
 
         if (profileTypes != null && !profileTypes.contains(profile.type)) {
-          AppConfig.logger.t("Profile ${profile.id} ${profile.name} - ${profile.type
-              .name} is not profile type ${profileTypes.toString()} required");
+          AppConfig.logger.t(
+            "Profile ${profile.id} ${profile.name} - ${profile.type.name} is not profile type ${profileTypes.toString()} required",
+          );
           continue;
         }
 
@@ -368,20 +458,28 @@ class ProfileFirestore implements ProfileRepository {
             (!usageReasons.contains(profile.usageReason) &&
                 profile.usageReason != UsageReason.any)) {
           AppConfig.logger.t(
-              "Profile ${profile.id} ${profile.name} - ${profile.usageReason
-                  .name} has not the usage reason ${usageReasons.toString()} required");
+            "Profile ${profile.id} ${profile.name} - ${profile.usageReason.name} has not the usage reason ${usageReasons.toString()} required",
+          );
           continue;
         }
 
         if (needsPosts && (profile.posts?.isEmpty ?? true)) {
-          AppConfig.logger.t("Profile ${profile.id} ${profile.name} has not posts");
+          AppConfig.logger.t(
+            "Profile ${profile.id} ${profile.name} has not posts",
+          );
           continue;
         }
 
-        if (currentPosition != null && (profile.position != null
-            && PositionUtilities.distanceBetweenPositionsRounded(
-                profile.position!, currentPosition) > maxDistance)) {
-          AppConfig.logger.t("Profile ${profile.id} ${profile.name} is out of max distance");
+        if (currentPosition != null &&
+            (profile.position != null &&
+                PositionUtilities.distanceBetweenPositionsRounded(
+                      profile.position!,
+                      currentPosition,
+                    ) >
+                    maxDistance)) {
+          AppConfig.logger.t(
+            "Profile ${profile.id} ${profile.name} is out of max distance",
+          );
           continue;
         }
 
@@ -390,8 +488,7 @@ class ProfileFirestore implements ProfileRepository {
           for (String postId in profile.posts!) {
             try {
               final post = posts.firstWhere((p) => p.id == postId);
-              if (post.mediaUrl.isNotEmpty &&
-                  post.mediaUrl.contains('.jpg')) {
+              if (post.mediaUrl.isNotEmpty && post.mediaUrl.contains('.jpg')) {
                 postImgUrls.add(post.mediaUrl);
               }
             } catch (_) {
@@ -403,9 +500,11 @@ class ProfileFirestore implements ProfileRepository {
 
         if (facilityType != null) {
           AppConfig.logger.d(
-              "Retrieving Facility for ${profile.name} - ${profile.id}");
-          profile.facilities =
-          await FacilityFirestore().retrieveFacilities(profile.id);
+            "Retrieving Facility for ${profile.name} - ${profile.id}",
+          );
+          profile.facilities = await FacilityFirestore().retrieveFacilities(
+            profile.id,
+          );
           if (profile.facilities!.keys.contains(facilityType.value)) {
             if ((profile.facilities?[facilityType.value]?.isMain == true)) {
               facilityProfiles[profile.id] = profile;
@@ -422,7 +521,8 @@ class ProfileFirestore implements ProfileRepository {
 
         if (placeType != null) {
           AppConfig.logger.d(
-              "Retrieving Places for ${profile.name} - ${profile.id}");
+            "Retrieving Places for ${profile.name} - ${profile.id}",
+          );
           profile.places = await PlaceFirestore().retrievePlaces(profile.id);
           if (profile.places!.keys.contains(placeType.value)) {
             if ((profile.places?[placeType.value]?.isMain == true)) {
@@ -440,10 +540,11 @@ class ProfileFirestore implements ProfileRepository {
 
         if (profile.address.isEmpty) {
           profile.address =
-          await PositionUtilities.getFormattedAddressFromPosition(profile.position!);
+              await PositionUtilities.getFormattedAddressFromPosition(
+                profile.position!,
+              );
           if (profile.address.isNotEmpty) {
-            ProfileFirestore().updateAddress(
-              profile.id, profile.address);
+            ProfileFirestore().updateAddress(profile.id, profile.address);
           }
         }
 
@@ -452,24 +553,40 @@ class ProfileFirestore implements ProfileRepository {
         if (limit != null && profiles.length >= limit) break;
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getWithParameters');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'getWithParameters',
+      );
     }
 
     return profiles;
   }
 
   @override
-  Future<bool> remove(
-      {required String userId, required String profileId}) async {
+  Future<bool> remove({
+    required String userId,
+    required String profileId,
+  }) async {
     AppConfig.logger.d("Removing profile $profileId from Firestore");
 
     try {
-      await usersReference.doc(userId).collection(
-          AppFirestoreCollectionConstants.profiles).doc(profileId).delete();
+      await usersReference
+          .doc(userId)
+          .collection(AppFirestoreCollectionConstants.profiles)
+          .doc(profileId)
+          .delete();
       AppConfig.logger.d(
-          "Profile $profileId removed successfully from User $userId.");
+        "Profile $profileId removed successfully from User $userId.",
+      );
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'remove');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'remove',
+      );
       return false;
     }
 
@@ -507,7 +624,12 @@ class ProfileFirestore implements ProfileRepository {
         AppConfig.logger.d("Profile not found");
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'retrieveFull');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'retrieveFull',
+      );
       rethrow;
     }
 
@@ -515,23 +637,31 @@ class ProfileFirestore implements ProfileRepository {
   }
 
   @override
-  Future<List<AppProfile>> retrieveByUserId(String userId,
-      {ProfileType? profileType}) async {
+  Future<List<AppProfile>> retrieveByUserId(
+    String userId, {
+    ProfileType? profileType,
+  }) async {
     AppConfig.logger.d("RetrievingProfiles for $userId");
     List<AppProfile> profiles = <AppProfile>[];
 
     try {
-      QuerySnapshot querySnapshot = await usersReference.doc(userId)
-          .collection(AppFirestoreCollectionConstants.profiles).get();
+      QuerySnapshot querySnapshot = await usersReference
+          .doc(userId)
+          .collection(AppFirestoreCollectionConstants.profiles)
+          .get();
 
-      AppConfig.logger.d("Profiles query returned ${querySnapshot.docs.length} documents");
+      AppConfig.logger.d(
+        "Profiles query returned ${querySnapshot.docs.length} documents",
+      );
 
       if (querySnapshot.docs.isNotEmpty) {
         for (var profileSnapshot in querySnapshot.docs) {
           AppProfile profile = AppProfile.fromJSON(profileSnapshot.data());
           if (profileType == null || profile.type == profileType) {
             profile.id = profileSnapshot.id;
-            AppConfig.logger.d("Found profile: ${profile.id} - ${profile.name}");
+            AppConfig.logger.d(
+              "Found profile: ${profile.id} - ${profile.name}",
+            );
             profiles.add(profile);
           }
         }
@@ -539,13 +669,17 @@ class ProfileFirestore implements ProfileRepository {
         AppConfig.logger.w("No profiles found in users/$userId/profiles");
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'retrieveByUserId');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'retrieveByUserId',
+      );
     }
 
     AppConfig.logger.d("${profiles.length} profiles found for userId $userId");
     return profiles;
   }
-
 
   @override
   Future<Map<String, AppProfile>> retrieveProfilesByInstrument({
@@ -563,7 +697,10 @@ class ProfileFirestore implements ProfileRepository {
     try {
       // OPTIMIZED: Query only appArtist profiles instead of all profiles
       final querySnapshot = await profileReference
-          .where(AppFirestoreConstants.type, isEqualTo: ProfileType.appArtist.name)
+          .where(
+            AppFirestoreConstants.type,
+            isEqualTo: ProfileType.appArtist.name,
+          )
           .get();
 
       for (var document in querySnapshot.docs) {
@@ -578,12 +715,17 @@ class ProfileFirestore implements ProfileRepository {
         if (profile.position == null || currentPosition == null) continue;
 
         if (PositionUtilities.distanceBetweenPositionsRounded(
-            profile.position!, currentPosition) >= maxDistance) {
+              profile.position!,
+              currentPosition,
+            ) >=
+            maxDistance) {
           AppConfig.logger.t("Profile ${profile.id} is out of max distance");
           continue;
         }
 
-        profile.instruments = await InstrumentFirestore().retrieveInstruments(profile.id);
+        profile.instruments = await InstrumentFirestore().retrieveInstruments(
+          profile.id,
+        );
         if (profile.instruments!.keys.contains(instrumentId)) {
           if (profile.instruments?[instrumentId]?.isMain == true) {
             mainInstrumentProfiles[profile.id] = profile;
@@ -594,25 +736,33 @@ class ProfileFirestore implements ProfileRepository {
       }
 
       // Fill remaining slots with non-main instrument profiles
-      if (mainInstrumentProfiles.length < maxProfiles && noMainInstrumentProfiles.isNotEmpty) {
+      if (mainInstrumentProfiles.length < maxProfiles &&
+          noMainInstrumentProfiles.isNotEmpty) {
         for (var entry in noMainInstrumentProfiles.entries) {
           if (mainInstrumentProfiles.length >= maxProfiles) break;
           mainInstrumentProfiles[entry.key] = entry.value;
         }
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'retrieveProfilesByInstrument');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'retrieveProfilesByInstrument',
+      );
     }
 
     AppConfig.logger.d("${mainInstrumentProfiles.length} Profiles found");
     return mainInstrumentProfiles;
   }
 
-
   @override
   Future<Map<String, AppProfile>> retrieveFromList(
-      List<String> profileIds) async {
-    AppConfig.logger.t("RetrievingProfiles from list of ${profileIds.length} IDs");
+    List<String> profileIds,
+  ) async {
+    AppConfig.logger.t(
+      "RetrievingProfiles from list of ${profileIds.length} IDs",
+    );
 
     // Filter out empty IDs
     final validIds = profileIds.where((id) => id.isNotEmpty).toList();
@@ -640,7 +790,12 @@ class ProfileFirestore implements ProfileRepository {
         }
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'retrieveFromList');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'retrieveFromList',
+      );
     }
 
     AppConfig.logger.d("${profiles.length} profiles found");
@@ -648,18 +803,22 @@ class ProfileFirestore implements ProfileRepository {
   }
 
   @override
-  Future<bool> followProfile(
-      {required String profileId, required String followedProfileId}) async {
+  Future<bool> followProfile({
+    required String profileId,
+    required String followedProfileId,
+  }) async {
     AppConfig.logger.t("$profileId would be following $followedProfileId");
 
     try {
       // OPTIMIZED: Query only the 2 profiles we need instead of ALL profiles
       final results = await Future.wait([
         _updateProfileField(profileId, {
-          AppFirestoreConstants.following: FieldValue.arrayUnion([followedProfileId])
+          AppFirestoreConstants.following: FieldValue.arrayUnion([
+            followedProfileId,
+          ]),
         }),
         _updateProfileField(followedProfileId, {
-          AppFirestoreConstants.followers: FieldValue.arrayUnion([profileId])
+          AppFirestoreConstants.followers: FieldValue.arrayUnion([profileId]),
         }),
       ]);
 
@@ -668,25 +827,33 @@ class ProfileFirestore implements ProfileRepository {
         return true;
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'followProfile');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'followProfile',
+      );
     }
     return false;
   }
 
-
   @override
-  Future<bool> unfollowProfile(
-      {required String profileId, required String unfollowProfileId}) async {
+  Future<bool> unfollowProfile({
+    required String profileId,
+    required String unfollowProfileId,
+  }) async {
     AppConfig.logger.t("$profileId would be unfollowing $unfollowProfileId");
 
     try {
       // OPTIMIZED: Query only the 2 profiles we need instead of ALL profiles
       final results = await Future.wait([
         _updateProfileField(profileId, {
-          AppFirestoreConstants.following: FieldValue.arrayRemove([unfollowProfileId])
+          AppFirestoreConstants.following: FieldValue.arrayRemove([
+            unfollowProfileId,
+          ]),
         }),
         _updateProfileField(unfollowProfileId, {
-          AppFirestoreConstants.followers: FieldValue.arrayRemove([profileId])
+          AppFirestoreConstants.followers: FieldValue.arrayRemove([profileId]),
         }),
       ]);
 
@@ -695,27 +862,37 @@ class ProfileFirestore implements ProfileRepository {
         return true;
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'unfollowProfile');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'unfollowProfile',
+      );
     }
     return false;
   }
 
-
   @override
-  Future<bool> blockProfile(
-      {required String profileId, required String profileToBlock}) async {
+  Future<bool> blockProfile({
+    required String profileId,
+    required String profileToBlock,
+  }) async {
     AppConfig.logger.d("$profileId would be blocking $profileToBlock");
 
     try {
       // OPTIMIZED: Query only the 2 profiles we need instead of ALL profiles
       final results = await Future.wait([
         _updateProfileField(profileId, {
-          AppFirestoreConstants.following: FieldValue.arrayRemove([profileToBlock]),
-          AppFirestoreConstants.blockTo: FieldValue.arrayUnion([profileToBlock])
+          AppFirestoreConstants.following: FieldValue.arrayRemove([
+            profileToBlock,
+          ]),
+          AppFirestoreConstants.blockTo: FieldValue.arrayUnion([
+            profileToBlock,
+          ]),
         }),
         _updateProfileField(profileToBlock, {
           AppFirestoreConstants.followers: FieldValue.arrayRemove([profileId]),
-          AppFirestoreConstants.blockedBy: FieldValue.arrayUnion([profileId])
+          AppFirestoreConstants.blockedBy: FieldValue.arrayUnion([profileId]),
         }),
       ]);
 
@@ -724,25 +901,33 @@ class ProfileFirestore implements ProfileRepository {
         return true;
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'blockProfile');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'blockProfile',
+      );
     }
     return false;
   }
 
-
   @override
-  Future<bool> unblockProfile(
-      {required String profileId, required String profileToUnblock}) async {
+  Future<bool> unblockProfile({
+    required String profileId,
+    required String profileToUnblock,
+  }) async {
     AppConfig.logger.d("$profileId would unblock $profileToUnblock");
 
     try {
       // OPTIMIZED: Query only the 2 profiles we need instead of ALL profiles
       final results = await Future.wait([
         _updateProfileField(profileId, {
-          AppFirestoreConstants.blockTo: FieldValue.arrayRemove([profileToUnblock]),
+          AppFirestoreConstants.blockTo: FieldValue.arrayRemove([
+            profileToUnblock,
+          ]),
         }),
         _updateProfileField(profileToUnblock, {
-          AppFirestoreConstants.blockedBy: FieldValue.arrayRemove([profileId])
+          AppFirestoreConstants.blockedBy: FieldValue.arrayRemove([profileId]),
         }),
       ]);
 
@@ -751,17 +936,23 @@ class ProfileFirestore implements ProfileRepository {
         return true;
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'unblockProfile');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'unblockProfile',
+      );
     }
     return false;
   }
-
 
   @override
   Future<bool> updatePosition(String profileId, Position newPosition) async {
     AppConfig.logger.d("$profileId updating location");
 
-    String address = await PositionUtilities.getFormattedAddressFromPosition(newPosition);
+    String address = await PositionUtilities.getFormattedAddressFromPosition(
+      newPosition,
+    );
 
     // OPTIMIZED: Use helper method instead of fetching ALL profiles
     // Only include address if geocoding succeeded — don't overwrite with empty string
@@ -779,16 +970,13 @@ class ProfileFirestore implements ProfileRepository {
     return success;
   }
 
-
-
-
   @override
   Future<bool> addPost(String profileId, String postId) async {
     AppConfig.logger.d("$profileId would add $postId");
 
     // OPTIMIZED: Use helper method instead of fetching ALL profiles
     final success = await _updateProfileField(profileId, {
-      AppFirestoreConstants.posts: FieldValue.arrayUnion([postId])
+      AppFirestoreConstants.posts: FieldValue.arrayUnion([postId]),
     });
 
     if (success) {
@@ -797,14 +985,13 @@ class ProfileFirestore implements ProfileRepository {
     return success;
   }
 
-
   @override
   Future<bool> removePost(String profileId, String postId) async {
     AppConfig.logger.t("$profileId would remove $postId");
 
     // OPTIMIZED: Use helper method instead of fetching ALL profiles
     final success = await _updateProfileField(profileId, {
-      AppFirestoreConstants.posts: FieldValue.arrayRemove([postId])
+      AppFirestoreConstants.posts: FieldValue.arrayRemove([postId]),
     });
 
     if (success) {
@@ -813,14 +1000,13 @@ class ProfileFirestore implements ProfileRepository {
     return success;
   }
 
-
   @override
   Future<bool> hidePost(String profileId, String postId) async {
     AppConfig.logger.d("$profileId would hide $postId");
 
     // OPTIMIZED: Use helper method instead of fetching ALL profiles
     final success = await _updateProfileField(profileId, {
-      AppFirestoreConstants.hiddenPosts: FieldValue.arrayUnion([postId])
+      AppFirestoreConstants.hiddenPosts: FieldValue.arrayUnion([postId]),
     });
 
     if (success) {
@@ -829,14 +1015,13 @@ class ProfileFirestore implements ProfileRepository {
     return success;
   }
 
-
   @override
   Future<bool> addComment(String profileId, String commentId) async {
     AppConfig.logger.d("$profileId would add $commentId");
 
     // OPTIMIZED: Use helper method instead of fetching ALL profiles
     final success = await _updateProfileField(profileId, {
-      AppFirestoreConstants.comments: FieldValue.arrayUnion([commentId])
+      AppFirestoreConstants.comments: FieldValue.arrayUnion([commentId]),
     });
 
     if (success) {
@@ -845,14 +1030,13 @@ class ProfileFirestore implements ProfileRepository {
     return success;
   }
 
-
   @override
   Future<bool> removeComment(String profileId, String commentId) async {
     AppConfig.logger.d("$profileId would remove $commentId");
 
     // OPTIMIZED: Use helper method instead of fetching ALL profiles
     final success = await _updateProfileField(profileId, {
-      AppFirestoreConstants.comments: FieldValue.arrayRemove([commentId])
+      AppFirestoreConstants.comments: FieldValue.arrayRemove([commentId]),
     });
 
     if (success) {
@@ -861,14 +1045,13 @@ class ProfileFirestore implements ProfileRepository {
     return success;
   }
 
-
   @override
   Future<bool> hideComment(String profileId, String commentId) async {
     AppConfig.logger.d("$profileId would hide $commentId");
 
     // OPTIMIZED: Use helper method instead of fetching ALL profiles
     final success = await _updateProfileField(profileId, {
-      AppFirestoreConstants.hiddenComments: FieldValue.arrayUnion([commentId])
+      AppFirestoreConstants.hiddenComments: FieldValue.arrayUnion([commentId]),
     });
 
     if (success) {
@@ -877,7 +1060,6 @@ class ProfileFirestore implements ProfileRepository {
     return success;
   }
 
-
   @override
   Future<bool> updateName(String profileId, String profileName) async {
     AppConfig.logger.d("Updating profile $profileId to name $profileName}");
@@ -885,7 +1067,8 @@ class ProfileFirestore implements ProfileRepository {
     // OPTIMIZED: Use helper method instead of fetching ALL profiles
     return await _updateProfileField(profileId, {
       AppFirestoreConstants.name: profileName,
-      AppFirestoreConstants.lastNameUpdate: DateTime.now().millisecondsSinceEpoch,
+      AppFirestoreConstants.lastNameUpdate:
+          DateTime.now().millisecondsSinceEpoch,
     });
   }
 
@@ -905,11 +1088,15 @@ class ProfileFirestore implements ProfileRepository {
           .get();
       return querySnapshot.docs.isEmpty;
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'isAvailableSlug');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'isAvailableSlug',
+      );
       return false;
     }
   }
-
 
   @override
   Future<bool> updateAboutMe(String profileId, String aboutMe) async {
@@ -917,13 +1104,15 @@ class ProfileFirestore implements ProfileRepository {
 
     // OPTIMIZED: Use helper method instead of fetching ALL profiles
     return await _updateProfileField(profileId, {
-      AppFirestoreConstants.aboutMe: aboutMe
+      AppFirestoreConstants.aboutMe: aboutMe,
     });
   }
 
   @override
   Future<bool> updateAddress(String profileId, String address) async {
-    AppConfig.logger.i("Updating Profile $profileId with new address as $address");
+    AppConfig.logger.i(
+      "Updating Profile $profileId with new address as $address",
+    );
 
     // OPTIMIZED: Use helper method instead of fetching ALL profiles
     return await _updateProfileField(profileId, {
@@ -933,7 +1122,9 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> updatePhoneNumber(String profileId, String phoneNumber) async {
-    AppConfig.logger.i("Updating Profile $profileId with new phoneNumber as $phoneNumber");
+    AppConfig.logger.i(
+      "Updating Profile $profileId with new phoneNumber as $phoneNumber",
+    );
 
     // OPTIMIZED: Use helper method instead of fetching ALL profiles
     return await _updateProfileField(profileId, {
@@ -943,7 +1134,9 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<bool> updateType(String profileId, ProfileType type) async {
-    AppConfig.logger.i("Updating Profile $profileId with new type as ${type.name}");
+    AppConfig.logger.i(
+      "Updating Profile $profileId with new type as ${type.name}",
+    );
 
     // OPTIMIZED: Use helper method instead of fetching ALL profiles
     return await _updateProfileField(profileId, {
@@ -951,14 +1144,22 @@ class ProfileFirestore implements ProfileRepository {
     });
   }
 
-  Future<bool> updateInfluences(String profileId, List<Influence> influences) async {
+  Future<bool> updateInfluences(
+    String profileId,
+    List<Influence> influences,
+  ) async {
     AppConfig.logger.d("Updating influences for profile $profileId");
     return await _updateProfileField(profileId, {
-      AppFirestoreConstants.influences: influences.map((i) => i.toJSON()).toList(),
+      AppFirestoreConstants.influences: influences
+          .map((i) => i.toJSON())
+          .toList(),
     });
   }
 
-  Future<bool> updateSkills(String profileId, Map<String, dynamic> skillsMap) async {
+  Future<bool> updateSkills(
+    String profileId,
+    Map<String, dynamic> skillsMap,
+  ) async {
     AppConfig.logger.d("Updating skills for profile $profileId");
     return await _updateProfileField(profileId, {'skills': skillsMap});
   }
@@ -968,7 +1169,9 @@ class ProfileFirestore implements ProfileRepository {
   }
 
   Future<bool> updateUsageReason(String profileId, UsageReason reason) async {
-    AppConfig.logger.i("Updating Profile $profileId with new usage reason as ${reason.name}");
+    AppConfig.logger.i(
+      "Updating Profile $profileId with new usage reason as ${reason.name}",
+    );
 
     // OPTIMIZED: Use helper method instead of fetching ALL profiles
     return await _updateProfileField(profileId, {
@@ -977,9 +1180,13 @@ class ProfileFirestore implements ProfileRepository {
   }
 
   @override
-  Future<bool> updateVerificationLevel(String profileId,
-      VerificationLevel verificationLevel) async {
-    AppConfig.logger.i("Updating Profile $profileId with VerificationLevel as ${verificationLevel.name}");
+  Future<bool> updateVerificationLevel(
+    String profileId,
+    VerificationLevel verificationLevel,
+  ) async {
+    AppConfig.logger.i(
+      "Updating Profile $profileId with VerificationLevel as ${verificationLevel.name}",
+    );
 
     // OPTIMIZED: Use helper method instead of fetching ALL profiles
     return await _updateProfileField(profileId, {
@@ -987,10 +1194,12 @@ class ProfileFirestore implements ProfileRepository {
     });
   }
 
-
   @override
-  Future<bool> addEvent(String profileId, String eventId,
-      EventAction eventAction) async {
+  Future<bool> addEvent(
+    String profileId,
+    String eventId,
+    EventAction eventAction,
+  ) async {
     AppConfig.logger.t("$profileId would add $eventId");
 
     // OPTIMIZED: Use helper method instead of fetching ALL profiles
@@ -1002,7 +1211,7 @@ class ProfileFirestore implements ProfileRepository {
     };
 
     final success = await _updateProfileField(profileId, {
-      eventListToUpdate: FieldValue.arrayUnion([eventId])
+      eventListToUpdate: FieldValue.arrayUnion([eventId]),
     });
 
     if (success) {
@@ -1011,10 +1220,12 @@ class ProfileFirestore implements ProfileRepository {
     return success;
   }
 
-
   @override
-  Future<bool> removeEvent(String profileId, String eventId,
-      EventAction eventAction) async {
+  Future<bool> removeEvent(
+    String profileId,
+    String eventId,
+    EventAction eventAction,
+  ) async {
     AppConfig.logger.t("$profileId would remove $eventId");
 
     // OPTIMIZED: Use helper method instead of fetching ALL profiles
@@ -1026,7 +1237,7 @@ class ProfileFirestore implements ProfileRepository {
     };
 
     final success = await _updateProfileField(profileId, {
-      eventListToUpdate: FieldValue.arrayRemove([eventId])
+      eventListToUpdate: FieldValue.arrayRemove([eventId]),
     });
 
     if (success) {
@@ -1035,135 +1246,220 @@ class ProfileFirestore implements ProfileRepository {
     return success;
   }
 
-
   @override
   Future<bool> addFavoriteItem(String profileId, String itemId) async {
     AppConfig.logger.t("Adding item $itemId to Profile $profileId favorites");
 
     // OPTIMIZED: Use helper method instead of fetching ALL profiles
     return await _updateProfileField(profileId, {
-      AppFirestoreConstants.favoriteItems: FieldValue.arrayUnion([itemId])
+      AppFirestoreConstants.favoriteItems: FieldValue.arrayUnion([itemId]),
     });
   }
 
   @override
   Future<bool> addFavoriteItems(String profileId, List<String> itemIds) async {
-    AppConfig.logger.t("Adding ${itemIds.length} items to Profile $profileId favorites");
+    AppConfig.logger.t(
+      "Adding ${itemIds.length} items to Profile $profileId favorites",
+    );
 
     // OPTIMIZED: Use helper method instead of fetching ALL profiles
     return await _updateProfileField(profileId, {
-      AppFirestoreConstants.favoriteItems: FieldValue.arrayUnion(itemIds)
+      AppFirestoreConstants.favoriteItems: FieldValue.arrayUnion(itemIds),
     });
   }
 
   @override
   Future<bool> removeFavoriteItem(String profileId, String itemId) async {
-    AppConfig.logger.t("Removing item $itemId from Profile $profileId favorites");
+    AppConfig.logger.t(
+      "Removing item $itemId from Profile $profileId favorites",
+    );
 
     // OPTIMIZED: Use helper method instead of fetching ALL profiles
     return await _updateProfileField(profileId, {
-      AppFirestoreConstants.favoriteItems: FieldValue.arrayRemove([itemId])
+      AppFirestoreConstants.favoriteItems: FieldValue.arrayRemove([itemId]),
     });
   }
 
   @override
-  Future<bool> removeFavoriteItems(String profileId,
-      List<String> itemIds) async {
-    AppConfig.logger.t("Removing ${itemIds.length} items from Profile $profileId favorites");
+  Future<bool> removeFavoriteItems(
+    String profileId,
+    List<String> itemIds,
+  ) async {
+    AppConfig.logger.t(
+      "Removing ${itemIds.length} items from Profile $profileId favorites",
+    );
 
     // OPTIMIZED: Use helper method instead of fetching ALL profiles
     return await _updateProfileField(profileId, {
-      AppFirestoreConstants.favoriteItems: FieldValue.arrayRemove(itemIds)
+      AppFirestoreConstants.favoriteItems: FieldValue.arrayRemove(itemIds),
     });
   }
 
   /// Saves another user's playlist to this profile's library.
   Future<bool> saveItemlist(String profileId, String itemlistId) async {
-    AppConfig.logger.t("Saving itemlist $itemlistId to Profile $profileId library");
+    AppConfig.logger.t(
+      "Saving itemlist $itemlistId to Profile $profileId library",
+    );
     return await _updateProfileField(profileId, {
-      'savedItemlistIds': FieldValue.arrayUnion([itemlistId])
+      'savedItemlistIds': FieldValue.arrayUnion([itemlistId]),
     });
   }
 
   /// Removes a saved playlist from this profile's library.
   Future<bool> unsaveItemlist(String profileId, String itemlistId) async {
-    AppConfig.logger.t("Unsaving itemlist $itemlistId from Profile $profileId library");
+    AppConfig.logger.t(
+      "Unsaving itemlist $itemlistId from Profile $profileId library",
+    );
     return await _updateProfileField(profileId, {
-      'savedItemlistIds': FieldValue.arrayRemove([itemlistId])
+      'savedItemlistIds': FieldValue.arrayRemove([itemlistId]),
     });
   }
 
   @override
-  Future<bool> addChamberPreset(
-      {required String profileId, required String chamberPresetId}) async {
+  Future<bool> addChamberPreset({
+    required String profileId,
+    required String chamberPresetId,
+  }) async {
     AppConfig.logger.d("Adding preset $chamberPresetId to Profile $profileId");
 
     // OPTIMIZED: Use helper method instead of fetching ALL profiles
     return await _updateProfileField(profileId, {
-      AppFirestoreConstants.chamberPresets: FieldValue.arrayUnion([chamberPresetId])
+      AppFirestoreConstants.chamberPresets: FieldValue.arrayUnion([
+        chamberPresetId,
+      ]),
     });
   }
 
   @override
-  Future<bool> addCollective(
-      {required String profileId, required String collectiveId}) async {
+  Future<bool> addCollective({
+    required String profileId,
+    required String collectiveId,
+  }) async {
     AppConfig.logger.t("Add collective $collectiveId for profile $profileId");
 
     // OPTIMIZED: Use helper method instead of fetching ALL profiles
     return await _updateProfileField(profileId, {
-      AppFirestoreConstants.collectives: FieldValue.arrayUnion([collectiveId])
+      AppFirestoreConstants.collectives: FieldValue.arrayUnion([collectiveId]),
     });
   }
 
-
   @override
-  Future<bool> removeCollective(
-      {required String profileId, required String collectiveId}) async {
-    AppConfig.logger.t("Remove collective $collectiveId for profile $profileId");
+  Future<bool> removeCollective({
+    required String profileId,
+    required String collectiveId,
+  }) async {
+    AppConfig.logger.t(
+      "Remove collective $collectiveId for profile $profileId",
+    );
 
     // OPTIMIZED: Use helper method instead of fetching ALL profiles
     return await _updateProfileField(profileId, {
-      AppFirestoreConstants.collectives: FieldValue.arrayRemove([collectiveId])
+      AppFirestoreConstants.collectives: FieldValue.arrayRemove([collectiveId]),
     });
   }
 
   @override
-  Future<Map<String, AppProfile>> retrieveAllProfiles({int limit = 0, bool forceRefresh = false}) async {
-    if (!forceRefresh && _cachedAllProfiles.isNotEmpty && _lastAllProfilesFetchTime != null &&
-        DateTime.now().difference(_lastAllProfilesFetchTime!) < _allProfilesCacheTtl) {
-      AppConfig.logger.d("retrieveAllProfiles returned from in-memory cache: ${_cachedAllProfiles.length} profiles");
-      profiles = Map<String, AppProfile>.from(_cachedAllProfiles);
+  Future<Map<String, AppProfile>> retrieveAllProfiles({
+    int limit = 0,
+    bool forceRefresh = false,
+  }) async {
+    final isPublicReader = !AppConfig.instance.canPersistUserActivity;
+    final cachedProfiles = isPublicReader
+        ? _cachedPublicProfiles
+        : _cachedAllProfiles;
+    final lastFetchTime = isPublicReader
+        ? _lastPublicProfilesFetchTime
+        : _lastAllProfilesFetchTime;
+
+    if (!forceRefresh &&
+        cachedProfiles.isNotEmpty &&
+        lastFetchTime != null &&
+        DateTime.now().difference(lastFetchTime) < _allProfilesCacheTtl) {
+      AppConfig.logger.d(
+        "retrieveAllProfiles returned from ${isPublicReader ? 'public' : 'authenticated'} cache: "
+        "${cachedProfiles.length} profiles",
+      );
+      profiles = {
+        for (final entry in cachedProfiles.entries)
+          if (ProfileDirectoryPolicy.canList(
+            entry.value,
+            isPublicReader: isPublicReader,
+          ))
+            entry.key: isPublicReader
+                ? ProfileDirectoryPolicy.publicProjection(entry.value)
+                : ProfileDirectoryPolicy.applyFieldRedactions(
+                    entry.value,
+                    isPublicReader: false,
+                  ),
+      };
       return profiles;
     }
 
     AppConfig.logger.d("retrieveAllProfiles from Firestore");
+    profiles = <String, AppProfile>{};
 
     try {
       if (limit <= 0) limit = CoreConstants.profilesLimit;
-      final querySnapshot = await profileReference.limit(limit).get();
+      Query<Map<String, dynamic>> query = profileReference;
+      if (isPublicReader) {
+        query = query.where('directoryVisible', isEqualTo: true);
+      }
+      final querySnapshot = await query.limit(limit).get();
 
-      profiles = {
-        for (var document in querySnapshot.docs)
-          if (document.data().containsKey('name')) document.id: (AppProfile
-              .fromJSON(document.data())
-            ..id = document.id
-            ..email = document.reference.parent.parent?.id ?? "")
-      };
-      _cachedAllProfiles = Map<String, AppProfile>.from(profiles);
-      _lastAllProfilesFetchTime = DateTime.now();
+      // If auth changed while the query was in flight, prefer the stricter
+      // public projection rather than returning a now-stale private result.
+      final requiresPublicProjection =
+          isPublicReader || !AppConfig.instance.canPersistUserActivity;
+      profiles = {};
+      for (final document in querySnapshot.docs) {
+        final data = document.data();
+        if (!data.containsKey('name')) continue;
 
+        final profile = AppProfile.fromJSON(data)..id = document.id;
+        if (!ProfileDirectoryPolicy.canList(
+          profile,
+          isPublicReader: requiresPublicProjection,
+        )) {
+          continue;
+        }
+
+        if (!requiresPublicProjection) {
+          profile.email = document.reference.parent.parent?.id ?? '';
+        }
+        profiles[document.id] = requiresPublicProjection
+            ? ProfileDirectoryPolicy.publicProjection(profile)
+            : ProfileDirectoryPolicy.applyFieldRedactions(
+                profile,
+                isPublicReader: false,
+              );
+      }
+
+      if (requiresPublicProjection) {
+        _cachedPublicProfiles = Map<String, AppProfile>.from(profiles);
+        _lastPublicProfilesFetchTime = DateTime.now();
+      } else {
+        _cachedAllProfiles = Map<String, AppProfile>.from(profiles);
+        _lastAllProfilesFetchTime = DateTime.now();
+      }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'retrieveAllProfiles');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'retrieveAllProfiles',
+      );
     }
 
     AppConfig.logger.t("${profiles.length} profiles found");
     return profiles;
   }
 
-
   @override
-  Future<bool> addRequest(String profileId, String requestId,
-      RequestType requestType) async {
+  Future<bool> addRequest(
+    String profileId,
+    String requestId,
+    RequestType requestType,
+  ) async {
     AppConfig.logger.t("$profileId would add $requestId");
 
     // OPTIMIZED: Use helper method instead of fetching ALL profiles
@@ -1175,19 +1471,23 @@ class ProfileFirestore implements ProfileRepository {
     };
 
     final success = await _updateProfileField(profileId, {
-      requestsToUpdate: FieldValue.arrayUnion([requestId])
+      requestsToUpdate: FieldValue.arrayUnion([requestId]),
     });
 
     if (success) {
-      AppConfig.logger.d("Profile $profileId has added request $requestId as type ${requestType.name}");
+      AppConfig.logger.d(
+        "Profile $profileId has added request $requestId as type ${requestType.name}",
+      );
     }
     return success;
   }
 
-
   @override
-  Future<bool> removeRequest(String profileId, String requestId,
-      RequestType requestType) async {
+  Future<bool> removeRequest(
+    String profileId,
+    String requestId,
+    RequestType requestType,
+  ) async {
     AppConfig.logger.d("$profileId would remove $requestId");
 
     // OPTIMIZED: Use helper method instead of fetching ALL profiles
@@ -1199,7 +1499,7 @@ class ProfileFirestore implements ProfileRepository {
     };
 
     final success = await _updateProfileField(profileId, {
-      requestsToRemove: FieldValue.arrayRemove([requestId])
+      requestsToRemove: FieldValue.arrayRemove([requestId]),
     });
 
     if (success) {
@@ -1207,7 +1507,6 @@ class ProfileFirestore implements ProfileRepository {
     }
     return success;
   }
-
 
   @override
   Future<Map<String, AppProfile>> getFollowers(String profileId) async {
@@ -1220,10 +1519,12 @@ class ProfileFirestore implements ProfileRepository {
 
       if (profile.followers != null) {
         for (var followerId in profile.followers!) {
-          AppProfile? follower = await MateFirestore().getMateSimple(followerId);
+          AppProfile? follower = await MateFirestore().getMateSimple(
+            followerId,
+          );
           if (follower != null) {
-            follower.instruments =
-                await InstrumentFirestore().retrieveInstruments(followerId);
+            follower.instruments = await InstrumentFirestore()
+                .retrieveInstruments(followerId);
             followersMap[followerId] = follower;
           }
         }
@@ -1231,12 +1532,16 @@ class ProfileFirestore implements ProfileRepository {
 
       AppConfig.logger.d("${followersMap.length} Followers found");
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getFollowers');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'getFollowers',
+      );
       rethrow;
     }
     return followersMap;
   }
-
 
   @override
   Future<Map<String, AppProfile>> getFollowed(String profileId) async {
@@ -1249,10 +1554,12 @@ class ProfileFirestore implements ProfileRepository {
 
       if (profile.following != null) {
         for (var followedId in profile.following!) {
-          AppProfile? followed = await MateFirestore().getMateSimple(followedId);
+          AppProfile? followed = await MateFirestore().getMateSimple(
+            followedId,
+          );
           if (followed != null) {
-            followed.instruments =
-                await InstrumentFirestore().retrieveInstruments(followedId);
+            followed.instruments = await InstrumentFirestore()
+                .retrieveInstruments(followedId);
             followedMap[followedId] = followed;
           }
         }
@@ -1260,7 +1567,12 @@ class ProfileFirestore implements ProfileRepository {
 
       AppConfig.logger.d("${followedMap.length} Followed found");
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getFollowed');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'getFollowed',
+      );
       rethrow;
     }
     return followedMap;
@@ -1272,10 +1584,9 @@ class ProfileFirestore implements ProfileRepository {
 
     // OPTIMIZED: Use helper method instead of fetching ALL profiles
     return await _updateProfileField(profileId, {
-      AppFirestoreConstants.photoUrl: photoUrl
+      AppFirestoreConstants.photoUrl: photoUrl,
     });
   }
-
 
   @override
   Future<bool> updateCoverImgUrl(String profileId, String coverImgUrl) async {
@@ -1283,7 +1594,7 @@ class ProfileFirestore implements ProfileRepository {
 
     // OPTIMIZED: Use helper method instead of fetching ALL profiles
     return await _updateProfileField(profileId, {
-      AppFirestoreConstants.coverImgUrl: coverImgUrl
+      AppFirestoreConstants.coverImgUrl: coverImgUrl,
     });
   }
 
@@ -1292,7 +1603,6 @@ class ProfileFirestore implements ProfileRepository {
     // TODO: implement handleSearch
     throw UnimplementedError();
   }
-
 
   /// Retrieves the FCM token for a profile by looking up the associated user.
   /// Returns empty string if profile or user not found, or if no FCM token is registered.
@@ -1318,7 +1628,9 @@ class ProfileFirestore implements ProfileRepository {
         AppConfig.logger.t("Profile found by 'id' field");
       } else {
         // OPTIMIZED Fallback: Check recent profiles only instead of full collection scan
-        AppConfig.logger.w("Profile $profileId not found by 'id' field - checking recent profiles");
+        AppConfig.logger.w(
+          "Profile $profileId not found by 'id' field - checking recent profiles",
+        );
         final recentProfilesSnapshot = await profileReference
             .orderBy('createdTime', descending: true)
             .limit(100)
@@ -1361,28 +1673,37 @@ class ProfileFirestore implements ProfileRepository {
       final fcmToken = AppUser.fromJSON(userDoc.data()!).fcmToken;
 
       if (fcmToken.isEmpty) {
-        AppConfig.logger.w("User $userId has no FCM token registered (device may not have notifications enabled)");
+        AppConfig.logger.w(
+          "User $userId has no FCM token registered (device may not have notifications enabled)",
+        );
       } else {
         AppConfig.logger.t("FCM Token found: ${fcmToken.substring(0, 20)}...");
       }
 
       return fcmToken;
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'retrievedFcmToken');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'retrievedFcmToken',
+      );
       return "";
     }
   }
 
-
   @override
   Future<bool> isAvailableName(String profileName) async {
-    AppConfig.logger.d("Verify if name $profileName is available to create this profile");
+    AppConfig.logger.d(
+      "Verify if name $profileName is available to create this profile",
+    );
 
     try {
       QuerySnapshot querySnapshot = await profileReference
           .where(AppFirestoreConstants.name, isEqualTo: profileName.trim())
           .limit(
-          1) // Limitar a 1 resultado ya que solo necesitamos saber si existe
+            1,
+          ) // Limitar a 1 resultado ya que solo necesitamos saber si existe
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
@@ -1390,7 +1711,12 @@ class ProfileFirestore implements ProfileRepository {
         return false; // No disponible
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'isAvailableName');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'isAvailableName',
+      );
       return false;
     }
 
@@ -1413,10 +1739,15 @@ class ProfileFirestore implements ProfileRepository {
         final doc = querySnapshot.docs.first;
         final profile = AppProfile.fromJSON(doc.data());
         profile.id = doc.id;
-        return profile;
+        return _applyCurrentReadPolicy(profile);
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getBySlug');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'getBySlug',
+      );
     }
     return null;
   }
@@ -1424,8 +1755,9 @@ class ProfileFirestore implements ProfileRepository {
   Future<AppProfile> getProfileFeatures(AppProfile profile) async {
     try {
       if (profile.type == ProfileType.appArtist) {
-        profile.instruments =
-        await InstrumentFirestore().retrieveInstruments(profile.id);
+        profile.instruments = await InstrumentFirestore().retrieveInstruments(
+          profile.id,
+        );
         if (profile.instruments!.isEmpty) {
           AppConfig.logger.w("Instruments not found");
         }
@@ -1439,15 +1771,18 @@ class ProfileFirestore implements ProfileRepository {
       }
 
       if (profile.type == ProfileType.facilitator) {
-        profile.facilities =
-        await FacilityFirestore().retrieveFacilities(profile.id);
+        profile.facilities = await FacilityFirestore().retrieveFacilities(
+          profile.id,
+        );
         if (profile.facilities!.isEmpty) {
           AppConfig.logger.w("Facilities not found");
         }
       }
 
-      if(AppConfig.instance.appInUse == AppInUse.c) {
-        profile.chambers = await Sint.find<ChamberRepository>().fetchAll(ownerId: profile.id);
+      if (AppConfig.instance.appInUse == AppInUse.c) {
+        profile.chambers = await Sint.find<ChamberRepository>().fetchAll(
+          ownerId: profile.id,
+        );
         profile.chamberPresets?.clear();
 
         CoreUtilities.getTotalPresets(profile.chambers!).forEach((key, value) {
@@ -1459,11 +1794,15 @@ class ProfileFirestore implements ProfileRepository {
       profile.itemlists = await ItemlistFirestore().getByOwnerId(profile.id);
       if (profile.genres!.isEmpty) AppConfig.logger.t("Genres not found");
       if (profile.itemlists!.isEmpty) {
-        AppConfig.logger.t(
-          "Itemlists not found");
+        AppConfig.logger.t("Itemlists not found");
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getProfileFeatures');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'getProfileFeatures',
+      );
     }
 
     return profile;
@@ -1475,7 +1814,8 @@ class ProfileFirestore implements ProfileRepository {
 
     // OPTIMIZED: Use helper method instead of fetching ALL profiles
     return await _updateProfileField(profileId, {
-      AppFirestoreConstants.lastSpotifySync: DateTime.now().millisecondsSinceEpoch
+      AppFirestoreConstants.lastSpotifySync:
+          DateTime.now().millisecondsSinceEpoch,
     });
   }
 
@@ -1485,7 +1825,7 @@ class ProfileFirestore implements ProfileRepository {
 
     // OPTIMIZED: Use helper method instead of fetching ALL profiles
     final success = await _updateProfileField(profileId, {
-      AppFirestoreConstants.blogEntries: FieldValue.arrayUnion([blogEntryId])
+      AppFirestoreConstants.blogEntries: FieldValue.arrayUnion([blogEntryId]),
     });
 
     if (success) {
@@ -1494,14 +1834,13 @@ class ProfileFirestore implements ProfileRepository {
     return success;
   }
 
-
   @override
   Future<bool> removeBlogEntry(String profileId, String blogEntryId) async {
     AppConfig.logger.d("$profileId would remove $blogEntryId");
 
     // OPTIMIZED: Use helper method instead of fetching ALL profiles
     final success = await _updateProfileField(profileId, {
-      AppFirestoreConstants.blogEntries: FieldValue.arrayRemove([blogEntryId])
+      AppFirestoreConstants.blogEntries: FieldValue.arrayRemove([blogEntryId]),
     });
 
     if (success) {
@@ -1517,10 +1856,9 @@ class ProfileFirestore implements ProfileRepository {
     // OPTIMIZED: Use helper method instead of fetching ALL profiles
     // Note: Original code had a bug - it was updating ALL profiles instead of just the specified one
     return await _updateProfileField(profileId, {
-      AppFirestoreConstants.favoriteItems: FieldValue.delete()
+      AppFirestoreConstants.favoriteItems: FieldValue.delete(),
     });
   }
-
 
   @override
   Future<Map<String, AppProfile>> retrieveProfilesByFacility({
@@ -1529,7 +1867,8 @@ class ProfileFirestore implements ProfileRepository {
 
     FacilityType? facilityType,
     int maxDistance = 30,
-    int maxProfiles = 30}) async {
+    int maxProfiles = 30,
+  }) async {
     AppConfig.logger.d("RetrievingProfiles by facility");
 
     Map<String, AppProfile> facilityProfiles = <String, AppProfile>{};
@@ -1538,7 +1877,10 @@ class ProfileFirestore implements ProfileRepository {
     try {
       // OPTIMIZED: Query only facilitator profiles instead of all profiles
       final querySnapshot = await profileReference
-          .where(AppFirestoreConstants.type, isEqualTo: ProfileType.facilitator.name)
+          .where(
+            AppFirestoreConstants.type,
+            isEqualTo: ProfileType.facilitator.name,
+          )
           .get();
 
       for (var document in querySnapshot.docs) {
@@ -1553,21 +1895,33 @@ class ProfileFirestore implements ProfileRepository {
         if (profile.position == null || currentPosition == null) continue;
 
         if (PositionUtilities.distanceBetweenPositionsRounded(
-            profile.position!, currentPosition) >= maxDistance) {
-          AppConfig.logger.t("Profile ${profile.id} ${profile.name} is out of max distance");
+              profile.position!,
+              currentPosition,
+            ) >=
+            maxDistance) {
+          AppConfig.logger.t(
+            "Profile ${profile.id} ${profile.name} is out of max distance",
+          );
           continue;
         }
 
         if (profile.address.isEmpty && profile.position != null) {
-          profile.address = await PositionUtilities.getFormattedAddressFromPosition(profile.position!);
+          profile.address =
+              await PositionUtilities.getFormattedAddressFromPosition(
+                profile.position!,
+              );
         }
 
         if (profile.posts?.isEmpty ?? true) {
-          AppConfig.logger.t("Profile ${profile.id} ${profile.name} has no posts");
+          AppConfig.logger.t(
+            "Profile ${profile.id} ${profile.name} has no posts",
+          );
           continue;
         }
 
-        List<Post> profilePosts = await PostFirestore().getProfilePosts(profile.id);
+        List<Post> profilePosts = await PostFirestore().getProfilePosts(
+          profile.id,
+        );
         List<String> postImgUrls = [];
         for (var element in profilePosts) {
           if (postImgUrls.length < 6) {
@@ -1576,7 +1930,9 @@ class ProfileFirestore implements ProfileRepository {
         }
 
         if (facilityType != null) {
-          profile.facilities = await FacilityFirestore().retrieveFacilities(profile.id);
+          profile.facilities = await FacilityFirestore().retrieveFacilities(
+            profile.id,
+          );
           if (profile.facilities!.keys.contains(facilityType.value)) {
             if (profile.facilities?[facilityType.value]?.isMain == true) {
               facilityProfiles[profile.id] = profile;
@@ -1593,14 +1949,20 @@ class ProfileFirestore implements ProfileRepository {
       }
 
       // Fill remaining slots with non-main facility profiles
-      if (facilityProfiles.length < maxProfiles && noMainFacilityProfiles.isNotEmpty) {
+      if (facilityProfiles.length < maxProfiles &&
+          noMainFacilityProfiles.isNotEmpty) {
         for (var entry in noMainFacilityProfiles.entries) {
           if (facilityProfiles.length >= maxProfiles) break;
           facilityProfiles[entry.key] = entry.value;
         }
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'retrieveProfilesByFacility');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'retrieveProfilesByFacility',
+      );
     }
 
     AppConfig.logger.d("${facilityProfiles.length} Profiles found");
@@ -1609,9 +1971,12 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<Map<String, AppProfile>> retrieveProfilesByPlace({
-    required String selfProfileId, required Position? currentPosition,
-    PlaceType? placeType, int maxDistance = 30, int maxProfiles = 30}) async {
-
+    required String selfProfileId,
+    required Position? currentPosition,
+    PlaceType? placeType,
+    int maxDistance = 30,
+    int maxProfiles = 30,
+  }) async {
     AppConfig.logger.d("RetrievingProfiles by place");
 
     Map<String, AppProfile> hostProfiles = <String, AppProfile>{};
@@ -1635,21 +2000,33 @@ class ProfileFirestore implements ProfileRepository {
         if (profile.position == null || currentPosition == null) continue;
 
         if (PositionUtilities.distanceBetweenPositionsRounded(
-            profile.position!, currentPosition) >= maxDistance) {
-          AppConfig.logger.t("Profile ${profile.id} ${profile.name} is out of max distance");
+              profile.position!,
+              currentPosition,
+            ) >=
+            maxDistance) {
+          AppConfig.logger.t(
+            "Profile ${profile.id} ${profile.name} is out of max distance",
+          );
           continue;
         }
 
         if (profile.address.isEmpty && profile.position != null) {
-          profile.address = await PositionUtilities.getFormattedAddressFromPosition(profile.position!);
+          profile.address =
+              await PositionUtilities.getFormattedAddressFromPosition(
+                profile.position!,
+              );
         }
 
         if (profile.posts?.isEmpty ?? true) {
-          AppConfig.logger.t("Profile ${profile.id} ${profile.name} has no posts");
+          AppConfig.logger.t(
+            "Profile ${profile.id} ${profile.name} has no posts",
+          );
           continue;
         }
 
-        List<Post> profilePosts = await PostFirestore().getProfilePosts(profile.id);
+        List<Post> profilePosts = await PostFirestore().getProfilePosts(
+          profile.id,
+        );
         List<String> postImgUrls = [];
         for (var element in profilePosts) {
           if (postImgUrls.length < 6) {
@@ -1658,7 +2035,9 @@ class ProfileFirestore implements ProfileRepository {
         }
 
         if (placeType != null) {
-          profile.facilities = await FacilityFirestore().retrieveFacilities(profile.id);
+          profile.facilities = await FacilityFirestore().retrieveFacilities(
+            profile.id,
+          );
           if (profile.facilities!.keys.contains(placeType.value)) {
             if (profile.facilities?[placeType.value]?.isMain == true) {
               hostProfiles[profile.id] = profile;
@@ -1682,7 +2061,12 @@ class ProfileFirestore implements ProfileRepository {
         }
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'retrieveProfilesByPlace');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'retrieveProfilesByPlace',
+      );
     }
 
     AppConfig.logger.d("${hostProfiles.length} Profiles found");
@@ -1703,9 +2087,9 @@ class ProfileFirestore implements ProfileRepository {
     try {
       user = await _getUserByEmail(email.toLowerCase());
 
-      if(user?.currentProfileId.isNotEmpty ?? false) {
+      if (user?.currentProfileId.isNotEmpty ?? false) {
         profile = await retrieve(user!.currentProfileId);
-        if(profile.id.isNotEmpty) {
+        if (profile.id.isNotEmpty) {
           return profile;
         } else {
           AppConfig.logger.d("Profile for userId ${user.id} not found");
@@ -1714,7 +2098,12 @@ class ProfileFirestore implements ProfileRepository {
         user?.profiles = await retrieveByUserId(user.id);
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getByEmail');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'getByEmail',
+      );
     }
 
     return (user?.profiles.isNotEmpty ?? false) ? user!.profiles.first : null;
@@ -1722,7 +2111,10 @@ class ProfileFirestore implements ProfileRepository {
 
   Future<AppUser?> _getUserByEmail(String email) async {
     try {
-      QuerySnapshot querySnapshot = await usersReference.where(AppFirestoreConstants.email, isEqualTo: email).limit(1).get();
+      QuerySnapshot querySnapshot = await usersReference
+          .where(AppFirestoreConstants.email, isEqualTo: email)
+          .limit(1)
+          .get();
 
       if (querySnapshot.docs.isNotEmpty) {
         var queryDocumentSnapshot = querySnapshot.docs.first;
@@ -1733,7 +2125,12 @@ class ProfileFirestore implements ProfileRepository {
         }
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: '_getUserByEmail');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: '_getUserByEmail',
+      );
     }
     return null;
   }
@@ -1776,8 +2173,14 @@ class ProfileFirestore implements ProfileRepository {
 
         // Try with original input case first
         var nameQuerySnapshot = await profileReference
-            .where(AppFirestoreConstants.name, isGreaterThanOrEqualTo: trimmedQuery)
-            .where(AppFirestoreConstants.name, isLessThanOrEqualTo: '$trimmedQuery\uf8ff')
+            .where(
+              AppFirestoreConstants.name,
+              isGreaterThanOrEqualTo: trimmedQuery,
+            )
+            .where(
+              AppFirestoreConstants.name,
+              isLessThanOrEqualTo: '$trimmedQuery\uf8ff',
+            )
             .limit(limit)
             .get();
 
@@ -1790,11 +2193,19 @@ class ProfileFirestore implements ProfileRepository {
 
         // If no results, try with capitalized first letter (e.g., "yori" -> "Yori")
         if (results.isEmpty && trimmedQuery.isNotEmpty) {
-          final capitalizedQuery = trimmedQuery[0].toUpperCase() + trimmedQuery.substring(1).toLowerCase();
+          final capitalizedQuery =
+              trimmedQuery[0].toUpperCase() +
+              trimmedQuery.substring(1).toLowerCase();
           if (capitalizedQuery != trimmedQuery) {
             nameQuerySnapshot = await profileReference
-                .where(AppFirestoreConstants.name, isGreaterThanOrEqualTo: capitalizedQuery)
-                .where(AppFirestoreConstants.name, isLessThanOrEqualTo: '$capitalizedQuery\uf8ff')
+                .where(
+                  AppFirestoreConstants.name,
+                  isGreaterThanOrEqualTo: capitalizedQuery,
+                )
+                .where(
+                  AppFirestoreConstants.name,
+                  isLessThanOrEqualTo: '$capitalizedQuery\uf8ff',
+                )
                 .limit(limit)
                 .get();
 
@@ -1812,8 +2223,14 @@ class ProfileFirestore implements ProfileRepository {
           final upperQuery = trimmedQuery.toUpperCase();
           if (upperQuery != trimmedQuery) {
             nameQuerySnapshot = await profileReference
-                .where(AppFirestoreConstants.name, isGreaterThanOrEqualTo: upperQuery)
-                .where(AppFirestoreConstants.name, isLessThanOrEqualTo: '$upperQuery\uf8ff')
+                .where(
+                  AppFirestoreConstants.name,
+                  isGreaterThanOrEqualTo: upperQuery,
+                )
+                .where(
+                  AppFirestoreConstants.name,
+                  isLessThanOrEqualTo: '$upperQuery\uf8ff',
+                )
                 .limit(limit)
                 .get();
 
@@ -1829,7 +2246,12 @@ class ProfileFirestore implements ProfileRepository {
 
       AppConfig.logger.d("Found ${results.length} profiles matching '$query'");
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'searchByName');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'searchByName',
+      );
     }
 
     return results;
@@ -1846,7 +2268,9 @@ class ProfileFirestore implements ProfileRepository {
           .get();
 
       final docs = querySnapshot.docs;
-      AppConfig.logger.i("Se encontraron ${docs.length} perfiles en la base de datos.");
+      AppConfig.logger.i(
+        "Se encontraron ${docs.length} perfiles en la base de datos.",
+      );
 
       // 2. Preparar el Batch (Lotes de máximo 500 operaciones permitidas por Firebase)
       var batch = FirebaseFirestore.instance.batch();
@@ -1880,11 +2304,16 @@ class ProfileFirestore implements ProfileRepository {
         await batch.commit();
       }
 
-      AppConfig.logger.i("¡Migración completada! Se corrigieron $totalUpdated perfiles legacy.");
-
+      AppConfig.logger.i(
+        "¡Migración completada! Se corrigieron $totalUpdated perfiles legacy.",
+      );
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'backfillAllProfileIds');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'backfillAllProfileIds',
+      );
     }
   }
-
 }

@@ -12,9 +12,13 @@ import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
 
 class PostFirestore implements PostRepository {
+  bool get _canPersistUserActivity => AppConfig.instance.canPersistUserActivity;
+
+  bool _canRead(Post post) => _canPersistUserActivity || post.isPubliclyVisible;
 
   final postsReference = FirebaseFirestore.instance.collection(
-      AppFirestoreCollectionConstants.posts);
+    AppFirestoreCollectionConstants.posts,
+  );
 
   final List<QueryDocumentSnapshot> _profileDocPosts = [];
   final List<QueryDocumentSnapshot> _recentDocTimeline = [];
@@ -29,7 +33,10 @@ class PostFirestore implements PostRepository {
   DocumentSnapshot? _lastPostDocument;
 
   @override
-  Future<List<Post>> retrievePosts({int limit = 50, bool refresh = false}) async {
+  Future<List<Post>> retrievePosts({
+    int limit = 50,
+    bool refresh = false,
+  }) async {
     AppConfig.logger.d("Retrieving Posts with limit: $limit");
     List<Post> posts = <Post>[];
 
@@ -58,13 +65,18 @@ class PostFirestore implements PostRepository {
           if (data != null) {
             Post post = Post.fromJSON(data as Map<String, dynamic>);
             post.id = postSnapshot.id;
-            posts.add(post);
+            if (_canRead(post)) posts.add(post);
           }
         }
         AppConfig.logger.t("${posts.length} posts found");
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.retrievePosts');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'PostFirestore.retrievePosts',
+      );
       AppConfig.logger.w("No Posts Found");
     }
 
@@ -72,18 +84,30 @@ class PostFirestore implements PostRepository {
   }
 
   @override
-  Future<bool> handleLikePost(String profileId, String postId,
-      bool isLiked) async {
+  Future<bool> handleLikePost(
+    String profileId,
+    String postId,
+    bool isLiked,
+  ) async {
+    if (!_canPersistUserActivity) return false;
     AppConfig.logger.d("Handle Like for Post: $postId - isLiked: $isLiked");
     try {
       await postsReference.doc(postId).update({
-        AppFirestoreConstants.likedProfiles: isLiked ? FieldValue.arrayRemove([profileId]) : FieldValue.arrayUnion([profileId]),
-        AppFirestoreConstants.lastInteraction: DateTime.now().millisecondsSinceEpoch,
+        AppFirestoreConstants.likedProfiles: isLiked
+            ? FieldValue.arrayRemove([profileId])
+            : FieldValue.arrayUnion([profileId]),
+        AppFirestoreConstants.lastInteraction:
+            DateTime.now().millisecondsSinceEpoch,
       });
 
       return true;
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.handleLikePost');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'PostFirestore.handleLikePost',
+      );
       return false;
     }
   }
@@ -99,16 +123,22 @@ class PostFirestore implements PostRepository {
         final doc = querySnapshot.docs.first;
         final post = Post.fromJSON(doc.data());
         post.id = doc.id;
-        return post;
+        return _canRead(post) ? post : null;
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.getBySlug');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'PostFirestore.getBySlug',
+      );
     }
     return null;
   }
 
   @override
   Future<String> insert(Post post) async {
+    if (!_canPersistUserActivity) return '';
     AppConfig.logger.t("Insert");
     String postId = "";
     try {
@@ -117,15 +147,23 @@ class PostFirestore implements PostRepository {
         final titleSlug = Post.generateSlug(post.caption);
         if (titleSlug.isNotEmpty) {
           final existing = await getBySlug(titleSlug);
-          post.slug = existing == null ? titleSlug : Post.generateSlug('${post.profileName} ${post.caption}');
+          post.slug = existing == null
+              ? titleSlug
+              : Post.generateSlug('${post.profileName} ${post.caption}');
         }
       }
 
-      DocumentReference documentReference = await postsReference
-          .add(post.toJSON());
+      DocumentReference documentReference = await postsReference.add(
+        post.toJSON(),
+      );
       postId = documentReference.id;
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.insert');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'PostFirestore.insert',
+      );
     }
     AppConfig.logger.d("Post Inserted with ID: $postId");
     return postId;
@@ -141,17 +179,23 @@ class PostFirestore implements PostRepository {
       if (postSnapshot.exists && postSnapshot.data() != null) {
         post = Post.fromJSON(postSnapshot.data() as Map<String, dynamic>);
         post.id = postSnapshot.id;
+        if (!_canRead(post)) return Post();
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.retrieve');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'PostFirestore.retrieve',
+      );
     }
 
     return post;
   }
 
-
   @override
   Future<bool> remove(String profileId, String postId) async {
+    if (!_canPersistUserActivity) return false;
     AppConfig.logger.t("remove Post");
     bool wasDeleted = false;
     try {
@@ -159,7 +203,12 @@ class PostFirestore implements PostRepository {
       wasDeleted = await _removeProfilePost(profileId, postId);
       await ActivityFeedFirestore().removePostActivity(postId);
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.remove');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'PostFirestore.remove',
+      );
     }
 
     return wasDeleted;
@@ -175,35 +224,52 @@ class PostFirestore implements PostRepository {
 
       if (querySnapshot.docs.isNotEmpty) {
         await querySnapshot.docs.first.reference.update({
-          AppFirestoreConstants.posts: FieldValue.arrayRemove([postId])
+          AppFirestoreConstants.posts: FieldValue.arrayRemove([postId]),
         });
         return true;
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: '_removeProfilePost');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: '_removeProfilePost',
+      );
     }
     return false;
   }
 
   Future<bool> update(Post post) async {
+    if (!_canPersistUserActivity) return false;
     AppConfig.logger.d("");
     try {
       await postsReference.doc(post.id).update(post.toJSON());
       return true;
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.update');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'PostFirestore.update',
+      );
     }
 
     return false;
   }
 
   Future<bool> updateFields(String postId, Map<String, dynamic> fields) async {
+    if (!_canPersistUserActivity) return false;
     AppConfig.logger.d("Updating post $postId fields");
     try {
       await postsReference.doc(postId).update(fields);
       return true;
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.updateFields');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'PostFirestore.updateFields',
+      );
       return false;
     }
   }
@@ -225,54 +291,77 @@ class PostFirestore implements PostRepository {
       QuerySnapshot querySnapshot = await query.get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        for(var doc in querySnapshot.docs) {
+        for (var doc in querySnapshot.docs) {
           Post post = Post.fromJSON(doc.data());
           post.id = doc.id;
-          AppConfig.logger.t('Post ${post.id} of type ${post.type.name} at ${post.location}');
-          if (post.type != PostType.event) {
+          AppConfig.logger.t(
+            'Post ${post.id} of type ${post.type.name} at ${post.location}',
+          );
+          if (post.type != PostType.event && _canRead(post)) {
             posts.add(post);
           }
         }
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.getProfilePosts');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'PostFirestore.getProfilePosts',
+      );
     }
 
     AppConfig.logger.d("Retrieveing ${posts.length} Posts");
     return posts;
   }
 
-
   @override
-  Future<Map<String, Post>> getTimeline({int limit = CoreConstants.timelineLimit}) async {
+  Future<Map<String, Post>> getTimeline({
+    int limit = CoreConstants.timelineLimit,
+    bool forceRefresh = false,
+  }) async {
     AppConfig.logger.t("getTimeline");
     Map<String, Post> posts = {};
 
     try {
+      if (forceRefresh) {
+        _recentDocTimeline.clear();
+        _diverseDocTimeline.clear();
+      }
+
       Query query = postsReference
           .orderBy(AppFirestoreConstants.lastInteraction, descending: true)
           .limit(limit);
       if (_recentDocTimeline.isNotEmpty) {
         query = query.startAfterDocument(_recentDocTimeline.last);
       }
-      QuerySnapshot snapshot  = await query.get();
+      final QuerySnapshot snapshot = forceRefresh
+          ? await query.get(const GetOptions(source: Source.server))
+          : await query.get();
 
       _recentDocTimeline.addAll(snapshot.docs);
 
-      for(var doc in snapshot.docs) {
+      for (var doc in snapshot.docs) {
         Post post = Post.fromJSON(doc.data());
-        if(!post.isDraft && !_diverseDocTimeline.containsKey(doc.id)) {
+        if (_canRead(post) && !_diverseDocTimeline.containsKey(doc.id)) {
           post.id = doc.id;
-          if(post.location.isEmpty && post.position?.latitude != 0) {
-            post.location = await PositionUtilities.getFormattedAddressFromPosition(post.position!);
+          if (post.location.isEmpty && post.position?.latitude != 0) {
+            post.location =
+                await PositionUtilities.getFormattedAddressFromPosition(
+                  post.position!,
+                );
           }
           posts[post.id] = post;
           _diverseDocTimeline[doc.id] = doc;
         }
-
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.getTimeline');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'PostFirestore.getTimeline',
+      );
     }
 
     AppConfig.logger.d("Retrieveing ${posts.length} Posts");
@@ -280,6 +369,7 @@ class PostFirestore implements PostRepository {
   }
 
   Future<Map<String, Post>> getDrafts({String profileId = ""}) async {
+    if (!_canPersistUserActivity) return {};
     AppConfig.logger.d("");
     List<Post> sortedDrafts = [];
     Map<String, Post> drafts = {};
@@ -294,24 +384,30 @@ class PostFirestore implements PostRepository {
       for (int i = 0; i < _recentDocTimeline.length; i++) {
         Post post = Post.fromJSON(_recentDocTimeline.elementAt(i).data());
         post.id = _recentDocTimeline.elementAt(i).id;
-        if(post.location.isEmpty && post.position != null) {
-          post.location = await PositionUtilities.getFormattedAddressFromPosition(post.position!);
+        if (post.location.isEmpty && post.position != null) {
+          post.location =
+              await PositionUtilities.getFormattedAddressFromPosition(
+                post.position!,
+              );
         }
 
-        if(profileId == post.ownerId || profileId.isEmpty) {
+        if (profileId == post.ownerId || profileId.isEmpty) {
           sortedDrafts.add(post);
         }
-
       }
 
-      sortedDrafts.sort((a,b) => a.modifiedTime.compareTo(b.modifiedTime));
+      sortedDrafts.sort((a, b) => a.modifiedTime.compareTo(b.modifiedTime));
 
       for (var post in sortedDrafts) {
         drafts[post.id] = post;
       }
-
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.getDrafts');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'PostFirestore.getDrafts',
+      );
     }
 
     return drafts;
@@ -319,6 +415,7 @@ class PostFirestore implements PostRepository {
 
   /// OPTIMIZED: Remove event post using indexed query instead of full collection scan
   Future<bool> removeEventPost(String ownerId, String eventId) async {
+    if (!_canPersistUserActivity) return false;
     AppConfig.logger.t('Remove Event Post $eventId');
     bool wasDeleted = false;
 
@@ -326,14 +423,21 @@ class PostFirestore implements PostRepository {
       // OPTIMIZED: Use where query with referenceId instead of scanning ALL posts
       QuerySnapshot querySnapshot = await postsReference
           .where(AppFirestoreConstants.referenceId, isEqualTo: eventId)
-          .limit(5) // Usually only 1 post per event, but allow a few just in case
+          .limit(
+            5,
+          ) // Usually only 1 post per event, but allow a few just in case
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
         for (var postSnapshot in querySnapshot.docs) {
           await postSnapshot.reference.delete();
-          wasDeleted = await _removeProfilePost(ownerId, postSnapshot.reference.id);
-          await ActivityFeedFirestore().removePostActivity(postSnapshot.reference.id);
+          wasDeleted = await _removeProfilePost(
+            ownerId,
+            postSnapshot.reference.id,
+          );
+          await ActivityFeedFirestore().removePostActivity(
+            postSnapshot.reference.id,
+          );
           wasDeleted = true;
           AppConfig.logger.d('Removed event post ${postSnapshot.id}');
         }
@@ -341,46 +445,61 @@ class PostFirestore implements PostRepository {
         AppConfig.logger.d('No post found for event $eventId');
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.removeEventPost');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'PostFirestore.removeEventPost',
+      );
     }
 
     return wasDeleted;
   }
 
-
   @override
   Future<bool> addComment(String postId, String commentId) async {
+    if (!_canPersistUserActivity) return false;
     AppConfig.logger.d("");
     try {
-
       await postsReference.doc(postId).update({
         AppFirestoreConstants.commentIds: FieldValue.arrayUnion([commentId]),
-        AppFirestoreConstants.lastInteraction: DateTime.now().millisecondsSinceEpoch,
+        AppFirestoreConstants.lastInteraction:
+            DateTime.now().millisecondsSinceEpoch,
       });
 
       return true;
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.addComment');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'PostFirestore.addComment',
+      );
       return false;
     }
   }
 
-
   @override
   Future<bool> removeComment(String postId, String commentId) async {
+    if (!_canPersistUserActivity) return false;
     AppConfig.logger.d("");
     try {
       await postsReference.doc(postId).update({
         AppFirestoreConstants.commentIds: FieldValue.arrayRemove([commentId]),
-        AppFirestoreConstants.lastInteraction: DateTime.now().millisecondsSinceEpoch,
+        AppFirestoreConstants.lastInteraction:
+            DateTime.now().millisecondsSinceEpoch,
       });
       return true;
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.removeComment');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'PostFirestore.removeComment',
+      );
       return false;
     }
   }
-
 
   @override
   Future<Post> retrievePostForEvent(String eventId) async {
@@ -389,19 +508,26 @@ class PostFirestore implements PostRepository {
     Post post = Post();
 
     try {
-      QuerySnapshot querySnapshot = await postsReference.where(
-          AppFirestoreConstants.eventId, isEqualTo: eventId).get();
+      QuerySnapshot querySnapshot = await postsReference
+          .where(AppFirestoreConstants.eventId, isEqualTo: eventId)
+          .get();
 
       if (querySnapshot.docs.isNotEmpty) {
         AppConfig.logger.d("Snapshot is not empty");
         for (DocumentSnapshot doc in querySnapshot.docs) {
           post = Post.fromJSON(doc.data());
           post.id = doc.id;
+          if (!_canRead(post)) return Post();
           AppConfig.logger.d(post.toString());
         }
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.retrievePostForEvent');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'PostFirestore.retrievePostForEvent',
+      );
     }
 
     return post;
@@ -409,6 +535,7 @@ class PostFirestore implements PostRepository {
 
   @override
   Future<Map<String, Post>> getBlogEntries({String profileId = ""}) async {
+    if (!_canPersistUserActivity && profileId.isNotEmpty) return {};
     AppConfig.logger.d("getBlogEntries");
     List<Post> sortedDrafts = [];
     Map<String, Post> drafts = {};
@@ -422,25 +549,32 @@ class PostFirestore implements PostRepository {
         Post post = Post.fromJSON(snapshot.docs.elementAt(i).data());
         post.id = snapshot.docs.elementAt(i).id;
 
-        if(profileId == post.ownerId || profileId.isEmpty) {
-          if(post.location.isEmpty && post.position != null) {
-            post.location = await PositionUtilities.getFormattedAddressFromPosition(post.position!);
+        if ((profileId == post.ownerId || profileId.isEmpty) &&
+            _canRead(post)) {
+          if (post.location.isEmpty && post.position != null) {
+            post.location =
+                await PositionUtilities.getFormattedAddressFromPosition(
+                  post.position!,
+                );
           }
           sortedDrafts.add(post);
         }
-
       }
 
-      if(sortedDrafts.isNotEmpty) {
-        sortedDrafts.sort((a,b) => a.modifiedTime.compareTo(b.modifiedTime));
+      if (sortedDrafts.isNotEmpty) {
+        sortedDrafts.sort((a, b) => a.modifiedTime.compareTo(b.modifiedTime));
 
         for (var post in sortedDrafts) {
           drafts[post.id] = post;
         }
       }
-
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.getBlogEntries');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'PostFirestore.getBlogEntries',
+      );
     }
 
     return drafts;
@@ -455,7 +589,9 @@ class PostFirestore implements PostRepository {
     String? authorId,
     String? searchQuery,
   }) async {
-    AppConfig.logger.d("getCommunityBlogEntries - limit: $limit, authorId: $authorId, searchQuery: $searchQuery");
+    AppConfig.logger.d(
+      "getCommunityBlogEntries - limit: $limit, authorId: $authorId, searchQuery: $searchQuery",
+    );
     List<Post> entries = [];
 
     try {
@@ -468,7 +604,10 @@ class PostFirestore implements PostRepository {
       // Filtrar por autor si se especifica
       if (authorId != null && authorId.isNotEmpty) {
         query = postsReference
-            .where(AppFirestoreConstants.type, isEqualTo: PostType.blogEntry.name)
+            .where(
+              AppFirestoreConstants.type,
+              isEqualTo: PostType.blogEntry.name,
+            )
             .where(AppFirestoreConstants.isDraft, isEqualTo: false)
             .where(AppFirestoreConstants.ownerId, isEqualTo: authorId)
             .orderBy(AppFirestoreConstants.lastInteraction, descending: true)
@@ -489,25 +628,38 @@ class PostFirestore implements PostRepository {
         // Filtrar por búsqueda en cliente si se especifica
         if (searchQuery != null && searchQuery.isNotEmpty) {
           final queryLower = searchQuery.toLowerCase();
-          final captionParts = post.caption.split(CoreConstants.titleTextDivider);
-          final title = captionParts.isNotEmpty ? captionParts[0].toLowerCase() : '';
-          final body = captionParts.length > 1 ? captionParts[1].toLowerCase() : '';
+          final captionParts = post.caption.split(
+            CoreConstants.titleTextDivider,
+          );
+          final title = captionParts.isNotEmpty
+              ? captionParts[0].toLowerCase()
+              : '';
+          final body = captionParts.length > 1
+              ? captionParts[1].toLowerCase()
+              : '';
           final authorName = post.profileName.toLowerCase();
 
           if (!title.contains(queryLower) &&
               !body.contains(queryLower) &&
               !authorName.contains(queryLower) &&
-              !post.hashtags.any((tag) => tag.toLowerCase().contains(queryLower))) {
+              !post.hashtags.any(
+                (tag) => tag.toLowerCase().contains(queryLower),
+              )) {
             continue;
           }
         }
 
-        entries.add(post);
+        if (_canRead(post)) entries.add(post);
       }
 
       AppConfig.logger.d("Community blog entries found: ${entries.length}");
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.getCommunityBlogEntries');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'PostFirestore.getCommunityBlogEntries',
+      );
     }
 
     return entries;
@@ -524,22 +676,28 @@ class PostFirestore implements PostRepository {
         .limit(limit)
         .snapshots()
         .map((snapshot) {
-      List<Post> entries = [];
-      for (var doc in snapshot.docs) {
-        Post post = Post.fromJSON(doc.data());
-        post.id = doc.id;
-        entries.add(post);
-      }
-      AppConfig.logger.d("Community blog entries stream: ${entries.length}");
-      return entries;
-    });
+          List<Post> entries = [];
+          for (var doc in snapshot.docs) {
+            Post post = Post.fromJSON(doc.data());
+            post.id = doc.id;
+            if (_canRead(post)) entries.add(post);
+          }
+          AppConfig.logger.d(
+            "Community blog entries stream: ${entries.length}",
+          );
+          return entries;
+        });
   }
 
   @override
-  Future<Map<String, Post>> getDiverseTimeline({bool getRecent = true, bool
-    getMoreLiked = true, bool getMoreComment = true, bool getReleases = true, bool
-    getBlogEntries = true, List<String>? followingIds}) async {
-
+  Future<Map<String, Post>> getDiverseTimeline({
+    bool getRecent = true,
+    bool getMoreLiked = true,
+    bool getMoreComment = true,
+    bool getReleases = true,
+    bool getBlogEntries = true,
+    List<String>? followingIds,
+  }) async {
     AppConfig.logger.d("Getting Next Timeline Posts");
     Map<String, Post> posts = {};
 
@@ -552,7 +710,7 @@ class PostFirestore implements PostRepository {
       QuerySnapshot? blogSnapshot;
       QuerySnapshot? followingSnapshot;
 
-      if(getRecent) {
+      if (getRecent) {
         Query query = postsReference
             .orderBy(AppFirestoreConstants.lastInteraction, descending: true)
             .limit(CoreConstants.diverseTimelineLimit);
@@ -562,7 +720,7 @@ class PostFirestore implements PostRepository {
         recentSnapshot = await query.get();
       }
 
-      if(getMoreLiked) {
+      if (getMoreLiked) {
         Query query = postsReference
             .orderBy(AppFirestoreConstants.likedProfiles, descending: true)
             .limit(CoreConstants.diverseTimelineLimit);
@@ -572,7 +730,7 @@ class PostFirestore implements PostRepository {
         moreLikedSnapshot = await query.get();
       }
 
-      if(getMoreComment) {
+      if (getMoreComment) {
         Query query = postsReference
             .orderBy(AppFirestoreConstants.commentIds, descending: true)
             .limit(CoreConstants.diverseTimelineLimit);
@@ -582,9 +740,12 @@ class PostFirestore implements PostRepository {
         moreCommentSnapshot = await query.get();
       }
 
-      if(getReleases) {
+      if (getReleases) {
         Query query = postsReference
-            .where(AppFirestoreConstants.type, isEqualTo: PostType.releaseItem.name)
+            .where(
+              AppFirestoreConstants.type,
+              isEqualTo: PostType.releaseItem.name,
+            )
             .orderBy(AppFirestoreConstants.lastInteraction, descending: true)
             .limit(CoreConstants.diverseTimelineLimit);
         if (_releaseDocTimeline.isNotEmpty) {
@@ -593,9 +754,12 @@ class PostFirestore implements PostRepository {
         releaseSnapshot = await query.get();
       }
 
-      if(getBlogEntries) {
+      if (getBlogEntries) {
         Query query = postsReference
-            .where(AppFirestoreConstants.type, isEqualTo: PostType.blogEntry.name)
+            .where(
+              AppFirestoreConstants.type,
+              isEqualTo: PostType.blogEntry.name,
+            )
             .orderBy(AppFirestoreConstants.lastInteraction, descending: true)
             .limit(CoreConstants.diverseTimelineLimit);
         if (_blogEntriesDocTimeline.isNotEmpty) {
@@ -605,15 +769,20 @@ class PostFirestore implements PostRepository {
       }
 
       ///IMPROVE PAGINATION FOR FOLLOWINGIDS
-      if(followingIds?.isNotEmpty ?? false) {
+      if (followingIds?.isNotEmpty ?? false) {
         int start = _followingDocTimeline.length;
-        int end = (start + CoreConstants.diverseTimelineLimit < followingIds!.length)
-            ? start + CoreConstants.diverseTimelineLimit : followingIds.length;
+        int end =
+            (start + CoreConstants.diverseTimelineLimit < followingIds!.length)
+            ? start + CoreConstants.diverseTimelineLimit
+            : followingIds.length;
 
         // List<String> shuffleFollowingIds = List<String>.from(followingIds)..shuffle();
         followingIds.shuffle();
         Query query = postsReference
-            .where(AppFirestoreConstants.ownerId, whereIn: followingIds.sublist(start, end))
+            .where(
+              AppFirestoreConstants.ownerId,
+              whereIn: followingIds.sublist(start, end),
+            )
             .orderBy(AppFirestoreConstants.lastInteraction, descending: true)
             .limit(CoreConstants.diverseTimelineLimit);
         if (_followingDocTimeline.isNotEmpty) {
@@ -627,7 +796,8 @@ class PostFirestore implements PostRepository {
       _recentDocTimeline.addAll(recentDocs);
       List<QueryDocumentSnapshot> moreLikeDocs = moreLikedSnapshot?.docs ?? [];
       _moreLikedDocTimeline.addAll(moreLikeDocs);
-      List<QueryDocumentSnapshot> moreCommentsDoc = moreCommentSnapshot?.docs ?? [];
+      List<QueryDocumentSnapshot> moreCommentsDoc =
+          moreCommentSnapshot?.docs ?? [];
       _moreCommentsDocTimeline.addAll(moreCommentsDoc);
       List<QueryDocumentSnapshot> releaseDocs = releaseSnapshot?.docs ?? [];
       _releaseDocTimeline.addAll(releaseDocs);
@@ -637,31 +807,52 @@ class PostFirestore implements PostRepository {
       _followingDocTimeline.addAll(followingDocs);
 
       /// Encontrar el tamaño máximo entre las listas.
-      int maxSize = [recentDocs.length, moreLikeDocs.length, moreCommentsDoc.length, releaseDocs.length,
-        blogDocs.length, followingDocs.length].reduce((a, b) => a > b ? a : b);
+      int maxSize = [
+        recentDocs.length,
+        moreLikeDocs.length,
+        moreCommentsDoc.length,
+        releaseDocs.length,
+        blogDocs.length,
+        followingDocs.length,
+      ].reduce((a, b) => a > b ? a : b);
 
       for (int i = 0; i < maxSize; i++) {
         if (i < recentDocs.length) queryDocumentSnapshots.add(recentDocs[i]);
-        if (i < moreCommentsDoc.length) queryDocumentSnapshots.add(moreCommentsDoc[i]);
-        if (i < followingDocs.length) queryDocumentSnapshots.add(followingDocs[i]);
+        if (i < moreCommentsDoc.length) {
+          queryDocumentSnapshots.add(moreCommentsDoc[i]);
+        }
+        if (i < followingDocs.length) {
+          queryDocumentSnapshots.add(followingDocs[i]);
+        }
         if (i < blogDocs.length) queryDocumentSnapshots.add(blogDocs[i]);
         if (i < releaseDocs.length) queryDocumentSnapshots.add(releaseDocs[i]);
-        if (i < moreLikeDocs.length) queryDocumentSnapshots.add(moreLikeDocs[i]);
+        if (i < moreLikeDocs.length) {
+          queryDocumentSnapshots.add(moreLikeDocs[i]);
+        }
       }
 
-      for(var doc in queryDocumentSnapshots) {
-        if(!_diverseDocTimeline.containsKey(doc.id)) {
+      for (var doc in queryDocumentSnapshots) {
+        if (!_diverseDocTimeline.containsKey(doc.id)) {
           Post post = Post.fromJSON(doc.data());
+          if (!_canRead(post)) continue;
           post.id = doc.id;
-          if(post.location.isEmpty && post.position?.latitude != 0) {
-            post.location = await PositionUtilities.getFormattedAddressFromPosition(post.position!);
+          if (post.location.isEmpty && post.position?.latitude != 0) {
+            post.location =
+                await PositionUtilities.getFormattedAddressFromPosition(
+                  post.position!,
+                );
           }
           posts[post.id] = post;
           _diverseDocTimeline[doc.id] = doc;
         }
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.getDiverseTimeline');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'PostFirestore.getDiverseTimeline',
+      );
     }
 
     AppConfig.logger.d("Retrieveing ${posts.length} Posts");
@@ -670,6 +861,7 @@ class PostFirestore implements PostRepository {
 
   ///NOT NEEDED
   Future<void> updateAllPostsLastInteraction() async {
+    if (!_canPersistUserActivity) return;
     AppConfig.logger.i("Updating lastInteraction for all posts");
 
     try {
@@ -692,38 +884,67 @@ class PostFirestore implements PostRepository {
       // Commit the batch
       await batch.commit();
 
-      AppConfig.logger.d("All ${querySnapshot.docs.length} posts updated successfully.");
+      AppConfig.logger.d(
+        "All ${querySnapshot.docs.length} posts updated successfully.",
+      );
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.updateAllPostsLastInteraction');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'PostFirestore.updateAllPostsLastInteraction',
+      );
     }
   }
 
   /// Add a profile to the savedByProfiles list of a post (bookmark/save).
   Future<bool> addSavedByProfile(String postId, String profileId) async {
-    AppConfig.logger.d("Adding save/bookmark for post: $postId by profile: $profileId");
+    if (!_canPersistUserActivity) return false;
+    AppConfig.logger.d(
+      "Adding save/bookmark for post: $postId by profile: $profileId",
+    );
     try {
       await postsReference.doc(postId).update({
-        AppFirestoreConstants.savedByProfiles: FieldValue.arrayUnion([profileId]),
-        AppFirestoreConstants.lastInteraction: DateTime.now().millisecondsSinceEpoch,
+        AppFirestoreConstants.savedByProfiles: FieldValue.arrayUnion([
+          profileId,
+        ]),
+        AppFirestoreConstants.lastInteraction:
+            DateTime.now().millisecondsSinceEpoch,
       });
       return true;
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.addSavedByProfile');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'PostFirestore.addSavedByProfile',
+      );
       return false;
     }
   }
 
   /// Remove a profile from the savedByProfiles list of a post (unbookmark/unsave).
   Future<bool> removeSavedByProfile(String postId, String profileId) async {
-    AppConfig.logger.d("Removing save/bookmark for post: $postId by profile: $profileId");
+    if (!_canPersistUserActivity) return false;
+    AppConfig.logger.d(
+      "Removing save/bookmark for post: $postId by profile: $profileId",
+    );
     try {
       await postsReference.doc(postId).update({
-        AppFirestoreConstants.savedByProfiles: FieldValue.arrayRemove([profileId]),
-        AppFirestoreConstants.lastInteraction: DateTime.now().millisecondsSinceEpoch,
+        AppFirestoreConstants.savedByProfiles: FieldValue.arrayRemove([
+          profileId,
+        ]),
+        AppFirestoreConstants.lastInteraction:
+            DateTime.now().millisecondsSinceEpoch,
       });
       return true;
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'PostFirestore.removeSavedByProfile');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'PostFirestore.removeSavedByProfile',
+      );
       return false;
     }
   }
@@ -732,16 +953,18 @@ class PostFirestore implements PostRepository {
   Future<bool> isVideoLimitReachedForUser(String profileId) async {
     List<Post> profilePosts = await getProfilePosts(profileId);
     DateTime today = DateTime.now();
-    DateTime previousMonday = today.subtract(Duration(days: (today.weekday - 1 + 7) % 7));
+    DateTime previousMonday = today.subtract(
+      Duration(days: (today.weekday - 1 + 7) % 7),
+    );
     int videosPerWeekCounter = 0;
 
     for (var profilePost in profilePosts) {
-      if(profilePost.type == PostType.video && profilePost.createdTime > previousMonday.millisecondsSinceEpoch) {
+      if (profilePost.type == PostType.video &&
+          profilePost.createdTime > previousMonday.millisecondsSinceEpoch) {
         videosPerWeekCounter++;
       }
     }
 
     return videosPerWeekCounter >= CoreConstants.maxVideosPerWeek;
   }
-
 }

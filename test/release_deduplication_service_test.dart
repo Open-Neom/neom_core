@@ -13,24 +13,41 @@ void main() {
     deduplicationService = ReleaseDeduplicationService();
   });
 
+  test('release JSON preserves the stable owner profile id', () {
+    final original = AppReleaseItem(
+      id: 'release-1',
+      name: 'Cartas para Luille',
+      ownerProfileId: 'profile-victor',
+    );
+
+    final restored = AppReleaseItem.fromJSON(original.toJSON());
+
+    expect(restored.ownerProfileId, 'profile-victor');
+  });
+
   group('ReleaseDeduplicationService - normalizeKey', () {
     test('normalizes title and owner correctly', () {
       final item1 = AppReleaseItem(
         id: '1',
         name: 'Mujercitas',
         ownerName: 'Louisa May Alcott',
+        ownerSlug: 'louisa-may-alcott',
       );
       final item2 = AppReleaseItem(
         id: '2',
         name: '  MUJERCITAS  ',
         ownerName: 'louisa may alcott',
+        ownerSlug: 'louisa-may-alcott',
       );
 
       expect(
         deduplicationService.normalizeKey(item1),
         equals(deduplicationService.normalizeKey(item2)),
       );
-      expect(deduplicationService.normalizeKey(item1), equals('mujercitas::louisa-may-alcott'));
+      expect(
+        deduplicationService.normalizeKey(item1),
+        equals('mujercitas::slug:louisa-may-alcott'),
+      );
     });
 
     test('falls back to ownerProfileId when available', () {
@@ -41,7 +58,28 @@ void main() {
         ownerProfileId: 'profile_123',
       );
 
-      expect(deduplicationService.normalizeKey(item), equals('mujercitas::profile_123'));
+      expect(
+        deduplicationService.normalizeKey(item),
+        equals('mujercitas::profile:profile_123'),
+      );
+    });
+
+    test('does not collapse different owners that only share a display name', () {
+      final item1 = AppReleaseItem(
+        id: 'release_1',
+        name: 'Horizonte',
+        ownerName: 'Alex Rivera',
+      );
+      final item2 = AppReleaseItem(
+        id: 'release_2',
+        name: 'Horizonte',
+        ownerName: 'Alex Rivera',
+      );
+
+      expect(
+        deduplicationService.normalizeKey(item1),
+        isNot(deduplicationService.normalizeKey(item2)),
+      );
     });
   });
 
@@ -51,6 +89,7 @@ void main() {
         id: 'complete_1',
         name: 'Mujercitas',
         ownerName: 'Louisa May Alcott',
+        ownerSlug: 'louisa-may-alcott',
         description: 'Novela clásica sobre cuatro hermanas que crecen durante la guerra.',
         imgUrl: 'https://storage.googleapis.com/emxi/covers/mujercitas.jpg',
         previewUrl: 'https://storage.googleapis.com/emxi/files/mujercitas.pdf',
@@ -70,6 +109,7 @@ void main() {
         id: 'incomplete_2',
         name: 'Mujercitas',
         ownerName: 'Louisa May Alcott',
+        ownerSlug: 'louisa-may-alcott',
         description: '',
         imgUrl: '',
         previewUrl: '',
@@ -111,6 +151,7 @@ void main() {
         id: 'doc_canonical',
         name: 'Mujercitas',
         ownerName: 'Louisa May Alcott',
+        ownerSlug: 'louisa-may-alcott',
         description: 'Edición ilustrada completa.',
         imgUrl: 'https://emxi.org/cover.png',
         previewUrl: 'https://emxi.org/book.pdf',
@@ -123,6 +164,7 @@ void main() {
         id: 'doc_duplicate',
         name: 'Mujercitas',
         ownerName: 'Louisa May Alcott',
+        ownerSlug: 'louisa-may-alcott',
         description: '',
         imgUrl: '',
         previewUrl: '',
@@ -141,10 +183,13 @@ void main() {
       final groups = deduplicationService.groupDuplicates(list);
 
       expect(groups.length, equals(1));
-      expect(groups.containsKey('mujercitas::louisa-may-alcott'), isTrue);
-      expect(groups['mujercitas::louisa-may-alcott']!.length, equals(2));
+      const duplicateKey = 'mujercitas::slug:louisa-may-alcott';
+      expect(groups.containsKey(duplicateKey), isTrue);
+      expect(groups[duplicateKey]!.length, equals(2));
 
-      final canonical = deduplicationService.selectCanonicalItem(groups['mujercitas::louisa-may-alcott']!);
+      final canonical = deduplicationService.selectCanonicalItem(
+        groups[duplicateKey]!,
+      );
       expect(canonical.id, equals('doc_canonical'));
     });
   });
@@ -155,6 +200,7 @@ void main() {
         id: 'canonical',
         name: 'Mujercitas',
         ownerName: 'Louisa May Alcott',
+        ownerSlug: 'louisa-may-alcott',
         description: 'Descripción original',
         imgUrl: 'https://emxi.org/cover.png',
         previewUrl: 'https://emxi.org/book.pdf',
@@ -168,6 +214,7 @@ void main() {
         id: 'duplicate',
         name: 'Mujercitas',
         ownerName: 'Louisa May Alcott',
+        ownerSlug: 'louisa-may-alcott',
         categories: ['Clásicos', 'Novela'],
         likedProfiles: ['profile_A', 'profile_B'],
         boughtUsers: ['user_B'],
@@ -194,6 +241,7 @@ void main() {
         id: 'd1',
         name: 'Mujercitas',
         ownerName: 'Louisa May Alcott',
+        ownerSlug: 'louisa-may-alcott',
         imgUrl: 'https://emxi.org/cover.png',
         previewUrl: 'https://emxi.org/book.pdf',
         createdTime: 1000,
@@ -204,6 +252,7 @@ void main() {
         id: 'd2',
         name: 'Mujercitas',
         ownerName: 'Louisa May Alcott',
+        ownerSlug: 'louisa-may-alcott',
         imgUrl: '',
         createdTime: 2000,
         likedProfiles: ['user2'],

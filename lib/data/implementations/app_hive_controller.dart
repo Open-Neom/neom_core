@@ -12,6 +12,7 @@ import '../../domain/model/app_release_item.dart';
 import '../../domain/model/item_list.dart';
 import '../../domain/use_cases/app_hive_service.dart';
 import '../../domain/use_cases/user_service.dart';
+import '../../utils/catalog_cache_policy.dart';
 import '../../utils/constants/app_hive_constants.dart';
 import '../../utils/constants/core_constants.dart';
 import '../../utils/enums/app_hive_box.dart';
@@ -45,6 +46,7 @@ class AppHiveController implements AppHiveService {
   Map<String, AppReleaseItem> secondaryItems = {};
   Map<String, Itemlist> releaseItemlists = {};
   String _releaseLastUpdate = '';
+  bool _bypassReleaseCatalogCache = false;
   String directoryLastUpdate = '';
 
   @override
@@ -165,27 +167,55 @@ class AppHiveController implements AppHiveService {
   }
 
   @override
-  Future<void> fetchCachedData() async {
+  Future<void> fetchCachedData() => fetchCachedDataForSession(
+    hasAuthenticatedSession: true,
+  );
+
+  Future<void> fetchCachedDataForSession({
+    required bool hasAuthenticatedSession,
+  }) async {
     neomLogger.d('fetchCachedData');
-    // Usa un cast seguro (as Map<dynamic, dynamic>?) y el operador ?.
-    final releasesBox = await getBox(AppHiveBox.releases.name);
-
-    mainItems = await compute<Map<String, dynamic>, Map<String, AppReleaseItem>>(
-        _mapToReleaseItem,
-        Map<String, dynamic>.from(releasesBox.get(AppHiveConstants.mainItems) ?? {})
+    final bypassPersistentCache = CatalogCachePolicy.forCurrentSession(
+      hasAuthenticatedSession: hasAuthenticatedSession,
     );
+    _bypassReleaseCatalogCache = bypassPersistentCache;
 
-    secondaryItems = await compute<Map<String, dynamic>, Map<String, AppReleaseItem>>(
+    if (bypassPersistentCache) {
+      // Do not clear the shared box. In particular, the releases box also
+      // contains upload drafts that must survive guest/emulator sessions.
+      mainItems = {};
+      secondaryItems = {};
+      releaseItemlists = {};
+      releaseLastUpdate = '';
+    } else {
+      final releasesBox = await getBox(AppHiveBox.releases.name);
+
+      mainItems = await compute<Map<String, dynamic>, Map<String, AppReleaseItem>>(
         _mapToReleaseItem,
-        Map<String, dynamic>.from(releasesBox.get(AppHiveConstants.secondaryItems) ?? {})
-    );
+        Map<String, dynamic>.from(
+          releasesBox.get(AppHiveConstants.mainItems) ?? {},
+        ),
+      );
 
-    final rawReleaseItemLists = releasesBox.get(AppHiveConstants.releaseItemLists) as Map<dynamic, dynamic>?;
-    releaseItemlists = rawReleaseItemLists?.map((key, value) => MapEntry(key, Itemlist.fromJSON(value))) ?? {};
+      secondaryItems =
+          await compute<Map<String, dynamic>, Map<String, AppReleaseItem>>(
+        _mapToReleaseItem,
+        Map<String, dynamic>.from(
+          releasesBox.get(AppHiveConstants.secondaryItems) ?? {},
+        ),
+      );
 
-    final rawReleaseLastUpdate = releasesBox.get(AppHiveConstants.lastUpdate) as String?;
-    releaseLastUpdate = rawReleaseLastUpdate ?? '';
+      final rawReleaseItemLists =
+          releasesBox.get(AppHiveConstants.releaseItemLists)
+              as Map<dynamic, dynamic>?;
+      releaseItemlists = rawReleaseItemLists?.map(
+        (key, value) => MapEntry(key, Itemlist.fromJSON(value)),
+      ) ?? {};
 
+      final rawReleaseLastUpdate =
+          releasesBox.get(AppHiveConstants.lastUpdate) as String?;
+      releaseLastUpdate = rawReleaseLastUpdate ?? '';
+    }
 
     final directoryBox = await getBox(AppHiveBox.directory.name);
     final rawDirectoryLastUpdate = directoryBox.get(AppHiveConstants.lastUpdate) as String?;
@@ -330,6 +360,8 @@ class AppHiveController implements AppHiveService {
 
   @override
   String get releaseLastUpdate {
+    if (_bypassReleaseCatalogCache) return '';
+
     if (_releaseLastUpdate.isEmpty && Hive.isBoxOpen(AppHiveBox.releases.name)) {
       try {
         final box = Hive.box(AppHiveBox.releases.name);

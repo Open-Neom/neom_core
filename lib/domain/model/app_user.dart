@@ -14,6 +14,11 @@ class AppUser {
   String phoneNumber;
   String countryCode;
 
+  /// Legacy compatibility only.
+  ///
+  /// Older Firestore documents may still contain this field. Keep hydrating it
+  /// until those documents are migrated, but never serialize or log it.
+  @Deprecated('Passwords belong exclusively to Firebase Authentication.')
   String password;
   String email;
   String photoUrl;
@@ -73,7 +78,7 @@ class AppUser {
 
   @override
   String toString() {
-    return 'AppUser{id: $id, name: $name, firstName: $firstName, lastName: $lastName, dateOfBirth: $dateOfBirth, homeTown: $homeTown, phoneNumber: $phoneNumber, countryCode: $countryCode, password: $password, email: $email, photoUrl: $photoUrl, userRole: $userRole, isVerified: $isVerified, isBanned: $isBanned, androidNotificationToken: $androidNotificationToken, profiles: $profiles, orderIds: $orderIds, releaseItemIds: $releaseItemIds, boughtItems: $boughtItems, referralCode: $referralCode, createdDate: $createdDate, lastTimeOn: $lastTimeOn, fcmToken: $fcmToken, spotifyToken: $spotifyToken, currentProfileId: $currentProfileId, customerId: $customerId, subscriptionId: $subscriptionId}';
+    return 'AppUser{id: $id, name: $name, firstName: $firstName, lastName: $lastName, dateOfBirth: $dateOfBirth, homeTown: $homeTown, phoneNumber: $phoneNumber, countryCode: $countryCode, email: $email, photoUrl: $photoUrl, userRole: $userRole, isVerified: $isVerified, isBanned: $isBanned, androidNotificationToken: $androidNotificationToken, profiles: $profiles, orderIds: $orderIds, releaseItemIds: $releaseItemIds, boughtItems: $boughtItems, referralCode: $referralCode, createdDate: $createdDate, lastTimeOn: $lastTimeOn, fcmToken: $fcmToken, spotifyToken: $spotifyToken, currentProfileId: $currentProfileId, customerId: $customerId, subscriptionId: $subscriptionId}';
   }
 
   AppUser.fromJSON(dynamic data) :
@@ -143,7 +148,6 @@ class AppUser {
       'lastName': lastName,
       'dateOfBirth': dateOfBirth,
       'homeTown': homeTown,
-      'password': password,
       'email': email,
       'phoneNumber': phoneNumber,
       'countryCode': countryCode,

@@ -10,7 +10,6 @@ import '../../utils/enums/verification_level.dart';
 import 'post_comment.dart';
 
 class Post {
-
   String id;
   String ownerId;
   String profileName;
@@ -18,7 +17,7 @@ class Post {
   String caption;
 
   PostType type;
-  String mediaUrl ;
+  String mediaUrl;
   String thumbnailUrl;
   String externalUrl;
   int createdTime;
@@ -33,7 +32,7 @@ class Post {
 
   List<String> hashtags;
 
-  String mediaOwner;  //For future copyright references
+  String mediaOwner; //For future copyright references
   String referenceId;
 
   bool isCommentEnabled;
@@ -50,12 +49,12 @@ class Post {
   String textStyleId; // For caption posts with custom backgrounds
 
   // Repost fields
-  String? originalPostId;   // Reference to the original post (for reposts)
-  String? originalOwnerId;  // Original post author (for reposts)
+  String? originalPostId; // Reference to the original post (for reposts)
+  String? originalOwnerId; // Original post author (for reposts)
 
   // Scheduled post fields
-  int? scheduledTime;       // Timestamp for scheduled publication
-  bool isScheduled;         // Whether this post is scheduled for later
+  int? scheduledTime; // Timestamp for scheduled publication
+  bool isScheduled; // Whether this post is scheduled for later
 
   // Edit tracking
   bool isEdited;
@@ -64,9 +63,10 @@ class Post {
 
   static String generateSlug(String caption) {
     final truncated = caption.substring(0, min(50, caption.length));
-    return truncated.toLowerCase()
-      .replaceAll(RegExp(r'\s+'), '-')
-      .replaceAll(RegExp(r'[^a-z0-9\-áéíóúñü]'), '');
+    return truncated
+        .toLowerCase()
+        .replaceAll(RegExp(r'\s+'), '-')
+        .replaceAll(RegExp(r'[^a-z0-9\-áéíóúñü]'), '');
   }
 
   Post({
@@ -108,49 +108,67 @@ class Post {
     this.slug = '',
   });
 
+  /// Whether this post is safe to expose through public/guest feeds.
+  ///
+  /// Scheduled posts stay private until the publishing flow explicitly
+  /// clears [isScheduled]. This is deliberately stricter than comparing
+  /// [scheduledTime] with the client clock: a browser must never publish a
+  /// draft merely because its local clock says the date has passed.
+  bool get isPubliclyVisible =>
+      !isPrivate && !isDraft && !isHidden && !isScheduled;
 
   @override
   String toString() {
     return 'Post{id: $id, ownerId: $ownerId, profileName: $profileName, profileImgUrl: $profileImgUrl, caption: $caption, type: $type, mediaUrl: $mediaUrl, thumbnailUrl: $thumbnailUrl, createdTime: $createdTime, modifiedTime: $modifiedTime, position: $position, location: $location, likedProfiles: $likedProfiles, sharedProfiles: $sharedProfiles, mentionedProfiles: $mentionedProfiles, hashtags: $hashtags, mediaOwner: $mediaOwner, referenceId: $referenceId, isCommentEnabled: $isCommentEnabled, isPrivate: $isPrivate, isDraft: $isDraft, isHidden: $isHidden, verificationLevel: $verificationLevel, commentIds: $commentIds, comments: $comments, lastInteraction: $lastInteraction}';
   }
 
-  Post.fromJSON(dynamic data) :
-        id = data["id"] ?? "",
-        ownerId = data["ownerId"] ?? "",
-        profileName = data["profileName"] ?? "",
-        profileImgUrl = data["profileImgUrl"] ?? "",
-        caption = data["caption"] ?? "",
-        type = EnumToString.fromString(PostType.values, data["type"] ?? PostType.caption.name) ?? PostType.caption,
-        mediaUrl = data["mediaUrl"] ?? "",
-        thumbnailUrl = data["thumbnailUrl"] ?? "",
-        externalUrl = data["externalUrl"] ?? "",
-        createdTime = data["createdTime"] ?? 0,
-        modifiedTime = data["modifiedTime"] ?? 0,
-        position = PositionParser.JSONtoPosition(data["position"]),
-        location = data["location"] ?? "",
-        likedProfiles = List.from(data["likedProfiles"] ?? []),
-        sharedProfiles = List.from(data["sharedProfiles"] ?? []),
-        savedByProfiles = List.from(data["savedByProfiles"] ?? []),
-        mentionedProfiles = List.from(data["mentionedProfiles"] ?? []),
-        commentIds = List.from(data["commentIds"] ?? []),
-        comments = [],
-        hashtags = List.from(data["hashtags"] ?? []),
-        isCommentEnabled = data["isCommentEnabled"] ?? true,
-        isPrivate = data["isPrivate"] ?? false,
-        isDraft = data["isDraft"] ?? false,
-        isHidden = data["isHidden"] ?? false,
-        verificationLevel = EnumToString.fromString(VerificationLevel.values, data["verificationLevel"] ?? VerificationLevel.none.name) ?? VerificationLevel.none,
-        mediaOwner = data["mediaOwner"] ?? "",
-        referenceId = data["referenceId"] ?? "",
-        lastInteraction = data["lastInteraction"] ?? 0,
-        aspectRatio = (data["aspectRatio"] as num?)?.toDouble() ?? 1.0,
-        textStyleId = data["textStyleId"] ?? '',
-        originalPostId = data["originalPostId"],
-        originalOwnerId = data["originalOwnerId"],
-        scheduledTime = data["scheduledTime"],
-        isScheduled = data["isScheduled"] ?? false,
-        isEdited = data["isEdited"] ?? false,
-        slug = data["slug"] ?? "";
+  Post.fromJSON(dynamic data)
+    : id = data["id"] ?? "",
+      ownerId = data["ownerId"] ?? "",
+      profileName = data["profileName"] ?? "",
+      profileImgUrl = data["profileImgUrl"] ?? "",
+      caption = data["caption"] ?? "",
+      type =
+          EnumToString.fromString(
+            PostType.values,
+            data["type"] ?? PostType.caption.name,
+          ) ??
+          PostType.caption,
+      mediaUrl = data["mediaUrl"] ?? "",
+      thumbnailUrl = data["thumbnailUrl"] ?? "",
+      externalUrl = data["externalUrl"] ?? "",
+      createdTime = data["createdTime"] ?? 0,
+      modifiedTime = data["modifiedTime"] ?? 0,
+      position = PositionParser.JSONtoPosition(data["position"]),
+      location = data["location"] ?? "",
+      likedProfiles = List.from(data["likedProfiles"] ?? []),
+      sharedProfiles = List.from(data["sharedProfiles"] ?? []),
+      savedByProfiles = List.from(data["savedByProfiles"] ?? []),
+      mentionedProfiles = List.from(data["mentionedProfiles"] ?? []),
+      commentIds = List.from(data["commentIds"] ?? []),
+      comments = [],
+      hashtags = List.from(data["hashtags"] ?? []),
+      isCommentEnabled = data["isCommentEnabled"] ?? true,
+      isPrivate = data["isPrivate"] ?? false,
+      isDraft = data["isDraft"] ?? false,
+      isHidden = data["isHidden"] ?? false,
+      verificationLevel =
+          EnumToString.fromString(
+            VerificationLevel.values,
+            data["verificationLevel"] ?? VerificationLevel.none.name,
+          ) ??
+          VerificationLevel.none,
+      mediaOwner = data["mediaOwner"] ?? "",
+      referenceId = data["referenceId"] ?? "",
+      lastInteraction = data["lastInteraction"] ?? 0,
+      aspectRatio = (data["aspectRatio"] as num?)?.toDouble() ?? 1.0,
+      textStyleId = data["textStyleId"] ?? '',
+      originalPostId = data["originalPostId"],
+      originalOwnerId = data["originalOwnerId"],
+      scheduledTime = data["scheduledTime"],
+      isScheduled = data["isScheduled"] ?? false,
+      isEdited = data["isEdited"] ?? false,
+      slug = data["slug"] ?? "";
 
   Map<String, dynamic> toJSON() => {
     //'id': id, //generated by firebase
@@ -190,42 +208,41 @@ class Post {
     'slug': slug,
   };
 
-  Post.createClone(Post post) :
-    id = post.id,
-    ownerId = post.ownerId,
-    profileName = post.profileName,
-    profileImgUrl = post.profileImgUrl,
-    caption = post.caption,
-    type = post.type,
-    mediaUrl = post.mediaUrl,
-    thumbnailUrl = post.thumbnailUrl,
-    externalUrl = post.externalUrl,
-    createdTime = post.createdTime,
-    modifiedTime = post.modifiedTime,
-    position = post.position,
-    location = post.location,
-    likedProfiles = post.likedProfiles,
-    sharedProfiles = post.sharedProfiles,
-    savedByProfiles = post.savedByProfiles,
-    mentionedProfiles = post.mentionedProfiles,
-    commentIds = post.commentIds,
-    comments = post.comments,
-    hashtags = post.hashtags,
-    isCommentEnabled = post.isCommentEnabled,
-    isPrivate = post.isPrivate,
-    isDraft = post.isDraft,
-    isHidden = post.isHidden,
-    verificationLevel = post.verificationLevel,
-    mediaOwner = post.mediaOwner,
-    referenceId = post.referenceId,
-    lastInteraction = post.lastInteraction,
-    aspectRatio = post.aspectRatio,
-    textStyleId = post.textStyleId,
-    originalPostId = post.originalPostId,
-    originalOwnerId = post.originalOwnerId,
-    scheduledTime = post.scheduledTime,
-    isScheduled = post.isScheduled,
-    isEdited = post.isEdited,
-    slug = post.slug;
-
+  Post.createClone(Post post)
+    : id = post.id,
+      ownerId = post.ownerId,
+      profileName = post.profileName,
+      profileImgUrl = post.profileImgUrl,
+      caption = post.caption,
+      type = post.type,
+      mediaUrl = post.mediaUrl,
+      thumbnailUrl = post.thumbnailUrl,
+      externalUrl = post.externalUrl,
+      createdTime = post.createdTime,
+      modifiedTime = post.modifiedTime,
+      position = post.position,
+      location = post.location,
+      likedProfiles = post.likedProfiles,
+      sharedProfiles = post.sharedProfiles,
+      savedByProfiles = post.savedByProfiles,
+      mentionedProfiles = post.mentionedProfiles,
+      commentIds = post.commentIds,
+      comments = post.comments,
+      hashtags = post.hashtags,
+      isCommentEnabled = post.isCommentEnabled,
+      isPrivate = post.isPrivate,
+      isDraft = post.isDraft,
+      isHidden = post.isHidden,
+      verificationLevel = post.verificationLevel,
+      mediaOwner = post.mediaOwner,
+      referenceId = post.referenceId,
+      lastInteraction = post.lastInteraction,
+      aspectRatio = post.aspectRatio,
+      textStyleId = post.textStyleId,
+      originalPostId = post.originalPostId,
+      originalOwnerId = post.originalOwnerId,
+      scheduledTime = post.scheduledTime,
+      isScheduled = post.isScheduled,
+      isEdited = post.isEdited,
+      slug = post.slug;
 }

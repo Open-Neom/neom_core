@@ -73,6 +73,27 @@ void main() {
     });
   });
 
+  group('Post — visibilidad pública', () {
+    test('un post publicado es visible', () {
+      expect(Post().isPubliclyVisible, isTrue);
+    });
+
+    test('privado, borrador, oculto o programado nunca es público', () {
+      expect(Post(isPrivate: true).isPubliclyVisible, isFalse);
+      expect(Post(isDraft: true).isPubliclyVisible, isFalse);
+      expect(Post(isHidden: true).isPubliclyVisible, isFalse);
+      expect(
+        Post(
+          isScheduled: true,
+          scheduledTime: DateTime.now()
+              .subtract(const Duration(days: 1))
+              .millisecondsSinceEpoch,
+        ).isPubliclyVisible,
+        isFalse,
+      );
+    });
+  });
+
   group('Post — toJSON', () {
     test('NO incluye id (Firebase docId)', () {
       final p = Post(id: 'p1');
@@ -196,10 +217,7 @@ void main() {
     });
 
     test('repost fields se preservan cuando hay repost', () {
-      final p = Post(
-        originalPostId: 'orig_p1',
-        originalOwnerId: 'orig_u1',
-      );
+      final p = Post(originalPostId: 'orig_p1', originalOwnerId: 'orig_u1');
       final restored = Post.fromJSON(p.toJSON());
       expect(restored.originalPostId, 'orig_p1');
       expect(restored.originalOwnerId, 'orig_u1');
@@ -235,9 +253,13 @@ void main() {
       // sin que el equipo lo note.
       final original = Post(likedProfiles: ['u1']);
       final clone = Post.createClone(original);
-      expect(identical(clone.likedProfiles, original.likedProfiles), isTrue,
-          reason: 'lista compartida por referencia — modificar el clon '
-              'afecta al original');
+      expect(
+        identical(clone.likedProfiles, original.likedProfiles),
+        isTrue,
+        reason:
+            'lista compartida por referencia — modificar el clon '
+            'afecta al original',
+      );
     });
   });
 }

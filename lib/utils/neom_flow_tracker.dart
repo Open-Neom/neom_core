@@ -57,6 +57,8 @@ class NeomFlowTracker {
     final start = _activeFlows[flowName];
     if (start == null) return;
 
+    if (!AppConfig.instance.canPersistUserActivity) return;
+
     final elapsed = DateTime.now().difference(start).inMilliseconds;
     AppConfig.logger.d('[FlowTracker] Step: $flowName/$stepName (${elapsed}ms)');
 
@@ -81,6 +83,8 @@ class NeomFlowTracker {
       return;
     }
 
+    if (!AppConfig.instance.canPersistUserActivity) return;
+
     final durationMs = DateTime.now().difference(start).inMilliseconds;
     AppConfig.logger.d('[FlowTracker] End: $flowName (${durationMs}ms, success=$success)');
 
@@ -97,6 +101,8 @@ class NeomFlowTracker {
 
   /// Records a screen visit.
   static void trackScreen(String screenName) {
+    if (!AppConfig.instance.canPersistUserActivity) return;
+
     _pendingScreens.add(_ScreenEntry(
       screenName: screenName,
       userId: _userId,
@@ -133,6 +139,12 @@ class NeomFlowTracker {
     _isFlushing = true;
 
     try {
+      if (!AppConfig.instance.canPersistUserActivity) {
+        _pendingFlows.clear();
+        _pendingScreens.clear();
+        return;
+      }
+
       if (Firebase.apps.isEmpty) {
         _pendingFlows.clear();
         _pendingScreens.clear();

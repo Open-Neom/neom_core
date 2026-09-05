@@ -2,6 +2,7 @@
 class AppFirestoreCollectionConstants {
 
   static const String app = "app";
+  static const String reviews = "reviews";
 
   static const String activityFeed = "activityFeed";
   static const String activityFeedItems = "activityFeedItems";

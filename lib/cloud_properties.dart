@@ -1,13 +1,16 @@
 import 'dart:convert';
+
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-import 'utils/neom_logger.dart';
+
+import 'cloud_endpoint_policy.dart';
 import 'utils/constants/data_assets.dart';
 import 'utils/enums/app_in_use.dart';
 import 'utils/neom_error_logger.dart';
+import 'utils/neom_logger.dart';
 
 /// Sensitive values (API keys, secrets) and cloud operations (proxies, secureOps).
 ///
@@ -35,17 +38,39 @@ class CloudProperties {
 
   /// Returns the secureOpsWeb URL for the current app.
   static String _getSecureOpsWebUrl() {
+    final String productionUrl;
     switch (appInUse ?? AppInUse.o) {
       case AppInUse.g:
-        return 'https://us-central1-gig-me-out.cloudfunctions.net/secureOpsWeb';
+        productionUrl =
+            'https://us-central1-gig-me-out.cloudfunctions.net/secureOpsWeb';
+        break;
       case AppInUse.c:
-        return 'https://us-central1-cyberneom-app.cloudfunctions.net/secureOpsWeb';
+        productionUrl =
+            'https://us-central1-cyberneom-app.cloudfunctions.net/secureOpsWeb';
+        break;
       case AppInUse.i:
-        return 'https://us-central1-itzli-app.cloudfunctions.net/secureOpsWeb';
+        productionUrl =
+            'https://us-central1-itzli-app.cloudfunctions.net/secureOpsWeb';
+        break;
       case AppInUse.e:
       default:
-        return 'https://secureopsweb-uzmgogia7a-uc.a.run.app';
+        productionUrl = 'https://secureopsweb-uzmgogia7a-uc.a.run.app';
     }
+
+    return CloudEndpointPolicy.functionUrl(
+      functionName: 'secureOpsWeb',
+      productionUrl: productionUrl,
+    );
+  }
+
+  /// Returns the PDF proxy endpoint without allowing non-release builds to
+  /// contact EMXI production.
+  static String getPdfProxyUrl() {
+    return CloudEndpointPolicy.functionUrl(
+      functionName: 'pdfProxy',
+      productionUrl:
+          'https://us-central1-emxi-9c5b5.cloudfunctions.net/pdfProxy',
+    );
   }
 
   /// Exposes the secureOpsWeb URL publicly.
@@ -88,11 +113,24 @@ class CloudProperties {
         if (token != null) 'Authorization': 'Bearer $token',
       };
 
-      final response = await http.post(
-        url,
-        headers: headers,
-        body: jsonEncode({'data': data}),
-      );
+      late final http.Response response;
+      try {
+        response = await http
+            .post(
+              url,
+              headers: headers,
+              body: jsonEncode({'data': data}),
+            )
+            .timeout(const Duration(seconds: 15));
+      } catch (error) {
+        if (CloudEndpointPolicy.usesLocalEndpoints) {
+          throw StateError(
+            '${CloudEndpointPolicy.emulatorUnavailableMessage} '
+            'Error original: $error',
+          );
+        }
+        rethrow;
+      }
 
       if (response.statusCode != 200) {
         throw Exception('secureOpsWeb HTTP ${response.statusCode}: ${response.body}');

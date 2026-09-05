@@ -26,6 +26,27 @@ class ItemlistFirestore implements ItemlistRepository {
     String itemlistId = "";
 
     try {
+      // Address is `/{kind}/{ownerSlug}/{slug}`, unique because an artist does
+      // not release two albums with the same name. Derived here so every write
+      // path gets it, not just the release upload flow.
+      if (itemlist.ownerSlug.isEmpty && itemlist.ownerName.isNotEmpty) {
+        itemlist.ownerSlug = Itemlist.generateOwnerSlug(itemlist.ownerName);
+      }
+      if (itemlist.slug.isEmpty && itemlist.name.isNotEmpty) {
+        itemlist.slug = Itemlist.generateSlug(itemlist.name);
+      }
+
+      // Re-publishing the same album is an update, not a rival address.
+      if (itemlist.id.isEmpty
+          && itemlist.ownerSlug.isNotEmpty && itemlist.slug.isNotEmpty) {
+        final existing = await getByOwnerAndSlug(itemlist.ownerSlug, itemlist.slug);
+        if (existing != null && existing.id.isNotEmpty) {
+          AppConfig.logger.w("Itemlist '${itemlist.name}' by ${itemlist.ownerName} "
+              "already exists (${existing.id}); updating it");
+          itemlist.id = existing.id;
+        }
+      }
+
       if(itemlist.id.isEmpty) {
         DocumentReference? documentReference = await itemlistReference
             .add(itemlist.toJSON());
@@ -395,6 +416,34 @@ class ItemlistFirestore implements ItemlistRepository {
   }
 
   @override
+  /// The itemlist addressed by `/{kind}/{ownerSlug}/{slug}`.
+  ///
+  /// The kind is not part of the match: it makes the URL self-describing, but
+  /// an album re-labelled as an EP should keep resolving from links already
+  /// shared. The artist plus the title is what identifies it.
+  Future<Itemlist?> getByOwnerAndSlug(String ownerSlug, String slug) async {
+    if (ownerSlug.isEmpty || slug.isEmpty) return null;
+
+    try {
+      final querySnapshot = await itemlistReference
+          .where('ownerSlug', isEqualTo: ownerSlug)
+          .where('slug', isEqualTo: slug)
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        final doc = querySnapshot.docs.first;
+        final itemlist = Itemlist.fromJSON(doc.data());
+        itemlist.id = doc.id;
+        return itemlist;
+      }
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st,
+          module: 'neom_core', operation: 'ItemlistFirestore.getByOwnerAndSlug');
+    }
+    return null;
+  }
+
   Future<Itemlist?> getBySlug(String slug) async {
     if (slug.isEmpty) return null;
 

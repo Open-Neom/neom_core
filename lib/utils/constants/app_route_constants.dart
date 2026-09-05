@@ -1,5 +1,6 @@
-class AppRouteConstants {
+import '../enums/itemlist_type.dart';
 
+class AppRouteConstants {
   static const String root = "/";
   static const String notFound = "/not-found";
   static const String termsConditions = "/terms";
@@ -11,6 +12,7 @@ class AppRouteConstants {
   static const String introRequiredPermissions = "/intro/requiredPermissions";
   static const String introLocale = "/intro/locale";
   static const String introProfile = "/intro/profileType";
+
   ///DEPRECATED static const String introInstruments = "/intro/instruments";
   ///DEPRECATED static const String introGenres = "/intro/genres";
   static const String introFacility = "/intro/facility";
@@ -35,6 +37,29 @@ class AppRouteConstants {
   static const String lists = '/lists';
   static const String listItems = '/list/items';
   static const String itemDetails = '/item/:itemId';
+
+  /// Public address of a release: `/a/{ownerSlug}/{slug}`.
+  /// `a` is a fixed ecosystem-wide prefix (audio / artist), not per-app.
+  static const String releasePrefix = 'a';
+
+  /// Path segments that name an itemlist kind, so an address reads for itself:
+  /// `/album/novus-irae/letimum`, `/ep/...`, `/podcast/...`.
+  ///
+  /// Derived from [ItemlistType] rather than hardcoded, so adding a kind to the
+  /// enum makes its address work without touching the router.
+  static final Set<String> itemlistPrefixes = ItemlistType.values
+      .map((t) => t.name.toLowerCase())
+      .toSet();
+
+  /// The [ItemlistType] a path segment names, or null when it names no kind.
+  static ItemlistType? itemlistTypeFromPrefix(String segment) {
+    final needle = segment.toLowerCase();
+    for (final type in ItemlistType.values) {
+      if (type.name.toLowerCase() == needle) return type;
+    }
+    return null;
+  }
+
   static const String itemSearch = '/item/search';
 
   static const String profile = '/profile';
@@ -58,6 +83,7 @@ class AppRouteConstants {
 
   static const String inbox = '/inbox';
   static const String inboxRoom = '/inbox/room';
+
   /// Public support entry — gated by auth; once logged in/registered it opens
   /// the user's `_support` room for in-platform follow-up (e.g. emxi.org/soporte).
   static const String supportEntry = '/soporte';
@@ -77,7 +103,8 @@ class AppRouteConstants {
   static const String createEventType = '/createEvent/type';
   static const String createNeomEventType = '/neom/createEvent/type';
   static const String createEventActivities = '/neom/createEvent/activities';
-  static const String createEventCollectiveOrMusicians = '/createEvent/collectiveOrMusicians';
+  static const String createEventCollectiveOrMusicians =
+      '/createEvent/collectiveOrMusicians';
   static const String createEventBands = '/createEvent/bands';
   static const String createEventCollectives = '/createEvent/collectives';
   static const String createEventLists = '/createEvent/lists';
@@ -104,7 +131,8 @@ class AppRouteConstants {
   static const String collectiveLists = '/collective/lists';
   static const String collectiveListItems = '/collective/list/items';
   static const String createCollectiveAddImage = '/createCollective/addImage';
-  static const String createCollectiveInstruments = '/createCollective/instruments';
+  static const String createCollectiveInstruments =
+      '/createCollective/instruments';
   static const String createCollectiveReason = '/createCollective/reason';
   static const String createCollectiveSummary = '/createCollective/summary';
 
@@ -147,94 +175,98 @@ class AppRouteConstants {
   static const String paymentGateway = '/payment/gateway';
 
   ///DEPRECATED static const String readlists  = '/readlists';
-  static const String reading  = '/reading/:bookId';
-  static const String epubViewer  = '/EPUBViewer';
-  static const String digitalLibrary  = '/digitalLibrary';
-  static const String libraryHome  = '/library/';
-  static const String topBooks  = '/books/top';
-  static const String bookDetails  = '/book/:bookId';
+  static const String reading = '/reading/:bookId';
+  static const String epubViewer = '/EPUBViewer';
+  static const String digitalLibrary = '/digitalLibrary';
+  static const String libraryHome = '/library/';
+  static const String topBooks = '/books/top';
+  static const String bookDetails = '/book/:bookId';
 
-  static const String blog  = '/blog';
-  static const String blogEditor  = '/blog/editor';
-  static const String blogEntry  = '/blog/:entryId';
-  static const String blogAdmin  = '/blog/admin';
-  static const String blogAnalytics  = '/blog/analytics';
+  static const String blog = '/blog';
+  static const String blogEditor = '/blog/editor';
+  static const String blogEntry = '/blog/:entryId';
+  static const String blogAdmin = '/blog/admin';
+  static const String blogAnalytics = '/blog/analytics';
 
   static const String services = '/services';
   static const String quotation = '/quotation';
+
   /// Public, human-friendly Spanish alias for the quotation (cotizador) page,
   /// e.g. https://emxi.org/cotizacion — maps to the same QuotationPage.
   static const String cotizacion = '/cotizacion';
   static const String appItemQuotation = '/appItems/quotation';
 
-  static const String releaseUpload  = '/releaseUpload';
-  static const String releaseUploadType  = '/releaseUpload/type';
-  static const String releaseUploadCollectiveOrSolo  = '/releaseUpload/collectiveOrSolo';
-  static const String releaseUploadInstr  = '/releaseUpload/instr';
-  static const String releaseUploadCover  = '/releaseUpload/cover';
-  static const String releaseUploadGenres  = '/releaseUpload/genres';
-  static const String releaseUploadReason  = '/releaseUpload/reason';
-  static const String releaseUploadInfo  = '/releaseUpload/info';
+  static const String releaseUpload = '/releaseUpload';
+  static const String releaseUploadType = '/releaseUpload/type';
+  static const String releaseUploadCollectiveOrSolo =
+      '/releaseUpload/collectiveOrSolo';
+  static const String releaseUploadInstr = '/releaseUpload/instr';
+  static const String releaseUploadCover = '/releaseUpload/cover';
+  static const String releaseUploadGenres = '/releaseUpload/genres';
+  static const String releaseUploadReason = '/releaseUpload/reason';
+  static const String releaseUploadInfo = '/releaseUpload/info';
 
-  static const String releaseUploadItemlistNameDesc  = '/releaseUpload/itemlist/nameDesc';
-  static const String releaseUploadNameDesc  = '/releaseUpload/nameDesc';
-  static const String releaseUploadSummary  = '/onlinePositioning/summary';
+  static const String releaseUploadItemlistNameDesc =
+      '/releaseUpload/itemlist/nameDesc';
+  static const String releaseUploadNameDesc = '/releaseUpload/nameDesc';
+  static const String releaseUploadSummary = '/onlinePositioning/summary';
 
-  static const String analytics  = '/analytics';
-  static const String errorMonitor  = '/analytics/errorMonitor';
-  static const String flowMonitor  = '/analytics/flowMonitor';
+  static const String analytics = '/analytics';
+  static const String errorMonitor = '/analytics/errorMonitor';
+  static const String flowMonitor = '/analytics/flowMonitor';
 
-  static const String generator  = '/generator';
-  static const String levitation  = '/levitation';
-  static const String levitationLab  = '/levitation/lab';
-  static const String levitationSimChamber  = '/levitation/sim-chamber';
-  static const String levitationSimTransport  = '/levitation/sim-transport';
-  static const String chamber  = '/chamber';
-  static const String chamberPresets  = '/chamber/presets';
-  static const String chamberExperiences  = '/chamber/experiences';
-  static const String oscilloscopeFullscreen  = '/oscilloscope/fullscreen';
-  static const String flockingFullscreen  = '/flocking/fullscreen';
-  static const String breathingFullscreen  = '/breathing/fullscreen';
-  static const String spatial360Fullscreen  = '/360/spatial/fullscreen';
-  static const String vr360MonoFullscreen  = '/360/vr/mono/fullscreen';
-  static const String vr360StereoFullscreen  = '/360/vr/stereo/fullscreen';
-  static const String fractalFullscreen  = '/fractal/fullscreen';
-  static const String neomaticsFullscreen  = '/neomatics/fullscreen';
-  static const String neuromandalaFullscreen  = '/neuromandala/fullscreen';
+  static const String generator = '/generator';
+  static const String levitation = '/levitation';
+  static const String levitationLab = '/levitation/lab';
+  static const String levitationSimChamber = '/levitation/sim-chamber';
+  static const String levitationSimTransport = '/levitation/sim-transport';
+  static const String chamber = '/chamber';
+  static const String chamberPresets = '/chamber/presets';
+  static const String chamberExperiences = '/chamber/experiences';
+  static const String oscilloscopeFullscreen = '/oscilloscope/fullscreen';
+  static const String flockingFullscreen = '/flocking/fullscreen';
+  static const String breathingFullscreen = '/breathing/fullscreen';
+  static const String spatial360Fullscreen = '/360/spatial/fullscreen';
+  static const String vr360MonoFullscreen = '/360/vr/mono/fullscreen';
+  static const String vr360StereoFullscreen = '/360/vr/stereo/fullscreen';
+  static const String fractalFullscreen = '/fractal/fullscreen';
+  static const String neomaticsFullscreen = '/neomatics/fullscreen';
+  static const String neuromandalaFullscreen = '/neuromandala/fullscreen';
 
-  static const String audioPlayer  = '/audioPlayer';
-  static const String audioPlayerMedia  = '/audioPlayer/media';
-  static const String audioPlayerMini  = '/audioPlayer/mini';
-  static const String audioPlayerRecent  = '/audioPlayer/recent';
+  static const String audioPlayer = '/audioPlayer';
+  static const String audioPlayerMedia = '/audioPlayer/media';
+  static const String audioPlayerMini = '/audioPlayer/mini';
+  static const String audioPlayerRecent = '/audioPlayer/recent';
   static const String audioPlayerPref = '/audioPlayer/pref';
   static const String audioPlayerSetting = '/audioPlayer/setting';
   static const String audioPlayerPlaylists = '/audioPlayer/playlists';
   static const String audioPlayerNowPlaying = '/audioPlayer/nowPlaying';
   static const String audioPlayerDownloads = '/audioPlayer/downloads';
-  static const String audioPlayerStats  = '/audioPlayer/stats';
+  static const String audioPlayerStats = '/audioPlayer/stats';
 
-  static const String wooWebView  = '/woo/webView';
+  static const String wooWebView = '/woo/webView';
 
-  static const String nupaleHome  = '/nupale/home';
-  static const String nupaleItemDetails  = '/nupale/item/:itemId';
-  static const String nupaleMonthlyDetails  = '/nupale/monthly/:monthId';
-  static const String nupaleStats1  = '/stats/nupale1';
-  static const String nupaleStats2  = '/stats/nupale2';
-  static const String nupaleStats3  = '/stats/nupale3';
-  static const String nupaleStats4  = '/stats/nupale4';
-  static const String nupaleStats5  = '/stats/nupale5';
-  static const String nupaleRoyalties  = '/nupale/royalties';
-  static const String nupaleAdmin  = '/nupale/admin';
-  static const String caseteStats  = '/stats/casete';
+  static const String nupaleHome = '/nupale/home';
+  static const String nupaleItemDetails = '/nupale/item/:itemId';
+  static const String nupaleMonthlyDetails = '/nupale/monthly/:monthId';
+  static const String nupaleStats1 = '/stats/nupale1';
+  static const String nupaleStats2 = '/stats/nupale2';
+  static const String nupaleStats3 = '/stats/nupale3';
+  static const String nupaleStats4 = '/stats/nupale4';
+  static const String nupaleStats5 = '/stats/nupale5';
+  static const String nupaleRoyalties = '/nupale/royalties';
+  static const String nupaleAdmin = '/nupale/admin';
+  static const String nupaleWithdrawal = '/nupale/withdrawal';
+  static const String caseteStats = '/stats/casete';
 
-  static const String camera  = '/camera';
+  static const String camera = '/camera';
 
   static const String wallet = '/wallet';
   static const String transactionDetails = '/transaction/:transactionId';
 
-  static const String caseteHome  = '/casete/home';
-  static const String caseteItemDetails  = '/casete/item/:itemId';
-  static const String caseteMonthlyDetails  = '/casete/monthly/:monthId';
+  static const String caseteHome = '/casete/home';
+  static const String caseteItemDetails = '/casete/item/:itemId';
+  static const String caseteMonthlyDetails = '/casete/monthly/:monthId';
 
   static const String dawProjects = '/daw';
   static const String dawEditor = '/daw/editor';
@@ -310,11 +342,11 @@ class AppRouteConstants {
   static const String tipHistory = '/tip/history';
 
   // Stripe Financial Intelligence
-  static const String stripeWebView  = '/stripe/webview';
-  static const String stripeCheckoutSuccess  = '/suscripcion-confirmada';
-  static const String stripeCheckoutCancel   = '/suscripcion-fallida';
-  static const String stripePaymentSuccess   = '/pago-confirmado';
-  static const String stripePaymentCancel    = '/pago-fallido';
+  static const String stripeWebView = '/stripe/webview';
+  static const String stripeCheckoutSuccess = '/suscripcion-confirmada';
+  static const String stripeCheckoutCancel = '/suscripcion-fallida';
+  static const String stripePaymentSuccess = '/pago-confirmado';
+  static const String stripePaymentCancel = '/pago-fallido';
   static const String stripeDashboard = '/stripe/dashboard';
   static const String stripeSubscriptions = '/stripe/subscriptions';
 
@@ -366,20 +398,54 @@ class AppRouteConstants {
   // When a slug is provided and non-empty, it is used instead of the id
   // for web-friendly URLs, SEO, and deep linking compatibility.
 
-  static String _slugOrId(String id, String slug) => slug.isNotEmpty ? slug : id;
+  static String _slugOrId(String id, String slug) =>
+      slug.isNotEmpty ? slug : id;
 
-  static String bookPath(String id, {String slug = ''}) => '/book/${_slugOrId(id, slug)}';
-  static String readingPath(String id, {String slug = ''}) => '/reading/${_slugOrId(id, slug)}';
-  static String matePath(String id, {String slug = ''}) => '/mate/${_slugOrId(id, slug)}';
-  static String postPath(String id, {String slug = ''}) => '/post/${_slugOrId(id, slug)}';
-  static String postFullScreenPath(String id, {String slug = ''}) => '/post/${_slugOrId(id, slug)}/fullscreen';
-  static String eventPath(String id, {String slug = ''}) => '/event/${_slugOrId(id, slug)}';
-  static String collectivePath(String id, {String slug = ''}) => '/collective/${_slugOrId(id, slug)}';
-  static String itemPath(String id, {String slug = ''}) => '/item/${_slugOrId(id, slug)}';
+  static String bookPath(String id, {String slug = ''}) =>
+      '/book/${Uri.encodeComponent(_slugOrId(id, slug))}';
+  static String readingPath(String id, {String slug = ''}) =>
+      '/reading/${Uri.encodeComponent(_slugOrId(id, slug))}';
+  static String matePath(String id, {String slug = ''}) =>
+      '/mate/${_slugOrId(id, slug)}';
+  static String postPath(String id, {String slug = ''}) =>
+      '/post/${_slugOrId(id, slug)}';
+  static String postFullScreenPath(String id, {String slug = ''}) =>
+      '/post/${_slugOrId(id, slug)}/fullscreen';
+  static String eventPath(String id, {String slug = ''}) =>
+      '/event/${_slugOrId(id, slug)}';
+  static String collectivePath(String id, {String slug = ''}) =>
+      '/collective/${_slugOrId(id, slug)}';
+  static String itemPath(String id, {String slug = ''}) =>
+      '/item/${_slugOrId(id, slug)}';
+
+  /// Shareable address of a release. Falls back to [itemPath] when the release
+  /// has no slug yet, so links keep working during the backfill.
+  static String releasePath(
+    String id, {
+    String ownerSlug = '',
+    String slug = '',
+  }) => (ownerSlug.isNotEmpty && slug.isNotEmpty)
+      ? '/$releasePrefix/$ownerSlug/$slug'
+      : itemPath(id, slug: slug);
+
+  /// Artist page: the band if one exists, otherwise their releases.
+  static String artistPath(String ownerSlug) => '/$releasePrefix/$ownerSlug';
+
+  /// Address of an album, EP, podcast… — the kind names the path itself.
+  /// Falls back to the legacy id route while the list has no slugs.
+  static String itemlistPath(
+    ItemlistType type,
+    String id, {
+    String ownerSlug = '',
+    String slug = '',
+  }) => (ownerSlug.isNotEmpty && slug.isNotEmpty)
+      ? '/${type.name.toLowerCase()}/$ownerSlug/$slug'
+      : '$listItems/$id';
   static String profilePath(String id, {String slug = ''}) {
     final target = _slugOrId(id, slug);
     return target.startsWith('@') ? '/$target' : '/@$target';
   }
+
   static String requestPath(String id) => '/request/$id';
   static String invitationPath(String id) => '/invitation/$id';
   static String orderPath(String id) => '/order/$id';
@@ -396,6 +462,6 @@ class AppRouteConstants {
   static String museumArtworkPath(String id) => '/museum/artwork/$id';
   static String museumGalleryPath(String id) => '/museum/gallery/$id';
   static String museumAuctionPath(String id) => '/museum/auction/$id';
-  static String blogEntryPath(String id, {String slug = ''}) => '/blog/${_slugOrId(id, slug)}';
-
+  static String blogEntryPath(String id, {String slug = ''}) =>
+      '/blog/${_slugOrId(id, slug)}';
 }
