@@ -5,6 +5,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:sint/sint.dart';
 
 import '../../app_config.dart';
+import '../../domain/model/account_load_exception.dart';
 import '../../domain/model/app_profile.dart';
 import '../../domain/model/app_user.dart';
 import '../../domain/model/facility.dart';
@@ -29,9 +30,15 @@ import 'post_firestore.dart';
 import 'profile_firestore.dart';
 
 class UserFirestore implements UserRepository {
-  
-  final userReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.users);
-  final profileReference = FirebaseFirestore.instance.collectionGroup(AppFirestoreCollectionConstants.profiles);
+
+  UserFirestore({FirebaseFirestore? firestore})
+      : _firestore = firestore ?? FirebaseFirestore.instance;
+
+  final FirebaseFirestore _firestore;
+  CollectionReference<Map<String, dynamic>> get userReference =>
+      _firestore.collection(AppFirestoreCollectionConstants.users);
+  Query<Map<String, dynamic>> get profileReference =>
+      _firestore.collectionGroup(AppFirestoreCollectionConstants.profiles);
 
   @override
   Future<bool> insert(AppUser user) async {
@@ -42,22 +49,19 @@ class UserFirestore implements UserRepository {
       return false;
     }
 
-    AppConfig.logger.i("Inserting user $userId to Firestore");
-
     Map<String,dynamic> userJSON = user.toJSON();
-    AppConfig.logger.d(userJSON.toString());
-
     try {
-
-      await userReference.doc(userId).set(userJSON)
-          .whenComplete(() => AppConfig.logger.i('User added to the database'))
-          .catchError((e) => AppConfig.logger.e(e));
-
-      AppConfig.logger.d("User ${user.toString()} inserted successfully.");
-      return true;
-
-    } catch (e, st) {
-      await remove(userId) ? AppConfig.logger.i("User rollback") : NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'insert');
+      // A retry or a failed account lookup must never replace an existing user.
+      // The transaction also closes the race between checking and creating.
+      return await _firestore.runTransaction((transaction) async {
+        final reference = userReference.doc(userId);
+        final existing = await transaction.get(reference);
+        if (existing.exists) return false;
+        transaction.set(reference, userJSON);
+        return true;
+      });
+    } catch (_) {
+      AppConfig.logger.w('Account creation failed; no rollback deletion attempted');
       return false;
     }
   }
@@ -84,14 +88,21 @@ class UserFirestore implements UserRepository {
   }
 
   @override
-  Future<AppUser> getById(String userId, {getProfileFeatures = false}) async {
-    AppConfig.logger.t("Get User by ID: $userId");
+  Future<AppUser> getById(String userId, {getProfileFeatures = false, bool throwOnError = false}) async {
+    AppConfig.logger.t('Loading account by ID');
     AppUser user = AppUser();
     try {
-        DocumentSnapshot documentSnapshot = await userReference.doc(userId).get();
+        DocumentSnapshot documentSnapshot = await userReference.doc(userId).get(
+          throwOnError ? const GetOptions(source: Source.server) : null,
+        );
         if (documentSnapshot.exists && documentSnapshot.data() != null) {
           user = AppUser.fromJSON(documentSnapshot.data() as Map<String, dynamic>);
           user.id = documentSnapshot.id;
+
+          if (throwOnError && AppConfig.instance.appInUse == AppInUse.g) {
+            await _loadOwnProfiles(user);
+            return user;
+          }
 
           AppProfile profile = AppProfile();
 
@@ -115,6 +126,7 @@ class UserFirestore implements UserRepository {
           AppConfig.logger.w("No user found");
         }
     } catch (e, st) {
+      if (throwOnError) throw const AccountLoadException();
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getById');
     }
 
@@ -122,17 +134,27 @@ class UserFirestore implements UserRepository {
   }
 
   @override
-  Future<AppUser?> getByEmail(String email,  {bool getProfile = false, bool getProfileFeatures = false}) async {
-    AppConfig.logger.d("Get User by Email: $email");
+  Future<AppUser?> getByEmail(String email,  {bool getProfile = false, bool getProfileFeatures = false, bool throwOnError = false}) async {
+    AppConfig.logger.d('Loading account by email');
 
     try {
-      QuerySnapshot querySnapshot = await userReference.where(AppFirestoreConstants.email, isEqualTo: email).limit(1).get();
+      QuerySnapshot querySnapshot = await userReference.where(AppFirestoreConstants.email, isEqualTo: email).limit(throwOnError ? 2 : 1).get(
+        throwOnError ? const GetOptions(source: Source.server) : null,
+      );
+      if (throwOnError && querySnapshot.docs.length > 1) {
+        throw const AccountLoadException();
+      }
 
       if (querySnapshot.docs.isNotEmpty) {
         var queryDocumentSnapshot = querySnapshot.docs.first;
         if (queryDocumentSnapshot.exists) {
           AppUser user = AppUser.fromJSON(queryDocumentSnapshot.data());
           user.id = queryDocumentSnapshot.id;
+
+          if (getProfile && throwOnError && AppConfig.instance.appInUse == AppInUse.g) {
+            await _loadOwnProfiles(user);
+            return user;
+          }
 
           if(getProfile) {
             try {
@@ -171,6 +193,7 @@ class UserFirestore implements UserRepository {
                 }
               }
             } catch (e) {
+              if (throwOnError) throw const AccountLoadException();
               AppConfig.logger.w("Profile retrieval failed for user ${user.id}: $e");
             }
           }
@@ -181,10 +204,36 @@ class UserFirestore implements UserRepository {
         }
       }
     } catch (e, st) {
+      if (throwOnError) throw const AccountLoadException();
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getByEmail');
     }
 
     return null;
+  }
+
+  /// Login bootstrap reads only this account's nested profiles. Auth is still
+  /// waiting here, so the guest/public-catalog policy cannot select this path.
+  Future<void> _loadOwnProfiles(AppUser user) async {
+    final profiles = userReference.doc(user.id)
+        .collection(AppFirestoreCollectionConstants.profiles);
+    const options = GetOptions(source: Source.server);
+    final currentId = user.currentProfileId;
+    if (currentId.isNotEmpty && !currentId.contains('/')) {
+      final snapshot = await profiles.doc(currentId).get(options);
+      if (snapshot.exists && snapshot.data() != null) {
+        final profile = AppProfile.fromJSON(snapshot.data());
+        profile.id = snapshot.id;
+        user.profiles = [profile];
+        return;
+      }
+    }
+    final snapshot = await profiles.limit(20).get(options);
+    user.profiles = snapshot.docs.map((document) {
+      final profile = AppProfile.fromJSON(document.data());
+      profile.id = document.id;
+      return profile;
+    }).toList();
+    if (user.profiles.isEmpty) throw const AccountLoadException();
   }
 
   @override
@@ -729,7 +778,7 @@ class UserFirestore implements UserRepository {
           .get();
       final ids = <String>[];
       for (final doc in snapshot.docs) {
-        final data = doc.data() as Map<String, dynamic>;
+        final data = doc.data();
         final pid = (data['currentProfileId'] ?? '').toString();
         if (pid.isNotEmpty) ids.add(pid);
       }

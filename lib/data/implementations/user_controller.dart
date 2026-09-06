@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart' as fba;
 import 'package:sint/sint.dart';
 
 import '../../app_config.dart';
+import '../../domain/model/account_load_exception.dart';
 import '../../domain/model/app_profile.dart';
 import '../../domain/model/app_user.dart';
 import '../../domain/model/collective.dart';
@@ -30,7 +31,10 @@ import 'geolocator_controller.dart';
 
 class UserController extends SintController implements UserService {
 
-  UserFirestore userFirestore = UserFirestore();
+  UserController({UserFirestore? userFirestore})
+      : userFirestore = userFirestore ?? UserFirestore();
+
+  UserFirestore userFirestore;
   
   AppUser _user = AppUser();
   AppProfile _profile = AppProfile();
@@ -140,6 +144,11 @@ class UserController extends SintController implements UserService {
   @override
   Future<void> createUser() async {
 
+    if (!_isNewUser || user.id.isEmpty) {
+      AppConfig.logger.w('Account creation requires a confirmed new account');
+      return;
+    }
+
     AppConfig.logger.d("User to create ${user.name}");
     AppUser newUser = user;
     setNewProfileInfo();
@@ -167,7 +176,7 @@ class UserController extends SintController implements UserService {
           AppHiveController().writeProfileInfo();
           Sint.offAllNamed(AppRouteConstants.home);
         } else {
-          userFirestore.remove(newUser.id);
+          // Never delete an account to compensate for a failed profile write.
           Sint.snackbar(
             CoreConstants.errorCreatingAccount.tr,
             '',
@@ -320,45 +329,43 @@ class UserController extends SintController implements UserService {
 
   @override
   Future<void> setUserById(String userId) async {
-
+    _isNewUser = false;
     try {
-      AppUser userFromFirestore = await userFirestore.getById(userId);
+      AppUser userFromFirestore = await userFirestore.getById(userId, throwOnError: true);
       if(userFromFirestore.id.isNotEmpty){
-        AppConfig.logger.i("User $userId exists!!");
+        if (userFromFirestore.profiles.isEmpty) throw const AccountLoadException();
         user = userFromFirestore;
         profile = user.profiles.first;
         _isNewUser = false;
         AppConfig.instance.isAdminMode = user.userRole.value >= UserRole.admin.value;
       } else {
-        AppConfig.logger.w("User $userId not exists!!");
+        clear();
+        profile = AppProfile();
         _isNewUser = true;
       }
-    } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'setUserById');
+    } catch (_) {
+      _isNewUser = false;
+      throw const AccountLoadException();
     }
   }
 
   @override
   Future<void> setUserByEmail(String userEmail) async {
-
+    _isNewUser = false;
     try {
-      AppUser? userFromEmail = await userFirestore.getByEmail(userEmail, getProfile: true);
+      AppUser? userFromEmail = await userFirestore.getByEmail(userEmail, getProfile: true, throwOnError: true);
       if(userFromEmail?.id.isNotEmpty ?? false) {
-        AppConfig.logger.t("User $userEmail exists!!");
-        user = userFromEmail!;
-        if(user.profiles.isNotEmpty) {
-          profile = user.profiles.first;
-          _isNewUser = false;
-        } else {
-          AppConfig.logger.w("User $userEmail exists but has no profiles");
-          _isNewUser = false;
-        }
+        if (userFromEmail!.profiles.isEmpty) throw const AccountLoadException();
+        user = userFromEmail;
+        profile = user.profiles.first;
       } else {
-        AppConfig.logger.w("User $userEmail not exists!!");
+        clear();
+        profile = AppProfile();
         _isNewUser = true;
       }
-    } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'setUserByEmail');
+    } catch (_) {
+      _isNewUser = false;
+      throw const AccountLoadException();
     }
   }
 

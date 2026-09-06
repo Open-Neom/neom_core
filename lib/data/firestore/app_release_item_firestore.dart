@@ -8,37 +8,43 @@ import '../../utils/neom_error_logger.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
 
+import 'public_catalog_read_policy.dart';
 import 'release_deduplication_service.dart';
 
 class AppReleaseItemFirestore implements AppReleaseItemRepository {
-  final appReleaseItemReference = FirebaseFirestore.instance.collection(
-    AppFirestoreCollectionConstants.appReleaseItems,
-  );
-  final userReference = FirebaseFirestore.instance.collection(
-    AppFirestoreCollectionConstants.users,
-  );
-  final profileReference = FirebaseFirestore.instance.collectionGroup(
-    AppFirestoreCollectionConstants.profiles,
-  );
+  final FirebaseFirestore _firestore;
+  AppReleaseItemFirestore({FirebaseFirestore? firestore})
+    : _firestore = firestore ?? FirebaseFirestore.instance;
+  CollectionReference<Map<String, dynamic>> get appReleaseItemReference =>
+      PublicCatalogReadPolicy.collection(
+        _firestore,
+        AppFirestoreCollectionConstants.appReleaseItems,
+      );
+  Query<Map<String, dynamic>> get _releaseQuery =>
+      PublicCatalogReadPolicy.query(appReleaseItemReference);
 
   static Map<String, AppReleaseItem> _cachedAllReleaseItems = {};
   static DateTime? _lastAllReleaseItemsFetchTime;
+  static bool? _cacheIsPublic;
   static const Duration _allReleaseItemsCacheTtl = Duration(minutes: 10);
 
-  bool get _canPersistUserActivity => AppConfig.instance.canPersistUserActivity;
+  bool get _canWriteCatalog => PublicCatalogReadPolicy.canWriteLegacyCatalog;
+  bool get _readsPublicData =>
+      PublicCatalogReadPolicy.enabled ||
+      !AppConfig.instance.canPersistUserActivity;
 
   bool _isVisibleToCurrentUser(AppReleaseItem item) =>
-      _canPersistUserActivity || item.isPubliclyVisible;
+      !_readsPublicData || item.isPubliclyVisible;
 
   AppReleaseItem _projectForCurrentUser(AppReleaseItem item) =>
-      _canPersistUserActivity ? item : item.toPublicProjection();
+      _readsPublicData ? item.toPublicProjection() : item;
 
   Map<String, AppReleaseItem> _catalogForCurrentUser(
     Iterable<AppReleaseItem> items,
   ) {
     final now = DateTime.now().millisecondsSinceEpoch;
     final filtered = items.where((item) {
-      if (!_canPersistUserActivity) return item.isPubliclyVisible;
+      if (_readsPublicData) return item.isPubliclyVisible;
 
       // Preserve the historical signed-in catalogue behaviour while keeping
       // the anonymous contract strict.
@@ -66,7 +72,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
 
   @override
   Future<String> insert(AppReleaseItem appReleaseItem) async {
-    if (!_canPersistUserActivity) return '';
+    if (!_canWriteCatalog) return '';
     AppConfig.logger.d("Adding appReleaseItem to database collection");
     String releaseItemId = appReleaseItem.id;
     try {
@@ -133,7 +139,12 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
   @override
   Future<Map<String, AppReleaseItem>> retrieveAll({
     bool forceRefresh = false,
+    bool throwOnError = false,
   }) async {
+    if (_cacheIsPublic != PublicCatalogReadPolicy.enabled) {
+      invalidateAllReleaseItemsCache();
+      _cacheIsPublic = PublicCatalogReadPolicy.enabled;
+    }
     if (!forceRefresh &&
         _cachedAllReleaseItems.isNotEmpty &&
         _lastAllReleaseItemsFetchTime != null &&
@@ -149,11 +160,12 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
 
     Map<String, AppReleaseItem> rawReleaseItems = {};
     try {
-      final QuerySnapshot querySnapshot = forceRefresh
-          ? await appReleaseItemReference.get(
-              const GetOptions(source: Source.server),
-            )
-          : await appReleaseItemReference.get();
+      final read = forceRefresh
+          ? _releaseQuery.get(const GetOptions(source: Source.server))
+          : _releaseQuery.get();
+      final QuerySnapshot querySnapshot = await (throwOnError
+          ? read.timeout(const Duration(seconds: 20))
+          : read);
 
       for (var queryDocumentSnapshot in querySnapshot.docs) {
         if (queryDocumentSnapshot.exists) {
@@ -192,6 +204,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
         module: 'neom_core',
         operation: 'retrieveAll',
       );
+      if (throwOnError) rethrow;
     }
 
     AppConfig.logger.d("No releaseItems found");
@@ -205,7 +218,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
     try {
       // OPTIMIZED: Use await instead of .then()
       final doc = await appReleaseItemReference.doc(releaseItemId).get();
-      if (doc.exists) {
+      if (doc.exists && PublicCatalogReadPolicy.accepts(doc.data())) {
         final rawItem = AppReleaseItem.fromJSON(doc.data())..id = doc.id;
         if (_isVisibleToCurrentUser(rawItem)) {
           appReleaseItem = _projectForCurrentUser(rawItem);
@@ -278,7 +291,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
       const batchSize = 30;
       for (var i = 0; i < releaseItemIds.length; i += batchSize) {
         final batch = releaseItemIds.skip(i).take(batchSize).toList();
-        final querySnapshot = await appReleaseItemReference
+        final querySnapshot = await _releaseQuery
             .where(FieldPath.documentId, whereIn: batch)
             .get();
 
@@ -303,7 +316,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
 
   @override
   Future<bool> remove(AppReleaseItem appReleaseItem) async {
-    if (!_canPersistUserActivity) return false;
+    if (!_canWriteCatalog) return false;
     AppConfig.logger.d(
       "Removing appReleaseItem ${appReleaseItem.name} with id ${appReleaseItem.id} from database collection",
     );
@@ -322,7 +335,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
     required String releaseItemId,
     required String userId,
   }) async {
-    if (!_canPersistUserActivity) return false;
+    if (!_canWriteCatalog) return false;
     AppConfig.logger.t("$releaseItemId would add user $userId");
 
     try {
@@ -349,12 +362,12 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
 
     try {
       if (releaseItemId.isEmpty) return false;
-      if (!_canPersistUserActivity) {
+      if (_readsPublicData) {
         return (await retrieve(releaseItemId)).id.isNotEmpty;
       }
       // OPTIMIZED: Use await instead of .then()
       final doc = await appReleaseItemReference.doc(releaseItemId).get();
-      if (doc.exists) {
+      if (doc.exists && PublicCatalogReadPolicy.accepts(doc.data())) {
         AppConfig.logger.d("AppMediaItem found");
         return true;
       }
@@ -371,7 +384,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
   }
 
   Future<void> existsOrInsert(AppReleaseItem releaseItem) async {
-    if (!_canPersistUserActivity) return;
+    if (!_canWriteCatalog) return;
     AppConfig.logger.t("existsOrInsert releaseItem ${releaseItem.id}");
 
     try {
@@ -400,7 +413,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
     String releaseItemId,
     Map<String, dynamic> fields,
   ) async {
-    if (!_canPersistUserActivity) return false;
+    if (!_canWriteCatalog) return false;
     AppConfig.logger.d("Updating appReleaseItem $releaseItemId fields");
     try {
       await appReleaseItemReference.doc(releaseItemId).update(fields);
@@ -427,7 +440,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
     if (category.isEmpty) return releaseItems;
 
     try {
-      final querySnapshot = await appReleaseItemReference
+      final querySnapshot = await _releaseQuery
           .where('categories', arrayContains: category)
           .where(
             AppFirestoreConstants.status,
@@ -466,12 +479,14 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
     String ownerEmail, {
     int limit = 30,
   }) async {
+    // Account email is deliberately absent from public projections.
+    if (PublicCatalogReadPolicy.enabled) return {};
     AppConfig.logger.t("Getting AppReleaseItems by owner: $ownerEmail");
     Map<String, AppReleaseItem> releaseItems = {};
     if (ownerEmail.isEmpty) return releaseItems;
 
     try {
-      final querySnapshot = await appReleaseItemReference
+      final querySnapshot = await _releaseQuery
           .where('ownerEmail', isEqualTo: ownerEmail)
           .where(
             AppFirestoreConstants.status,
@@ -534,7 +549,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
     if (value.trim().isEmpty) return releaseItems;
 
     try {
-      final querySnapshot = await appReleaseItemReference
+      final querySnapshot = await _releaseQuery
           .where(field, isEqualTo: value.trim())
           .where(
             AppFirestoreConstants.status,
@@ -570,7 +585,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
     if (language.isEmpty) return releaseItems;
 
     try {
-      final querySnapshot = await appReleaseItemReference
+      final querySnapshot = await _releaseQuery
           .where('language', isEqualTo: language)
           .where(
             AppFirestoreConstants.status,
@@ -608,12 +623,12 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
   /// Note: "pending" is used for items awaiting admin review,
   /// while "draft" is for items still in local cache/editing
   Future<List<AppReleaseItem>> retrievePendingReleases() async {
-    if (!_canPersistUserActivity) return [];
+    if (_readsPublicData) return [];
     AppConfig.logger.t("Retrieving pending AppReleaseItems for review");
 
     List<AppReleaseItem> pendingReleases = [];
     try {
-      QuerySnapshot querySnapshot = await appReleaseItemReference
+      QuerySnapshot querySnapshot = await _releaseQuery
           .where(
             AppFirestoreConstants.status,
             isEqualTo: ReleaseStatus.pending.name,
@@ -646,7 +661,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
 
   /// Approves a release by changing its status to publish
   Future<bool> approveRelease(String releaseItemId) async {
-    if (!_canPersistUserActivity) return false;
+    if (!_canWriteCatalog) return false;
     AppConfig.logger.d("Approving release $releaseItemId");
     try {
       await appReleaseItemReference.doc(releaseItemId).update({
@@ -669,7 +684,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
 
   /// Rejects a release by removing it or marking as rejected
   Future<bool> rejectRelease(String releaseItemId) async {
-    if (!_canPersistUserActivity) return false;
+    if (!_canWriteCatalog) return false;
     AppConfig.logger.d("Rejecting release $releaseItemId");
     try {
       await appReleaseItemReference.doc(releaseItemId).delete();
@@ -692,7 +707,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
   /// Uses [FieldValue.increment] for atomic, race-condition-free counting.
   /// The subcollection stores per-page view counts with timestamps.
   Future<bool> incrementPageView(String releaseItemId, int pageNumber) async {
-    if (!AppConfig.instance.canPersistUserActivity) {
+    if (!_canWriteCatalog) {
       AppConfig.logger.d(
         "Skipping page-view persistence for guest or unloaded user",
       );
@@ -740,7 +755,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
     if (ownerSlug.isEmpty || slug.isEmpty) return null;
 
     try {
-      final querySnapshot = await appReleaseItemReference
+      final querySnapshot = await _releaseQuery
           .where('ownerSlug', isEqualTo: ownerSlug)
           .where('slug', isEqualTo: slug)
           .limit(1)
@@ -772,7 +787,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
     if (slug.isEmpty) return null;
 
     try {
-      final querySnapshot = await appReleaseItemReference
+      final querySnapshot = await _releaseQuery
           .where('slug', isEqualTo: slug)
           .limit(1)
           .get();

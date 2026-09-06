@@ -102,6 +102,7 @@ void main() {
           ownerEmail: 'private@example.test',
           ownerProfileId: 'profile-1',
           ownerSlug: 'autora',
+          streamingUrl: 'https://example.test/public-audio.mp3',
           boughtUsers: ['buyer-1'],
           likedProfiles: ['profile-2'],
           sharedProfiles: ['profile-3'],
@@ -121,6 +122,9 @@ void main() {
         expect(projected.ownerName, original.ownerName);
         expect(projected.ownerProfileId, original.ownerProfileId);
         expect(projected.ownerSlug, original.ownerSlug);
+        expect(projected.streamUrl, original.streamingUrl);
+        expect(AppReleaseItem.fromJSON(original.toJSON()).streamingUrl,
+            original.streamingUrl);
         expect(projected.ownerEmail, isEmpty);
         expect(projected.metaOwnerId, isEmpty);
         expect(projected.boughtUsers, isEmpty);

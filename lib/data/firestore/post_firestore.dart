@@ -10,15 +10,43 @@ import '../../utils/position_utilities.dart';
 import 'activity_feed_firestore.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
+import 'public_catalog_read_policy.dart';
 
 class PostFirestore implements PostRepository {
-  bool get _canPersistUserActivity => AppConfig.instance.canPersistUserActivity;
+  bool get _canWriteCatalog => PublicCatalogReadPolicy.canWriteLegacyCatalog;
+  bool get _readsPublicData =>
+      PublicCatalogReadPolicy.enabled ||
+      !AppConfig.instance.canPersistUserActivity;
 
-  bool _canRead(Post post) => _canPersistUserActivity || post.isPubliclyVisible;
+  bool _canRead(Post post) => !_readsPublicData || post.isPubliclyVisible;
 
-  final postsReference = FirebaseFirestore.instance.collection(
-    AppFirestoreCollectionConstants.posts,
-  );
+  final FirebaseFirestore _firestore;
+  PostFirestore({FirebaseFirestore? firestore})
+    : _firestore = firestore ?? FirebaseFirestore.instance;
+
+  CollectionReference<Map<String, dynamic>> get postsReference =>
+      PublicCatalogReadPolicy.collection(
+        _firestore,
+        AppFirestoreCollectionConstants.posts,
+      );
+  Query<Map<String, dynamic>> get _postsQuery =>
+      PublicCatalogReadPolicy.query(postsReference);
+
+  bool? _paginationIsPublic;
+  void _syncPaginationScope() {
+    final isPublic = PublicCatalogReadPolicy.enabled;
+    if (_paginationIsPublic == isPublic) return;
+    _paginationIsPublic = isPublic;
+    _lastPostDocument = null;
+    _profileDocPosts.clear();
+    _recentDocTimeline.clear();
+    _moreCommentsDocTimeline.clear();
+    _moreLikedDocTimeline.clear();
+    _releaseDocTimeline.clear();
+    _blogEntriesDocTimeline.clear();
+    _followingDocTimeline.clear();
+    _diverseDocTimeline.clear();
+  }
 
   final List<QueryDocumentSnapshot> _profileDocPosts = [];
   final List<QueryDocumentSnapshot> _recentDocTimeline = [];
@@ -37,6 +65,7 @@ class PostFirestore implements PostRepository {
     int limit = 50,
     bool refresh = false,
   }) async {
+    _syncPaginationScope();
     AppConfig.logger.d("Retrieving Posts with limit: $limit");
     List<Post> posts = <Post>[];
 
@@ -45,7 +74,7 @@ class PostFirestore implements PostRepository {
       if (refresh) _lastPostDocument = null;
 
       // OPTIMIZED: Added limit and pagination support
-      Query query = postsReference
+      Query query = _postsQuery
           .orderBy(AppFirestoreConstants.createdTime, descending: true)
           .limit(limit);
 
@@ -89,7 +118,7 @@ class PostFirestore implements PostRepository {
     String postId,
     bool isLiked,
   ) async {
-    if (!_canPersistUserActivity) return false;
+    if (!_canWriteCatalog) return false;
     AppConfig.logger.d("Handle Like for Post: $postId - isLiked: $isLiked");
     try {
       await postsReference.doc(postId).update({
@@ -115,7 +144,7 @@ class PostFirestore implements PostRepository {
   Future<Post?> getBySlug(String slug) async {
     if (slug.isEmpty) return null;
     try {
-      final querySnapshot = await postsReference
+      final querySnapshot = await _postsQuery
           .where('slug', isEqualTo: slug)
           .limit(1)
           .get();
@@ -138,7 +167,7 @@ class PostFirestore implements PostRepository {
 
   @override
   Future<String> insert(Post post) async {
-    if (!_canPersistUserActivity) return '';
+    if (!_canWriteCatalog) return '';
     AppConfig.logger.t("Insert");
     String postId = "";
     try {
@@ -176,7 +205,10 @@ class PostFirestore implements PostRepository {
     try {
       DocumentSnapshot postSnapshot = await postsReference.doc(postId).get();
       // FIXED: Added null check after .data()
-      if (postSnapshot.exists && postSnapshot.data() != null) {
+      if (postSnapshot.exists &&
+          PublicCatalogReadPolicy.accepts(
+            postSnapshot.data() as Map<String, dynamic>?,
+          )) {
         post = Post.fromJSON(postSnapshot.data() as Map<String, dynamic>);
         post.id = postSnapshot.id;
         if (!_canRead(post)) return Post();
@@ -195,7 +227,7 @@ class PostFirestore implements PostRepository {
 
   @override
   Future<bool> remove(String profileId, String postId) async {
-    if (!_canPersistUserActivity) return false;
+    if (!_canWriteCatalog) return false;
     AppConfig.logger.t("remove Post");
     bool wasDeleted = false;
     try {
@@ -240,7 +272,7 @@ class PostFirestore implements PostRepository {
   }
 
   Future<bool> update(Post post) async {
-    if (!_canPersistUserActivity) return false;
+    if (!_canWriteCatalog) return false;
     AppConfig.logger.d("");
     try {
       await postsReference.doc(post.id).update(post.toJSON());
@@ -258,7 +290,7 @@ class PostFirestore implements PostRepository {
   }
 
   Future<bool> updateFields(String postId, Map<String, dynamic> fields) async {
-    if (!_canPersistUserActivity) return false;
+    if (!_canWriteCatalog) return false;
     AppConfig.logger.d("Updating post $postId fields");
     try {
       await postsReference.doc(postId).update(fields);
@@ -276,12 +308,13 @@ class PostFirestore implements PostRepository {
 
   @override
   Future<List<Post>> getProfilePosts(String profileId, {int limit = 20}) async {
+    _syncPaginationScope();
     AppConfig.logger.t("getProfilePosts from Firestore");
 
     List<Post> posts = [];
 
     try {
-      Query query = postsReference
+      Query query = _postsQuery
           .where(AppFirestoreConstants.ownerId, isEqualTo: profileId)
           .orderBy(AppFirestoreConstants.createdTime, descending: true)
           .limit(limit); // FIXED: Enabled pagination limit
@@ -319,42 +352,53 @@ class PostFirestore implements PostRepository {
   Future<Map<String, Post>> getTimeline({
     int limit = CoreConstants.timelineLimit,
     bool forceRefresh = false,
+    bool throwOnError = false,
   }) async {
+    _syncPaginationScope();
     AppConfig.logger.t("getTimeline");
     Map<String, Post> posts = {};
 
     try {
-      if (forceRefresh) {
-        _recentDocTimeline.clear();
-        _diverseDocTimeline.clear();
-      }
-
-      Query query = postsReference
+      Query query = _postsQuery
           .orderBy(AppFirestoreConstants.lastInteraction, descending: true)
           .limit(limit);
-      if (_recentDocTimeline.isNotEmpty) {
+      if (!forceRefresh && _recentDocTimeline.isNotEmpty) {
         query = query.startAfterDocument(_recentDocTimeline.last);
       }
-      final QuerySnapshot snapshot = forceRefresh
-          ? await query.get(const GetOptions(source: Source.server))
-          : await query.get();
-
-      _recentDocTimeline.addAll(snapshot.docs);
+      final read = forceRefresh
+          ? query.get(const GetOptions(source: Source.server))
+          : query.get();
+      final QuerySnapshot snapshot = await (throwOnError
+          ? read.timeout(const Duration(seconds: 20))
+          : read);
+      final acceptedDocs = <String, QueryDocumentSnapshot>{};
 
       for (var doc in snapshot.docs) {
         Post post = Post.fromJSON(doc.data());
-        if (_canRead(post) && !_diverseDocTimeline.containsKey(doc.id)) {
+        if (_canRead(post) &&
+            (forceRefresh || !_diverseDocTimeline.containsKey(doc.id))) {
           post.id = doc.id;
-          if (post.location.isEmpty && post.position?.latitude != 0) {
+          if (!PublicCatalogReadPolicy.enabled &&
+              post.location.isEmpty &&
+              post.position?.latitude != 0) {
             post.location =
                 await PositionUtilities.getFormattedAddressFromPosition(
                   post.position!,
                 );
           }
           posts[post.id] = post;
-          _diverseDocTimeline[doc.id] = doc;
+          acceptedDocs[doc.id] = doc;
         }
       }
+
+      // Publish pagination/deduplication state only after a complete read.
+      // An unavailable/timed-out refresh must not discard the previous cursor.
+      if (forceRefresh) {
+        _recentDocTimeline.clear();
+        _diverseDocTimeline.clear();
+      }
+      _recentDocTimeline.addAll(snapshot.docs);
+      _diverseDocTimeline.addAll(acceptedDocs);
     } catch (e, st) {
       NeomErrorLogger.recordError(
         e,
@@ -362,6 +406,7 @@ class PostFirestore implements PostRepository {
         module: 'neom_core',
         operation: 'PostFirestore.getTimeline',
       );
+      if (throwOnError) rethrow;
     }
 
     AppConfig.logger.d("Retrieveing ${posts.length} Posts");
@@ -369,13 +414,13 @@ class PostFirestore implements PostRepository {
   }
 
   Future<Map<String, Post>> getDrafts({String profileId = ""}) async {
-    if (!_canPersistUserActivity) return {};
+    if (_readsPublicData) return {};
     AppConfig.logger.d("");
     List<Post> sortedDrafts = [];
     Map<String, Post> drafts = {};
 
     try {
-      QuerySnapshot snapshot = await postsReference
+      QuerySnapshot snapshot = await _postsQuery
           .where(AppFirestoreConstants.isDraft, isEqualTo: true)
           .get();
 
@@ -415,13 +460,13 @@ class PostFirestore implements PostRepository {
 
   /// OPTIMIZED: Remove event post using indexed query instead of full collection scan
   Future<bool> removeEventPost(String ownerId, String eventId) async {
-    if (!_canPersistUserActivity) return false;
+    if (!_canWriteCatalog) return false;
     AppConfig.logger.t('Remove Event Post $eventId');
     bool wasDeleted = false;
 
     try {
       // OPTIMIZED: Use where query with referenceId instead of scanning ALL posts
-      QuerySnapshot querySnapshot = await postsReference
+      QuerySnapshot querySnapshot = await _postsQuery
           .where(AppFirestoreConstants.referenceId, isEqualTo: eventId)
           .limit(
             5,
@@ -458,7 +503,7 @@ class PostFirestore implements PostRepository {
 
   @override
   Future<bool> addComment(String postId, String commentId) async {
-    if (!_canPersistUserActivity) return false;
+    if (!_canWriteCatalog) return false;
     AppConfig.logger.d("");
     try {
       await postsReference.doc(postId).update({
@@ -481,7 +526,7 @@ class PostFirestore implements PostRepository {
 
   @override
   Future<bool> removeComment(String postId, String commentId) async {
-    if (!_canPersistUserActivity) return false;
+    if (!_canWriteCatalog) return false;
     AppConfig.logger.d("");
     try {
       await postsReference.doc(postId).update({
@@ -503,12 +548,13 @@ class PostFirestore implements PostRepository {
 
   @override
   Future<Post> retrievePostForEvent(String eventId) async {
+    if (PublicCatalogReadPolicy.enabled) return Post();
     AppConfig.logger.d("Retrieving post for Event $eventId");
 
     Post post = Post();
 
     try {
-      QuerySnapshot querySnapshot = await postsReference
+      QuerySnapshot querySnapshot = await _postsQuery
           .where(AppFirestoreConstants.eventId, isEqualTo: eventId)
           .get();
 
@@ -535,13 +581,14 @@ class PostFirestore implements PostRepository {
 
   @override
   Future<Map<String, Post>> getBlogEntries({String profileId = ""}) async {
-    if (!_canPersistUserActivity && profileId.isNotEmpty) return {};
+    _syncPaginationScope();
+    if (_readsPublicData && profileId.isNotEmpty) return {};
     AppConfig.logger.d("getBlogEntries");
     List<Post> sortedDrafts = [];
     Map<String, Post> drafts = {};
 
     try {
-      QuerySnapshot snapshot = await postsReference
+      QuerySnapshot snapshot = await _postsQuery
           .where(AppFirestoreConstants.type, isEqualTo: PostType.blogEntry.name)
           .get();
 
@@ -595,7 +642,7 @@ class PostFirestore implements PostRepository {
     List<Post> entries = [];
 
     try {
-      Query query = postsReference
+      Query query = _postsQuery
           .where(AppFirestoreConstants.type, isEqualTo: PostType.blogEntry.name)
           .where(AppFirestoreConstants.isDraft, isEqualTo: false)
           .orderBy(AppFirestoreConstants.lastInteraction, descending: true)
@@ -603,7 +650,7 @@ class PostFirestore implements PostRepository {
 
       // Filtrar por autor si se especifica
       if (authorId != null && authorId.isNotEmpty) {
-        query = postsReference
+        query = _postsQuery
             .where(
               AppFirestoreConstants.type,
               isEqualTo: PostType.blogEntry.name,
@@ -669,7 +716,7 @@ class PostFirestore implements PostRepository {
   Stream<List<Post>> getCommunityBlogEntriesStream({int limit = 50}) {
     AppConfig.logger.t("Starting community blog entries stream");
 
-    return postsReference
+    return _postsQuery
         .where(AppFirestoreConstants.type, isEqualTo: PostType.blogEntry.name)
         .where(AppFirestoreConstants.isDraft, isEqualTo: false)
         .orderBy(AppFirestoreConstants.lastInteraction, descending: true)
@@ -698,6 +745,7 @@ class PostFirestore implements PostRepository {
     bool getBlogEntries = true,
     List<String>? followingIds,
   }) async {
+    _syncPaginationScope();
     AppConfig.logger.d("Getting Next Timeline Posts");
     Map<String, Post> posts = {};
 
@@ -711,7 +759,7 @@ class PostFirestore implements PostRepository {
       QuerySnapshot? followingSnapshot;
 
       if (getRecent) {
-        Query query = postsReference
+        Query query = _postsQuery
             .orderBy(AppFirestoreConstants.lastInteraction, descending: true)
             .limit(CoreConstants.diverseTimelineLimit);
         if (_recentDocTimeline.isNotEmpty) {
@@ -721,8 +769,13 @@ class PostFirestore implements PostRepository {
       }
 
       if (getMoreLiked) {
-        Query query = postsReference
-            .orderBy(AppFirestoreConstants.likedProfiles, descending: true)
+        Query query = _postsQuery
+            .orderBy(
+              PublicCatalogReadPolicy.enabled
+                  ? 'likeCount'
+                  : AppFirestoreConstants.likedProfiles,
+              descending: true,
+            )
             .limit(CoreConstants.diverseTimelineLimit);
         if (_moreLikedDocTimeline.isNotEmpty) {
           query = query.startAfterDocument(_moreLikedDocTimeline.last);
@@ -731,8 +784,13 @@ class PostFirestore implements PostRepository {
       }
 
       if (getMoreComment) {
-        Query query = postsReference
-            .orderBy(AppFirestoreConstants.commentIds, descending: true)
+        Query query = _postsQuery
+            .orderBy(
+              PublicCatalogReadPolicy.enabled
+                  ? 'commentCount'
+                  : AppFirestoreConstants.commentIds,
+              descending: true,
+            )
             .limit(CoreConstants.diverseTimelineLimit);
         if (_moreCommentsDocTimeline.isNotEmpty) {
           query = query.startAfterDocument(_moreCommentsDocTimeline.last);
@@ -741,7 +799,7 @@ class PostFirestore implements PostRepository {
       }
 
       if (getReleases) {
-        Query query = postsReference
+        Query query = _postsQuery
             .where(
               AppFirestoreConstants.type,
               isEqualTo: PostType.releaseItem.name,
@@ -755,7 +813,7 @@ class PostFirestore implements PostRepository {
       }
 
       if (getBlogEntries) {
-        Query query = postsReference
+        Query query = _postsQuery
             .where(
               AppFirestoreConstants.type,
               isEqualTo: PostType.blogEntry.name,
@@ -778,7 +836,7 @@ class PostFirestore implements PostRepository {
 
         // List<String> shuffleFollowingIds = List<String>.from(followingIds)..shuffle();
         followingIds.shuffle();
-        Query query = postsReference
+        Query query = _postsQuery
             .where(
               AppFirestoreConstants.ownerId,
               whereIn: followingIds.sublist(start, end),
@@ -861,7 +919,7 @@ class PostFirestore implements PostRepository {
 
   ///NOT NEEDED
   Future<void> updateAllPostsLastInteraction() async {
-    if (!_canPersistUserActivity) return;
+    if (!_canWriteCatalog) return;
     AppConfig.logger.i("Updating lastInteraction for all posts");
 
     try {
@@ -899,7 +957,7 @@ class PostFirestore implements PostRepository {
 
   /// Add a profile to the savedByProfiles list of a post (bookmark/save).
   Future<bool> addSavedByProfile(String postId, String profileId) async {
-    if (!_canPersistUserActivity) return false;
+    if (!_canWriteCatalog) return false;
     AppConfig.logger.d(
       "Adding save/bookmark for post: $postId by profile: $profileId",
     );
@@ -925,7 +983,7 @@ class PostFirestore implements PostRepository {
 
   /// Remove a profile from the savedByProfiles list of a post (unbookmark/unsave).
   Future<bool> removeSavedByProfile(String postId, String profileId) async {
-    if (!_canPersistUserActivity) return false;
+    if (!_canWriteCatalog) return false;
     AppConfig.logger.d(
       "Removing save/bookmark for post: $postId by profile: $profileId",
     );

@@ -10,11 +10,21 @@ import '../../domain/repository/app_media_item_repository.dart';
 import '../../utils/enums/media_item_type.dart';
 import '../../utils/neom_error_logger.dart';
 import 'constants/app_firestore_collection_constants.dart';
+import 'public_catalog_read_policy.dart';
 
 class AppMediaItemFirestore implements AppMediaItemRepository {
-
-  final appMediaItemReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.appMediaItems);
-  final profileReference = FirebaseFirestore.instance.collectionGroup(AppFirestoreCollectionConstants.profiles);
+  final FirebaseFirestore _firestore;
+  AppMediaItemFirestore({FirebaseFirestore? firestore})
+    : _firestore = firestore ?? FirebaseFirestore.instance;
+  CollectionReference<Map<String, dynamic>> get appMediaItemReference =>
+      PublicCatalogReadPolicy.collection(
+        _firestore,
+        AppFirestoreCollectionConstants.appMediaItems,
+      );
+  Query<Map<String, dynamic>> get _mediaQuery =>
+      PublicCatalogReadPolicy.query(appMediaItemReference);
+  Query<Map<String, dynamic>> get profileReference =>
+      _firestore.collectionGroup(AppFirestoreCollectionConstants.profiles);
 
   @override
   Future<AppMediaItem> retrieve(String itemId) async {
@@ -23,31 +33,45 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
     try {
       // OPTIMIZED: Use await instead of .then()
       final doc = await appMediaItemReference.doc(itemId).get();
-      if (doc.exists) {
-        appMediaItem = AppMediaItem.fromJSON(jsonEncode(doc.data()));
-        AppConfig.logger.d("AppMediaItem ${appMediaItem.name} was retrieved with details");
+      if (doc.exists && PublicCatalogReadPolicy.accepts(doc.data())) {
+        appMediaItem = AppMediaItem.fromJSON(
+          PublicCatalogReadPolicy.enabled ? doc.data() : jsonEncode(doc.data()),
+        );
+        if (PublicCatalogReadPolicy.enabled) appMediaItem.id = doc.id;
+        AppConfig.logger.d(
+          "AppMediaItem ${appMediaItem.name} was retrieved with details",
+        );
       } else {
         AppConfig.logger.d("AppMediaItem not found");
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'retrieve');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'retrieve',
+      );
       rethrow;
     }
     return appMediaItem;
   }
 
-
   /// OPTIMIZED: Added pagination support with limit parameter
   @override
-  Future<Map<String, AppMediaItem>> fetchAll({ int minItems = 0, int maxLength = 100,
-    MediaItemType? type, List<MediaItemType>? excludeTypes, int? limit}) async {
+  Future<Map<String, AppMediaItem>> fetchAll({
+    int minItems = 0,
+    int maxLength = 100,
+    MediaItemType? type,
+    List<MediaItemType>? excludeTypes,
+    int? limit,
+  }) async {
     AppConfig.logger.t("Getting appMediaItems from list (limit: $limit)");
 
     Map<String, AppMediaItem> appMediaItems = {};
 
     try {
       // OPTIMIZATION: Apply limit to query if specified
-      Query query = appMediaItemReference;
+      Query query = _mediaQuery;
       if (limit != null && limit > 0) {
         query = query.limit(limit);
       }
@@ -57,20 +81,28 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
       if (querySnapshot.docs.isNotEmpty) {
         AppConfig.logger.t("QuerySnapshot is not empty");
         for (var documentSnapshot in querySnapshot.docs) {
-          AppMediaItem appMediaItem = AppMediaItem.fromJSON(documentSnapshot.data());
+          AppMediaItem appMediaItem = AppMediaItem.fromJSON(
+            documentSnapshot.data(),
+          );
           appMediaItem.id = documentSnapshot.id;
 
-          if(!appMediaItem.isSuspended
-              && appMediaItem.isAudioContent
-              && (type == null || appMediaItem.type == type)
-              && (excludeTypes == null || !excludeTypes.contains(appMediaItem.type))) {
+          if (!appMediaItem.isSuspended &&
+              appMediaItem.isAudioContent &&
+              (type == null || appMediaItem.type == type) &&
+              (excludeTypes == null ||
+                  !excludeTypes.contains(appMediaItem.type))) {
             appMediaItems[appMediaItem.id] = appMediaItem;
           }
           AppConfig.logger.t("Add ${appMediaItem.name} to fetchAll list");
         }
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'fetchAll');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'fetchAll',
+      );
     }
 
     AppConfig.logger.d("${appMediaItems.length} appMediaItems found");
@@ -78,8 +110,12 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
   }
 
   @override
-  Future<Map<String, AppMediaItem>> retrieveFromList(List<String> appMediaItemIds) async {
-    AppConfig.logger.t("Getting ${appMediaItemIds.length} appMediaItems from firestore");
+  Future<Map<String, AppMediaItem>> retrieveFromList(
+    List<String> appMediaItemIds,
+  ) async {
+    AppConfig.logger.t(
+      "Getting ${appMediaItemIds.length} appMediaItems from firestore",
+    );
 
     Map<String, AppMediaItem> appMediaItems = {};
     if (appMediaItemIds.isEmpty) return appMediaItems;
@@ -89,21 +125,30 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
       const batchSize = 30;
       for (var i = 0; i < appMediaItemIds.length; i += batchSize) {
         final batch = appMediaItemIds.skip(i).take(batchSize).toList();
-        final querySnapshot = await appMediaItemReference
+        final querySnapshot = await _mediaQuery
             .where(FieldPath.documentId, whereIn: batch)
             .get();
 
         for (var documentSnapshot in querySnapshot.docs) {
-          AppMediaItem appMediaItem = AppMediaItem.fromJSON(documentSnapshot.data());
+          AppMediaItem appMediaItem = AppMediaItem.fromJSON(
+            documentSnapshot.data(),
+          );
           appMediaItem.id = documentSnapshot.id;
           if (!appMediaItem.isSuspended) {
-            AppConfig.logger.d("AppMediaItem ${appMediaItem.name} was retrieved with details");
+            AppConfig.logger.d(
+              "AppMediaItem ${appMediaItem.name} was retrieved with details",
+            );
             appMediaItems[documentSnapshot.id] = appMediaItem;
           }
         }
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'retrieveFromList');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'retrieveFromList',
+      );
     }
     return appMediaItems;
   }
@@ -115,12 +160,17 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
     try {
       // OPTIMIZED: Use await instead of .then()
       final doc = await appMediaItemReference.doc(appMediaItemId).get();
-      if (doc.exists) {
+      if (doc.exists && PublicCatalogReadPolicy.accepts(doc.data())) {
         AppConfig.logger.d("AppMediaItem found");
         return true;
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'exists');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'exists',
+      );
     }
     AppConfig.logger.d("AppMediaItem not found");
     return false;
@@ -128,42 +178,64 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
 
   @override
   Future<void> insert(AppMediaItem appMediaItem) async {
+    if (PublicCatalogReadPolicy.enabled) return;
     AppConfig.logger.t("Adding appMediaItem to database collection");
 
     if (!appMediaItem.isAudioContent) {
-      AppConfig.logger.w("Rejected non-audio item '${appMediaItem.name}' (type: ${appMediaItem.type}) from appMediaItems collection");
+      AppConfig.logger.w(
+        "Rejected non-audio item '${appMediaItem.name}' (type: ${appMediaItem.type}) from appMediaItems collection",
+      );
       return;
     }
 
     if (appMediaItem.url.toLowerCase().endsWith('.pdf')) {
-      AppConfig.logger.w("Rejected PDF URL item '${appMediaItem.name}' from appMediaItems collection");
+      AppConfig.logger.w(
+        "Rejected PDF URL item '${appMediaItem.name}' from appMediaItems collection",
+      );
       return;
     }
 
     try {
-      await appMediaItemReference.doc(appMediaItem.id).set(appMediaItem.toJSON());
+      await appMediaItemReference
+          .doc(appMediaItem.id)
+          .set(appMediaItem.toJSON());
       AppConfig.logger.d("AppMediaItem inserted into Firestore");
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'insert');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'insert',
+      );
       AppConfig.logger.i("AppMediaItem not inserted into Firestore");
     }
-
   }
 
   @override
   Future<bool> remove(AppMediaItem appMediaItem) async {
+    if (PublicCatalogReadPolicy.enabled) return false;
     AppConfig.logger.d("Removing appMediaItem from database collection");
     try {
       await appMediaItemReference.doc(appMediaItem.id).delete();
       return true;
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'remove');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'remove',
+      );
       return false;
     }
   }
 
   @override
-  Future<bool> removeItemFromList(String profileId, String itemlistId, AppMediaItem appMediaItem) async {
+  Future<bool> removeItemFromList(
+    String profileId,
+    String itemlistId,
+    AppMediaItem appMediaItem,
+  ) async {
+    if (PublicCatalogReadPolicy.enabled) return false;
     AppConfig.logger.d("Removing ItemlistItem for user $profileId");
 
     if (profileId.isEmpty) {
@@ -184,7 +256,9 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
         profileDoc = querySnapshot.docs.first;
       } else {
         // Fallback: Search by document ID (profiles use documentSnapshot.id)
-        AppConfig.logger.t("Profile not found by 'id' field, searching by document ID...");
+        AppConfig.logger.t(
+          "Profile not found by 'id' field, searching by document ID...",
+        );
         final allProfilesSnapshot = await profileReference.get();
         for (var doc in allProfilesSnapshot.docs) {
           if (doc.id == profileId) {
@@ -202,17 +276,26 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
             .get();
 
         Itemlist itemlist = Itemlist.fromJSON(snapshot.data());
-        itemlist.appMediaItems?.removeWhere((element) => element.id == appMediaItem.id);
+        itemlist.appMediaItems?.removeWhere(
+          (element) => element.id == appMediaItem.id,
+        );
         await profileDoc.reference
             .collection(AppFirestoreCollectionConstants.itemlists)
             .doc(itemlistId)
             .update(itemlist.toJSON());
 
-        AppConfig.logger.i("ItemlistItem ${appMediaItem.name} was updated to ${appMediaItem.state}");
+        AppConfig.logger.i(
+          "ItemlistItem ${appMediaItem.name} was updated to ${appMediaItem.state}",
+        );
         return true;
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'removeItemFromList');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'removeItemFromList',
+      );
     }
 
     AppConfig.logger.d("ItemlistItem ${appMediaItem.name} was not updated");
@@ -220,24 +303,36 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
   }
 
   /// Updates specific fields of an AppMediaItem
-  Future<bool> updateFields(String mediaItemId, Map<String, dynamic> fields) async {
+  Future<bool> updateFields(
+    String mediaItemId,
+    Map<String, dynamic> fields,
+  ) async {
+    if (PublicCatalogReadPolicy.enabled) return false;
     AppConfig.logger.d("Updating appMediaItem $mediaItemId fields");
     try {
       await appMediaItemReference.doc(mediaItemId).update(fields);
       AppConfig.logger.d("AppMediaItem $mediaItemId updated successfully");
       return true;
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'updateFields');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'updateFields',
+      );
       return false;
     }
   }
 
   @override
   Future<void> existsOrInsert(AppMediaItem appMediaItem) async {
+    if (PublicCatalogReadPolicy.enabled) return;
     AppConfig.logger.t("existsOrInsert appMediaItem ${appMediaItem.id}");
 
     if (!appMediaItem.isAudioContent) {
-      AppConfig.logger.w("Skipped non-audio item '${appMediaItem.name}' (type: ${appMediaItem.type}) in existsOrInsert");
+      AppConfig.logger.w(
+        "Skipped non-audio item '${appMediaItem.name}' (type: ${appMediaItem.type}) in existsOrInsert",
+      );
       return;
     }
 
@@ -247,13 +342,18 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
       if (doc.exists) {
         AppConfig.logger.t("AppMediaItem found");
       } else {
-        AppConfig.logger.d("AppMediaItem ${appMediaItem.id}. ${appMediaItem.name} not found. Inserting");
+        AppConfig.logger.d(
+          "AppMediaItem ${appMediaItem.id}. ${appMediaItem.name} not found. Inserting",
+        );
         await insert(appMediaItem);
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'existsOrInsert');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'existsOrInsert',
+      );
     }
-
   }
-
 }

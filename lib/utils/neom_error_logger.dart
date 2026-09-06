@@ -48,6 +48,7 @@ class NeomErrorLogger {
 
     // 1. Always log locally
     neomLogger.e('[$module/$operation] $errorMessage');
+    if (localQaLogsEnabled) return;
     if (kDebugMode && skipDebug) return;
 
     // 2. Send to Crashlytics
@@ -76,6 +77,7 @@ class NeomErrorLogger {
     required String operation,
   }) {
     neomLogger.e('[$module/$operation] $error');
+    if (localQaLogsEnabled) return;
     _recordToCrashlytics(error, stackTrace, module, operation, false);
   }
 

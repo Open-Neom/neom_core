@@ -35,15 +35,23 @@ import 'itemlist_firestore.dart';
 import 'mate_firestore.dart';
 import 'place_firestore.dart';
 import 'post_firestore.dart';
+import 'public_catalog_read_policy.dart';
 
 class ProfileFirestore implements ProfileRepository {
-  final usersReference = FirebaseFirestore.instance.collection(
-    AppFirestoreCollectionConstants.users,
-  );
-
-  final profileReference = FirebaseFirestore.instance.collectionGroup(
-    AppFirestoreCollectionConstants.profiles,
-  );
+  final FirebaseFirestore _firestore;
+  ProfileFirestore({FirebaseFirestore? firestore})
+    : _firestore = firestore ?? FirebaseFirestore.instance;
+  CollectionReference<Map<String, dynamic>> get usersReference =>
+      _firestore.collection(AppFirestoreCollectionConstants.users);
+  Query<Map<String, dynamic>> get profileReference =>
+      PublicCatalogReadPolicy.enabled
+      ? PublicCatalogReadPolicy.query(
+          PublicCatalogReadPolicy.collection(
+            _firestore,
+            AppFirestoreCollectionConstants.profiles,
+          ),
+        )
+      : _firestore.collectionGroup(AppFirestoreCollectionConstants.profiles);
 
   List<QueryDocumentSnapshot> _profileDocuments = [];
   Map<dynamic, AppProfile> sortedProfiles = {};
@@ -55,6 +63,7 @@ class ProfileFirestore implements ProfileRepository {
   static Map<String, AppProfile> _cachedPublicProfiles = {};
   static DateTime? _lastPublicProfilesFetchTime;
   static const Duration _allProfilesCacheTtl = Duration(minutes: 10);
+  static bool? _publicCacheUsesProjection;
 
   static void invalidateAllProfilesCache() {
     _cachedAllProfiles.clear();
@@ -64,7 +73,9 @@ class ProfileFirestore implements ProfileRepository {
   }
 
   AppProfile? _applyCurrentReadPolicy(AppProfile profile) {
-    final isPublicReader = !AppConfig.instance.canPersistUserActivity;
+    final isPublicReader =
+        PublicCatalogReadPolicy.enabled ||
+        !AppConfig.instance.canPersistUserActivity;
     if (!ProfileDirectoryPolicy.canList(
       profile,
       isPublicReader: isPublicReader,
@@ -80,6 +91,34 @@ class ProfileFirestore implements ProfileRepository {
           );
   }
 
+  Future<AppProfile?> _retrievePublicProfile(String idOrSlug) async {
+    if (idOrSlug.isEmpty || idOrSlug.contains('/')) return null;
+    try {
+      // A direct get for a slug-shaped, nonexistent document is denied by
+      // resource-based rules. An empty, constrained public query is allowed
+      // and lets vanity-URL resolution continue without touching legacy data.
+      final snapshot = await profileReference
+          .where('id', isEqualTo: idOrSlug)
+          .limit(1)
+          .get();
+      if (snapshot.docs.isNotEmpty) {
+        final doc = snapshot.docs.first;
+        final profile = AppProfile.fromJSON(doc.data())..id = doc.id;
+        return _applyCurrentReadPolicy(profile);
+      }
+      // Only the public collection is consulted, including vanity URLs.
+      return await getBySlug(idOrSlug);
+    } catch (e, st) {
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'retrievePublicProfile',
+      );
+      return null;
+    }
+  }
+
   /// OPTIMIZED: Helper method to get a profile document reference by ID
   /// Uses the 'id' field stored in the document instead of FieldPath.documentId
   /// (collectionGroup queries don't support FieldPath.documentId with simple IDs)
@@ -88,6 +127,7 @@ class ProfileFirestore implements ProfileRepository {
   Future<DocumentReference?> _getProfileDocumentReference(
     String profileId,
   ) async {
+    if (PublicCatalogReadPolicy.enabled) return null;
     // Validate profileId is not empty to avoid Firestore error
     if (profileId.isEmpty) {
       AppConfig.logger.w('Cannot get profile reference: profileId is empty');
@@ -165,6 +205,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<String> insert(String userId, AppProfile profile) async {
+    if (PublicCatalogReadPolicy.enabled) return '';
     AppConfig.logger.d("Inserting profile ${profile.id} to Firestore");
     String profileId = "";
 
@@ -243,6 +284,9 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<AppProfile> retrieve(String profileId) async {
+    if (PublicCatalogReadPolicy.enabled) {
+      return await _retrievePublicProfile(profileId) ?? AppProfile();
+    }
     AppConfig.logger.d("Retrieving Profile $profileId");
     AppProfile profile = AppProfile();
 
@@ -322,6 +366,9 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<AppProfile?> retrieveSimple(String profileId) async {
+    if (PublicCatalogReadPolicy.enabled) {
+      return _retrievePublicProfile(profileId);
+    }
     AppConfig.logger.d("Retrieving Profile $profileId");
     AppProfile? profile;
 
@@ -381,6 +428,18 @@ class ProfileFirestore implements ProfileRepository {
     int? limit,
     bool isFirstCall = true,
   }) async {
+    if (PublicCatalogReadPolicy.enabled) {
+      final publicProfiles = await retrieveAllProfiles(limit: limit ?? 100);
+      return publicProfiles.values
+          .where(
+            (profile) =>
+                !needsPhone &&
+                (profileTypes == null || profileTypes.contains(profile.type)) &&
+                (usageReasons == null ||
+                    usageReasons.contains(profile.usageReason)),
+          )
+          .toList();
+    }
     AppConfig.logger.d("Get profiles by parameters");
 
     List<AppProfile> profiles = [];
@@ -569,6 +628,7 @@ class ProfileFirestore implements ProfileRepository {
     required String userId,
     required String profileId,
   }) async {
+    if (PublicCatalogReadPolicy.enabled) return false;
     AppConfig.logger.d("Removing profile $profileId from Firestore");
 
     try {
@@ -595,6 +655,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<AppProfile> retrieveFull(String profileId) async {
+    if (PublicCatalogReadPolicy.enabled) return retrieve(profileId);
     AppConfig.logger.d("Retrieving Profile $profileId");
     AppProfile profile = AppProfile();
 
@@ -641,6 +702,7 @@ class ProfileFirestore implements ProfileRepository {
     String userId, {
     ProfileType? profileType,
   }) async {
+    if (PublicCatalogReadPolicy.enabled) return [];
     AppConfig.logger.d("RetrievingProfiles for $userId");
     List<AppProfile> profiles = <AppProfile>[];
 
@@ -689,6 +751,7 @@ class ProfileFirestore implements ProfileRepository {
     int maxDistance = 20,
     int maxProfiles = 10,
   }) async {
+    if (PublicCatalogReadPolicy.enabled) return {};
     AppConfig.logger.d("RetrievingProfiles by instrument");
 
     Map<String, AppProfile> mainInstrumentProfiles = <String, AppProfile>{};
@@ -1363,7 +1426,14 @@ class ProfileFirestore implements ProfileRepository {
     int limit = 0,
     bool forceRefresh = false,
   }) async {
-    final isPublicReader = !AppConfig.instance.canPersistUserActivity;
+    if (_publicCacheUsesProjection != PublicCatalogReadPolicy.enabled) {
+      _cachedPublicProfiles.clear();
+      _lastPublicProfilesFetchTime = null;
+      _publicCacheUsesProjection = PublicCatalogReadPolicy.enabled;
+    }
+    final isPublicReader =
+        PublicCatalogReadPolicy.enabled ||
+        !AppConfig.instance.canPersistUserActivity;
     final cachedProfiles = isPublicReader
         ? _cachedPublicProfiles
         : _cachedAllProfiles;
@@ -1409,7 +1479,9 @@ class ProfileFirestore implements ProfileRepository {
       // If auth changed while the query was in flight, prefer the stricter
       // public projection rather than returning a now-stale private result.
       final requiresPublicProjection =
-          isPublicReader || !AppConfig.instance.canPersistUserActivity;
+          isPublicReader ||
+          PublicCatalogReadPolicy.enabled ||
+          !AppConfig.instance.canPersistUserActivity;
       profiles = {};
       for (final document in querySnapshot.docs) {
         final data = document.data();
@@ -1510,6 +1582,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<Map<String, AppProfile>> getFollowers(String profileId) async {
+    if (PublicCatalogReadPolicy.enabled) return {};
     AppConfig.logger.d("Start getFollowers for $profileId");
 
     Map<String, AppProfile> followersMap = {};
@@ -1545,6 +1618,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<Map<String, AppProfile>> getFollowed(String profileId) async {
+    if (PublicCatalogReadPolicy.enabled) return {};
     AppConfig.logger.d("Start getFollowed for $profileId");
 
     Map<String, AppProfile> followedMap = {};
@@ -1607,6 +1681,7 @@ class ProfileFirestore implements ProfileRepository {
   /// Retrieves the FCM token for a profile by looking up the associated user.
   /// Returns empty string if profile or user not found, or if no FCM token is registered.
   Future<String> retrievedFcmToken(String profileId) async {
+    if (PublicCatalogReadPolicy.enabled) return '';
     AppConfig.logger.t("Retrieving FCM Token for Profile $profileId");
 
     if (profileId.isEmpty) {
@@ -1753,6 +1828,9 @@ class ProfileFirestore implements ProfileRepository {
   }
 
   Future<AppProfile> getProfileFeatures(AppProfile profile) async {
+    if (PublicCatalogReadPolicy.enabled) {
+      return await _retrievePublicProfile(profile.id) ?? AppProfile();
+    }
     try {
       if (profile.type == ProfileType.appArtist) {
         profile.instruments = await InstrumentFirestore().retrieveInstruments(
@@ -1869,6 +1947,7 @@ class ProfileFirestore implements ProfileRepository {
     int maxDistance = 30,
     int maxProfiles = 30,
   }) async {
+    if (PublicCatalogReadPolicy.enabled) return {};
     AppConfig.logger.d("RetrievingProfiles by facility");
 
     Map<String, AppProfile> facilityProfiles = <String, AppProfile>{};
@@ -1977,6 +2056,7 @@ class ProfileFirestore implements ProfileRepository {
     int maxDistance = 30,
     int maxProfiles = 30,
   }) async {
+    if (PublicCatalogReadPolicy.enabled) return {};
     AppConfig.logger.d("RetrievingProfiles by place");
 
     Map<String, AppProfile> hostProfiles = <String, AppProfile>{};
@@ -2075,6 +2155,7 @@ class ProfileFirestore implements ProfileRepository {
 
   @override
   Future<AppProfile?> getByEmail(String email) async {
+    if (PublicCatalogReadPolicy.enabled) return null;
     AppConfig.logger.d("Retrieving profile by email $email");
 
     AppUser? user;
@@ -2110,6 +2191,7 @@ class ProfileFirestore implements ProfileRepository {
   }
 
   Future<AppUser?> _getUserByEmail(String email) async {
+    if (PublicCatalogReadPolicy.enabled) return null;
     try {
       QuerySnapshot querySnapshot = await usersReference
           .where(AppFirestoreConstants.email, isEqualTo: email)
@@ -2259,6 +2341,7 @@ class ProfileFirestore implements ProfileRepository {
 
   /// SCRIPT DE MIGRACIÓN: Ejecutar UNA SOLA VEZ para curar los perfiles legacy.
   Future<void> backfillAllProfileIds() async {
+    if (PublicCatalogReadPolicy.enabled) return;
     AppConfig.logger.i("Iniciando script de migración de IDs para perfiles...");
 
     try {

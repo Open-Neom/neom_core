@@ -13,15 +13,50 @@ import '../../utils/constants/core_constants.dart';
 import '../../utils/enums/itemlist_type.dart';
 import '../../utils/enums/owner_type.dart';
 import '../../utils/neom_error_logger.dart';
+import 'app_media_item_firestore.dart';
+import 'app_release_item_firestore.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
+import 'public_catalog_read_policy.dart';
 
 class ItemlistFirestore implements ItemlistRepository {
-  
-  final itemlistReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.itemlists);
+  final FirebaseFirestore _firestore;
+  ItemlistFirestore({FirebaseFirestore? firestore})
+    : _firestore = firestore ?? FirebaseFirestore.instance;
+  CollectionReference<Map<String, dynamic>> get itemlistReference =>
+      PublicCatalogReadPolicy.collection(
+        _firestore,
+        AppFirestoreCollectionConstants.itemlists,
+      );
+  Query<Map<String, dynamic>> get _itemlistQuery =>
+      PublicCatalogReadPolicy.query(itemlistReference);
+
+  Future<Itemlist> _readItemlist(String id, Map<String, dynamic> data) async {
+    final itemlist = Itemlist.fromJSON(data)..id = id;
+    if (!PublicCatalogReadPolicy.enabled) return itemlist;
+    List<String> ids(String field) => (data[field] is List)
+        ? (data[field] as List)
+              .whereType<String>()
+              .where((id) => id.isNotEmpty && !id.contains('/'))
+              .take(100)
+              .toList()
+        : <String>[];
+    // Public lists carry only item IDs. Embedded legacy objects are never used.
+    final releases = await AppReleaseItemFirestore(
+      firestore: _firestore,
+    ).retrieveFromList(ids('appReleaseItemIds'));
+    final media = await AppMediaItemFirestore(
+      firestore: _firestore,
+    ).retrieveFromList(ids('appMediaItemIds'));
+    itemlist.appReleaseItems = releases.values.toList();
+    itemlist.appMediaItems = media.values.toList();
+    itemlist.externalItems = [];
+    return itemlist;
+  }
 
   @override
   Future<String> insert(Itemlist itemlist) async {
+    if (PublicCatalogReadPolicy.enabled) return '';
     AppConfig.logger.d("Creating itemlist for Profile ${itemlist.ownerId}");
     String itemlistId = "";
 
@@ -37,19 +72,26 @@ class ItemlistFirestore implements ItemlistRepository {
       }
 
       // Re-publishing the same album is an update, not a rival address.
-      if (itemlist.id.isEmpty
-          && itemlist.ownerSlug.isNotEmpty && itemlist.slug.isNotEmpty) {
-        final existing = await getByOwnerAndSlug(itemlist.ownerSlug, itemlist.slug);
+      if (itemlist.id.isEmpty &&
+          itemlist.ownerSlug.isNotEmpty &&
+          itemlist.slug.isNotEmpty) {
+        final existing = await getByOwnerAndSlug(
+          itemlist.ownerSlug,
+          itemlist.slug,
+        );
         if (existing != null && existing.id.isNotEmpty) {
-          AppConfig.logger.w("Itemlist '${itemlist.name}' by ${itemlist.ownerName} "
-              "already exists (${existing.id}); updating it");
+          AppConfig.logger.w(
+            "Itemlist '${itemlist.name}' by ${itemlist.ownerName} "
+            "already exists (${existing.id}); updating it",
+          );
           itemlist.id = existing.id;
         }
       }
 
-      if(itemlist.id.isEmpty) {
-        DocumentReference? documentReference = await itemlistReference
-            .add(itemlist.toJSON());
+      if (itemlist.id.isEmpty) {
+        DocumentReference? documentReference = await itemlistReference.add(
+          itemlist.toJSON(),
+        );
         itemlistId = documentReference.id;
       } else {
         await itemlistReference.doc(itemlist.id).set(itemlist.toJSON());
@@ -58,38 +100,60 @@ class ItemlistFirestore implements ItemlistRepository {
 
       AppConfig.logger.d("Public Itemlist $itemlistId inserted");
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ItemlistFirestore.insert');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'ItemlistFirestore.insert',
+      );
     }
 
     return itemlistId;
   }
 
   @override
-  Future<bool> addMediaItem(String itemlistId, AppMediaItem appMediaItem) async {
+  Future<bool> addMediaItem(
+    String itemlistId,
+    AppMediaItem appMediaItem,
+  ) async {
+    if (PublicCatalogReadPolicy.enabled) return false;
     AppConfig.logger.d("Adding item to itemlist $itemlistId");
     bool addedItem = false;
 
     try {
-       DocumentReference documentReference = itemlistReference.doc(itemlistId);
-       if(documentReference.id.isNotEmpty) {
-         await documentReference.update({
-           AppFirestoreConstants.appMediaItems: FieldValue.arrayUnion([appMediaItem.toJSON()])
-         });
+      DocumentReference documentReference = itemlistReference.doc(itemlistId);
+      if (documentReference.id.isNotEmpty) {
+        await documentReference.update({
+          AppFirestoreConstants.appMediaItems: FieldValue.arrayUnion([
+            appMediaItem.toJSON(),
+          ]),
+        });
 
-         addedItem = true;
-       }
+        addedItem = true;
+      }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ItemlistFirestore.addMediaItem');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'ItemlistFirestore.addMediaItem',
+      );
     }
 
-    addedItem ? AppConfig.logger.d("AppMediaItem was added to itemlist $itemlistId") :
-    AppConfig.logger.d("AppMediaItem was not added to itemlist $itemlistId");
+    addedItem
+        ? AppConfig.logger.d("AppMediaItem was added to itemlist $itemlistId")
+        : AppConfig.logger.d(
+            "AppMediaItem was not added to itemlist $itemlistId",
+          );
     return addedItem;
   }
 
-
   @override
-  Future<bool> deleteMediaItem({required String itemlistId, required String itemId}) async {
+  Future<bool> deleteMediaItem({
+    required String itemlistId,
+    required String itemId,
+  }) async {
+    if (PublicCatalogReadPolicy.enabled) return false;
     AppConfig.logger.d("Removing item from itemlist $itemlistId");
 
     try {
@@ -104,15 +168,21 @@ class ItemlistFirestore implements ItemlistRepository {
 
         itemlist.appMediaItems?.removeWhere((item) => item.id == itemId);
         await documentReference.update({
-          AppFirestoreConstants.appMediaItems: itemlist.appMediaItems?.map((item) => item.toJSON()).toList(),
+          AppFirestoreConstants.appMediaItems: itemlist.appMediaItems
+              ?.map((item) => item.toJSON())
+              .toList(),
         });
-
       }
 
       AppConfig.logger.d("Item was removed from itemlist $itemlistId");
       return true;
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ItemlistFirestore.deleteMediaItem');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'ItemlistFirestore.deleteMediaItem',
+      );
     }
 
     AppConfig.logger.d("Item was not  removed from itemlist $itemlistId");
@@ -125,34 +195,52 @@ class ItemlistFirestore implements ItemlistRepository {
     Itemlist itemlist = Itemlist();
 
     try {
-      DocumentSnapshot documentSnapshot = await itemlistReference.doc(itemlistId).get();
-      if (documentSnapshot.exists) {
+      DocumentSnapshot documentSnapshot = await itemlistReference
+          .doc(itemlistId)
+          .get();
+      if (documentSnapshot.exists &&
+          PublicCatalogReadPolicy.accepts(
+            documentSnapshot.data() as Map<String, dynamic>?,
+          )) {
         AppConfig.logger.t("Snapshot is not empty");
         final data = documentSnapshot.data();
         if (data == null) return itemlist;
-        itemlist = Itemlist.fromJSON(data as Map<String, dynamic>);
-        itemlist.id = documentSnapshot.id;
+        itemlist = await _readItemlist(
+          documentSnapshot.id,
+          data as Map<String, dynamic>,
+        );
         AppConfig.logger.t(itemlist.toString());
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ItemlistFirestore.retrieve');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'ItemlistFirestore.retrieve',
+      );
     }
-
 
     return itemlist;
   }
 
   /// OPTIMIZED: Reduced default limit from 1000 to 50, added server-side filtering
   @override
-  Future<Map<String, Itemlist>> fetchAll({bool onlyPublic = false, int maxLength = 50,
-    String ownerId = '', String excludeFromProfileId = '', OwnerType ownerType = OwnerType.profile,
-    ItemlistType? itemlistType}) async {
-    AppConfig.logger.t("Retrieving Itemlists from firestore (limit: $maxLength)");
+  Future<Map<String, Itemlist>> fetchAll({
+    bool onlyPublic = false,
+    int maxLength = 50,
+    String ownerId = '',
+    String excludeFromProfileId = '',
+    OwnerType ownerType = OwnerType.profile,
+    ItemlistType? itemlistType,
+  }) async {
+    AppConfig.logger.t(
+      "Retrieving Itemlists from firestore (limit: $maxLength)",
+    );
     Map<String, Itemlist> itemlists = {};
 
     try {
       // OPTIMIZATION: Apply server-side filters instead of reading all then filtering client-side
-      Query query = itemlistReference;
+      Query query = _itemlistQuery;
 
       // Server-side filtering where possible
       if (ownerId.isNotEmpty) {
@@ -171,15 +259,23 @@ class ItemlistFirestore implements ItemlistRepository {
       for (var document in querySnapshot.docs) {
         final data = document.data();
         if (data == null) continue;
-        Itemlist itemlist = Itemlist.fromJSON(data as Map<String, dynamic>);
-        itemlist.id = document.id;
+        Itemlist itemlist = await _readItemlist(
+          document.id,
+          data as Map<String, dynamic>,
+        );
         // Client-side filter only for excludeFromProfileId (can't do != in Firestore easily)
-        if (excludeFromProfileId.isEmpty || itemlist.ownerId != excludeFromProfileId) {
+        if (excludeFromProfileId.isEmpty ||
+            itemlist.ownerId != excludeFromProfileId) {
           itemlists[itemlist.id] = itemlist;
         }
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ItemlistFirestore.fetchAll');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'ItemlistFirestore.fetchAll',
+      );
     }
 
     AppConfig.logger.d("${itemlists.length} itemlists found in total.");
@@ -187,34 +283,51 @@ class ItemlistFirestore implements ItemlistRepository {
   }
 
   @override
-  Future<Map<String, Itemlist>> getByOwnerId(String ownerId, {bool onlyPublic = false, bool excludeMyFavorites = true,
-    int maxLength = 100, OwnerType ownerType = OwnerType.profile, ItemlistType? itemlistType}) async {
-    AppConfig.logger.d("Retrieving Itemlists from firestore for owner $ownerId");
+  Future<Map<String, Itemlist>> getByOwnerId(
+    String ownerId, {
+    bool onlyPublic = false,
+    bool excludeMyFavorites = true,
+    int maxLength = 100,
+    OwnerType ownerType = OwnerType.profile,
+    ItemlistType? itemlistType,
+  }) async {
+    AppConfig.logger.d(
+      "Retrieving Itemlists from firestore for owner $ownerId",
+    );
     Map<String, Itemlist> itemlists = {};
 
     try {
       if (ownerId.isNotEmpty) {
-        Query query = itemlistReference.limit(maxLength);
+        Query query = _itemlistQuery.limit(maxLength);
         query = query.where('ownerId', isEqualTo: ownerId);
         query = query.where('ownerType', isEqualTo: ownerType.name);
-        if(itemlistType != null) query = query.where('type', isEqualTo: itemlistType.name);
+        if (itemlistType != null) {
+          query = query.where('type', isEqualTo: itemlistType.name);
+        }
 
-        await query.get().then((querySnapshot) {
+        await query.get().then((querySnapshot) async {
           for (var document in querySnapshot.docs) {
             final data = document.data();
             if (data == null) continue;
-            Itemlist itemlist = Itemlist.fromJSON(data as Map<String, dynamic>);
-            itemlist.id = document.id;
-            if((!onlyPublic || itemlist.public)
-                && (!excludeMyFavorites || itemlist.id != CoreConstants.myFavorites)
-            ) {
+            Itemlist itemlist = await _readItemlist(
+              document.id,
+              data as Map<String, dynamic>,
+            );
+            if ((!onlyPublic || itemlist.public) &&
+                (!excludeMyFavorites ||
+                    itemlist.id != CoreConstants.myFavorites)) {
               itemlists[itemlist.id] = itemlist;
             }
           }
         });
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ItemlistFirestore.getByOwnerId');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'ItemlistFirestore.getByOwnerId',
+      );
     }
 
     AppConfig.logger.d("${itemlists.length} itemlists found in total.");
@@ -223,25 +336,29 @@ class ItemlistFirestore implements ItemlistRepository {
 
   @override
   Future<bool> delete(itemlistId) async {
+    if (PublicCatalogReadPolicy.enabled) return false;
     AppConfig.logger.d("Removing public itemlist $itemlistId");
     try {
-
       await itemlistReference.doc(itemlistId).delete();
       AppConfig.logger.d("Itemlist $itemlistId removed");
       return true;
-
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ItemlistFirestore.delete');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'ItemlistFirestore.delete',
+      );
       return false;
     }
   }
 
   @override
   Future<bool> update(Itemlist itemlist) async {
+    if (PublicCatalogReadPolicy.enabled) return false;
     AppConfig.logger.d("Updating Itemlist for user ${itemlist.id}");
 
     try {
-
       DocumentReference documentReference = itemlistReference.doc(itemlist.id);
       await documentReference.update({
         AppFirestoreConstants.name: itemlist.name,
@@ -255,7 +372,12 @@ class ItemlistFirestore implements ItemlistRepository {
       AppConfig.logger.d("Itemlist ${itemlist.id} was updated");
       return true;
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ItemlistFirestore.update');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'ItemlistFirestore.update',
+      );
     }
 
     AppConfig.logger.d("Itemlist ${itemlist.id} was not updated");
@@ -263,10 +385,10 @@ class ItemlistFirestore implements ItemlistRepository {
   }
 
   Future<bool> updateType(Itemlist itemlist) async {
+    if (PublicCatalogReadPolicy.enabled) return false;
     AppConfig.logger.d("Updating Itemlist for user ${itemlist.id}");
 
     try {
-
       DocumentReference documentReference = itemlistReference.doc(itemlist.id);
       await documentReference.update({
         AppFirestoreConstants.type: itemlist.type.name,
@@ -275,7 +397,12 @@ class ItemlistFirestore implements ItemlistRepository {
       AppConfig.logger.d("Itemlist ${itemlist.id} was updated");
       return true;
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ItemlistFirestore.updateType');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'ItemlistFirestore.updateType',
+      );
     }
 
     AppConfig.logger.d("Itemlist ${itemlist.id} was not updated");
@@ -283,86 +410,124 @@ class ItemlistFirestore implements ItemlistRepository {
   }
 
   @override
-  Future<bool> addReleaseItem(String itemlistId, AppReleaseItem releaseItem) async {
+  Future<bool> addReleaseItem(
+    String itemlistId,
+    AppReleaseItem releaseItem,
+  ) async {
+    if (PublicCatalogReadPolicy.enabled) return false;
     AppConfig.logger.d("Adding item to itemlist $itemlistId");
     bool addedItem = false;
 
     try {
       DocumentReference documentReference = itemlistReference.doc(itemlistId);
       await documentReference.update({
-        AppFirestoreConstants.appReleaseItems: FieldValue.arrayUnion([releaseItem.toJSON()])
+        AppFirestoreConstants.appReleaseItems: FieldValue.arrayUnion([
+          releaseItem.toJSON(),
+        ]),
       });
 
       addedItem = true;
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ItemlistFirestore.addReleaseItem');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'ItemlistFirestore.addReleaseItem',
+      );
     }
 
-    addedItem ? AppConfig.logger.d("AppReleaseItem was added to itemlist $itemlistId") :
-    AppConfig.logger.d("AppReleaseItem was not added to itemlist $itemlistId");
+    addedItem
+        ? AppConfig.logger.d("AppReleaseItem was added to itemlist $itemlistId")
+        : AppConfig.logger.d(
+            "AppReleaseItem was not added to itemlist $itemlistId",
+          );
     return addedItem;
   }
 
   @override
-  Future<bool> deleteReleaseItem({required String itemlistId, required String itemId}) async {
-      try {
-        if(itemId.isEmpty || itemlistId.isEmpty) return false;
-        DocumentReference documentReference = itemlistReference.doc(itemlistId);
-        DocumentSnapshot snapshot = await documentReference.get();
+  Future<bool> deleteReleaseItem({
+    required String itemlistId,
+    required String itemId,
+  }) async {
+    if (PublicCatalogReadPolicy.enabled) return false;
+    try {
+      if (itemId.isEmpty || itemlistId.isEmpty) return false;
+      DocumentReference documentReference = itemlistReference.doc(itemlistId);
+      DocumentSnapshot snapshot = await documentReference.get();
 
-        final data = snapshot.data();
-        if (data == null) return false;
-        Itemlist itemlist = Itemlist.fromJSON(data as Map<String, dynamic>);
-        itemlist.appReleaseItems?.removeWhere((element) => element.id == itemId);
+      final data = snapshot.data();
+      if (data == null) return false;
+      Itemlist itemlist = Itemlist.fromJSON(data as Map<String, dynamic>);
+      itemlist.appReleaseItems?.removeWhere((element) => element.id == itemId);
 
-        await documentReference.update(itemlist.toJSON());
+      await documentReference.update(itemlist.toJSON());
 
+      AppConfig.logger.i("releaseItem $itemId was removed");
+      return true;
+    } catch (e, st) {
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'ItemlistFirestore.deleteReleaseItem',
+      );
+    }
 
-        AppConfig.logger.i("releaseItem $itemId was removed");
-        return true;
-      } catch (e, st) {
-        NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ItemlistFirestore.deleteReleaseItem');
-      }
-
-      AppConfig.logger.d("releaseItem $itemId was not removed");
-      return false;
+    AppConfig.logger.d("releaseItem $itemId was not removed");
+    return false;
   }
 
   @override
   Future<bool> addPreset(String chamberId, NeomChamberPreset preset) async {
+    if (PublicCatalogReadPolicy.enabled) return false;
     AppConfig.logger.d("Adding preset to chamber $chamberId");
     bool addedItem = false;
 
     try {
       DocumentReference documentReference = itemlistReference.doc(chamberId);
       await documentReference.update({
-        AppFirestoreConstants.chamberPresets: FieldValue.arrayUnion([preset.toJSON()])
+        AppFirestoreConstants.chamberPresets: FieldValue.arrayUnion([
+          preset.toJSON(),
+        ]),
       });
       addedItem = true;
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ItemlistFirestore.addPreset');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'ItemlistFirestore.addPreset',
+      );
     }
 
-    addedItem ? AppConfig.logger.d("Preset was added to chamber $chamberId") :
-    AppConfig.logger.d("Preset was not added to chamber $chamberId");
+    addedItem
+        ? AppConfig.logger.d("Preset was added to chamber $chamberId")
+        : AppConfig.logger.d("Preset was not added to chamber $chamberId");
     return addedItem;
   }
 
   @override
   Future<bool> deletePreset(NeomChamberPreset preset, String chamberId) async {
+    if (PublicCatalogReadPolicy.enabled) return false;
     AppConfig.logger.d("Removing preset from chamber $chamberId");
 
     try {
       DocumentReference documentReference = itemlistReference.doc(chamberId);
       await documentReference.update({
-        AppFirestoreConstants.chamberPresets: FieldValue.arrayRemove([preset.toJSON()])
+        AppFirestoreConstants.chamberPresets: FieldValue.arrayRemove([
+          preset.toJSON(),
+        ]),
       });
-
 
       AppConfig.logger.d("Preset was removed from chamber $chamberId");
       return true;
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ItemlistFirestore.deletePreset');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'ItemlistFirestore.deletePreset',
+      );
     }
 
     AppConfig.logger.d("Preset was not  removed from chamber $chamberId");
@@ -370,30 +535,48 @@ class ItemlistFirestore implements ItemlistRepository {
   }
 
   @override
-  Future<bool> addExternalItem(String itemlistId, ExternalItem externalItem) async {
+  Future<bool> addExternalItem(
+    String itemlistId,
+    ExternalItem externalItem,
+  ) async {
+    if (PublicCatalogReadPolicy.enabled) return false;
     AppConfig.logger.d("Adding item to itemlist $itemlistId");
     bool addedItem = false;
 
     try {
       DocumentReference documentReference = itemlistReference.doc(itemlistId);
       await documentReference.update({
-        AppFirestoreConstants.externalItems: FieldValue.arrayUnion([externalItem.toJSON()])
+        AppFirestoreConstants.externalItems: FieldValue.arrayUnion([
+          externalItem.toJSON(),
+        ]),
       });
 
       addedItem = true;
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ItemlistFirestore.addExternalItem');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'ItemlistFirestore.addExternalItem',
+      );
     }
 
-    addedItem ? AppConfig.logger.d("ExternalItem was added to itemlist $itemlistId") :
-    AppConfig.logger.d("ExternalItem was not added to itemlist $itemlistId");
+    addedItem
+        ? AppConfig.logger.d("ExternalItem was added to itemlist $itemlistId")
+        : AppConfig.logger.d(
+            "ExternalItem was not added to itemlist $itemlistId",
+          );
     return addedItem;
   }
 
   @override
-  Future<bool> deleteExternalItem({required String itemlistId, required String itemId}) async {
+  Future<bool> deleteExternalItem({
+    required String itemlistId,
+    required String itemId,
+  }) async {
+    if (PublicCatalogReadPolicy.enabled) return false;
     try {
-      if(itemId.isEmpty || itemlistId.isEmpty) return false;
+      if (itemId.isEmpty || itemlistId.isEmpty) return false;
       DocumentReference documentReference = itemlistReference.doc(itemlistId);
       DocumentSnapshot snapshot = await documentReference.get();
 
@@ -404,18 +587,21 @@ class ItemlistFirestore implements ItemlistRepository {
 
       await documentReference.update(itemlist.toJSON());
 
-
       AppConfig.logger.i("externalItem $itemId was removed");
       return true;
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ItemlistFirestore.deleteExternalItem');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'ItemlistFirestore.deleteExternalItem',
+      );
     }
 
     AppConfig.logger.d("externalItem $itemId was not removed");
     return false;
   }
 
-  @override
   /// The itemlist addressed by `/{kind}/{ownerSlug}/{slug}`.
   ///
   /// The kind is not part of the match: it makes the URL self-describing, but
@@ -425,7 +611,7 @@ class ItemlistFirestore implements ItemlistRepository {
     if (ownerSlug.isEmpty || slug.isEmpty) return null;
 
     try {
-      final querySnapshot = await itemlistReference
+      final querySnapshot = await _itemlistQuery
           .where('ownerSlug', isEqualTo: ownerSlug)
           .where('slug', isEqualTo: slug)
           .limit(1)
@@ -433,36 +619,41 @@ class ItemlistFirestore implements ItemlistRepository {
 
       if (querySnapshot.docs.isNotEmpty) {
         final doc = querySnapshot.docs.first;
-        final itemlist = Itemlist.fromJSON(doc.data());
-        itemlist.id = doc.id;
-        return itemlist;
+        return await _readItemlist(doc.id, doc.data());
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st,
-          module: 'neom_core', operation: 'ItemlistFirestore.getByOwnerAndSlug');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'ItemlistFirestore.getByOwnerAndSlug',
+      );
     }
     return null;
   }
 
+  @override
   Future<Itemlist?> getBySlug(String slug) async {
     if (slug.isEmpty) return null;
 
     try {
-      final querySnapshot = await itemlistReference
+      final querySnapshot = await _itemlistQuery
           .where('slug', isEqualTo: slug)
           .limit(1)
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
         final doc = querySnapshot.docs.first;
-        final itemlist = Itemlist.fromJSON(doc.data());
-        itemlist.id = doc.id;
-        return itemlist;
+        return await _readItemlist(doc.id, doc.data());
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ItemlistFirestore.getBySlug');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'ItemlistFirestore.getBySlug',
+      );
     }
     return null;
   }
-
 }

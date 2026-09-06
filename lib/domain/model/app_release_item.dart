@@ -455,6 +455,7 @@ class AppReleaseItem implements PlayableItem {
     'imgUrl': imgUrl,
     'galleryUrls': galleryUrls,
     'previewUrl': previewUrl,
+    if (streamingUrl != null) 'streamingUrl': streamingUrl,
     'duration': duration,
     'type': type.name,
     'status': status.name,
