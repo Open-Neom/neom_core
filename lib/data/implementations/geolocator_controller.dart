@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:geolocator/geolocator.dart';
 
 import '../../app_config.dart';
@@ -72,6 +73,10 @@ class GeoLocatorController implements GeoLocatorService {
 
   @override
   Future<LocationPermission> requestPermission() async {
+    if (kIsWeb) {
+      final pos = await platformGetCurrentPosition();
+      return pos != null ? LocationPermission.whileInUse : LocationPermission.denied;
+    }
 
     bool serviceEnabled;
     LocationPermission permission = LocationPermission.unableToDetermine;
@@ -99,6 +104,7 @@ class GeoLocatorController implements GeoLocatorService {
   }
 
 
+
   @override
   Future<Position?> getCurrentPosition() async {
 
@@ -108,6 +114,14 @@ class GeoLocatorController implements GeoLocatorService {
     Position? position;
 
     try {
+      if (kIsWeb) {
+        // On web, platformGetCurrentPosition() directly invokes the browser Geolocation API
+        // which natively triggers the permission prompt if not yet decided.
+        position = await platformGetCurrentPosition();
+        AppConfig.logger.t("Web Position: ${position?.toString()}");
+        return position;
+      }
+
       serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         return Future.error('Location services are disabled.');
