@@ -89,17 +89,47 @@ class CloudProperties {
   // Cloud Operations
   // ═══════════════════════════════════════════
 
+  /// Garantiza que haya una sesión de Firebase antes de llamar al servidor.
+  ///
+  /// El servidor pasó a exigir autenticación en las acciones que gastan
+  /// dinero (`aiProxy`, `geminiProxy`, `synthesizeSpeech`, `embeddingProxy`),
+  /// porque estaban abiertas a cualquiera en internet. El modo invitado no
+  /// desaparece por eso: se firma anónimamente, lo que da un `uid` al que
+  /// atribuir consumo y aplicar límites **sin pedirle nada al usuario**.
+  ///
+  /// Si el invitado se registra después, `linkWithCredential` conserva este
+  /// mismo uid — el historial de consumo no se parte en dos.
+  ///
+  /// Devuelve null si el proveedor anónimo no está habilitado en el
+  /// proyecto; quien llama trata ese caso como falta de autenticación.
+  static Future<User?> _ensureSignedIn() async {
+    final existing = FirebaseAuth.instance.currentUser;
+    if (existing != null) return existing;
+    try {
+      final cred = await FirebaseAuth.instance.signInAnonymously();
+      neomLogger.t('Sesión anónima creada para invitado: ${cred.user?.uid}');
+      return cred.user;
+    } catch (e, st) {
+      // Falla si el proveedor anónimo está deshabilitado. Se devuelve null y
+      // la llamada de arriba dará el error de autenticación — mejor un fallo
+      // claro que una llamada sin identificar que el servidor rechazará.
+      NeomErrorLogger.recordError(e, st,
+          module: 'neom_core', operation: '_ensureSignedIn');
+      return null;
+    }
+  }
+
   /// Calls secureOps. On web, uses secureOpsWeb (HTTP with CORS).
   /// On mobile, uses the callable secureOps via Firebase SDK.
   static Future<Map<String, dynamic>> callSecureOps(Map<String, dynamic> data) async {
     if (kIsWeb) {
-      final user = FirebaseAuth.instance.currentUser;
-      final isPublicAction = data['action'] == 'getConfig' ||
-          data['action'] == 'geminiProxy' ||
-          data['action'] == 'askSaia' ||
-          data['action'] == 'chat' ||
-          data['action'] == 'embeddingProxy' ||
-          data['action'] == 'synthesizeSpeech';
+      // `getConfig` es la única que no cuesta dinero y puede correr sin
+      // sesión. El resto estaban en esta lista como «públicas», que era justo
+      // lo que dejaba el proxy abierto: ahora se firma antes de llamar.
+      final isPublicAction = data['action'] == 'getConfig';
+      final user = isPublicAction
+          ? FirebaseAuth.instance.currentUser
+          : await _ensureSignedIn();
 
       if (user == null && !isPublicAction) {
         throw Exception('Authentication required — user not logged in');
@@ -151,7 +181,14 @@ class CloudProperties {
       return {};
     }
 
-    // Mobile: use Firebase SDK callable
+    // Mobile: use Firebase SDK callable.
+    //
+    // `httpsCallable` adjunta el token solo si YA hay un usuario; si no,
+    // `request.auth` llega null y el servidor rechaza. Se firma antes, igual
+    // que en la rama web, para que el invitado en móvil siga funcionando.
+    if (data['action'] != 'getConfig') {
+      await _ensureSignedIn();
+    }
     final callable = FirebaseFunctions.instance.httpsCallable('secureOps');
     final result = await callable.call<Map<String, dynamic>>(data);
     return result.data;
