@@ -31,6 +31,13 @@ void main() {
       expect(PostUtilities.areLikelyDuplicates(p1, p2), isTrue);
     });
 
+    test('same owner and identical referenceId are duplicates', () {
+      final p1 = Post(id: 'p1', ownerId: 'user_1', referenceId: 'rel_123', createdTime: 1000);
+      final p2 = Post(id: 'p2', ownerId: 'user_1', referenceId: 'rel_123', createdTime: 5000);
+      expect(PostUtilities.areLikelyDuplicates(p1, p2), isTrue);
+    });
+
+
     test('same owner, same caption, same type within time threshold are duplicates', () {
       final p1 = Post(
         id: 'p1',

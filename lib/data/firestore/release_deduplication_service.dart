@@ -62,6 +62,56 @@ class ReleaseDeduplicationService {
     return '$titleSlug::$ownerKey';
   }
 
+  /// Determines if two [AppReleaseItem]s appear to be duplicates based on owner,
+  /// media URLs, title slug, and creation timestamp.
+  bool areLikelyDuplicates(
+    AppReleaseItem a,
+    AppReleaseItem b, {
+    int timeThresholdMs = 120000,
+  }) {
+    if (identical(a, b)) return true;
+    if (a.id.isNotEmpty && b.id.isNotEmpty && a.id == b.id) return true;
+
+    // Both must share an owner identifier
+    final bool sameProfile = a.ownerProfileId != null &&
+        b.ownerProfileId != null &&
+        a.ownerProfileId!.isNotEmpty &&
+        a.ownerProfileId == b.ownerProfileId;
+    final bool sameEmail = a.ownerEmail.isNotEmpty &&
+        b.ownerEmail.isNotEmpty &&
+        a.ownerEmail.toLowerCase() == b.ownerEmail.toLowerCase();
+    final bool sameSlug = a.ownerSlug.isNotEmpty &&
+        b.ownerSlug.isNotEmpty &&
+        a.ownerSlug == b.ownerSlug;
+
+    // If neither has a matching stable owner identity, they cannot be considered duplicates
+    if (!sameProfile && !sameEmail && !sameSlug) {
+      return false;
+    }
+
+    // Identical media/preview URL or cover image URL
+    final samePreview = a.previewUrl.trim().isNotEmpty && a.previewUrl.trim() == b.previewUrl.trim();
+    final sameImg = a.imgUrl.trim().isNotEmpty && a.imgUrl.trim() == b.imgUrl.trim();
+    if (samePreview || sameImg) return true;
+
+    // Same normalized title / slug
+    final slugA = AppReleaseItem.generateSlug(a.name.trim());
+    final slugB = AppReleaseItem.generateSlug(b.name.trim());
+    if (slugA.isNotEmpty && slugA == slugB) {
+      // Check time threshold if both have createdTime
+      if (a.createdTime > 0 && b.createdTime > 0) {
+        final timeDiff = (a.createdTime - b.createdTime).abs();
+        if (timeDiff <= timeThresholdMs) return true;
+      } else {
+        // If either lacks createdTime, same owner + exact same title is duplicate
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+
   /// Calculates a completeness and quality score for an [AppReleaseItem].
   /// Higher score means the item is more complete, valid, and rich in metadata.
   int calculateCompletenessScore(AppReleaseItem item) {

@@ -88,6 +88,51 @@ class ItemlistFirestore implements ItemlistRepository {
         }
       }
 
+      // Rapid duplicate insert protection for itemlists within 120s
+      if (itemlist.id.isEmpty &&
+          (itemlist.ownerSlug.isNotEmpty || itemlist.ownerId.isNotEmpty)) {
+        try {
+          final recentThreshold =
+              DateTime.now().millisecondsSinceEpoch - 120000;
+          Query<Map<String, dynamic>> query = itemlistReference;
+          if (itemlist.ownerSlug.isNotEmpty) {
+            query = query.where('ownerSlug', isEqualTo: itemlist.ownerSlug);
+          } else if (itemlist.ownerId.isNotEmpty) {
+            query = query.where(
+              AppFirestoreConstants.ownerId,
+              isEqualTo: itemlist.ownerId,
+            );
+          }
+
+          final recentDocs = await query
+              .where('createdTime', isGreaterThan: recentThreshold)
+              .get();
+
+          for (var doc in recentDocs.docs) {
+            final data = doc.data();
+            final existingSlug = data['slug'] as String? ?? '';
+            final existingName = data['name'] as String? ?? '';
+            if ((itemlist.slug.isNotEmpty && existingSlug == itemlist.slug) ||
+                (itemlist.name.trim().isNotEmpty &&
+                    existingName.trim().toLowerCase() ==
+                        itemlist.name.trim().toLowerCase())) {
+              AppConfig.logger.w(
+                "Rapid duplicate itemlist detected for owner "
+                "${itemlist.ownerSlug.isNotEmpty ? itemlist.ownerSlug : itemlist.ownerId} "
+                "(existing ID: ${doc.id}, name: '$existingName'). Reusing existing doc.",
+              );
+              itemlist.id = doc.id;
+              break;
+            }
+          }
+        } catch (e) {
+          AppConfig.logger.w(
+            "Rapid duplicate check in ItemlistFirestore failed: $e",
+          );
+        }
+      }
+
+
       if (itemlist.id.isEmpty) {
         DocumentReference? documentReference = await itemlistReference.add(
           itemlist.toJSON(),

@@ -448,6 +448,8 @@ class AppReleaseItem implements PlayableItem {
         .replaceAll(RegExp(r'[^a-z0-9\-áéíóúñü]'), '');
   }
 
+
+
   Map<String, dynamic> toJSON() => {
     'id': id,
     'name': name,

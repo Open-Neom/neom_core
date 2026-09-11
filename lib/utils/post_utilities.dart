@@ -11,13 +11,15 @@ class PostUtilities {
       return false;
     }
 
-    final sameMedia = a.mediaUrl.isNotEmpty && a.mediaUrl == b.mediaUrl;
-    final sameThumbnail = a.thumbnailUrl.isNotEmpty && a.thumbnailUrl == b.thumbnailUrl;
+    final sameMedia = a.mediaUrl.trim().isNotEmpty && a.mediaUrl.trim() == b.mediaUrl.trim();
+    final sameThumbnail = a.thumbnailUrl.trim().isNotEmpty && a.thumbnailUrl.trim() == b.thumbnailUrl.trim();
+    final sameReference = a.referenceId.trim().isNotEmpty && a.referenceId.trim() == b.referenceId.trim();
 
-    // Identical media URL or thumbnail URL uploaded by the same owner
-    if (sameMedia || sameThumbnail) {
+    // Identical media URL, thumbnail URL, or reference ID uploaded by the same owner
+    if (sameMedia || sameThumbnail || sameReference) {
       return true;
     }
+
 
     // Matching caption & type within time threshold (e.g. 2 minutes)
     final timeDiff = (a.createdTime - b.createdTime).abs();

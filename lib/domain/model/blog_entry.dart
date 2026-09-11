@@ -5,6 +5,7 @@ import 'package:geolocator/geolocator.dart';
 
 import '../../utils/position_parser.dart';
 import '../../utils/enums/verification_level.dart';
+import 'incienso_practice_draft.dart';
 
 /// Modelo independiente para entradas de blog.
 /// Las reacciones (likes, comentarios) se manejan a través del Room asociado.
@@ -50,6 +51,11 @@ class BlogEntry {
   /// URL slug for vanity URLs (e.g., emxi.org/blog/mi-primer-articulo)
   String slug;
 
+  InciensoPracticeReference? practiceReference;
+  /// Local recovery metadata; deliberately excluded from toJSON()/Firestore.
+  String localPracticeSessionId;
+  bool localOnly;
+
   BlogEntry({
     this.id = '',
     this.ownerId = '',
@@ -73,6 +79,9 @@ class BlogEntry {
     this.verificationLevel,
     this.legacyPostId,
     this.slug = '',
+    this.practiceReference,
+    this.localPracticeSessionId = '',
+    this.localOnly = false,
   });
 
   /// Genera el roomId asociado a este blog.
@@ -135,7 +144,11 @@ class BlogEntry {
           data["verificationLevel"] ?? VerificationLevel.none.name,
         ) ?? VerificationLevel.none,
         legacyPostId = data["legacyPostId"],
-        slug = data["slug"] ?? '';
+        slug = data["slug"] ?? '',
+        practiceReference = data['practiceReference'] is Map
+            ? InciensoPracticeReference.fromJSON(data['practiceReference']) : null,
+        localPracticeSessionId = '',
+        localOnly = false;
 
   Map<String, dynamic> toJSON() => {
     'ownerId': ownerId,
@@ -159,7 +172,23 @@ class BlogEntry {
     'verificationLevel': verificationLevel?.name,
     if (legacyPostId != null) 'legacyPostId': legacyPostId,
     'slug': slug,
+    if (practiceReference != null) 'practiceReference': practiceReference!.toJSON(),
   };
+
+  Map<String, dynamic> toLocalJSON() => {
+    ...toJSON(),
+    'id': id,
+    'localPracticeSessionId': localPracticeSessionId,
+    'localOnly': localOnly,
+  };
+
+  factory BlogEntry.fromLocalJSON(Map<String, dynamic> data) {
+    final entry = BlogEntry.fromJSON(data);
+    entry.localPracticeSessionId = data['localPracticeSessionId'] is String
+        ? data['localPracticeSessionId'] as String : '';
+    entry.localOnly = data['localOnly'] == true;
+    return entry;
+  }
 
   BlogEntry.createClone(BlogEntry entry) :
     id = entry.id,
@@ -183,7 +212,10 @@ class BlogEntry {
     viewCount = entry.viewCount,
     verificationLevel = entry.verificationLevel,
     legacyPostId = entry.legacyPostId,
-    slug = entry.slug;
+    slug = entry.slug,
+    practiceReference = entry.practiceReference,
+    localPracticeSessionId = entry.localPracticeSessionId,
+    localOnly = entry.localOnly;
 
   /// Convierte este BlogEntry a un Post para mostrarlo en el feed/timeline.
   /// El caption del Post incluirá un preview del contenido.
@@ -234,6 +266,7 @@ class BlogEntry {
       'verificationLevel': verificationLevel?.name,
       'mediaOwner': '',
       'referenceId': id,  // Referencia al BlogEntry original
+      if (practiceReference != null) 'practiceReference': practiceReference!.toJSON(),
       'lastInteraction': DateTime.now().millisecondsSinceEpoch,
       'aspectRatio': 1,
       'textStyleId': '',

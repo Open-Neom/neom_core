@@ -92,7 +92,8 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
 
       // Same artist re-uploading the same title is a duplicate, not a second
       // release: reuse the document instead of creating a rival address.
-      if (appReleaseItem.ownerSlug.isNotEmpty &&
+      if (releaseItemId.isEmpty &&
+          appReleaseItem.ownerSlug.isNotEmpty &&
           appReleaseItem.slug.isNotEmpty) {
         final existing = await getByOwnerAndSlug(
           appReleaseItem.ownerSlug,
@@ -105,6 +106,62 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
           );
           releaseItemId = existing.id;
           appReleaseItem.id = existing.id;
+        }
+      }
+
+      // Rapid duplicate insert protection (e.g. within 120s for same owner and content)
+      if (releaseItemId.isEmpty &&
+          (appReleaseItem.ownerEmail.isNotEmpty ||
+              appReleaseItem.ownerSlug.isNotEmpty ||
+              (appReleaseItem.ownerProfileId?.isNotEmpty ?? false))) {
+        try {
+          final recentThreshold =
+              DateTime.now().millisecondsSinceEpoch - 120000;
+          Query<Map<String, dynamic>> query = appReleaseItemReference;
+          if (appReleaseItem.ownerEmail.isNotEmpty) {
+            query = query.where(
+              'ownerEmail',
+              isEqualTo: appReleaseItem.ownerEmail,
+            );
+          } else if (appReleaseItem.ownerSlug.isNotEmpty) {
+            query = query.where(
+              'ownerSlug',
+              isEqualTo: appReleaseItem.ownerSlug,
+            );
+          } else if (appReleaseItem.ownerProfileId != null &&
+              appReleaseItem.ownerProfileId!.isNotEmpty) {
+            query = query.where(
+              'ownerProfileId',
+              isEqualTo: appReleaseItem.ownerProfileId,
+            );
+          }
+
+          final recentDocs = await query
+              .where('createdTime', isGreaterThan: recentThreshold)
+              .get();
+
+          for (var doc in recentDocs.docs) {
+            final existingData = doc.data();
+            final existingItem = AppReleaseItem.fromJSON(existingData);
+            existingItem.id = doc.id;
+            if (ReleaseDeduplicationService().areLikelyDuplicates(
+              existingItem,
+              appReleaseItem,
+            )) {
+              AppConfig.logger.w(
+                "Rapid duplicate release detected for owner "
+                "${appReleaseItem.ownerEmail.isNotEmpty ? appReleaseItem.ownerEmail : appReleaseItem.ownerSlug} "
+                "(existing ID: ${doc.id}, name: '${existingItem.name}'). Reusing existing doc.",
+              );
+              releaseItemId = doc.id;
+              appReleaseItem.id = doc.id;
+              break;
+            }
+          }
+        } catch (e) {
+          AppConfig.logger.w(
+            "Rapid duplicate check in AppReleaseItemFirestore failed: $e",
+          );
         }
       }
 

@@ -281,4 +281,65 @@ void main() {
       expect(mujercitas.likedProfiles, containsAll(['user1', 'user2']));
     });
   });
+
+  group('ReleaseDeduplicationService - areLikelyDuplicates', () {
+    test('identical objects or same ID are duplicates', () {
+      final r1 = AppReleaseItem(id: 'rel_1', ownerEmail: 'test@example.com');
+      expect(deduplicationService.areLikelyDuplicates(r1, r1), isTrue);
+
+      final r2 = AppReleaseItem(id: 'rel_1', ownerEmail: 'other@example.com');
+      expect(deduplicationService.areLikelyDuplicates(r1, r2), isTrue);
+    });
+
+    test('different owners are never duplicates', () {
+      final r1 = AppReleaseItem(id: 'r1', ownerEmail: 'author1@test.com', previewUrl: 'https://cdn.com/book.pdf');
+      final r2 = AppReleaseItem(id: 'r2', ownerEmail: 'author2@test.com', previewUrl: 'https://cdn.com/book.pdf');
+      expect(deduplicationService.areLikelyDuplicates(r1, r2), isFalse);
+    });
+
+    test('same owner with identical previewUrl are duplicates', () {
+      final r1 = AppReleaseItem(id: 'r1', ownerEmail: 'author@test.com', previewUrl: 'https://cdn.com/book.pdf', createdTime: 1000);
+      final r2 = AppReleaseItem(id: 'r2', ownerEmail: 'author@test.com', previewUrl: 'https://cdn.com/book.pdf', createdTime: 5000);
+      expect(deduplicationService.areLikelyDuplicates(r1, r2), isTrue);
+    });
+
+    test('same owner with identical imgUrl are duplicates', () {
+      final r1 = AppReleaseItem(id: 'r1', ownerSlug: 'autor-1', imgUrl: 'https://cdn.com/cover.jpg', createdTime: 1000);
+      final r2 = AppReleaseItem(id: 'r2', ownerSlug: 'autor-1', imgUrl: 'https://cdn.com/cover.jpg', createdTime: 5000);
+      expect(deduplicationService.areLikelyDuplicates(r1, r2), isTrue);
+    });
+
+    test('same owner and matching title within time threshold are duplicates', () {
+      final r1 = AppReleaseItem(
+        id: 'r1',
+        ownerProfileId: 'prof_1',
+        name: 'Cien Años de Soledad',
+        createdTime: 100000,
+      );
+      final r2 = AppReleaseItem(
+        id: 'r2',
+        ownerProfileId: 'prof_1',
+        name: '  cien años de soledad  ',
+        createdTime: 130000, // 30s diff
+      );
+      expect(deduplicationService.areLikelyDuplicates(r1, r2), isTrue);
+    });
+
+    test('same owner with different titles are NOT duplicates', () {
+      final r1 = AppReleaseItem(
+        id: 'r1',
+        ownerEmail: 'author@test.com',
+        name: 'Libro Uno',
+        createdTime: 100000,
+      );
+      final r2 = AppReleaseItem(
+        id: 'r2',
+        ownerEmail: 'author@test.com',
+        name: 'Libro Dos',
+        createdTime: 100000,
+      );
+      expect(deduplicationService.areLikelyDuplicates(r1, r2), isFalse);
+    });
+  });
 }
+
