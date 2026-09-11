@@ -11,6 +11,7 @@ import '../../utils/post_utilities.dart';
 import 'activity_feed_firestore.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
+import 'profile_firestore.dart';
 import 'public_catalog_read_policy.dart';
 
 class PostFirestore implements PostRepository {
@@ -255,12 +256,14 @@ class PostFirestore implements PostRepository {
   @override
   Future<bool> remove(String profileId, String postId) async {
     if (!_canWriteCatalog) return false;
-    AppConfig.logger.t("remove Post");
+    AppConfig.logger.t("remove Post $postId for profile $profileId");
     bool wasDeleted = false;
     try {
       await postsReference.doc(postId).delete();
-      wasDeleted = await _removeProfilePost(profileId, postId);
+      await _removeProfilePost(profileId, postId);
       await ActivityFeedFirestore().removePostActivity(postId);
+      ProfileFirestore.invalidateAllProfilesCache();
+      wasDeleted = true;
     } catch (e, st) {
       NeomErrorLogger.recordError(
         e,
@@ -275,6 +278,9 @@ class PostFirestore implements PostRepository {
 
   Future<bool> _removeProfilePost(String profileId, String postId) async {
     try {
+      final success = await ProfileFirestore().removePost(profileId, postId);
+      if (success) return true;
+
       final querySnapshot = await FirebaseFirestore.instance
           .collectionGroup(AppFirestoreCollectionConstants.profiles)
           .where('id', isEqualTo: profileId)

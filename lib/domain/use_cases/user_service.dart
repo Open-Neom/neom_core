@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../utils/enums/itemlist_type.dart';
@@ -33,6 +35,9 @@ abstract class UserService {
   Future<void> setUserSubscription(UserSubscription subscription);
   Future<void> setIsVerified(bool isVerified);
   Future<void> verifyLocation();
+  void addPostToProfile(String postId);
+  void removePostFromProfile(String postId, {String? ownerId});
+  Stream<String> get postRemovedStream;
 
   AppUser get user;
   set user(AppUser appUser);

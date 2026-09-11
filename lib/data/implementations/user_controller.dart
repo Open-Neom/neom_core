@@ -1,3 +1,4 @@
+import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart' as fba;
 import 'package:sint/sint.dart';
@@ -764,6 +765,49 @@ class UserController extends SintController implements UserService {
   @override
   void setCurrentItemlistType(ItemlistType? type) {
     _currentItemlistType = type;
+  }
+
+  final StreamController<String> _postRemovedController =
+      StreamController<String>.broadcast();
+
+  @override
+  Stream<String> get postRemovedStream => _postRemovedController.stream;
+
+  @override
+  void addPostToProfile(String postId) {
+    _profile.posts ??= [];
+    if (!_profile.posts!.contains(postId)) {
+      _profile.posts!.add(postId);
+    }
+    for (var prof in _user.profiles) {
+      if (prof.id == _profile.id) {
+        prof.posts ??= [];
+        if (!prof.posts!.contains(postId)) {
+          prof.posts!.add(postId);
+        }
+      }
+    }
+    update();
+  }
+
+  @override
+  void removePostFromProfile(String postId, {String? ownerId}) {
+    if (ownerId == null || ownerId.isEmpty || ownerId == _profile.id) {
+      _profile.posts?.removeWhere((id) => id == postId);
+      for (var prof in _user.profiles) {
+        if (prof.id == _profile.id) {
+          prof.posts?.removeWhere((id) => id == postId);
+        }
+      }
+    }
+    _postRemovedController.add(postId);
+    update();
+  }
+
+  @override
+  void onClose() {
+    _postRemovedController.close();
+    super.onClose();
   }
 
 }

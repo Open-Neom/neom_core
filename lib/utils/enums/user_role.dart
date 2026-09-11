@@ -13,4 +13,7 @@ enum UserRole {
   final int value;
 
   const UserRole(this.value);
+
+  bool get isSupportOrAbove => value >= UserRole.support.value;
+  bool get isAdminOrAbove => value >= UserRole.admin.value;
 }
