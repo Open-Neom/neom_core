@@ -7,6 +7,7 @@ import '../../utils/constants/core_constants.dart';
 import '../../utils/enums/post_type.dart';
 import '../../utils/neom_error_logger.dart';
 import '../../utils/position_utilities.dart';
+import '../../utils/post_utilities.dart';
 import 'activity_feed_firestore.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
@@ -106,10 +107,10 @@ class PostFirestore implements PostRepository {
         module: 'neom_core',
         operation: 'PostFirestore.retrievePosts',
       );
-      AppConfig.logger.w("No Posts Found");
     }
 
-    return posts;
+    AppConfig.logger.d("Retrieving ${posts.length} Posts");
+    return PostUtilities.deduplicatePosts(posts);
   }
 
   @override
@@ -179,6 +180,32 @@ class PostFirestore implements PostRepository {
           post.slug = existing == null
               ? titleSlug
               : Post.generateSlug('${post.profileName} ${post.caption}');
+        }
+      }
+
+      // Rapid deduplication check: avoid creating duplicate posts if submitted concurrently
+      if (post.ownerId.isNotEmpty) {
+        try {
+          final recentSnap = await _postsQuery
+              .where(AppFirestoreConstants.ownerId, isEqualTo: post.ownerId)
+              .orderBy(AppFirestoreConstants.createdTime, descending: true)
+              .limit(3)
+              .get();
+          for (var doc in recentSnap.docs) {
+            final data = doc.data();
+            if (data != null) {
+              final existingPost = Post.fromJSON(data as Map<String, dynamic>);
+              existingPost.id = doc.id;
+              if (PostUtilities.areLikelyDuplicates(post, existingPost, timeThresholdMs: 60000)) {
+                AppConfig.logger.w(
+                  "Duplicate post detected for owner ${post.ownerId} (existing ID: ${doc.id}). Skipping insert.",
+                );
+                return doc.id;
+              }
+            }
+          }
+        } catch (e) {
+          AppConfig.logger.w("Duplicate check failed, proceeding with insert: $e");
         }
       }
 
@@ -409,7 +436,8 @@ class PostFirestore implements PostRepository {
       if (throwOnError) rethrow;
     }
 
-    AppConfig.logger.d("Retrieveing ${posts.length} Posts");
+    posts = PostUtilities.deduplicatePostsMap(posts);
+    AppConfig.logger.d("Retrieving ${posts.length} Posts");
     return posts;
   }
 
@@ -913,7 +941,8 @@ class PostFirestore implements PostRepository {
       );
     }
 
-    AppConfig.logger.d("Retrieveing ${posts.length} Posts");
+    posts = PostUtilities.deduplicatePostsMap(posts);
+    AppConfig.logger.d("Retrieving ${posts.length} Posts");
     return posts;
   }
 
