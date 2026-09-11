@@ -22,4 +22,5 @@ abstract class MediaPlayerService {
   Widget getVideoPlayerAspectRatio();
 
   void muteVideoPlayer();
+  void pauseAllVideos({dynamic except});
 }
