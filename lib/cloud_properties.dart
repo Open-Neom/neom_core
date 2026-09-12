@@ -102,6 +102,16 @@ class CloudProperties {
   ///
   /// Devuelve null si el proveedor anónimo no está habilitado en el
   /// proyecto; quien llama trata ese caso como falta de autenticación.
+  /// Igual que [_ensureSignedIn], para quien no pasa por [callSecureOps].
+  ///
+  /// El streaming de IA arma su propia petición HTTP —necesita la respuesta
+  /// por trozos y `callSecureOps` devuelve el cuerpo entero—, y ahí leía
+  /// `currentUser` sin firmar si no había nadie. Mientras el servidor
+  /// aceptaba llamadas sin sesión eso pasaba desapercibido; al exigirlas,
+  /// cualquier visitante nuevo se quedaba sin chat con un 401, porque la
+  /// sesión anónima solo nacía en el camino no-streaming.
+  static Future<User?> ensureSignedIn() => _ensureSignedIn();
+
   static Future<User?> _ensureSignedIn() async {
     final existing = FirebaseAuth.instance.currentUser;
     if (existing != null) return existing;
