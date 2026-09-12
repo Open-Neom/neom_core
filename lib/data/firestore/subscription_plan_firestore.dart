@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 
 import '../../app_config.dart';
 import '../../domain/model/subscription_plan.dart';
@@ -11,6 +12,15 @@ class SubscriptionPlanFirestore {
   
   final subscriptionPlanReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.subscriptionPlans);
 
+  /// Todos los planes del modo actual.
+  ///
+  /// La colección guarda CADA plan por duplicado: `{slug}` con los price IDs
+  /// de Stripe en vivo y `{slug}_test` con los de prueba, distinguidos por
+  /// `isLive`. Esto no filtraba, así que una build de producción listaba los
+  /// veinte — y tocar un plan de prueba mandaba al comprador a un precio de
+  /// Stripe en modo test, que en vivo no cobra.
+  ///
+  /// Los de prueba solo aparecen en debug, que es donde sirven.
   Future<Map<String, SubscriptionPlan>> getAll() async {
     AppConfig.logger.d("Retrieving Plans");
     Map<String, SubscriptionPlan> plans = {};
@@ -21,10 +31,18 @@ class SubscriptionPlanFirestore {
 
       if (querySnapshot.docs.isNotEmpty) {
         AppConfig.logger.t("Snapshot is not empty");
+        int omitidos = 0;
         for (var planSnapshot in querySnapshot.docs) {
           SubscriptionPlan plan = SubscriptionPlan.fromJSON(planSnapshot.data());
+          if (!plan.isLive && !kDebugMode) {
+            omitidos++;
+            continue;
+          }
           AppConfig.logger.t(plan.toString());
           plans[planSnapshot.id] = plan;
+        }
+        if (omitidos > 0) {
+          AppConfig.logger.d("$omitidos planes de prueba omitidos");
         }
         AppConfig.logger.d("${plans.length} plans found");
 
