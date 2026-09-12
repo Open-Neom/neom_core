@@ -59,6 +59,9 @@ class Post {
   // Edit tracking
   bool isEdited;
 
+  // Live broadcast tracking
+  bool isLive;
+
   String slug;
 
   static String generateSlug(String caption) {
@@ -105,8 +108,16 @@ class Post {
     this.scheduledTime,
     this.isScheduled = false,
     this.isEdited = false,
+    this.isLive = false,
     this.slug = '',
   });
+
+  /// Whether this post is an active live stream broadcast.
+  bool get isLiveStream =>
+      isLive ||
+      hashtags.any(
+        (h) => h.toLowerCase() == 'live' || h.toLowerCase() == 'envivo',
+      );
 
   /// Whether this post is safe to expose through public/guest feeds.
   ///
@@ -168,6 +179,7 @@ class Post {
       scheduledTime = data["scheduledTime"],
       isScheduled = data["isScheduled"] ?? false,
       isEdited = data["isEdited"] ?? false,
+      isLive = data["isLive"] ?? false,
       slug = data["slug"] ?? "";
 
   Map<String, dynamic> toJSON() => {
@@ -205,6 +217,7 @@ class Post {
     'scheduledTime': scheduledTime,
     'isScheduled': isScheduled,
     'isEdited': isEdited,
+    'isLive': isLive,
     'slug': slug,
   };
 
@@ -244,5 +257,6 @@ class Post {
       scheduledTime = post.scheduledTime,
       isScheduled = post.isScheduled,
       isEdited = post.isEdited,
+      isLive = post.isLive,
       slug = post.slug;
 }
