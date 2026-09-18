@@ -223,6 +223,9 @@ class AppRouteConstants {
   static const String chamber = '/chamber';
   static const String chamberPresets = '/chamber/presets';
   static const String chamberExperiences = '/chamber/experiences';
+  /// Cámara Neom with the host's biosignal panel (EEG) on stage; the
+  /// standard chamber route is untouched.
+  static const String chamberNeuro = '/chamber/neuro';
   static const String oscilloscopeFullscreen = '/oscilloscope/fullscreen';
   static const String flockingFullscreen = '/flocking/fullscreen';
   static const String breathingFullscreen = '/breathing/fullscreen';

@@ -1,3 +1,13 @@
+# Changelog — neom_core
+
+## [2.1.2] - 2026-09-18
+- Add `chamberNeuro` route constant for Chamber EEG / Biosignal panel integration.
+- Add `InciensoPracticeDraft` and `InciensoPracticeReference` models for local-first blog reflections.
+- Add `NeomAudioVisualSignal` and `NeomAudioSessionSignal` interface contracts.
+- Add `isLive` and `isLiveStream` getters to `Post` model.
+- Add `pauseAllVideos` to `MediaPlayerService` interface.
+- Add user role hierarchy helpers and rapid duplicate insertion protection in `PostUtilities`.
+
 ## [2026-09-03] - RootPage no rompe sin Firestore
 - `Upgrader` recibia `AppConfig.instance.lastStableVersion` sin comprobar que
   tuviera valor. Ese campo arranca vacio y lo llena `_getAppInfo()`, que corre

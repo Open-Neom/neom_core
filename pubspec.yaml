@@ -1,6 +1,6 @@
 name: neom_core
 description: Core for Open Neom Modules.
-version: 2.1.1
+version: 2.1.2
 homepage: https://github.com/Open-Neom/neom_core
 
 environment:
