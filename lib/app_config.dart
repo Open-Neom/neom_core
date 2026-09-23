@@ -176,12 +176,16 @@ class AppConfig {
   }
 
   Future<void> _loadPackageInfo() async {
-    AppConfig.logger.d("Loading Package Info...");
-    PackageInfo info = await PackageInfo.fromPlatform();
-    appVersion = info.version;
-    buildNumber = int.parse(info.buildNumber);
+    try {
+      AppConfig.logger.d("Loading Package Info...");
+      PackageInfo info = await PackageInfo.fromPlatform();
+      appVersion = info.version;
+      buildNumber = int.tryParse(info.buildNumber) ?? 0;
 
-    logger.d("App Version: $appVersion (Build: $buildNumber)");
+      logger.d("App Version: $appVersion (Build: $buildNumber)");
+    } catch (e) {
+      logger.w("Failed to load PackageInfo: $e");
+    }
   }
 
   Widget selectRootPage({required Widget rootPage, required  Widget? homePage,
@@ -196,7 +200,7 @@ class AppConfig {
     authStatus = loginServiceImpl.getAuthStatus();
     if(authStatus == AuthStatus.waiting || authStatus == AuthStatus.notDetermined) {
       return splashPage;
-    } else if (lastStableBuild > buildNumber) {
+    } else if (!kIsWeb && buildNumber > 0 && lastStableBuild > buildNumber) {
       rootPage = previousVersionPage;
     } else if(AppHiveController().firstTime) {
       rootPage = onGoingPage;
