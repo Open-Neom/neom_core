@@ -15,6 +15,7 @@ import '../../domain/use_cases/user_service.dart';
 import '../../utils/constants/app_route_constants.dart';
 import '../../utils/constants/core_constants.dart';
 import '../../utils/core_utilities.dart';
+import '../../utils/enums/auth_status.dart';
 import '../../utils/enums/itemlist_type.dart';
 import '../../utils/enums/owner_type.dart';
 import '../../utils/enums/subscription_level.dart';
@@ -32,10 +33,13 @@ import 'geolocator_controller.dart';
 
 class UserController extends SintController implements UserService {
 
-  UserController({UserFirestore? userFirestore})
-      : userFirestore = userFirestore ?? UserFirestore();
+  UserController({UserFirestore? userFirestore, Future<void> Function()? persistProfileInfo})
+      : userFirestore = userFirestore ?? UserFirestore(),
+        _persistProfileInfo = persistProfileInfo ?? (() => AppHiveController()
+            .writeProfileInfo(overwrite: true, throwOnError: true));
 
   UserFirestore userFirestore;
+  final Future<void> Function() _persistProfileInfo;
   
   AppUser _user = AppUser();
   AppProfile _profile = AppProfile();
@@ -114,7 +118,7 @@ class UserController extends SintController implements UserService {
     update();
   }
 
-  /// Create user profile from google login
+  /// Creates a new-account draft using the canonical Firebase Auth identity.
   @override
   void getUserFromFirebase(fba.User fbaUser) {
     AppConfig.logger.d("Getting User Info From Firebase Authentication");
@@ -126,7 +130,7 @@ class UserController extends SintController implements UserService {
       firstName: "",
       lastName: "",
       email: fbaUser.email ?? "",
-      id: fbaUser.providerData.first.uid ?? "",
+      id: fbaUser.uid,
       phoneNumber: fbaUser.phoneNumber ?? "",
       isVerified: false,
       password: "",
@@ -163,29 +167,20 @@ class UserController extends SintController implements UserService {
 
       newUser.createdDate = DateTime.now().millisecondsSinceEpoch;
 
-      if(await userFirestore.insert(newUser)) {
+      final profileId = await userFirestore.insertWithProfile(
+        newUser,
+        newUser.profiles.first,
+      );
+      if(profileId.isNotEmpty) {
+        profile = newUser.profiles.first;
+        user = newUser;
+        await _persistProfileInfo();
         _isNewUser = false;
-
-        String profileId = await ProfileFirestore().insert(newUser.id, newUser.profiles.first);
-
-        if(profileId.isNotEmpty) {
-          newUser.profiles.first.id = profileId;
-          newUser.currentProfileId = profileId;
-          userFirestore.updateCurrentProfile(newUser.id, profileId);
-          profile = newUser.profiles.first;
-          user = newUser;
-          AppHiveController().writeProfileInfo();
-          Sint.offAllNamed(AppRouteConstants.home);
-        } else {
-          // Never delete an account to compensate for a failed profile write.
-          Sint.snackbar(
-            CoreConstants.errorCreatingAccount.tr,
-            '',
-            snackPosition: SnackPosition.bottom,
-          );
-
-          Sint.offAllNamed(AppRouteConstants.login);
+        AppConfig.instance.isGuestMode = false;
+        if (Sint.isRegistered<LoginService>()) {
+          Sint.find<LoginService>().setAuthStatus(AuthStatus.loggedIn);
         }
+        Sint.offAllNamed(AppRouteConstants.home);
       } else {
         Sint.snackbar(
           CoreConstants.errorCreatingAccount.tr,
@@ -199,7 +194,7 @@ class UserController extends SintController implements UserService {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'createUser');
       Sint.snackbar(
         CoreConstants.errorCreatingAccount.tr,
-        e.toString(),
+        '',
         snackPosition: SnackPosition.bottom,
       );
       // Navigate back to login on error to prevent stuck screen

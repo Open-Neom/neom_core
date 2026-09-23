@@ -219,7 +219,6 @@ class ProfileFirestore implements ProfileRepository {
       // 2. Le inyectamos ese ID al objeto profile ANTES de guardarlo
       profile.id = documentReference.id;
       profileId = documentReference.id;
-      profileId = documentReference.id;
 
       // 2b. Generate slug from profile name if not already set
       if (profile.slug.isEmpty && profile.name.isNotEmpty) {
@@ -266,17 +265,15 @@ class ProfileFirestore implements ProfileRepository {
         }
       }
     } catch (e, st) {
-      if (await remove(userId: userId, profileId: profileId)) {
-        AppConfig.logger.i("Profile Rollback");
-        profileId = "";
-      } else {
-        NeomErrorLogger.recordError(
-          e,
-          st,
-          module: 'neom_core',
-          operation: 'insert',
-        );
-      }
+      // Never report a successful ID after a rejected write, and never delete
+      // data as compensation for a failed or ambiguous network operation.
+      profileId = '';
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'insert',
+      );
     }
 
     return profileId;

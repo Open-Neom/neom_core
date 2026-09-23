@@ -146,7 +146,7 @@ class AppHiveController implements AppHiveService {
   }
 
   @override
-  Future<void> writeProfileInfo({bool overwrite = false}) async {
+  Future<void> writeProfileInfo({bool overwrite = false, bool throwOnError = false}) async {
     neomLogger.d('writeProfileInfo');
     try {
       final box = await getBox(AppHiveBox.profile.name);
@@ -162,6 +162,7 @@ class AppHiveController implements AppHiveService {
       }
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'writeProfileInfo');
+      if (throwOnError) rethrow;
     }
 
   }

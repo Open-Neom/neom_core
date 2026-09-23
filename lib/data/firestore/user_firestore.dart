@@ -42,7 +42,9 @@ class UserFirestore implements UserRepository {
 
   @override
   Future<bool> insert(AppUser user) async {
-    String userId = user.id.toLowerCase();
+    // Firebase Authentication UIDs are case-sensitive. Legacy document IDs
+    // must also be used verbatim; loading an old account is not a migration.
+    final userId = user.id;
 
     if(userId.isEmpty) {
       AppConfig.logger.e("User ID is empty, cannot insert user.");
@@ -64,6 +66,79 @@ class UserFirestore implements UserRepository {
       AppConfig.logger.w('Account creation failed; no rollback deletion attempted');
       return false;
     }
+  }
+
+  /// Creates a new account and its initial profile as one atomic operation.
+  /// Existing accounts are never replaced, including legacy email-keyed ones.
+  /// All initial profile writes use the known owner path instead of a global
+  /// profile lookup before the account has finished being created.
+  Future<String> insertWithProfile(AppUser user, AppProfile profile) async {
+    if (user.id.isEmpty || user.id.contains('/')) {
+      throw ArgumentError.value(user.id, 'user.id', 'Invalid account ID');
+    }
+
+    final accountReference = userReference.doc(user.id);
+    final profileDocument = accountReference
+        .collection(AppFirestoreCollectionConstants.profiles)
+        .doc();
+    final profileId = profileDocument.id;
+    final profileData = profile.toJSON()
+      ..[AppFirestoreConstants.id] = profileId;
+    if (profile.slug.isEmpty && profile.name.isNotEmpty) {
+      profileData['slug'] = AppProfile.generateSlug(profile.name);
+    }
+    final userData = user.toJSON()
+      ..[AppFirestoreConstants.currentProfileId] = profileId;
+    final initialDocuments = <DocumentReference<Map<String, dynamic>>,
+        Map<String, dynamic>>{
+      profileDocument: profileData,
+    };
+
+    // Preserve both representations used by existing profile readers: the
+    // embedded feature maps and the owner-scoped feature subcollections.
+    if (profile.instruments != null) {
+      for (final entry in profile.instruments!.entries) {
+        initialDocuments[profileDocument
+            .collection(AppFirestoreCollectionConstants.instruments)
+            .doc(entry.key)] = entry.value.toJSON();
+      }
+    }
+    if (profile.genres != null) {
+      for (final entry in profile.genres!.entries) {
+        initialDocuments[profileDocument
+            .collection(AppFirestoreCollectionConstants.genres)
+            .doc(entry.key)] = entry.value.toJSON();
+      }
+    }
+    for (final place in profile.places?.values ?? const <Place>[]) {
+      initialDocuments[profileDocument
+          .collection(AppFirestoreCollectionConstants.places)
+          .doc(place.type.name)] = place.toJSON();
+    }
+    for (final facility in profile.facilities?.values ?? const <Facility>[]) {
+      initialDocuments[profileDocument
+          .collection(AppFirestoreCollectionConstants.facilities)
+          .doc(facility.type.name)] = facility.toJSON();
+    }
+
+    final created = await _firestore.runTransaction((transaction) async {
+      final existing = await transaction.get(accountReference);
+      if (existing.exists) return false;
+      transaction.set(accountReference, userData);
+      for (final entry in initialDocuments.entries) {
+        transaction.set(entry.key, entry.value);
+      }
+      return true;
+    });
+
+    // Keep the in-memory draft unchanged when a write fails or an account
+    // already exists. Callers only enter the app after the commit completes.
+    if (!created) return '';
+    profile.id = profileId;
+    profile.slug = profileData['slug'] as String? ?? profile.slug;
+    user.currentProfileId = profileId;
+    user.profiles = [profile];
+    return profileId;
   }
 
   @override
