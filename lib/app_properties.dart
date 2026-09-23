@@ -120,6 +120,16 @@ class AppProperties {
     return appProperties['saiaName'] ?? 'Itzli';
   }
 
+  /// Flag to enable or disable the embedded Itzli/SAIA assistant.
+  /// Defaults to true unless explicitly set to false in properties.json.
+  static bool isItzliEnabled() {
+    if (appProperties is! Map) return true;
+    final dynamic val = appProperties['isItzliEnabled'] ?? appProperties['isSaiaEnabled'];
+    if (val == null) return true;
+    if (val is bool) return val;
+    return val.toString().toLowerCase() == 'true';
+  }
+
   static String getLinksUrl() {
     return appProperties['linksUrl'] ?? '';
   }
