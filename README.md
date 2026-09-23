@@ -27,7 +27,7 @@ neom_core is the backbone of the Open Neom platform, responsible for:
     googleapis_auth) to provide the fundamental layers for user authentication flows across the ecosystem.
 •	Location & Maps Integration: Providing core functionalities and models related to geolocation (geolocator, geocoding)
     and map services (Maps_flutter, google_api_headers, neom_maps_services, neom_google_places).
-•	In-App Purchase Integration: Handling the foundational integration for platform-specific in-app purchase functionalities.
+•	In-App Purchase Integration: Handling the foundational integration for platform-specific in-app purchase functionalities (Google Play Billing 8.0.0 / StoreKit).
 •	Dynamic Configuration & Flavor Management (AppConfig & AppProperties):
     -	AppConfig: Manages application-wide configurations, including the active application flavor (AppInUse),
     current app versioning, and logic for selecting the appropriate root page based on authentication status or version compatibility.
