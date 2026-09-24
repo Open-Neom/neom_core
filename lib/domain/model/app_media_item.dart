@@ -16,6 +16,9 @@ class AppMediaItem implements PlayableItem {
   String? description;
   String ownerName;
   String? ownerId; ///IF ARTIST IS INTERNAL
+  /// The owner's account email, when the item comes from a release. Casete
+  /// sessions attribute listening by it; [ownerId] may be a profile id.
+  String? ownerEmail;
   String album;
   String? albumId; ///IF ALBUM IS INTERNAL
   int duration; ///DURATION IN SECONDS
@@ -103,6 +106,7 @@ class AppMediaItem implements PlayableItem {
     this.albumId,
     this.ownerName = '',
     this.ownerId,
+    this.ownerEmail,
     this.externalArtists,
     this.featInternalArtists,
     this.duration = 0,
@@ -174,6 +178,8 @@ class AppMediaItem implements PlayableItem {
         description: map['description'] ?? '',
         name: map['name'] ?? '',
         ownerName: map['ownerName'] ?? '',
+        ownerId: map['ownerId'],
+        ownerEmail: map['ownerEmail'],
         featInternalArtists: map['featInternalArtists'] is Map
             ? Map<String, String>.from(map['featInternalArtists'])
             : null,
@@ -231,6 +237,7 @@ class AppMediaItem implements PlayableItem {
       'is320Kbps': is320Kbps,
       'ownerName': ownerName,
       'ownerId': ownerId,
+      'ownerEmail': ownerEmail,
       'likes': likes,
       'path': path,
       'state': state,

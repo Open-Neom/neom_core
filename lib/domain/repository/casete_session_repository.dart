@@ -2,7 +2,10 @@ import '../model/casete/casete_session.dart';
 
 abstract class CaseteSessionRepository {
 
-  Future<String> insert(CaseteSession session, {bool isOwner = false});
+  /// Stores [session] in the collection of its [CaseteSession.audience]:
+  /// members, authors or free tier. Only the member collection funds
+  /// royalties.
+  Future<String> insert(CaseteSession session);
   Future<bool> remove(String sessionId);
   Future<Map<String, CaseteSession>> retrieveFromList(List<String> sessionIds);
   Future<CaseteSession> retrieveSession(String orderId);

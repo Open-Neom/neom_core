@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../app_config.dart';
 import '../../domain/model/nupale/nupale_session.dart';
 import '../../domain/repository/nupale_session_repository.dart';
+import '../../utils/enums/consumption_audience.dart';
 import '../../utils/neom_error_logger.dart';
 
 import 'constants/app_firestore_collection_constants.dart';
@@ -11,6 +12,17 @@ import 'constants/app_firestore_constants.dart';
 class NupaleSessionFirestore implements NupaleSessionRepository {
 
   final nupaleSessionsReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.nupaleSessions);
+
+  /// One collection per audience. The monthly payout reads only the member
+  /// one, so authors' and free-tier reading can never reach the pool.
+  static const Map<ConsumptionAudience, String> collectionByAudience = {
+    ConsumptionAudience.member: AppFirestoreCollectionConstants.nupaleSessions,
+    ConsumptionAudience.author: AppFirestoreCollectionConstants.authorsNupaleSessions,
+    ConsumptionAudience.freeTier: AppFirestoreCollectionConstants.freemiumNupaleSessions,
+  };
+
+  CollectionReference _referenceFor(ConsumptionAudience audience) =>
+      FirebaseFirestore.instance.collection(collectionByAudience[audience]!);
 
   static Map<String, NupaleSession> _cachedAllSessions = {};
   static DateTime? _lastAllSessionsFetchTime;
@@ -33,11 +45,11 @@ class NupaleSessionFirestore implements NupaleSessionRepository {
     AppConfig.logger.d("Inserting session ${session.id}");
 
     try {
-
+      final reference = _referenceFor(session.audience);
       if(session.id.isNotEmpty) {
-        await nupaleSessionsReference.doc(session.id).set(session.toJSON());
+        await reference.doc(session.id).set(session.toJSON());
       } else {
-        DocumentReference documentReference = await nupaleSessionsReference.add(session.toJSON());
+        DocumentReference documentReference = await reference.add(session.toJSON());
         session.id = documentReference.id;
       }
       AppConfig.logger.d("NupaleSession for ${session.itemName} was added with id ${session.id}");
@@ -132,16 +144,16 @@ class NupaleSessionFirestore implements NupaleSessionRepository {
     Map<String, NupaleSession> sessions = {};
 
     try {
-      Query query = nupaleSessionsReference;
-      if (itemId != null) {
-        query = query.where(AppFirestoreConstants.itemId, isEqualTo: itemId);
-      }
-      query = query.limit(limit);
+      // Analytics show every audience; royalty math filters on
+      // session.audience. The collection is the source of truth for it.
+      for (final audience in ConsumptionAudience.values) {
+        Query query = _referenceFor(audience);
+        if (itemId != null) {
+          query = query.where(AppFirestoreConstants.itemId, isEqualTo: itemId);
+        }
+        query = query.limit(limit);
 
-      QuerySnapshot querySnapshot = await query.get();
-
-      if (querySnapshot.docs.isNotEmpty) {
-        AppConfig.logger.d("QuerySnapshot is not empty");
+        QuerySnapshot querySnapshot = await query.get();
         for (var documentSnapshot in querySnapshot.docs) {
           final data = documentSnapshot.data() as Map<String, dynamic>?;
           if (data != null) {
@@ -150,6 +162,7 @@ class NupaleSessionFirestore implements NupaleSessionRepository {
               continue;
             }
             session.id = documentSnapshot.id;
+            session.audience = audience;
             sessions[session.id] = session;
           }
         }
@@ -174,15 +187,15 @@ class NupaleSessionFirestore implements NupaleSessionRepository {
     Map<String, NupaleSession> sessions = {};
 
     try {
-      QuerySnapshot querySnapshot = await nupaleSessionsReference
-          .where(AppFirestoreConstants.readerEmail, isEqualTo: email)
-          .get();
-
-      if (querySnapshot.docs.isNotEmpty) {
+      for (final audience in ConsumptionAudience.values) {
+        QuerySnapshot querySnapshot = await _referenceFor(audience)
+            .where(AppFirestoreConstants.readerEmail, isEqualTo: email)
+            .get();
         for (var documentSnapshot in querySnapshot.docs) {
           NupaleSession session = NupaleSession.fromJSON(documentSnapshot.data());
           if (skipTest && session.isTest) continue;
           session.id = documentSnapshot.id;
+          session.audience = audience;
           sessions[session.id] = session;
         }
       }

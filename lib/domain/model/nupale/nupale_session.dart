@@ -1,6 +1,7 @@
 
 import 'package:enum_to_string/enum_to_string.dart';
 
+import '../../../utils/enums/consumption_audience.dart';
 import '../../../utils/enums/subscription_level.dart';
 
 class NupaleSession {
@@ -20,9 +21,14 @@ class NupaleSession {
   SubscriptionLevel? subscriptionLevel;
   bool isTest;
 
+  /// Whose time this is — see [ConsumptionAudience]. Only [ConsumptionAudience.member]
+  /// sessions fund royalties. Sessions written before the field existed
+  /// read as members; their [subscriptionLevel] still tells free ones apart.
+  ConsumptionAudience audience;
+
   @override
   String toString() {
-    return 'NupaleSession{id: $id, itemId: $itemId, itemName: $itemName, ownerEmail: $ownerEmail, readerEmail: $readerEmail, pagesDuration: $pagesDuration, pageViews: $pageViews, nupale: $nupale, createdTime: $createdTime, totalPages: $totalPages, subscriptionLevel: $subscriptionLevel, isTest: $isTest}';
+    return 'NupaleSession{id: $id, itemId: $itemId, itemName: $itemName, ownerEmail: $ownerEmail, readerEmail: $readerEmail, pagesDuration: $pagesDuration, pageViews: $pageViews, nupale: $nupale, createdTime: $createdTime, totalPages: $totalPages, subscriptionLevel: $subscriptionLevel, isTest: $isTest, audience: ${audience.name}}';
   }
 
   NupaleSession({
@@ -38,6 +44,7 @@ class NupaleSession {
     this.totalPages = 0,
     this.subscriptionLevel,
     this.isTest = false,
+    this.audience = ConsumptionAudience.member,
   });
 
   /// Convert the NupaleSession object to a JSON map.
@@ -55,6 +62,7 @@ class NupaleSession {
       'totalPages': totalPages,
       'subscriptionLevel': subscriptionLevel?.name,
       'isTest': isTest,
+      'audience': audience.name,
     };
   }
 
@@ -77,6 +85,10 @@ class NupaleSession {
       totalPages: json['totalPages'] ?? 0,
       subscriptionLevel: EnumToString.fromString(SubscriptionLevel.values, json["subscriptionLevel"].toString()),
       isTest: json['isTest'] ?? false,
+      audience: ConsumptionAudience.values.firstWhere(
+        (a) => a.name == json['audience'],
+        orElse: () => ConsumptionAudience.member,
+      ),
     );
   }
 

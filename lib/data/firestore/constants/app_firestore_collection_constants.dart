@@ -59,6 +59,8 @@ class AppFirestoreCollectionConstants {
   static const String bank = "bank";
 
   static const String nupaleSessions = "nupaleSessions";
+  static const String authorsNupaleSessions = "authorsNupaleSessions";
+  static const String freemiumNupaleSessions = "freemiumNupaleSessions";
   static const String royaltyPayouts = "royaltyPayouts";
   static const String withdrawalRequests = "withdrawalRequests";
   static const String caseteSessions = "caseteSessions";

@@ -1,5 +1,6 @@
 
 import 'package:enum_to_string/enum_to_string.dart';
+import '../../../utils/enums/consumption_audience.dart';
 import '../../../utils/enums/subscription_level.dart';
 
 class CaseteSession {
@@ -18,9 +19,14 @@ class CaseteSession {
   SubscriptionLevel? subscriptionLevel;
   bool isTest;
 
+  /// Whose time this is — see [ConsumptionAudience]. Only [ConsumptionAudience.member]
+  /// sessions fund royalties. Sessions written before the field existed
+  /// read as members; their [subscriptionLevel] still tells free ones apart.
+  ConsumptionAudience audience;
+
   @override
   String toString() {
-    return 'CaseteSession{id: $id, itemId: $itemId, itemName: $itemName, ownerEmail: $ownerEmail, listenerEmail: $listenerEmail, casete: $casete, createdTime: $createdTime, subscriptionLevel: $subscriptionLevel, isTest: $isTest}';
+    return 'CaseteSession{id: $id, itemId: $itemId, itemName: $itemName, ownerEmail: $ownerEmail, listenerEmail: $listenerEmail, casete: $casete, createdTime: $createdTime, subscriptionLevel: $subscriptionLevel, isTest: $isTest, audience: ${audience.name}}';
   }
 
   CaseteSession({
@@ -34,6 +40,7 @@ class CaseteSession {
     this.createdTime = 0,
     this.subscriptionLevel,
     this.isTest = false,
+    this.audience = ConsumptionAudience.member,
   });
 
   /// Convert the CaseteSession object to a JSON map.
@@ -49,6 +56,7 @@ class CaseteSession {
       'createdTime': createdTime,
       'subscriptionLevel': subscriptionLevel?.name,
       'isTest': isTest,
+      'audience': audience.name,
     };
   }
 
@@ -65,6 +73,10 @@ class CaseteSession {
       createdTime: json['createdTime'] ?? 0,
       subscriptionLevel: EnumToString.fromString(SubscriptionLevel.values, json["subscriptionLevel"].toString()),
       isTest: json['isTest'] ?? false,
+      audience: ConsumptionAudience.values.firstWhere(
+        (a) => a.name == json['audience'],
+        orElse: () => ConsumptionAudience.member,
+      ),
     );
   }
 

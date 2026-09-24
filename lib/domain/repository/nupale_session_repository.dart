@@ -2,6 +2,9 @@ import '../model/nupale/nupale_session.dart';
 
 abstract class NupaleSessionRepository {
 
+  /// Stores [session] in the collection of its [NupaleSession.audience]:
+  /// members, authors or free tier. Only the member collection funds
+  /// royalties.
   Future<String> insert(NupaleSession session);
   Future<bool> remove(String sessionId);
   Future<Map<String, NupaleSession>> retrieveFromList(List<String> sessionIds);
