@@ -5,11 +5,27 @@ import 'enums/subscription_level.dart';
 class ConsumptionAudiencePolicy {
   ConsumptionAudiencePolicy._();
 
-  /// A tier that brings subscription revenue into the royalty pool.
-  /// [SubscriptionLevel.freeMonth] is a trial of a paid plan and pays
-  /// nothing, so it is not one.
-  static bool isPaid(SubscriptionLevel? level) =>
-      level != null && level.value >= SubscriptionLevel.basic.value;
+  /// The tiers someone pays for, which put money into the royalty pool.
+  ///
+  /// Not a `>=` comparison: the enum's order is not the order of payment.
+  /// [SubscriptionLevel.creator], [SubscriptionLevel.ambassador] and
+  /// [SubscriptionLevel.artist] sit above basic but are granted, not sold
+  /// (SubscriptionResolver.gemName shows them as "Free"), and
+  /// [SubscriptionLevel.freeMonth] is a registered account with no
+  /// subscription. [SubscriptionLevel.lifetime] is the one-time Jade
+  /// founder payment.
+  static const Set<SubscriptionLevel> paidLevels = {
+    SubscriptionLevel.basic,
+    SubscriptionLevel.plus,
+    SubscriptionLevel.family,
+    SubscriptionLevel.professional,
+    SubscriptionLevel.corporate,
+    SubscriptionLevel.premium,
+    SubscriptionLevel.platinum,
+    SubscriptionLevel.lifetime,
+  };
+
+  static bool isPaid(SubscriptionLevel? level) => paidLevels.contains(level);
 
   /// Authorship wins over the tier: an author on a paid plan is still an
   /// author, and their time must not reach the pool.

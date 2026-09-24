@@ -12,9 +12,30 @@ void main() {
         ConsumptionAudiencePolicy.classify(isAuthor: author, level: level);
 
     test('a paying member who owns no release is the only funding audience', () {
-      for (final level in SubscriptionLevel.values.where((l) => l.value >= SubscriptionLevel.basic.value)) {
+      for (final level in ConsumptionAudiencePolicy.paidLevels) {
         expect(classify(level: level), ConsumptionAudience.member, reason: level.name);
       }
+    });
+
+    test('granted tiers above basic are not paid', () {
+      // creator, ambassador and artist rank above basic in the enum, but
+      // nobody pays for them. Ranked by value, an artist-level account with
+      // no releases would have funded royalties without paying anything.
+      for (final level in [SubscriptionLevel.creator, SubscriptionLevel.ambassador, SubscriptionLevel.artist]) {
+        expect(ConsumptionAudiencePolicy.isPaid(level), isFalse, reason: level.name);
+        expect(classify(level: level), ConsumptionAudience.freeTier, reason: level.name);
+      }
+    });
+
+    test('every level is either paid or not, on purpose', () {
+      final unpaid = SubscriptionLevel.values.toSet().difference(ConsumptionAudiencePolicy.paidLevels);
+      expect(unpaid, {
+        SubscriptionLevel.freemium,
+        SubscriptionLevel.freeMonth,
+        SubscriptionLevel.creator,
+        SubscriptionLevel.ambassador,
+        SubscriptionLevel.artist,
+      }, reason: 'A new level must be placed deliberately, not by its number.');
     });
 
     test('an author on a paid plan is still an author', () {
