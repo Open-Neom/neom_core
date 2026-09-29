@@ -174,7 +174,9 @@ class UserFirestore implements UserRepository {
           user = AppUser.fromJSON(documentSnapshot.data() as Map<String, dynamic>);
           user.id = documentSnapshot.id;
 
-          if (throwOnError && AppConfig.instance.appInUse == AppInUse.g) {
+          if (throwOnError &&
+              const [AppInUse.g, AppInUse.b]
+                  .contains(AppConfig.instance.appInUse)) {
             await _loadOwnProfiles(user);
             return user;
           }
@@ -226,7 +228,9 @@ class UserFirestore implements UserRepository {
           AppUser user = AppUser.fromJSON(queryDocumentSnapshot.data());
           user.id = queryDocumentSnapshot.id;
 
-          if (getProfile && throwOnError && AppConfig.instance.appInUse == AppInUse.g) {
+          if (getProfile && throwOnError &&
+              const [AppInUse.g, AppInUse.b]
+                  .contains(AppConfig.instance.appInUse)) {
             await _loadOwnProfiles(user);
             return user;
           }

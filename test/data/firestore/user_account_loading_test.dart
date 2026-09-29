@@ -115,6 +115,69 @@ void main() {
     },
   );
 
+  for (final byEmail in [false, true]) {
+    test(
+      'Blup bootstrap by ${byEmail ? 'email' : 'ID'} preserves its private own profile while auth is waiting',
+      () async {
+        config.appInUse = AppInUse.b;
+        // No LoginService is registered, so account bootstrap cannot yet use
+        // the authenticated directory policy. It still owns this nested read.
+        expect(config.canPersistUserActivity, isFalse);
+        await seedAccount();
+        await firestore.doc('users/account/profiles/profile').update({
+          'directoryVisible': false,
+          'email': 'private-profile@example.test',
+        });
+        final account = byEmail
+            ? await repository.getByEmail(
+                'owner@example.test',
+                getProfile: true,
+                throwOnError: true,
+              )
+            : await repository.getById('account', throwOnError: true);
+        expect(account?.id, 'account');
+        expect(account?.profiles.single.id, 'profile');
+        expect(account?.profiles.single.name, 'Own profile');
+        expect(account?.profiles.single.directoryVisible, isFalse);
+        expect(account?.profiles.single.email, 'private-profile@example.test');
+        expect(firestore.collections, everyElement('users'));
+      },
+    );
+  }
+
+  test(
+    'Blup denied owner profile does not fall back to another public profile',
+    () async {
+      config.appInUse = AppInUse.b;
+      firestore = _AccountFirestore(
+        securityRules: '''
+      service cloud.firestore {
+        match /databases/{database}/documents {
+          match /users/{user} { allow read, write: if true; }
+          match /users/{user}/profiles/{profile} { allow read: if false; allow write: if true; }
+          match /publicProfiles/{profile} { allow read, write: if true; }
+        }
+      }
+    ''',
+      );
+      repository = UserFirestore(firestore: firestore);
+      await seedAccount();
+      await expectLater(
+        repository.getById('account', throwOnError: true),
+        throwsA(isA<AccountLoadException>()),
+      );
+      await expectLater(
+        repository.getByEmail(
+          'owner@example.test',
+          getProfile: true,
+          throwOnError: true,
+        ),
+        throwsA(isA<AccountLoadException>()),
+      );
+      expect(firestore.collections, everyElement('users'));
+    },
+  );
+
   for (final currentId in ['', 'missing', 'invalid/path']) {
     test(
       'own nested fallback works for current profile "$currentId"',
@@ -225,17 +288,20 @@ void main() {
     });
   });
 
-  test('direct createUser is inert without confirmed account absence', () async {
-    await seedAccount();
-    await controller.setUserById('account');
-    final loaded = controller.user;
-    final profile = controller.profile;
-    firestore.collections.clear();
-    await controller.createUser();
-    expect(identical(controller.user, loaded), isTrue);
-    expect(identical(controller.profile, profile), isTrue);
-    expect(firestore.collections, isEmpty);
-  });
+  test(
+    'direct createUser is inert without confirmed account absence',
+    () async {
+      await seedAccount();
+      await controller.setUserById('account');
+      final loaded = controller.user;
+      final profile = controller.profile;
+      firestore.collections.clear();
+      await controller.createUser();
+      expect(identical(controller.user, loaded), isTrue);
+      expect(identical(controller.profile, profile), isTrue);
+      expect(firestore.collections, isEmpty);
+    },
+  );
 
   test('safe insert creates an absent account only once', () async {
     expect(
