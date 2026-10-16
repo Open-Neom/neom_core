@@ -1,5 +1,9 @@
 # Changelog — neom_core
 
+## [2.1.4] - 2026-10-16
+- Add VR 3D route constants (`vr3dHallway`, `vr3dLesson`) to `AppRouteConstants`.
+- Update `VrService` and `SafetyMonitorService` interfaces.
+
 ## [2.1.3] - 2026-09-23
 - Upgrade `in_app_purchase` to `^3.3.1` and `in_app_purchase_android` to `^0.5.3`.
 - Upgrade Google Play Billing Library to 8.0.0 to satisfy Google Play Store release requirements.
