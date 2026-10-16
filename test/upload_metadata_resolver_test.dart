@@ -4,6 +4,16 @@ import 'package:neom_core/utils/enums/media_type.dart';
 import 'package:neom_core/utils/upload_metadata_resolver.dart';
 
 void main() {
+  test('binary PNG gets png metadata while legacy defaults remain unchanged', () {
+    const signature = [137, 80, 78, 71, 13, 10, 26, 10];
+    final extension = UploadMetadataResolver.resolveBytesExtension(signature, MediaType.image);
+    expect(extension, '.png');
+    expect(UploadMetadataResolver.contentTypeForExtension(extension), 'image/png');
+    expect(UploadMetadataResolver.resolveBytesExtension([255,216,255], MediaType.image), '.jpg');
+    expect(UploadMetadataResolver.resolveBytesExtension(signature.sublist(0,7), MediaType.image), '.jpg');
+    expect(UploadMetadataResolver.resolveBytesExtension(signature, MediaType.video), '.mp4');
+    expect(UploadMetadataResolver.resolveBytesExtension([], MediaType.audio), '.mp3');
+  });
   group('UploadMetadataResolver.defaultExtensionFor', () {
     test('keeps the historical per-type defaults', () {
       expect(UploadMetadataResolver.defaultExtensionFor(MediaType.image), '.jpg');

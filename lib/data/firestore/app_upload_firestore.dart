@@ -103,7 +103,7 @@ class AppUploadFirestore implements AppUploadRepository {
           folderName = AppFirestoreConstants.miscFolder;
       }
 
-      final extension = UploadMetadataResolver.defaultExtensionFor(mediaType);
+      final extension = UploadMetadataResolver.resolveBytesExtension(bytes, mediaType);
       final metadata = SettableMetadata(
           contentType: UploadMetadataResolver.contentTypeForExtension(extension));
 

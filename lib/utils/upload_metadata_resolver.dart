@@ -74,6 +74,20 @@ class UploadMetadataResolver {
     return defaultExtensionFor(mediaType);
   }
 
+  /// Binary uploads have no source path. Preserve PNG output while retaining
+  /// legacy defaults for other formats/callers (repository API stays unchanged).
+  static String resolveBytesExtension(List<int> bytes, MediaType mediaType) {
+    const png = [137, 80, 78, 71, 13, 10, 26, 10];
+    if (mediaType == MediaType.image && bytes.length >= png.length) {
+      var matches = true;
+      for (var i = 0; i < png.length; i++) {
+        if (bytes[i] != png[i]) matches = false;
+      }
+      if (matches) return '.png';
+    }
+    return defaultExtensionFor(mediaType);
+  }
+
   /// MIME type for [extension] (with or without leading dot, any case).
   /// Falls back to `application/octet-stream` so metadata is never null.
   static String contentTypeForExtension(String extension) {
