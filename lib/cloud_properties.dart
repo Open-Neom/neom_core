@@ -57,6 +57,11 @@ class CloudProperties {
         productionUrl = 'https://secureopsweb-uzmgogia7a-uc.a.run.app';
     }
 
+    if (appInUse != AppInUse.e &&
+        !const bool.fromEnvironment('USE_FIREBASE_EMULATORS')) {
+      return productionUrl;
+    }
+
     return CloudEndpointPolicy.functionUrl(
       functionName: 'secureOpsWeb',
       productionUrl: productionUrl,

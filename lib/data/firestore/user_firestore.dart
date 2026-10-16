@@ -175,7 +175,7 @@ class UserFirestore implements UserRepository {
           user.id = documentSnapshot.id;
 
           if (throwOnError &&
-              const [AppInUse.g, AppInUse.b]
+              const [AppInUse.g, AppInUse.b, AppInUse.i]
                   .contains(AppConfig.instance.appInUse)) {
             await _loadOwnProfiles(user);
             return user;
@@ -229,7 +229,7 @@ class UserFirestore implements UserRepository {
           user.id = queryDocumentSnapshot.id;
 
           if (getProfile && throwOnError &&
-              const [AppInUse.g, AppInUse.b]
+              const [AppInUse.g, AppInUse.b, AppInUse.i]
                   .contains(AppConfig.instance.appInUse)) {
             await _loadOwnProfiles(user);
             return user;

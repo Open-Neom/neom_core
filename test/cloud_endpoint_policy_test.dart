@@ -74,5 +74,14 @@ void main() {
         'http://127.0.0.1:5001/demo-emxi-local/us-central1/secureOpsWeb',
       );
     });
+
+    test('CloudProperties preserves Itzli secureOpsWeb URL when emulators are not explicitly requested', () {
+      CloudProperties.appInUse = AppInUse.i;
+
+      expect(
+        CloudProperties.getSecureOpsWebUrl(),
+        'https://us-central1-itzli-app.cloudfunctions.net/secureOpsWeb',
+      );
+    });
   });
 }
