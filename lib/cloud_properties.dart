@@ -205,8 +205,24 @@ class CloudProperties {
       await _ensureSignedIn();
     }
     final callable = FirebaseFunctions.instance.httpsCallable('secureOps');
-    final result = await callable.call<Map<String, dynamic>>(data);
-    return result.data;
+    final result = await callable.call(data);
+    final normalized = _normalizeJsonValue(result.data);
+    if (normalized is Map<String, dynamic>) {
+      return normalized;
+    }
+    return {};
+  }
+
+  static dynamic _normalizeJsonValue(dynamic value) {
+    if (value is Map) {
+      return value.map<String, dynamic>(
+        (key, val) => MapEntry(key.toString(), _normalizeJsonValue(val)),
+      );
+    }
+    if (value is List) {
+      return value.map(_normalizeJsonValue).toList();
+    }
+    return value;
   }
 
   /// Calls secureOps Cloud Function to send a push notification server-side.

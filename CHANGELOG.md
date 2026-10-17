@@ -1,5 +1,8 @@
 # Changelog — neom_core
 
+## [2.1.5] - 2026-10-17
+- Fix native MethodChannel/Pigeon `TypeError` (`_Map<Object?, Object?> is not a subtype of Map<String, dynamic>`) in `CloudProperties.callSecureOps` on macOS/iOS/Android by calling `HttpsCallable.call` untyped and recursively normalizing nested maps and lists via `_normalizeJsonValue`.
+
 ## [2.1.4] - 2026-10-16
 - Add VR 3D route constants (`vr3dHallway`, `vr3dLesson`) to `AppRouteConstants`.
 - Update `VrService` and `SafetyMonitorService` interfaces.
