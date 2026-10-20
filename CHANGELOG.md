@@ -1,5 +1,11 @@
 # Changelog — neom_core
 
+## Unreleased - 2026-10-20 - Deferred module recovery
+- Keep one deferred-load future per widget state; rebuilds no longer restart loading. Offer an explicit retry after failure without automatic retry/reload loops.
+- Display a themed, scrollable error page in Spanish, English, German or French and return safely to the host root for a direct link with no previous route.
+- Record local, sanitized diagnostic type/attempt/chunk filename without exception URLs, tokens, personal data, stack traces or new Firebase writes.
+- Add widget regressions for loading, failure/retry, rebuilds, synchronous errors, late completion after disposal, navigation and diagnostic redaction.
+
 ## [2.1.5] - 2026-10-17
 - Fix native MethodChannel/Pigeon `TypeError` (`_Map<Object?, Object?> is not a subtype of Map<String, dynamic>`) in `CloudProperties.callSecureOps` on macOS/iOS/Android by calling `HttpsCallable.call` untyped and recursively normalizing nested maps and lists via `_normalizeJsonValue`.
 
