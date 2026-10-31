@@ -5,6 +5,7 @@ import '../../domain/model/app_release_item.dart';
 import '../../domain/repository/app_release_item_repository.dart';
 import '../../utils/enums/release_status.dart';
 import '../../utils/neom_error_logger.dart';
+import '../../utils/release_catalog_visibility.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
 
@@ -36,6 +37,13 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
   bool _isVisibleToCurrentUser(AppReleaseItem item) =>
       !_readsPublicData || item.isPubliclyVisible;
 
+  bool _isVisibleInCatalog(AppReleaseItem item) =>
+      _isVisibleToCurrentUser(item) &&
+      ReleaseCatalogVisibility.isVisible(
+        item,
+        app: AppConfig.instance.appInUse,
+      );
+
   AppReleaseItem _projectForCurrentUser(AppReleaseItem item) =>
       _readsPublicData ? item.toPublicProjection() : item;
 
@@ -44,6 +52,12 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
   ) {
     final now = DateTime.now().millisecondsSinceEpoch;
     final filtered = items.where((item) {
+      if (!ReleaseCatalogVisibility.isVisible(
+        item,
+        app: AppConfig.instance.appInUse,
+      )) {
+        return false;
+      }
       if (_readsPublicData) return item.isPubliclyVisible;
 
       // Preserve the historical signed-in catalogue behaviour while keeping
@@ -357,7 +371,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
             documentSnapshot.data(),
           );
           releaseItem.id = documentSnapshot.id;
-          if (_isVisibleToCurrentUser(releaseItem)) {
+          if (_isVisibleInCatalog(releaseItem)) {
             AppConfig.logger.d(
               "AppReleaseItem ${releaseItem.name} was retrieved with details",
             );
@@ -510,8 +524,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
         if (doc.exists) {
           AppReleaseItem releaseItem = AppReleaseItem.fromJSON(doc.data());
           releaseItem.id = doc.id;
-          if (!releaseItem.isSuspended &&
-              _isVisibleToCurrentUser(releaseItem)) {
+          if (!releaseItem.isSuspended && _isVisibleInCatalog(releaseItem)) {
             releaseItems[doc.id] = _projectForCurrentUser(releaseItem);
           }
         }
@@ -556,8 +569,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
         if (doc.exists) {
           AppReleaseItem releaseItem = AppReleaseItem.fromJSON(doc.data());
           releaseItem.id = doc.id;
-          if (!releaseItem.isSuspended &&
-              _isVisibleToCurrentUser(releaseItem)) {
+          if (!releaseItem.isSuspended && _isVisibleInCatalog(releaseItem)) {
             releaseItems[doc.id] = _projectForCurrentUser(releaseItem);
           }
         }
@@ -617,7 +629,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
 
       for (final doc in querySnapshot.docs) {
         final releaseItem = AppReleaseItem.fromJSON(doc.data())..id = doc.id;
-        if (!releaseItem.isSuspended && _isVisibleToCurrentUser(releaseItem)) {
+        if (!releaseItem.isSuspended && _isVisibleInCatalog(releaseItem)) {
           releaseItems[doc.id] = _projectForCurrentUser(releaseItem);
         }
       }
@@ -655,8 +667,7 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
         if (doc.exists) {
           AppReleaseItem releaseItem = AppReleaseItem.fromJSON(doc.data());
           releaseItem.id = doc.id;
-          if (!releaseItem.isSuspended &&
-              _isVisibleToCurrentUser(releaseItem)) {
+          if (!releaseItem.isSuspended && _isVisibleInCatalog(releaseItem)) {
             releaseItems[doc.id] = _projectForCurrentUser(releaseItem);
           }
         }

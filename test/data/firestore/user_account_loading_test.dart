@@ -95,7 +95,8 @@ void main() {
             byEmail
                 ? controller.setUserByEmail('owner@example.test')
                 : controller.setUserById('account'),
-            throwsA(isA<AccountLoadException>()),
+            throwsA(isA<AccountLoadException>().having((e) => e.reason, 'safe reason',
+              code == 'permission-denied' ? AccountLoadFailure.permissionDenied : AccountLoadFailure.unavailable)),
           );
           expect(controller.isNewUser, isFalse);
         },
@@ -197,7 +198,7 @@ void main() {
       await firestore.doc('users/account').set({'email': 'owner@example.test'});
       await expectLater(
         controller.setUserByEmail('owner@example.test'),
-        throwsA(isA<AccountLoadException>()),
+        throwsA(isA<AccountLoadException>().having((e) => e.reason, 'safe reason', AccountLoadFailure.missingProfile)),
       );
       expect(controller.isNewUser, isFalse);
     },
@@ -212,7 +213,7 @@ void main() {
       });
       await expectLater(
         controller.setUserByEmail('owner@example.test'),
-        throwsA(isA<AccountLoadException>()),
+        throwsA(isA<AccountLoadException>().having((e) => e.reason, 'safe reason', AccountLoadFailure.duplicateAccount)),
       );
       expect(controller.isNewUser, isFalse);
       expect(await repository.getByEmail('owner@example.test'), isNotNull);

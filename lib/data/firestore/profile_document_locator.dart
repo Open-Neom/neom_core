@@ -19,23 +19,24 @@ import 'constants/app_firestore_constants.dart';
 /// operations (genres, instruments, frequencies, mates, places, facilities).
 class ProfileDocumentLocator {
 
-  // Lazy: the shared instance is only built when a repository first resolves a
-  // profile, so importing this file does not require an initialized Firebase.
+  // Local cache maintenance must work before Firebase is initialized. Acquire
+  // the SDK only when a non-empty, uncached profile requires a query.
   static final ProfileDocumentLocator _instance =
-      ProfileDocumentLocator._internal(FirebaseFirestore.instance);
+      ProfileDocumentLocator._internal();
   factory ProfileDocumentLocator() => _instance;
-  ProfileDocumentLocator._internal(this._firestore);
+  ProfileDocumentLocator._internal([this._firestore]);
 
   /// Standalone locator over an injected Firestore, for tests.
   @visibleForTesting
   factory ProfileDocumentLocator.forTesting(FirebaseFirestore firestore) =>
       ProfileDocumentLocator._internal(firestore);
 
-  final FirebaseFirestore _firestore;
+  FirebaseFirestore? _firestore;
   final Map<String, DocumentReference> _cache = {};
 
   Query get _profileReference =>
-      _firestore.collectionGroup(AppFirestoreCollectionConstants.profiles);
+      (_firestore ??= FirebaseFirestore.instance)
+          .collectionGroup(AppFirestoreCollectionConstants.profiles);
 
   /// How many profile ids currently have a memoized reference.
   @visibleForTesting

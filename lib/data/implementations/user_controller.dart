@@ -10,6 +10,7 @@ import '../../domain/model/app_user.dart';
 import '../../domain/model/collective.dart';
 import '../../domain/model/user_subscription.dart';
 import '../../domain/repository/chamber_repository.dart';
+import '../../domain/use_cases/account_load_lifecycle.dart';
 import '../../domain/use_cases/login_service.dart';
 import '../../domain/use_cases/user_service.dart';
 import '../../utils/constants/app_route_constants.dart';
@@ -31,15 +32,29 @@ import '../firestore/user_subscription_firestore.dart';
 import 'app_hive_controller.dart';
 import 'geolocator_controller.dart';
 
-class UserController extends SintController implements UserService {
+class UserController extends SintController implements UserService, AccountLoadLifecycle {
 
-  UserController({UserFirestore? userFirestore, Future<void> Function()? persistProfileInfo})
+  UserController({UserFirestore? userFirestore, Future<void> Function()? persistProfileInfo,
+    this.accountLoadTimeout = const Duration(seconds: 20),
+  })
       : userFirestore = userFirestore ?? UserFirestore(),
         _persistProfileInfo = persistProfileInfo ?? (() => AppHiveController()
-            .writeProfileInfo(overwrite: true, throwOnError: true));
+            .writeProfileInfo(overwrite: true, throwOnError: true,
+           )) {
+    if (accountLoadTimeout <= Duration.zero) {
+      throw ArgumentError.value(
+        accountLoadTimeout,
+        'accountLoadTimeout',
+        'Must be positive',
+      );
+    }
+  }
 
   UserFirestore userFirestore;
   final Future<void> Function() _persistProfileInfo;
+  final Duration accountLoadTimeout;
+  int _accountLoadGeneration = 0;
+  Completer<void>? _accountLoadInvalidation;
   
   AppUser _user = AppUser();
   AppProfile _profile = AppProfile();
@@ -69,7 +84,8 @@ class UserController extends SintController implements UserService {
     try {
       // AppHiveController().fetchProfileInfo();
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'onReady');
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'onReady',
+      );
     }
 
   }
@@ -104,7 +120,8 @@ class UserController extends SintController implements UserService {
       }
 
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'removeAccount');
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'removeAccount',
+      );
       Sint.snackbar(
         CoreConstants.errorSigningOut.tr,
         e.toString(),
@@ -141,6 +158,7 @@ class UserController extends SintController implements UserService {
   }
 
   void clear() {
+    invalidateAccountLoad();
     AppConfig.logger.d("Clearing User");
     user = AppUser();
   }
@@ -191,7 +209,8 @@ class UserController extends SintController implements UserService {
         Sint.offAllNamed(AppRouteConstants.login);
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'createUser');
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'createUser',
+      );
       Sint.snackbar(
         CoreConstants.errorCreatingAccount.tr,
         '',
@@ -288,7 +307,8 @@ class UserController extends SintController implements UserService {
         }
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'createProfile');
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'createProfile',
+      );
       Sint.snackbar(
         CoreConstants.errorCreatingAccount.tr,
         e.toString(),
@@ -298,7 +318,8 @@ class UserController extends SintController implements UserService {
       update();
     }
 
-    AppConfig.logger.d("Profile created: ${_newProfile.name} with id: ${_newProfile.id}");
+    AppConfig.logger.d("Profile created: ${_newProfile.name} with id: ${_newProfile.id}",
+    );
     AppHiveController().writeProfileInfo();
     update();
   }
@@ -312,7 +333,8 @@ class UserController extends SintController implements UserService {
     try {
       user.profiles = await ProfileFirestore().retrieveByUserId(user.id);
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getProfiles');
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getProfiles',
+      );
       Sint.snackbar(
         CoreConstants.errorRetrievingProfiles.tr,
         e.toString(),
@@ -324,44 +346,77 @@ class UserController extends SintController implements UserService {
 
 
   @override
-  Future<void> setUserById(String userId) async {
+  Future<void> setUserById(String userId) =>
+      _loadAccount(() => userFirestore.getById(userId, throwOnError: true));
+
+  @override
+  Future<void> setUserByEmail(String userEmail) => _loadAccount(
+    () => userFirestore.getByEmail(
+      userEmail,
+      getProfile: true,
+      throwOnError: true,
+    ),
+  );
+
+  @override
+  void invalidateAccountLoad() {
+    _accountLoadGeneration++;
     _isNewUser = false;
-    try {
-      AppUser userFromFirestore = await userFirestore.getById(userId, throwOnError: true);
-      if(userFromFirestore.id.isNotEmpty){
-        if (userFromFirestore.profiles.isEmpty) throw const AccountLoadException();
-        user = userFromFirestore;
-        profile = user.profiles.first;
-        _isNewUser = false;
-        AppConfig.instance.isAdminMode = user.userRole.value >= UserRole.admin.value;
-      } else {
-        clear();
-        profile = AppProfile();
-        _isNewUser = true;
-      }
-    } catch (_) {
-      _isNewUser = false;
-      throw const AccountLoadException();
+    final invalidation = _accountLoadInvalidation;
+    _accountLoadInvalidation = null;
+      if(invalidation != null && !invalidation.isCompleted) {
+      invalidation.complete();
     }
   }
 
-  @override
-  Future<void> setUserByEmail(String userEmail) async {
-    _isNewUser = false;
+  Future<void> _loadAccount(Future<AppUser?> Function() read) async {
+    invalidateAccountLoad();
+    final generation = _accountLoadGeneration;
+    final invalidation = Completer<void>();
+    _accountLoadInvalidation = invalidation;
     try {
-      AppUser? userFromEmail = await userFirestore.getByEmail(userEmail, getProfile: true, throwOnError: true);
-      if(userFromEmail?.id.isNotEmpty ?? false) {
-        if (userFromEmail!.profiles.isEmpty) throw const AccountLoadException();
-        user = userFromEmail;
-        profile = user.profiles.first;
+      // A deadline ends this await, not the SDK request. Only this guarded
+      // continuation may publish account state; a late read has no mutations.
+      final loaded = await Future.any<AppUser?>([
+        Future<AppUser?>.sync(read),
+        invalidation.future.then<AppUser?>(
+          (_) => throw const AccountLoadException(),
+        ),
+      ]).timeout(accountLoadTimeout);
+      if (generation != _accountLoadGeneration) {
+        throw const AccountLoadException();
+      }
+      if (loaded != null && loaded.id.isNotEmpty){
+        if (loaded.profiles.isEmpty) {
+          throw const AccountLoadException(
+            reason: AccountLoadFailure.missingProfile,
+          );
+        }
+        user = loaded;
+        profile = loaded.profiles.first;
+        AppConfig.instance.isAdminMode =
+            loaded.userRole.value >= UserRole.admin.value;
       } else {
-        clear();
+        // Only a successful, current server read can confirm account absence.
+        // Do not call clear(): it would invalidate this same completed attempt.
+        user = AppUser();
         profile = AppProfile();
+        AppConfig.instance.isAdminMode = false;
         _isNewUser = true;
       }
-    } catch (_) {
-      _isNewUser = false;
-      throw const AccountLoadException();
+    } catch (error) {
+      // An old cancellation/error must not reset a newer attempt's outcome.
+      if (generation == _accountLoadGeneration) _isNewUser = false;
+      if (error is AccountLoadException) rethrow;
+      throw AccountLoadException(
+        reason: error is TimeoutException
+            ? AccountLoadFailure.timeout
+            : AccountLoadFailure.unknown,
+      );
+    } finally {
+      if (generation == _accountLoadGeneration) {
+        _accountLoadInvalidation = null;
+      }
     }
   }
 
@@ -371,10 +426,13 @@ class UserController extends SintController implements UserService {
 
     try {
       profile = selectedProfile;
-      Sint.toNamed(AppRouteConstants.splashScreen, arguments: [AppRouteConstants.home]);
-      profile = await userFirestore.updateCurrentProfile(user.id, selectedProfile.id);
+      Sint.toNamed(AppRouteConstants.splashScreen, arguments: [AppRouteConstants.home],
+      );
+      profile = await userFirestore.updateCurrentProfile(user.id, selectedProfile.id,
+      );
     } catch(e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'changeProfile');
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'changeProfile',
+      );
     }
 
     update();
@@ -385,16 +443,19 @@ class UserController extends SintController implements UserService {
     AppConfig.logger.d("removeProfile method Started");
     try {
 
-      if(await ProfileFirestore().remove(userId: user.id, profileId: profile.id)) {
+      if(await ProfileFirestore().remove(userId: user.id, profileId: profile.id,
+      )) {
         user.profiles.removeWhere((element) => element.id == profile.id);
         if(user.profiles.isNotEmpty) {
-          profile = await userFirestore.updateCurrentProfile(user.id, user.profiles.first.id);
+          profile = await userFirestore.updateCurrentProfile(user.id, user.profiles.first.id,
+          );
         }
 
       }
 
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'removeProfile');
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'removeProfile',
+      );
       Sint.snackbar(
         CoreConstants.errorSigningOut.tr,
         e.toString(),
@@ -415,19 +476,23 @@ class UserController extends SintController implements UserService {
       profile.favoriteItems?.clear();
       profile.chamberPresets?.clear();
 
-      CoreUtilities.getTotalPresets(profile.chambers ?? {}).forEach((key, value) {
+      CoreUtilities.getTotalPresets(profile.chambers ?? {}).forEach((key, value,
+      ) {
         profile.chamberPresets!.add(key);
       });
 
-      CoreUtilities.getTotalMediaItems(profile.itemlists ?? {}).forEach((key, value) {
+      CoreUtilities.getTotalMediaItems(profile.itemlists ?? {}).forEach((key, value,
+      ) {
         profile.favoriteItems!.add(key);
       });
 
-      CoreUtilities.getTotalReleaseItems(profile.itemlists ?? {}).forEach((key, value) {
+      CoreUtilities.getTotalReleaseItems(profile.itemlists ?? {}).forEach((key, value,
+      ) {
         profile.favoriteItems!.add(key);
       });
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'reloadProfileItemlists');
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'reloadProfileItemlists',
+      );
     }
 
     update([]);
@@ -437,7 +502,8 @@ class UserController extends SintController implements UserService {
   Future<void> loadProfileChambers() async {
 
     try {
-      profile.chambers = await Sint.find<ChamberRepository>().fetchAll(ownerId: profile.id);
+      profile.chambers = await Sint.find<ChamberRepository>().fetchAll(ownerId: profile.id,
+      );
       profile.chamberPresets?.clear();
 
       CoreUtilities.getTotalPresets(profile.chambers!).forEach((key, value) {
@@ -445,7 +511,8 @@ class UserController extends SintController implements UserService {
       });
 
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'loadProfileChambers');
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'loadProfileChambers',
+      );
     }
 
     update();
@@ -457,7 +524,8 @@ class UserController extends SintController implements UserService {
     try {
       //Sint.find<EventDetailsController>().stopGoingToEvent();
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'stopGoingToEvent');
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'stopGoingToEvent',
+      );
     }
     update();
   }
@@ -468,7 +536,8 @@ class UserController extends SintController implements UserService {
     try {
       //Sint.find<EventDetailsController>().stopGoingToEvent();
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'goingToEvent');
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'goingToEvent',
+      );
     }
     update();
   }
@@ -480,10 +549,12 @@ class UserController extends SintController implements UserService {
       if(await userFirestore.addOrderId(userId: user.id, orderId: orderId)) {
         user.orderIds.add(orderId);
       } else {
-        AppConfig.logger.w("Something occurred while adding order to User ${user.id}");
+        AppConfig.logger.w("Something occurred while adding order to User ${user.id}",
+        );
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'addOrderId');
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'addOrderId',
+      );
     }
     update();
   }
@@ -493,15 +564,18 @@ class UserController extends SintController implements UserService {
     AppConfig.logger.d("addBoughtItem $itemId");
     try {
       if(itemId.isNotEmpty) {
-        if(await userFirestore.addBoughtItem(userId: user.id, itemId: itemId)) {
+        if(await userFirestore.addBoughtItem(userId: user.id, itemId: itemId,
+        )) {
           user.boughtItems ??= [];
           user.boughtItems!.add(itemId);
         }
 
-        AppReleaseItemFirestore().addBoughtUser(releaseItemId: itemId, userId: user.id);
+        AppReleaseItemFirestore().addBoughtUser(releaseItemId: itemId, userId: user.id,
+        );
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'addBoughtItem');
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'addBoughtItem',
+      );
     }
     update();
   }
@@ -514,7 +588,8 @@ class UserController extends SintController implements UserService {
       user.customerId = customerId;
       userFirestore.updateCustomerId(user.id, customerId);
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'updateCustomerId');
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'updateCustomerId',
+      );
     }
 
     update();
@@ -528,7 +603,8 @@ class UserController extends SintController implements UserService {
       user.subscriptionId = subscriptionId;
       userFirestore.updateSubscriptionId(user.id, subscriptionId);
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'updateSubscriptionId');
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'updateSubscriptionId',
+      );
     }
 
     update();
@@ -536,7 +612,8 @@ class UserController extends SintController implements UserService {
 
   @override
   Future<bool> updatePhoneNumber(String phone, String countryCode) async {
-    AppConfig.logger.d("updatePhoneNumber Phone: $phone & countryCode $countryCode");
+    AppConfig.logger.d("updatePhoneNumber Phone: $phone & countryCode $countryCode",
+    );
     bool wasUpdated = false;
     try {
       if(user.phoneNumber != phone) {
@@ -563,7 +640,8 @@ class UserController extends SintController implements UserService {
         AppConfig.logger.d("Same Phone number");
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'updatePhoneNumber');
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'updatePhoneNumber',
+      );
     }
 
     update();
@@ -591,7 +669,8 @@ class UserController extends SintController implements UserService {
         );
         if (suspended != null) {
           _isSubscriptionSuspended = true;
-          AppConfig.logger.w('User subscription ${suspended.subscriptionId} is SUSPENDED');
+          AppConfig.logger.w('User subscription ${suspended.subscriptionId} is SUSPENDED',
+          );
         } else {
           _isSubscriptionSuspended = false;
         }
@@ -607,12 +686,15 @@ class UserController extends SintController implements UserService {
         if (_userSubscription != null && _userSubscription!.endDate > 0) {
           final now = DateTime.now().millisecondsSinceEpoch;
           if (now >= _userSubscription!.endDate) {
-            AppConfig.logger.i('Subscription ${_userSubscription!.subscriptionId} has passed its end date — marking as cancelled');
-            UserSubscriptionFirestore().cancel(_userSubscription!.subscriptionId);
+            AppConfig.logger.i('Subscription ${_userSubscription!.subscriptionId} has passed its end date — marking as cancelled',
+            );
+            UserSubscriptionFirestore().cancel(_userSubscription!.subscriptionId,
+            );
             // Reset profile verification level back to general
             if (user.profiles.isNotEmpty) {
               final profile = user.profiles.first;
-              ProfileFirestore().updateVerificationLevel(profile.id, VerificationLevel.none);
+              ProfileFirestore().updateVerificationLevel(profile.id, VerificationLevel.none,
+              );
               profile.verificationLevel = VerificationLevel.none;
             }
             _userSubscription = null;
@@ -624,19 +706,23 @@ class UserController extends SintController implements UserService {
 
         if(userSubscription?.subscriptionId == user.subscriptionId) {
           _subscriptionLevel = userSubscription?.level ?? SubscriptionLevel.freemium;
-          AppConfig.logger.d('User ${userSubscription?.subscriptionId} is the same as ${user.subscriptionId} for ${subscriptionLevel.name}');
+          AppConfig.logger.d('User ${userSubscription?.subscriptionId} is the same as ${user.subscriptionId} for ${subscriptionLevel.name}',
+          );
         } else if(userSubscription?.subscriptionId.isNotEmpty ?? false) {
           user.subscriptionId = userSubscription?.subscriptionId ?? '';
           _subscriptionLevel = userSubscription?.level ?? SubscriptionLevel.freemium;
-          AppConfig.logger.d('User subscription is different from user.subscriptionId');
+          AppConfig.logger.d('User subscription is different from user.subscriptionId',
+          );
         }
       } else if(user.subscriptionId.isNotEmpty) {
         _isSubscriptionSuspended = false;
         if (CoreUtilities.isWithinFirstMonth(user.createdDate)) {
           _subscriptionLevel = SubscriptionLevel.freeMonth;
-          AppConfig.logger.i('User subscriptionId ${user.subscriptionId} is still within free month for SubscriptionLevel ${subscriptionLevel.name}');
+          AppConfig.logger.i('User subscriptionId ${user.subscriptionId} is still within free month for SubscriptionLevel ${subscriptionLevel.name}',
+          );
         } else {
-          AppConfig.logger.w('User subscriptionId ${user.subscriptionId} is out of free month');
+          AppConfig.logger.w('User subscriptionId ${user.subscriptionId} is out of free month',
+          );
           user.subscriptionId = "";
         }
       } else if(user.userRole.value > UserRole.subscriber.value){
@@ -645,24 +731,28 @@ class UserController extends SintController implements UserService {
         _isSubscriptionSuspended = false;
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getUserSubscription');
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getUserSubscription',
+      );
     }
 
   }
 
   @override
   Future<void> setUserSubscription(UserSubscription subscription) async {
-    AppConfig.logger.d('Setting userSubscription with subscriptionId: ${subscription.subscriptionId}, level: ${subscription.level?.name}');
+    AppConfig.logger.d('Setting userSubscription with subscriptionId: ${subscription.subscriptionId}, level: ${subscription.level?.name}',
+    );
 
     try {
       _userSubscription = subscription;
       // Also update subscriptionLevel so the UI reflects the change immediately
       if (subscription.status == SubscriptionStatus.active && subscription.level != null) {
         _subscriptionLevel = subscription.level!;
-        AppConfig.logger.d('Updated _subscriptionLevel to ${_subscriptionLevel.name}');
+        AppConfig.logger.d('Updated _subscriptionLevel to ${_subscriptionLevel.name}',
+        );
       }
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'setUserSubscription');
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'setUserSubscription',
+      );
     }
 
     update();
@@ -676,7 +766,8 @@ class UserController extends SintController implements UserService {
       await userFirestore.setIsVerified(user.id, isVerified);
       user.isVerified = isVerified;
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'setIsVerified');
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'setIsVerified',
+      );
     }
 
   }
@@ -685,9 +776,11 @@ class UserController extends SintController implements UserService {
   Future<void> verifyLocation() async {
     AppConfig.logger.t("Verifying location");
     try {
-      profile.position = await GeoLocatorController().updateLocation(profile.id, profile.position);
+      profile.position = await GeoLocatorController().updateLocation(profile.id, profile.position,
+      );
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'verifyLocation');
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'verifyLocation',
+      );
     }
   }
 
@@ -801,6 +894,7 @@ class UserController extends SintController implements UserService {
 
   @override
   void onClose() {
+    invalidateAccountLoad();
     _postRemovedController.close();
     super.onClose();
   }

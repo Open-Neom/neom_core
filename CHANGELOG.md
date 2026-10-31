@@ -1,5 +1,16 @@
 # Changelog — neom_core
 
+## Unreleased - 2026-10-22 - EMXI legacy catalogue visibility
+- Hide EMXI catalogue releases whose reader/cover assets depend on the unavailable `escritoresmxi.org` host or its subdomains, including cached reads and author/category/language/list queries.
+- Keep Firebase records, purchases and maintenance lookups intact. Migrated files are not rejected merely for retaining a WooCommerce ID or a physical-shop link; other app catalogues are unchanged.
+- Share a pure visibility policy with cached/embedded UI lists on web and mobile; no Firestore rules, indexes or production data changed.
+
+## Unreleased - 2026-10-20 - Bounded account loading
+- Bound account bootstrap to a configurable 20-second deadline; a timeout is a recoverable account-load failure, never evidence of a new account.
+- Add the optional `AccountLoadLifecycle` invalidation contract without extending `UserService`. Reattempts, explicit session invalidation, clearing and disposal reject pending loads; late reads cannot publish user, profile, new-account or admin-mode state.
+- Preserve canonical legacy account IDs and strict repository reads. Add offline regressions for timeout, cancellation, retries and overlapping account sessions; no Firebase rules, SDK queries or authentication configuration changed.
+- Capture profile-cache fields before opening Hive, discard the write if account/profile identity changed, and submit one immutable `putAll` snapshot instead of interleaved per-field writes. Keep the optional cache failure/overwrite API compatible.
+
 ## Unreleased - 2026-10-20 - Deferred module recovery
 - Keep one deferred-load future per widget state; rebuilds no longer restart loading. Offer an explicit retry after failure without automatic retry/reload loops.
 - Display a themed, scrollable error page in Spanish, English, German or French and return safely to the host root for a direct link with no previous route.

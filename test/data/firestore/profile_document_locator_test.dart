@@ -1,4 +1,5 @@
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:neom_core/data/firestore/profile_document_locator.dart';
 
@@ -26,6 +27,34 @@ void main() {
   setUp(() {
     firestore = FakeFirebaseFirestore();
     locator = ProfileDocumentLocator.forTesting(firestore);
+  });
+
+  group('local operations before Firebase initialization', () {
+    test('shared locator can be cleared without a Firebase app', () {
+      expect(Firebase.apps, isEmpty);
+      final shared = ProfileDocumentLocator();
+      expect(shared.clear, returnsNormally);
+      expect(shared.cachedCount, 0);
+      expect(Firebase.apps, isEmpty);
+    });
+
+    test('invalidating an uncached ID does not acquire Firestore', () {
+      expect(Firebase.apps, isEmpty);
+      final shared = ProfileDocumentLocator();
+      expect(() => shared.invalidate('unused-profile'), returnsNormally);
+      expect(() => shared.invalidate(''), returnsNormally);
+      expect(shared.cachedCount, 0);
+      expect(Firebase.apps, isEmpty);
+    });
+
+    test('empty lookup and subcollection need no Firebase app', () async {
+      expect(Firebase.apps, isEmpty);
+      final shared = ProfileDocumentLocator();
+      expect(await shared.locate(''), isNull);
+      expect(await shared.subcollection('', 'genres'), isNull);
+      expect(shared.cachedCount, 0);
+      expect(Firebase.apps, isEmpty);
+    });
   });
 
   group('locate', () {

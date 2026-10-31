@@ -1,8 +1,21 @@
+/// Safe diagnostics for an authenticated account that could not be loaded.
+/// Values contain no addresses, document paths, tokens or SDK messages.
+enum AccountLoadFailure {
+  unknown,
+  duplicateAccount,
+  missingProfile,
+  permissionDenied,
+  unavailable,
+  timeout,
+  invalidData,
+}
+
 /// Account loading failed; this is never evidence that an account is new.
-/// Keep this exception free of email addresses, document paths and SDK details.
 class AccountLoadException implements Exception {
-  const AccountLoadException();
+  const AccountLoadException({this.reason = AccountLoadFailure.unknown});
+
+  final AccountLoadFailure reason;
 
   @override
-  String toString() => 'AccountLoadException: account could not be loaded';
+  String toString() => 'AccountLoadException: ${reason.name}';
 }

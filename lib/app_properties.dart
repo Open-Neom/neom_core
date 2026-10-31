@@ -142,6 +142,27 @@ class AppProperties {
     return appProperties['appStoreUrl'] ?? '';
   }
 
+  static String getWindowsUrl() {
+    return appProperties['windowsUrl'] ?? '';
+  }
+
+  static String getMacosUrl() {
+    return appProperties['macosUrl'] ?? '';
+  }
+
+  static String getLinuxUrl() {
+    return appProperties['linuxUrl'] ?? '';
+  }
+
+  static String getApkUrl() {
+    return appProperties['apkUrl'] ?? '';
+  }
+
+  static String getReleasesManifestUrl() {
+    return appProperties['releasesManifestUrl'] ??
+        'https://github.com/Open-Neom/releases/releases/download/manifest/releases-manifest.json';
+  }
+
   static String getLandingPageUrl() {
     return appProperties['landingPageUrl'] ?? '';
   }

@@ -7,7 +7,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sint/sint.dart';
 
-import '../../utils/neom_logger.dart';
 import '../../domain/model/app_release_item.dart';
 import '../../domain/model/item_list.dart';
 import '../../domain/use_cases/app_hive_service.dart';
@@ -18,6 +17,7 @@ import '../../utils/constants/core_constants.dart';
 import '../../utils/enums/app_hive_box.dart';
 import '../../utils/enums/app_locale.dart';
 import '../../utils/neom_error_logger.dart';
+import '../../utils/neom_logger.dart';
 import '../../utils/platform/core_io.dart';
 
 class AppHiveController implements AppHiveService {
@@ -29,7 +29,13 @@ class AppHiveController implements AppHiveService {
     return _instance;
   }
 
-  AppHiveController._internal();
+  AppHiveController._internal() : _boxLoader = null;
+
+  @visibleForTesting
+  AppHiveController.withBoxLoader(Future<Box> Function(String) boxLoader)
+      : _boxLoader = boxLoader;
+
+  final Future<Box> Function(String)? _boxLoader;
 
   bool _isInitialized = false;
 
@@ -67,6 +73,8 @@ class AppHiveController implements AppHiveService {
 
   @override
   Future<Box> getBox(String boxName, {bool limit = false}) async {
+    final loader = _boxLoader;
+    if (loader != null) return loader(boxName);
     return Hive.isBoxOpen(boxName) ? Hive.box(boxName) : await openHiveBox(boxName, limit: limit);
   }
 
@@ -149,16 +157,36 @@ class AppHiveController implements AppHiveService {
   Future<void> writeProfileInfo({bool overwrite = false, bool throwOnError = false}) async {
     neomLogger.d('writeProfileInfo');
     try {
+      final service = userServiceImpl;
+      final user = service.user;
+      final profile = service.profile;
+      final sourceUserId = user.id;
+      final sourceProfileId = profile.id;
+      // Read scalar values once. The account/profile models are mutable and a
+      // different session may be published while opening the local box.
+      final snapshot = Map<String, dynamic>.unmodifiable({
+        AppHiveConstants.userId: sourceUserId,
+        AppHiveConstants.username: user.name,
+        AppHiveConstants.profileId: sourceProfileId,
+        AppHiveConstants.photoUrl: user.photoUrl,
+        AppHiveConstants.firstTime: false,
+      });
       final box = await getBox(AppHiveBox.profile.name);
+      final currentService = userServiceImpl;
+      if (!identical(currentService, service) ||
+          !identical(currentService.user, user) ||
+          !identical(currentService.profile, profile) ||
+          currentService.user.id != sourceUserId ||
+          currentService.profile.id != sourceProfileId) {
+        return;
+      }
 
       String userId = box.get(AppHiveConstants.userId, defaultValue: '');
 
       if(userId.isEmpty || overwrite) {
-        await box.put(AppHiveConstants.userId, userServiceImpl.user.id);
-        await box.put(AppHiveConstants.username, userServiceImpl.user.name);
-        await box.put(AppHiveConstants.profileId, userServiceImpl.profile.id);
-        await box.put(AppHiveConstants.photoUrl, userServiceImpl.user.photoUrl);
-        await box.put(AppHiveConstants.firstTime, false);
+        // No awaits between the identity check and submitting this single
+        // snapshot. Do not mix fields from a session that changes mid-write.
+        await box.putAll(snapshot);
       }
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'writeProfileInfo');
