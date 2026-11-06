@@ -91,6 +91,22 @@ class AppConfig {
   int timelinePromoFrequency = 10;
   Map<AppInUse, String> promoEndpoints = {};
 
+  bool appInfoLoaded = false;
+  final List<void Function(AppInfo)> _appInfoListeners = [];
+
+  void addAppInfoListener(void Function(AppInfo) listener) {
+    if (!_appInfoListeners.contains(listener)) {
+      _appInfoListeners.add(listener);
+    }
+    if (appInfoLoaded) {
+      listener(appInfo);
+    }
+  }
+
+  void removeAppInfoListener(void Function(AppInfo) listener) {
+    _appInfoListeners.remove(listener);
+  }
+
 
   /// Inicialización manual para controlar mejor el ciclo de vida
 
@@ -166,7 +182,15 @@ class AppConfig {
       appInfo = await AppInfoFirestore().retrieve();
       lastStableVersion = appInfo.version;
       lastStableBuild = appInfo.build;
+      appInfoLoaded = true;
       AppConfig.logger.d(appInfo.toString());
+      for (final listener in List<void Function(AppInfo)>.from(_appInfoListeners)) {
+        try {
+          listener(appInfo);
+        } catch (e) {
+          logger.w("AppInfo listener error: $e");
+        }
+      }
     } else {
       AppConfig.logger.w("Firebase not initialized, cannot retrieve app info.");
       lastStableVersion = "0.0.0";

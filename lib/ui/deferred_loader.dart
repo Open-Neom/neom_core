@@ -47,11 +47,38 @@ class _DeferredLoaderState extends State<DeferredLoader> {
   late Future<void> _load;
   bool _isLoading = false;
   int _attempt = 0;
+  bool? _recoveryScheduled;
 
   @override
   void initState() {
     super.initState();
     _load = _loadLibrary();
+  }
+
+  @override
+  void didUpdateWidget(covariant DeferredLoader oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.libraryLoader != widget.libraryLoader ||
+        oldWidget.builder != widget.builder) {
+      _recoveryScheduled = false;
+      _load = _loadLibrary();
+    }
+  }
+
+  @override
+  void reassemble() {
+    super.reassemble();
+    _recoveryScheduled = false;
+    // Defer reload to post-frame so parent route/widget updates (e.g.
+    // SintDelegate.refreshRoutes) replace stale pre-reload tear-offs first.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && !_isLoading) {
+        final nextLoad = _loadLibrary();
+        setState(() {
+          _load = nextLoad;
+        });
+      }
+    });
   }
 
   Future<void> _loadLibrary() async {
@@ -154,7 +181,23 @@ class _DeferredLoaderState extends State<DeferredLoader> {
               ),
             );
           }
-          return widget.builder();
+          try {
+            final built = widget.builder();
+            _recoveryScheduled = false;
+            return built;
+          } on Error catch (error) {
+            if (error.toString().contains('Deferred library') &&
+                _recoveryScheduled != true) {
+              _recoveryScheduled = true;
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) _retry();
+              });
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
+            rethrow;
+          }
         }
         return const Scaffold(body: Center(child: CircularProgressIndicator()));
       },

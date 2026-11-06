@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
@@ -131,7 +132,8 @@ class NeomErrorLogger {
     _isFlushing = true;
 
     try {
-      if (Firebase.apps.isEmpty) {
+      if (Firebase.apps.isEmpty ||
+          FirebaseAuth.instance.currentUser == null) {
         _pendingErrors.clear();
         return;
       }

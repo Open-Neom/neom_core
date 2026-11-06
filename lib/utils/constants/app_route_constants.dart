@@ -467,4 +467,15 @@ class AppRouteConstants {
   static String museumAuctionPath(String id) => '/museum/auction/$id';
   static String blogEntryPath(String id, {String slug = ''}) =>
       '/blog/${_slugOrId(id, slug)}';
+
+  // --- EMXI Fondeos (neom_founding) ---
+  static const String foundingHome = '/founding';
+  static const String foundingCreate = '/founding/create';
+  static const String foundingPledge = '/founding/pledge';
+  static const String foundingMyPledges = '/founding/my-pledges';
+  static const String foundingDashboard = '/founding/dashboard';
+  static const String foundingAdmin = '/founding/admin';
+  static const String foundingDetail = '/founding/:slug';
+  static String foundingPath(String id, {String slug = ''}) =>
+      '/founding/${Uri.encodeComponent(_slugOrId(id, slug))}';
 }

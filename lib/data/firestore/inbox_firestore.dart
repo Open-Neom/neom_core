@@ -4,15 +4,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../app_config.dart';
 import '../../app_properties.dart';
-import '../../utils/enums/user_role.dart';
 import '../../domain/model/app_profile.dart';
 import '../../domain/model/inbox.dart';
 import '../../domain/model/inbox_message.dart';
 import '../../domain/model/inbox_profile_info.dart';
 import '../../domain/repository/inbox_repository.dart';
-
 import '../../utils/constants/core_constants.dart';
+import '../../utils/enums/inbox_room_kind.dart';
 import '../../utils/enums/inbox_room_type.dart';
+import '../../utils/enums/user_role.dart';
 import '../../utils/neom_error_logger.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
@@ -137,9 +137,16 @@ class InboxFirestore implements InboxRepository {
     }
   }
 
-  /// Casts a single vote on an inline poll: removes the voter from every option
-  /// then adds them to [optionIndex] (one vote per person).
-  Future<bool> votePoll(String inboxId, String messageId, int optionIndex, String profileId) async {
+  /// Casts a vote on an inline poll. When [allowMultiple] is false (default),
+  /// removes the voter from every option before adding to [optionIndex]; when
+  /// true, toggles [profileId] on [optionIndex] independently.
+  Future<bool> votePoll(
+    String inboxId,
+    String messageId,
+    int optionIndex,
+    String profileId, {
+    bool allowMultiple = false,
+  }) async {
     try {
       final ref = _messageRef(inboxId, messageId);
       await FirebaseFirestore.instance.runTransaction((tx) async {
@@ -147,10 +154,26 @@ class InboxFirestore implements InboxRepository {
         final data = snap.data() as Map<String, dynamic>?;
         if (data == null) return;
         final poll = Map<String, dynamic>.from(data['pollData'] ?? {});
+        final multi = allowMultiple || (poll['allowMultiple'] == true);
         final votes = Map<String, dynamic>.from(poll['votes'] ?? {});
-        votes.updateAll((k, v) => (List<String>.from(v ?? []))..remove(profileId));
         final key = optionIndex.toString();
-        votes[key] = (List<String>.from(votes[key] ?? []))..add(profileId);
+        final currentForKey = List<String>.from(votes[key] ?? []);
+        final alreadyVotedThis = currentForKey.contains(profileId);
+        if (!multi) {
+          votes.updateAll(
+            (k, v) => (List<String>.from(v ?? []))..remove(profileId),
+          );
+          if (!alreadyVotedThis) {
+            votes[key] = (List<String>.from(votes[key] ?? []))..add(profileId);
+          }
+        } else {
+          if (alreadyVotedThis) {
+            currentForKey.remove(profileId);
+          } else {
+            currentForKey.add(profileId);
+          }
+          votes[key] = currentForKey;
+        }
         poll['votes'] = votes;
         tx.update(ref, {'pollData': poll});
       });
@@ -159,6 +182,142 @@ class InboxFirestore implements InboxRepository {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'InboxFirestore.votePoll');
       return false;
     }
+  }
+
+  /// Edits a sent message text and records `editedTime`.
+  Future<bool> editMessage(
+    String inboxId,
+    String messageId,
+    String newText,
+  ) async {
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await _messageRef(inboxId, messageId).update({
+        'text': newText,
+        'editedTime': now,
+      });
+      return true;
+    } catch (e, st) {
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'InboxFirestore.editMessage',
+      );
+      return false;
+    }
+  }
+
+  /// Marks a message as deleted for everyone (WhatsApp-style tombstone).
+  Future<bool> deleteMessageForEveryone(
+    String inboxId,
+    String messageId,
+  ) async {
+    try {
+      await _messageRef(inboxId, messageId).update({
+        'isDeletedForEveryone': true,
+        'text': '',
+        'mediaUrl': '',
+        'pollData': null,
+        'locationData': null,
+        'documentData': null,
+        'contactData': null,
+      });
+      return true;
+    } catch (e, st) {
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'InboxFirestore.deleteMessageForEveryone',
+      );
+      return false;
+    }
+  }
+
+  /// Hides a message only for [profileId] ("Eliminar para mí").
+  Future<bool> deleteMessageForMe(
+    String inboxId,
+    String messageId,
+    String profileId,
+  ) async {
+    try {
+      await _messageRef(inboxId, messageId).update({
+        'hiddenForProfileIds': FieldValue.arrayUnion([profileId]),
+      });
+      return true;
+    } catch (e, st) {
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'InboxFirestore.deleteMessageForMe',
+      );
+      return false;
+    }
+  }
+
+  /// Stars or unstars a message for [profileId].
+  Future<bool> setMessageStarred(
+    String inboxId,
+    String messageId,
+    String profileId,
+    bool starred,
+  ) async {
+    try {
+      await _messageRef(inboxId, messageId).update({
+        'starredByProfileIds': starred
+            ? FieldValue.arrayUnion([profileId])
+            : FieldValue.arrayRemove([profileId]),
+      });
+      return true;
+    } catch (e, st) {
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'InboxFirestore.setMessageStarred',
+      );
+      return false;
+    }
+  }
+
+  /// Creates a multi-member group room in Firestore.
+  Future<Inbox> createGroupRoom({
+    required String name,
+    String description = '',
+    String photoUrl = '',
+    required List<String> memberIds,
+    required String creatorId,
+  }) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final docRef = inboxReference.doc('group_${now}_${creatorId.hashCode.abs()}');
+    final allMembers = <String>{
+      if (creatorId.isNotEmpty) creatorId,
+      ...memberIds.where((id) => id.isNotEmpty),
+    }.toList();
+    final group = Inbox(
+      id: docRef.id,
+      name: name.trim(),
+      description: description.trim(),
+      photoUrl: photoUrl,
+      isPrivate: true,
+      roomKind: InboxRoomKind.group,
+      profileIds: allMembers,
+      adminIds: creatorId.isNotEmpty ? [creatorId] : const [],
+      createdTime: now,
+    );
+    try {
+      await docRef.set(group.toJSON());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'InboxFirestore.createGroupRoom',
+      );
+    }
+    return group;
   }
 
 
@@ -275,7 +434,7 @@ class InboxFirestore implements InboxRepository {
         AppConfig.logger.d("Retrieving inbox from main user");
         final data = documentSnapshot.data();
         if (data != null) {
-          inbox = Inbox.fromJSON(data as Map<String, dynamic>);
+          inbox = Inbox.fromJSON(data);
           inbox.id = documentSnapshot.id;
         }
       } else {
@@ -352,7 +511,7 @@ class InboxFirestore implements InboxRepository {
       if (doc.exists) {
         final data = doc.data();
         if (data != null) {
-          inbox = Inbox.fromJSON(data as Map<String, dynamic>);
+          inbox = Inbox.fromJSON(data);
           inbox.id = doc.id;
         }
         // Backfill the marker on rooms created before this flag existed.
@@ -406,7 +565,7 @@ class InboxFirestore implements InboxRepository {
       if (doc.exists) {
         final data = doc.data();
         if (data != null) {
-          inbox = Inbox.fromJSON(data as Map<String, dynamic>);
+          inbox = Inbox.fromJSON(data);
           inbox.id = doc.id;
         }
         // Keep membership in sync (new staff / first open) + backfill marker.
@@ -455,7 +614,7 @@ class InboxFirestore implements InboxRepository {
         AppConfig.logger.d("Retrieving inbox from main user");
         final data = documentSnapshot.data();
         if (data != null) {
-          inbox = Inbox.fromJSON(data as Map<String, dynamic>);
+          inbox = Inbox.fromJSON(data);
           inbox.id = documentSnapshot.id;
         }
       } else {

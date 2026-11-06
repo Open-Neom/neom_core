@@ -222,7 +222,9 @@ class UserController extends SintController implements UserService, AccountLoadL
   }
 
   void setNewProfileInfo() {
-    _newProfile.name = user.name;
+    _newProfile.name = _newProfile.name.trim().isNotEmpty
+        ? _newProfile.name.trim()
+        : user.name.trim();
     if (_newProfile.name.isNotEmpty) {
       _newProfile.slug = AppProfile.generateSlug(_newProfile.name);
     }
