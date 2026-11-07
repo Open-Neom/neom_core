@@ -27,9 +27,8 @@ class InboxPickedDocument {
 
   String get path => filePath;
   String get name => fileName;
-  String get extension => fileName.contains('.')
-      ? fileName.split('.').last.toLowerCase()
-      : '';
+  String get extension =>
+      fileName.contains('.') ? fileName.split('.').last.toLowerCase() : '';
 }
 
 /// Optional platform/app media adapter registered via Sint DI so apps with
@@ -94,6 +93,11 @@ abstract class InboxTransportGateway {
   /// True when this gateway can deliver rich media & messages offline over
   /// local mesh (BLE / Wi-Fi Direct / Río Colmena) without internet.
   bool get supportsOfflineMeshMedia => false;
+
+  /// Whether this room supports binary image/audio/video/document attachments.
+  /// This is a routing/privacy capability, not evidence that a peer is online
+  /// or that any file has been delivered. Existing cloud gateways allow it.
+  bool supportsMediaInRoom(String roomId, {Inbox? room}) => true;
 
   /// Resolves the active local or cloud sender profile.
   AppProfile? resolveActiveProfile() => null;
@@ -169,11 +173,7 @@ abstract class InboxTransportGateway {
   );
 
   /// Edits the text of an already-sent message (`editedTime` updated).
-  Future<bool> editMessage(
-    String roomId,
-    InboxMessage message,
-    String newText,
-  );
+  Future<bool> editMessage(String roomId, InboxMessage message, String newText);
 
   /// Deletes a message for everyone in the conversation (tombstone).
   Future<bool> deleteMessageForEveryone(

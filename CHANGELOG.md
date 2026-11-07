@@ -1,5 +1,8 @@
 # Changelog — neom_core
 
+## [2.1.3] - 2026-11-07
+- Add `BindTagConstants` for shared Contract-First DI tags across SINT `2.1` applications, `InboxTransportGateway.supportsMediaInRoom`, and `@Open-Neom` GitHub Sponsors `funding` metadata.
+
 ## Unreleased - 2026-10-22 - EMXI legacy catalogue visibility
 - Hide EMXI catalogue releases whose reader/cover assets depend on the unavailable `escritoresmxi.org` host or its subdomains, including cached reads and author/category/language/list queries.
 - Keep Firebase records, purchases and maintenance lookups intact. Migrated files are not rejected merely for retaining a WooCommerce ID or a physical-shop link; other app catalogues are unchanged.
