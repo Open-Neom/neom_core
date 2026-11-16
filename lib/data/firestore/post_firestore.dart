@@ -11,6 +11,7 @@ import '../../utils/post_utilities.dart';
 import 'activity_feed_firestore.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
+import 'core_firestore_guard.dart';
 import 'profile_firestore.dart';
 import 'public_catalog_read_policy.dart';
 
@@ -22,9 +23,11 @@ class PostFirestore implements PostRepository {
 
   bool _canRead(Post post) => !_readsPublicData || post.isPubliclyVisible;
 
-  final FirebaseFirestore _firestore;
+  final FirebaseFirestore? _injectedFirestore;
   PostFirestore({FirebaseFirestore? firestore})
-    : _firestore = firestore ?? FirebaseFirestore.instance;
+    : _injectedFirestore = firestore;
+  FirebaseFirestore get _firestore =>
+      _injectedFirestore ?? FirebaseFirestore.instance;
 
   CollectionReference<Map<String, dynamic>> get postsReference =>
       PublicCatalogReadPolicy.collection(
@@ -85,7 +88,10 @@ class PostFirestore implements PostRepository {
         query = query.startAfterDocument(_lastPostDocument!);
       }
 
-      QuerySnapshot querySnapshot = await query.get();
+      QuerySnapshot querySnapshot = await CoreFirestoreGuard.guardRead(
+        () => query.get(),
+        tag: 'PostFirestore.retrievePosts',
+      );
 
       if (querySnapshot.docs.isNotEmpty) {
         AppConfig.logger.t("Snapshot is not empty");
@@ -194,15 +200,13 @@ class PostFirestore implements PostRepository {
               .get();
           for (var doc in recentSnap.docs) {
             final data = doc.data();
-            if (data != null) {
-              final existingPost = Post.fromJSON(data as Map<String, dynamic>);
-              existingPost.id = doc.id;
-              if (PostUtilities.areLikelyDuplicates(post, existingPost, timeThresholdMs: 60000)) {
-                AppConfig.logger.w(
-                  "Duplicate post detected for owner ${post.ownerId} (existing ID: ${doc.id}). Skipping insert.",
-                );
-                return doc.id;
-              }
+            final existingPost = Post.fromJSON(data);
+            existingPost.id = doc.id;
+            if (PostUtilities.areLikelyDuplicates(post, existingPost, timeThresholdMs: 60000)) {
+              AppConfig.logger.w(
+                "Duplicate post detected for owner ${post.ownerId} (existing ID: ${doc.id}). Skipping insert.",
+              );
+              return doc.id;
             }
           }
         } catch (e) {
@@ -354,7 +358,10 @@ class PostFirestore implements PostRepository {
       if (_profileDocPosts.isNotEmpty) {
         query = query.startAfterDocument(_profileDocPosts.last);
       }
-      QuerySnapshot querySnapshot = await query.get();
+      QuerySnapshot querySnapshot = await CoreFirestoreGuard.guardRead(
+        () => query.get(),
+        tag: 'PostFirestore.retrievePosts',
+      );
 
       if (querySnapshot.docs.isNotEmpty) {
         for (var doc in querySnapshot.docs) {

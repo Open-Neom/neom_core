@@ -20,9 +20,11 @@ import 'constants/app_firestore_constants.dart';
 import 'public_catalog_read_policy.dart';
 
 class ItemlistFirestore implements ItemlistRepository {
-  final FirebaseFirestore _firestore;
+  final FirebaseFirestore? _injectedFirestore;
   ItemlistFirestore({FirebaseFirestore? firestore})
-    : _firestore = firestore ?? FirebaseFirestore.instance;
+    : _injectedFirestore = firestore;
+  FirebaseFirestore get _firestore =>
+      _injectedFirestore ?? FirebaseFirestore.instance;
   CollectionReference<Map<String, dynamic>> get itemlistReference =>
       PublicCatalogReadPolicy.collection(
         _firestore,
@@ -277,6 +279,7 @@ class ItemlistFirestore implements ItemlistRepository {
     String excludeFromProfileId = '',
     OwnerType ownerType = OwnerType.profile,
     ItemlistType? itemlistType,
+    bool includeAllOwnerTypes = false,
   }) async {
     AppConfig.logger.t(
       "Retrieving Itemlists from firestore (limit: $maxLength)",
@@ -294,7 +297,9 @@ class ItemlistFirestore implements ItemlistRepository {
       if (onlyPublic) {
         query = query.where('public', isEqualTo: true);
       }
-      query = query.where('ownerType', isEqualTo: ownerType.name);
+      if (!includeAllOwnerTypes) {
+        query = query.where('ownerType', isEqualTo: ownerType.name);
+      }
       if (itemlistType != null) {
         query = query.where('type', isEqualTo: itemlistType.name);
       }

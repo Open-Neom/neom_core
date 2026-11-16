@@ -24,6 +24,7 @@ import '../../utils/neom_error_logger.dart';
 import '../../utils/position_utilities.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
+import 'core_firestore_guard.dart';
 import 'facility_firestore.dart';
 import 'place_firestore.dart';
 import 'post_firestore.dart';
@@ -32,9 +33,11 @@ import 'profile_firestore.dart';
 class UserFirestore implements UserRepository {
 
   UserFirestore({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+      : _injectedFirestore = firestore;
 
-  final FirebaseFirestore _firestore;
+  final FirebaseFirestore? _injectedFirestore;
+  FirebaseFirestore get _firestore =>
+      _injectedFirestore ?? FirebaseFirestore.instance;
   CollectionReference<Map<String, dynamic>> get userReference =>
       _firestore.collection(AppFirestoreCollectionConstants.users);
   Query<Map<String, dynamic>> get profileReference =>
@@ -55,13 +58,16 @@ class UserFirestore implements UserRepository {
     try {
       // A retry or a failed account lookup must never replace an existing user.
       // The transaction also closes the race between checking and creating.
-      return await _firestore.runTransaction((transaction) async {
-        final reference = userReference.doc(userId);
-        final existing = await transaction.get(reference);
-        if (existing.exists) return false;
-        transaction.set(reference, userJSON);
-        return true;
-      });
+      return await CoreFirestoreGuard.guardWrite(
+        () => _firestore.runTransaction((transaction) async {
+          final reference = userReference.doc(userId);
+          final existing = await transaction.get(reference);
+          if (existing.exists) return false;
+          transaction.set(reference, userJSON);
+          return true;
+        }),
+        tag: 'UserFirestore.insert',
+      );
     } catch (_) {
       AppConfig.logger.w('Account creation failed; no rollback deletion attempted',
       );
@@ -170,8 +176,12 @@ class UserFirestore implements UserRepository {
     AppConfig.logger.t('Loading account by ID');
     AppUser user = AppUser();
     try {
-        DocumentSnapshot documentSnapshot = await userReference.doc(userId).get(
-          throwOnError ? const GetOptions(source: Source.server) : null);
+        DocumentSnapshot documentSnapshot = await CoreFirestoreGuard.guardRead(
+          () => userReference.doc(userId).get(
+            throwOnError ? const GetOptions(source: Source.server) : null,
+          ),
+          tag: 'UserFirestore.getById',
+        );
         if (documentSnapshot.exists && documentSnapshot.data() != null) {
           user = AppUser.fromJSON(documentSnapshot.data() as Map<String, dynamic>,
         );
@@ -222,8 +232,13 @@ class UserFirestore implements UserRepository {
     AppConfig.logger.d('Loading account by email');
 
     try {
-      QuerySnapshot querySnapshot = await userReference.where(AppFirestoreConstants.email, isEqualTo: email).limit(throwOnError ? 2 : 1).get(
-        throwOnError ? const GetOptions(source: Source.server) : null);
+      QuerySnapshot querySnapshot = await CoreFirestoreGuard.guardRead(
+        () => userReference
+            .where(AppFirestoreConstants.email, isEqualTo: email)
+            .limit(throwOnError ? 2 : 1)
+            .get(throwOnError ? const GetOptions(source: Source.server) : null),
+        tag: 'UserFirestore.getByEmail',
+      );
       if (throwOnError && querySnapshot.docs.length > 1) {
         throw const AccountLoadException(
           reason: AccountLoadFailure.duplicateAccount,

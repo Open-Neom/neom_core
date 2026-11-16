@@ -23,17 +23,18 @@ class Genre {
 
   static Genre fromJson(Map<String, dynamic> json) {
     return Genre(
-      id: json["id"],
-      name: json["name"],
-      description: json["description"],
+      id: json["id"]?.toString() ?? "",
+      name: json["name"]?.toString() ?? "",
+      description: json["description"]?.toString() ?? "",
     );
   }
 
   static Genre fromJsonDefault(Map<String, dynamic> json) {
+    final safeName = json["name"]?.toString() ?? "";
     return Genre(
-      id: json["name"],
-      name: json["name"],
-      description: json["description"],
+      id: safeName,
+      name: safeName,
+      description: json["description"]?.toString() ?? "",
     );
   }
 

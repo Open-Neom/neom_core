@@ -21,6 +21,80 @@ import '../../utils/neom_logger.dart';
 import '../../utils/platform/core_io.dart';
 
 class AppHiveController implements AppHiveService {
+  static final RegExp _safeHiveBoxNamePattern = RegExp(
+    r'^[A-Za-z0-9_-]{1,64}$',
+  );
+  static final RegExp _windowsReservedStemPattern = RegExp(
+    r'^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])$',
+    caseSensitive: false,
+  );
+  static final RegExp _unsafeCacheKeyChars = RegExp(
+    r'[\x00-\x1F\x7F-\x9F/\\:\u0085\u061C\u200B-\u200F\u2028-\u202E\u2060\u2066-\u2069\uFEFF]',
+  );
+
+  @visibleForTesting
+  static bool isSafeHiveBoxName(String raw) {
+    if (!_safeHiveBoxNamePattern.hasMatch(raw)) return false;
+    final lower = raw.toLowerCase();
+    if (lower == 'constructor' ||
+        lower == 'prototype' ||
+        lower == '__proto__' ||
+        (raw.startsWith('__') && raw.endsWith('__'))) {
+      return false;
+    }
+    return !_windowsReservedStemPattern.hasMatch(raw);
+  }
+
+  @visibleForTesting
+  static bool isSafeCacheKey(String raw) {
+    if (raw.isEmpty || raw.length > 200 || raw.trim() != raw) return false;
+    if (raw == '.' || raw == '..' || raw.contains('..')) return false;
+    final lower = raw.toLowerCase();
+    if (lower == 'constructor' ||
+        lower == 'prototype' ||
+        lower == '__proto__' ||
+        lower.contains('%00') ||
+        lower.contains('%2e') ||
+        lower.contains('%2f') ||
+        lower.contains('%5c') ||
+        (raw.startsWith('__') && raw.endsWith('__'))) {
+      return false;
+    }
+    return !_unsafeCacheKeyChars.hasMatch(raw);
+  }
+
+  @visibleForTesting
+  static bool hasSymlinkAncestor(String targetPath) {
+    if (kIsWeb || targetPath.isEmpty) return false;
+    final normalized = targetPath.replaceAll('\\', '/');
+    final segments = normalized.split('/');
+    final bool isAbs = normalized.startsWith('/');
+    var current = isAbs ? '' : '.';
+    for (var i = 0; i < segments.length - 1; i++) {
+      final seg = segments[i];
+      if (seg.isEmpty) continue;
+      current = isAbs ? '$current/$seg' : (current == '.' ? seg : '$current/$seg');
+      if (current == '/tmp' || current == '/var' || current == '/etc') {
+        continue;
+      }
+      if (FileSystemEntity.typeSync(current, followLinks: false) ==
+          FileSystemEntityType.link) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  static Future<void> _deleteRegularFileIfSafe(String filePath) async {
+    if (kIsWeb || filePath.isEmpty) return;
+    try {
+      if (hasSymlinkAncestor(filePath)) return;
+      if (FileSystemEntity.typeSync(filePath, followLinks: false) ==
+          FileSystemEntityType.file) {
+        await File(filePath).delete();
+      }
+    } catch (_) {}
+  }
 
   static final AppHiveController _instance = AppHiveController._internal();
 
@@ -73,6 +147,9 @@ class AppHiveController implements AppHiveService {
 
   @override
   Future<Box> getBox(String boxName, {bool limit = false}) async {
+    if (!isSafeHiveBoxName(boxName)) {
+      throw ArgumentError.value(boxName, 'boxName', 'Unsafe Hive box name');
+    }
     final loader = _boxLoader;
     if (loader != null) return loader(boxName);
     return Hive.isBoxOpen(boxName) ? Hive.box(boxName) : await openHiveBox(boxName, limit: limit);
@@ -80,16 +157,17 @@ class AppHiveController implements AppHiveService {
 
   @override
   Future<Box> openHiveBox(String boxName, {bool limit = false}) async {
+    if (!isSafeHiveBoxName(boxName)) {
+      throw ArgumentError.value(boxName, 'boxName', 'Unsafe Hive box name');
+    }
     neomLogger.t('openHiveBox $boxName');
     final box = await Hive.openBox(boxName).onError((error, stackTrace) async {
       neomLogger.e('Failed to open $boxName Box');
       if (!kIsWeb) {
         final dir = await getApplicationDocumentsDirectory();
         final dirPath = dir.path;
-        final dbFile = File('$dirPath/$boxName.hive');
-        final lockFile = File('$dirPath/$boxName.lock');
-        await dbFile.delete();
-        await lockFile.delete();
+        await _deleteRegularFileIfSafe('$dirPath/$boxName.hive');
+        await _deleteRegularFileIfSafe('$dirPath/$boxName.lock');
       }
       await Hive.openBox(boxName);
       throw 'Failed to open $boxName Box\nError: $error';
@@ -125,8 +203,11 @@ class AppHiveController implements AppHiveService {
     await userServiceImpl.getProfiles();
 
     final savedLocale = profileBox.get(AppHiveConstants.appLocale, defaultValue: 'spanish');
-    if(savedLocale.isNotEmpty) {
-      setLocale(EnumToString.fromString(AppLocale.values, savedLocale)!);
+    if(savedLocale is String && savedLocale.isNotEmpty) {
+      setLocale(
+        EnumToString.fromString(AppLocale.values, savedLocale) ??
+            AppLocale.spanish,
+      );
     } else {
       AppLocale appLocale = AppLocale.spanish;
 
@@ -297,18 +378,39 @@ class AppHiveController implements AppHiveService {
 
   @override
   Future<File?> getCachedPdf(String id) async {
+    if (kIsWeb || !isSafeCacheKey(id)) return null;
     final pdfCacheBox = await getBox(AppHiveBox.pdfCache.name);
-    final String? cachedPath = pdfCacheBox.get(id);
-    if (cachedPath != null && File(cachedPath).existsSync()) {
-      return File(cachedPath);
-    }
+    final Object? rawPath = pdfCacheBox.get(id);
+    if (rawPath is! String || rawPath.isEmpty || rawPath.length > 4096) {
       return null;
+    }
+    if (rawPath.contains('\x00') ||
+        RegExp(r'(?:^|[/\\])\.\.(?:[/\\]|$)').hasMatch(rawPath) ||
+        (rawPath.indexOf(':') > 1)) {
+      return null;
+    }
+    if (hasSymlinkAncestor(rawPath)) return null;
+    if (FileSystemEntity.typeSync(rawPath, followLinks: false) ==
+        FileSystemEntityType.file) {
+      return File(rawPath);
+    }
+    return null;
   }
 
   @override
   Future<void> cachePdf(String id, File file) async {
+    if (kIsWeb || !isSafeCacheKey(id)) return;
+    final path = file.path;
+    if (path.isEmpty ||
+        path.contains('\x00') ||
+        RegExp(r'(?:^|[/\\])\.\.(?:[/\\]|$)').hasMatch(path) ||
+        hasSymlinkAncestor(path) ||
+        FileSystemEntity.typeSync(path, followLinks: false) !=
+            FileSystemEntityType.file) {
+      return;
+    }
     final pdfCacheBox = await getBox(AppHiveBox.pdfCache.name);
-    await pdfCacheBox.put(id, file.path);
+    await pdfCacheBox.put(id, path);
   }
 
   @override
@@ -328,7 +430,7 @@ class AppHiveController implements AppHiveService {
   void setLocale(AppLocale appLocale) {
     neomLogger.d("Updating Sint locale to ${appLocale.name}");
 
-    Locale locale = Sint.deviceLocale!;
+    Locale locale = Sint.deviceLocale ?? const Locale('es');
 
     switch(appLocale) {
       case AppLocale.english:

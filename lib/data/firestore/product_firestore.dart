@@ -7,10 +7,12 @@ import '../../utils/enums/product_type.dart';
 import '../../utils/neom_error_logger.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
+import 'core_firestore_guard.dart';
 
 class ProductFirestore implements ProductRepository {
   
-  final productReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.products);
+  CollectionReference<Map<String, dynamic>> get productReference =>
+      FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.products);
 
   @override
   Future<List<AppProduct>> retrieveProductsByType({required ProductType type}) async {
@@ -22,6 +24,7 @@ class ProductFirestore implements ProductRepository {
       QuerySnapshot querySnapshot = await productReference
           .where(AppFirestoreConstants.type, isEqualTo: type.name)
           .where(AppFirestoreConstants.isAvailable, isEqualTo: true)
+          .limit(500)
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
@@ -47,10 +50,11 @@ class ProductFirestore implements ProductRepository {
     String productId = "";
 
     try {
-
-      if(product.id.isNotEmpty) {
-        await productReference.doc(product.id).set(product.toJSON());
-        productId = product.id;
+      final cleanId = product.id.trim();
+      if (cleanId.isNotEmpty) {
+        if (!CoreFirestoreGuard.isSafeDocId(cleanId)) return '';
+        await productReference.doc(cleanId).set(product.toJSON());
+        productId = cleanId;
       } else {
         DocumentReference documentReference = await productReference
             .add(product.toJSON());
@@ -70,11 +74,13 @@ class ProductFirestore implements ProductRepository {
 
   @override
   Future<bool> remove(AppProduct product) async {
-    AppConfig.logger.d("Removing product ${product.id}");
+    final cleanId = product.id.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanId)) return false;
+    AppConfig.logger.d("Removing product $cleanId");
 
     try {
-      await productReference.doc(product.id).delete();
-      AppConfig.logger.d("Product ${product.id} removed");
+      await productReference.doc(cleanId).delete();
+      AppConfig.logger.d("Product $cleanId removed");
       return true;
 
     } catch (e, st) {

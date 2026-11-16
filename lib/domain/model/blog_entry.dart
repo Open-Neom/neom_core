@@ -223,11 +223,15 @@ class BlogEntry {
   Map<String, dynamic> toFeedPost() {
     // Crear un preview del contenido (sin marcadores de formato)
     String preview = content
-        .replaceAll(RegExp(r'\*\*([^*]+)\*\*'), r'\1')  // Remove **bold**
-        .replaceAll(RegExp(r'\*([^*]+)\*'), r'\1')      // Remove *italic*
-        .replaceAll(RegExp(r'~~([^~]+)~~'), r'\1')      // Remove ~~strike~~
-        .replaceAll(RegExp(r'^#+\s*', multiLine: true), '') // Remove # headers
-        .replaceAll(RegExp(r'\n+'), ' ')                // Replace newlines with spaces
+        .replaceAllMapped(RegExp(r'!\[([^\]]*)\]\([^)]+\)'), (m) => m.group(1) ?? '')
+        .replaceAllMapped(RegExp(r'\*\*([^*]+)\*\*'), (m) => m.group(1) ?? '')
+        .replaceAllMapped(RegExp(r'\*([^*]+)\*'), (m) => m.group(1) ?? '')
+        .replaceAllMapped(RegExp(r'_([^_]+)_'), (m) => m.group(1) ?? '')
+        .replaceAllMapped(RegExp(r'~~([^~]+)~~'), (m) => m.group(1) ?? '')
+        .replaceAllMapped(RegExp(r'~([^~]+)~'), (m) => m.group(1) ?? '')
+        .replaceAllMapped(RegExp(r'`([^`]+)`'), (m) => m.group(1) ?? '')
+        .replaceAll(RegExp(r'^(?:#+\s*|>\s*|-\s*|---\s*$)', multiLine: true), '')
+        .replaceAll(RegExp(r'\n+'), ' ')
         .trim();
 
     // Limitar el preview a ~150 caracteres

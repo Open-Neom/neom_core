@@ -7,25 +7,31 @@ import '../../app_config.dart';
 import '../../domain/model/external_item.dart';
 import '../../domain/model/item_list.dart';
 import '../../domain/repository/external_item_repository.dart';
-import '../../utils/enums/external_media_source.dart';
 import '../../utils/enums/media_item_type.dart';
 import '../../utils/neom_error_logger.dart';
 import 'constants/app_firestore_collection_constants.dart';
+import 'core_firestore_guard.dart';
+import 'profile_document_locator.dart';
 
 class ExternalItemFirestore implements ExternalItemRepository {
 
-  final externalItemReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.externalItems);
-  final profileReference = FirebaseFirestore.instance.collectionGroup(AppFirestoreCollectionConstants.profiles);
+  CollectionReference<Map<String, dynamic>> get externalItemReference =>
+      FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.externalItems);
+  Query<Map<String, dynamic>> get profileReference =>
+      FirebaseFirestore.instance.collectionGroup(AppFirestoreCollectionConstants.profiles);
+  final ProfileDocumentLocator _profileLocator = ProfileDocumentLocator();
 
   @override
   Future<ExternalItem> retrieve(String itemId) async {
-    AppConfig.logger.d("Getting item $itemId");
+    final cleanId = itemId.trim();
     ExternalItem externalItem = ExternalItem();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanId)) return externalItem;
+    AppConfig.logger.d("Getting item $cleanId");
     try {
-      // OPTIMIZED: Use await instead of .then()
-      final doc = await externalItemReference.doc(itemId).get();
-      if (doc.exists) {
+      final doc = await externalItemReference.doc(cleanId).get();
+      if (doc.exists && doc.data() != null) {
         externalItem = ExternalItem.fromJSON(jsonEncode(doc.data()));
+        externalItem.id = doc.id;
         AppConfig.logger.d("ExternalItem ${externalItem.name} was retrieved with details");
       } else {
         AppConfig.logger.d("ExternalItem not found");
@@ -41,12 +47,13 @@ class ExternalItemFirestore implements ExternalItemRepository {
   @override
   Future<Map<String, ExternalItem>> fetchAll({ int minItems = 0, int maxLength = 100,
     MediaItemType? type, List<MediaItemType>? excludeTypes}) async {
-    AppConfig.logger.t("Getting externalItems from list");
+    final safeLimit = CoreFirestoreGuard.clampLimit(maxLength, defaultLimit: 100, maxLimit: 500);
+    AppConfig.logger.t("Getting externalItems from list (limit: $safeLimit)");
 
     Map<String, ExternalItem> externalItems = {};
 
     try {
-      QuerySnapshot querySnapshot = await externalItemReference.get();
+      QuerySnapshot querySnapshot = await externalItemReference.limit(safeLimit).get();
 
       if (querySnapshot.docs.isNotEmpty) {
         AppConfig.logger.t("QuerySnapshot is not empty");
@@ -74,20 +81,21 @@ class ExternalItemFirestore implements ExternalItemRepository {
     AppConfig.logger.t("Getting ${externalItemIds.length} externalItems from firestore");
 
     Map<String, ExternalItem> externalItems = {};
+    final chunks = CoreFirestoreGuard.chunkValidIds(externalItemIds);
+    if (chunks.isEmpty) return externalItems;
 
     try {
-      QuerySnapshot querySnapshot = await externalItemReference.get();
+      for (final chunk in chunks) {
+        final querySnapshot = await externalItemReference
+            .where(FieldPath.documentId, whereIn: chunk)
+            .get();
 
-      if (querySnapshot.docs.isNotEmpty) {
         for (var documentSnapshot in querySnapshot.docs) {
-          if(externalItemIds.contains(documentSnapshot.id)){
-            ExternalItem externalItem = ExternalItem.fromJSON(documentSnapshot.data());
-            AppConfig.logger.d("ExternalItem ${externalItem.name} was retrieved with details");
-            externalItems[documentSnapshot.id] = externalItem;
-          }
+          ExternalItem externalItem = ExternalItem.fromJSON(documentSnapshot.data());
+          externalItem.id = documentSnapshot.id;
+          externalItems[documentSnapshot.id] = externalItem;
         }
       }
-
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ExternalItemFirestore.retrieveFromList');
     }
@@ -96,15 +104,16 @@ class ExternalItemFirestore implements ExternalItemRepository {
 
   @override
   Future<bool> exists(String externalItemId) async {
-    AppConfig.logger.d("Getting externalItem $externalItemId");
+    final cleanId = externalItemId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanId)) return false;
+    AppConfig.logger.d("Getting externalItem $cleanId");
 
     try {
-      await externalItemReference.doc(externalItemId).get().then((doc) {
-        if (doc.exists) {
-          AppConfig.logger.d("ExternalItem found");
-          return true;
-        }
-      });
+      final doc = await externalItemReference.doc(cleanId).get();
+      if (doc.exists) {
+        AppConfig.logger.d("ExternalItem found");
+        return true;
+      }
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ExternalItemFirestore.exists');
     }
@@ -114,17 +123,14 @@ class ExternalItemFirestore implements ExternalItemRepository {
 
   @override
   Future<void> insert(ExternalItem externalItem) async {
+    final cleanId = externalItem.id.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanId)) return;
+    externalItem.id = cleanId;
     AppConfig.logger.t("Adding externalItem to database collection");
     try {
-      if(externalItem.url.contains("spotify") || externalItem.url.contains("p.scdn.co")) {
-        externalItem.source = ExternalSource.spotify;
-      } else if(externalItem.url.contains("youtube")) {
-        externalItem.source = ExternalSource.youtube;
-      } else {
-        externalItem.source = ExternalSource.other;
-      }
+      externalItem.source = CoreFirestoreGuard.classifyExternalUrlSource(externalItem.url);
 
-      await externalItemReference.doc(externalItem.id).set(externalItem.toJSON());
+      await externalItemReference.doc(cleanId).set(externalItem.toJSON());
       AppConfig.logger.d("ExternalItem inserted into Firestore");
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ExternalItemFirestore.insert');
@@ -134,9 +140,11 @@ class ExternalItemFirestore implements ExternalItemRepository {
 
   @override
   Future<bool> remove(ExternalItem externalItem) async {
+    final cleanId = externalItem.id.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanId)) return false;
     AppConfig.logger.d("Removing externalItem from database collection");
     try {
-      await externalItemReference.doc(externalItem.id).delete();
+      await externalItemReference.doc(cleanId).delete();
       return true;
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ExternalItemFirestore.remove');
@@ -146,25 +154,27 @@ class ExternalItemFirestore implements ExternalItemRepository {
 
   @override
   Future<bool> removeItemFromList(String profileId, String itemlistId, ExternalItem externalItem) async {
-    AppConfig.logger.d("Removing ItemlistItem for user $profileId");
+    final cleanProfileId = profileId.trim();
+    final cleanItemlistId = itemlistId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanProfileId) ||
+        !CoreFirestoreGuard.isSafeDocId(cleanItemlistId)) {
+      return false;
+    }
+    AppConfig.logger.d("Removing ItemlistItem for user $cleanProfileId");
 
     try {
+      final profileDocRef = await _profileLocator.locate(cleanProfileId);
+      if (profileDocRef == null) return false;
 
-      await profileReference.get()
-          .then((querySnapshot) async {
-        for (var document in querySnapshot.docs) {
-          if(document.id == profileId) {
-            DocumentSnapshot snapshot  = await document.reference.collection(AppFirestoreCollectionConstants.itemlists)
-                .doc(itemlistId).get();
+      final itemlistRef = profileDocRef
+          .collection(AppFirestoreCollectionConstants.itemlists)
+          .doc(cleanItemlistId);
+      final snapshot = await itemlistRef.get();
+      if (!snapshot.exists || snapshot.data() == null) return false;
 
-            Itemlist itemlist = Itemlist.fromJSON(snapshot.data());
-            itemlist.externalItems?.removeWhere((element) => element.id == externalItem.id);
-            await document.reference.collection(AppFirestoreCollectionConstants.itemlists)
-                .doc(itemlistId).update(itemlist.toJSON());
-
-          }
-        }
-      });
+      final itemlist = Itemlist.fromJSON(snapshot.data()!);
+      itemlist.externalItems?.removeWhere((element) => element.id == externalItem.id);
+      await itemlistRef.update(itemlist.toJSON());
 
       AppConfig.logger.i("ItemlistItem ${externalItem.name} was updated to ${externalItem.state}");
       return true;
@@ -178,21 +188,21 @@ class ExternalItemFirestore implements ExternalItemRepository {
 
   @override
   Future<void> existsOrInsert(ExternalItem externalItem) async {
-    AppConfig.logger.t("existsOrInsert externalItem ${externalItem.id}");
+    final cleanId = externalItem.id.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanId)) return;
+    AppConfig.logger.t("existsOrInsert externalItem $cleanId");
 
     try {
-      externalItemReference.doc(externalItem.id).get().then((doc) {
-        if (doc.exists) {
-          AppConfig.logger.t("ExternalItem found");
-        } else {
-          AppConfig.logger.d("ExternalItem ${externalItem.id}. ${externalItem.name} not found. Inserting");
-          insert(externalItem);
-        }
-      });
+      final doc = await externalItemReference.doc(cleanId).get();
+      if (doc.exists) {
+        AppConfig.logger.t("ExternalItem found");
+      } else {
+        AppConfig.logger.d("ExternalItem $cleanId. ${externalItem.name} not found. Inserting");
+        await insert(externalItem);
+      }
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ExternalItemFirestore.existsOrInsert');
     }
-
   }
 
 }

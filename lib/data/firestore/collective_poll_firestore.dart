@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../app_config.dart';
 import '../../domain/model/collective_poll.dart';
 import 'constants/app_firestore_collection_constants.dart';
+import 'core_firestore_guard.dart';
 
 /// Firestore data access for [CollectivePoll] documents.
 ///
@@ -20,12 +21,15 @@ class CollectivePollFirestore {
 
   /// Retrieves all polls for a collective, ordered by createdAt descending.
   Future<List<CollectivePoll>> getPolls(String collectiveId) async {
-    logger.t("Getting polls for collective $collectiveId");
+    final cleanCollectiveId = collectiveId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanCollectiveId)) return [];
+    logger.t("Getting polls for collective $cleanCollectiveId");
     final polls = <CollectivePoll>[];
 
     try {
-      final snapshot = await _pollsRef(collectiveId)
+      final snapshot = await _pollsRef(cleanCollectiveId)
           .orderBy('createdAt', descending: true)
+          .limit(200)
           .get();
 
       for (final doc in snapshot.docs) {
@@ -35,7 +39,7 @@ class CollectivePollFirestore {
         poll.id = doc.id;
         polls.add(poll);
       }
-      logger.d("${polls.length} polls found for collective $collectiveId");
+      logger.d("${polls.length} polls found for collective $cleanCollectiveId");
     } catch (e) {
       logger.e("getPolls error: $e");
     }
@@ -45,9 +49,11 @@ class CollectivePollFirestore {
 
   /// Inserts a new poll. Returns the generated document ID.
   Future<String> insert(CollectivePoll poll) async {
-    logger.d("Inserting poll '${poll.question}' for collective ${poll.collectiveId}");
+    final cleanCollectiveId = poll.collectiveId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanCollectiveId)) return '';
+    logger.d("Inserting poll '${poll.question}' for collective $cleanCollectiveId");
     try {
-      final doc = await _pollsRef(poll.collectiveId).add(poll.toJSON());
+      final doc = await _pollsRef(cleanCollectiveId).add(poll.toJSON());
       return doc.id;
     } catch (e) {
       logger.e("insert poll error: $e");
@@ -55,33 +61,45 @@ class CollectivePollFirestore {
     }
   }
 
-  /// Adds a vote to a specific option within a poll.
+  /// Adds a vote to a specific option within a poll atomically.
   Future<bool> vote(String collectiveId, String pollId, String optionId, String voterId) async {
-    logger.d("Voting on poll $pollId option $optionId for collective $collectiveId");
+    final cleanCollectiveId = collectiveId.trim();
+    final cleanPollId = pollId.trim();
+    final cleanOptionId = optionId.trim();
+    final cleanVoterId = voterId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanCollectiveId) ||
+        !CoreFirestoreGuard.isSafeDocId(cleanPollId) ||
+        cleanOptionId.isEmpty ||
+        !CoreFirestoreGuard.isSafeDocId(cleanVoterId)) {
+      return false;
+    }
+    logger.d("Voting on poll $cleanPollId option $cleanOptionId for collective $cleanCollectiveId");
     try {
-      final doc = await _pollsRef(collectiveId).doc(pollId).get();
-      final data = doc.data();
-      if (data == null) return false;
+      final ref = _pollsRef(cleanCollectiveId).doc(cleanPollId);
+      return await FirebaseFirestore.instance.runTransaction<bool>((tx) async {
+        final doc = await tx.get(ref);
+        final data = doc.data();
+        if (data is! Map) return false;
+        final poll = CollectivePoll.fromJSON(Map<String, dynamic>.from(data));
+        poll.id = doc.id;
+        if (poll.isClosed) return false;
 
-      final poll = CollectivePoll.fromJSON(data as Map<String, dynamic>);
-      poll.id = doc.id;
+        final updatedOptions = poll.options.map((option) {
+          if (option.id == cleanOptionId && !option.voterIds.contains(cleanVoterId)) {
+            return PollOption(
+              id: option.id,
+              text: option.text,
+              voterIds: [...option.voterIds, cleanVoterId],
+            );
+          }
+          return option;
+        }).toList();
 
-      final updatedOptions = poll.options.map((option) {
-        if (option.id == optionId && !option.voterIds.contains(voterId)) {
-          return PollOption(
-            id: option.id,
-            text: option.text,
-            voterIds: [...option.voterIds, voterId],
-          );
-        }
-        return option;
-      }).toList();
-
-      await _pollsRef(collectiveId).doc(pollId).update({
-        'options': updatedOptions.map((o) => o.toJSON()).toList(),
+        tx.update(ref, {
+          'options': updatedOptions.map((o) => o.toJSON()).toList(),
+        });
+        return true;
       });
-
-      return true;
     } catch (e) {
       logger.e("vote error: $e");
       return false;
@@ -90,9 +108,15 @@ class CollectivePollFirestore {
 
   /// Closes a poll so no more votes can be cast.
   Future<bool> close(String collectiveId, String pollId) async {
-    logger.d("Closing poll $pollId for collective $collectiveId");
+    final cleanCollectiveId = collectiveId.trim();
+    final cleanPollId = pollId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanCollectiveId) ||
+        !CoreFirestoreGuard.isSafeDocId(cleanPollId)) {
+      return false;
+    }
+    logger.d("Closing poll $cleanPollId for collective $cleanCollectiveId");
     try {
-      await _pollsRef(collectiveId).doc(pollId).update({'isClosed': true});
+      await _pollsRef(cleanCollectiveId).doc(cleanPollId).update({'isClosed': true});
       return true;
     } catch (e) {
       logger.e("close poll error: $e");

@@ -38,13 +38,16 @@ void main() {
       expect(r.balance, 0.0);
     });
 
-    test('unknown status falls back to active (legacy compat — see NC-29)', () {
-      // Updated as part of NC-29 fix: el default suspended bloqueaba pagos
-      // a wallets legacy sin el campo status. Ahora cae a active (consistente
-      // con el constructor default y con la mayoría de wallets en uso).
-      final r = Wallet.fromJSON(
+    test('missing status falls back to active (NC-29) while corrupted status fails closed to suspended', () {
+      final legacyMissing = Wallet.fromJSON({'currency': 'usd'});
+      expect(legacyMissing.status, WalletStatus.active);
+
+      final legacyBlank = Wallet.fromJSON({'status': '', 'currency': 'usd'});
+      expect(legacyBlank.status, WalletStatus.active);
+
+      final corrupted = Wallet.fromJSON(
           {'status': 'nonexistent_state', 'currency': 'usd'});
-      expect(r.status, WalletStatus.active);
+      expect(corrupted.status, WalletStatus.suspended);
     });
 
     test('null currency parses to appCoin', () {

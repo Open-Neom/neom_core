@@ -50,7 +50,7 @@ class AppCoupon {
   });
 
   bool get isExpired => expiresAt > 0 && DateTime.now().millisecondsSinceEpoch > expiresAt;
-  bool get isUsedUp => (usedBy?.length ?? 0) >= usageLimit;
+  bool get isUsedUp => usageLimit < 0 || (usageLimit > 0 && (usedBy?.length ?? 0) >= usageLimit);
   bool get isValid => !isExpired && !isUsedUp;
 
   @override
@@ -81,24 +81,65 @@ class AppCoupon {
     };
   }
 
-  AppCoupon.fromJSON(dynamic data) :
-    id = data["id"] ?? "",
-    code = data["code"] ?? "",
-    amount = data["amount"] ?? 0,
-    ownerEmail = data["ownerEmail"] ?? "",
-    ownerAmount = data["ownerAmount"] ?? 0,
-    description = data["description"] ?? "",
-    type = EnumToString.fromString(CouponType.values, data["type"] ?? "") ?? CouponType.oneMonthFree,
-    planId = data["planId"] ?? '',
-    usageLimit = data["usageLimit"] ?? 25,
-    durationMonths = data["durationMonths"] ?? 1,
-    expiresAt = data["expiresAt"] ?? 0,
-    createdAt = data["createdAt"] ?? 0,
-    source = data["source"] ?? '',
-    usedBy = data["usedBy"]?.cast<String>() ?? [],
-    productIds = data["productIds"]?.cast<String>() ?? [],
-    excludedProductIds = data["excludedProductIds"]?.cast<String>() ?? [],
-    allowedEmails = data["allowedEmails"]?.cast<String>() ?? [],
-    excludedEmails = data["excludedEmails"]?.cast<String>() ?? [];
+  static double _parseDouble(dynamic value, {double fallback = 0.0}) {
+    if (value is num) {
+      final d = value.toDouble();
+      return d.isFinite ? d : fallback;
+    }
+    if (value is String) {
+      final d = double.tryParse(value.trim());
+      if (d != null && d.isFinite) return d;
+    }
+    return fallback;
+  }
+
+  static int _parseInt(dynamic value, {int fallback = 0}) {
+    if (value is num) {
+      if (!value.isFinite) return fallback;
+      return value is int ? value : value.toInt();
+    }
+    if (value is String) {
+      final i = int.tryParse(value.trim());
+      if (i != null) return i;
+      final d = double.tryParse(value.trim());
+      if (d != null && d.isFinite) return d.toInt();
+    }
+    return fallback;
+  }
+
+  static List<String> _parseStringList(dynamic value) {
+    if (value is List) {
+      return value.map((e) => e.toString()).toList();
+    }
+    return <String>[];
+  }
+
+  factory AppCoupon.fromJSON(dynamic data) {
+    if (data is! Map) return AppCoupon();
+    return AppCoupon(
+      id: data["id"]?.toString() ?? "",
+      code: data["code"]?.toString() ?? "",
+      amount: _parseDouble(data["amount"]),
+      ownerEmail: data["ownerEmail"]?.toString() ?? "",
+      ownerAmount: _parseDouble(data["ownerAmount"]),
+      description: data["description"]?.toString() ?? "",
+      type: EnumToString.fromString(
+            CouponType.values,
+            data["type"]?.toString() ?? "",
+          ) ??
+          CouponType.oneMonthFree,
+      planId: data["planId"]?.toString() ?? '',
+      usageLimit: _parseInt(data["usageLimit"], fallback: 25),
+      durationMonths: _parseInt(data["durationMonths"], fallback: 1),
+      expiresAt: _parseInt(data["expiresAt"], fallback: 0),
+      createdAt: _parseInt(data["createdAt"], fallback: 0),
+      source: data["source"]?.toString() ?? '',
+      usedBy: _parseStringList(data["usedBy"]),
+      productIds: _parseStringList(data["productIds"]),
+      excludedProductIds: _parseStringList(data["excludedProductIds"]),
+      allowedEmails: _parseStringList(data["allowedEmails"]),
+      excludedEmails: _parseStringList(data["excludedEmails"]),
+    );
+  }
 
 }

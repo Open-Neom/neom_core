@@ -21,9 +21,14 @@ class BlogMigrationService {
 
   final BlogEntryFirestore _blogEntryFirestore = BlogEntryFirestore();
 
-  final postsReference = FirebaseFirestore.instance.collection(
-    AppFirestoreCollectionConstants.posts,
-  );
+  CollectionReference<Map<String, dynamic>> get postsReference =>
+      FirebaseFirestore.instance.collection(
+        AppFirestoreCollectionConstants.posts,
+      );
+  CollectionReference<Map<String, dynamic>> get _blogReference =>
+      FirebaseFirestore.instance.collection(
+        AppFirestoreCollectionConstants.blog,
+      );
 
   /// Migration statistics
   int totalPosts = 0;
@@ -134,6 +139,7 @@ class BlogMigrationService {
     try {
       QuerySnapshot snapshot = await postsReference
           .where(AppFirestoreConstants.type, isEqualTo: PostType.blogEntry.name)
+          .limit(2000)
           .get();
 
       for (var doc in snapshot.docs) {
@@ -197,8 +203,7 @@ class BlogMigrationService {
   /// Check if a post has already been migrated.
   Future<bool> _isAlreadyMigrated(String postId) async {
     try {
-      QuerySnapshot snapshot = await FirebaseFirestore.instance
-          .collection(AppFirestoreCollectionConstants.blog)
+      QuerySnapshot snapshot = await _blogReference
           .where('legacyPostId', isEqualTo: postId)
           .limit(1)
           .get();
@@ -247,12 +252,13 @@ class BlogMigrationService {
       // Count old posts
       QuerySnapshot oldSnapshot = await postsReference
           .where(AppFirestoreConstants.type, isEqualTo: PostType.blogEntry.name)
+          .limit(2000)
           .get();
       oldPostCount = oldSnapshot.docs.length;
 
       // Count new entries
-      QuerySnapshot newSnapshot = await FirebaseFirestore.instance
-          .collection(AppFirestoreCollectionConstants.blog)
+      QuerySnapshot newSnapshot = await _blogReference
+          .limit(2000)
           .get();
       newEntryCount = newSnapshot.docs.length;
 

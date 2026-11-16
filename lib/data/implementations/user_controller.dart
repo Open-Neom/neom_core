@@ -8,6 +8,7 @@ import '../../domain/model/account_load_exception.dart';
 import '../../domain/model/app_profile.dart';
 import '../../domain/model/app_user.dart';
 import '../../domain/model/collective.dart';
+import '../../domain/model/subscription_access_resolution.dart';
 import '../../domain/model/user_subscription.dart';
 import '../../domain/repository/chamber_repository.dart';
 import '../../domain/use_cases/account_load_lifecycle.dart';
@@ -22,7 +23,6 @@ import '../../utils/enums/owner_type.dart';
 import '../../utils/enums/subscription_level.dart';
 import '../../utils/enums/subscription_status.dart';
 import '../../utils/enums/user_role.dart';
-import '../../utils/enums/verification_level.dart';
 import '../../utils/neom_error_logger.dart';
 import '../firestore/app_release_item_firestore.dart';
 import '../firestore/itemlist_firestore.dart';
@@ -661,49 +661,19 @@ class UserController extends SintController implements UserService, AccountLoadL
       List<UserSubscription> subscriptions = await UserSubscriptionFirestore().getByUserId(user.id);
 
       if(subscriptions.isNotEmpty) {
-        // Check for suspended subscription first.
-        // (kimi, 2026-07-23) Dunning: una suscripción past_due FUERA de su
-        // periodo de gracia también cuenta como suspendida; dentro de la
-        // gracia sigue dando acceso (ver selección de _userSubscription).
-        final suspended = subscriptions.firstWhereOrNull(
-          (sub) => sub.status == SubscriptionStatus.suspended ||
-              (sub.isPastDue && !sub.isInGracePeriod),
+        final resolution = SubscriptionAccessResolution.resolve(
+          subscriptions,
+          now: DateTime.now().millisecondsSinceEpoch,
         );
-        if (suspended != null) {
-          _isSubscriptionSuspended = true;
-          AppConfig.logger.w('User subscription ${suspended.subscriptionId} is SUSPENDED',
-          );
-        } else {
-          _isSubscriptionSuspended = false;
-        }
-
-        // (kimi, 2026-07-23) past_due dentro del periodo de gracia se trata
-        // como ACTIVA para la resolución de tier/acceso.
-        _userSubscription = subscriptions.firstWhereOrNull(
-          (subscription) => subscription.status == SubscriptionStatus.active ||
-              subscription.isInGracePeriod,
-        );
-
-        // Check if active subscription has a scheduled cancellation that has passed
-        if (_userSubscription != null && _userSubscription!.endDate > 0) {
-          final now = DateTime.now().millisecondsSinceEpoch;
-          if (now >= _userSubscription!.endDate) {
-            AppConfig.logger.i('Subscription ${_userSubscription!.subscriptionId} has passed its end date — marking as cancelled',
-            );
-            UserSubscriptionFirestore().cancel(_userSubscription!.subscriptionId,
-            );
-            // Reset profile verification level back to general
-            if (user.profiles.isNotEmpty) {
-              final profile = user.profiles.first;
-              ProfileFirestore().updateVerificationLevel(profile.id, VerificationLevel.none,
-              );
-              profile.verificationLevel = VerificationLevel.none;
-            }
-            _userSubscription = null;
-            _subscriptionLevel = SubscriptionLevel.freemium;
-            updateSubscriptionId('');
-            return;
-          }
+        _isSubscriptionSuspended = resolution.suspended;
+        _userSubscription = resolution.selected;
+        if (_userSubscription == null) {
+          // Do not leave a previously cached paid level active after its last
+          // valid subscription ended. Accounts and owned/purchased books remain
+          // available; server-side billing updates own financial state.
+          _subscriptionLevel = user.userRole.value > UserRole.subscriber.value
+              ? SubscriptionLevel.ambassador
+              : SubscriptionLevel.freemium;
         }
 
         if(userSubscription?.subscriptionId == user.subscriptionId) {

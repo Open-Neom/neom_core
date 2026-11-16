@@ -28,6 +28,7 @@ import '../../utils/position_utilities.dart';
 import '../../utils/profile_directory_policy.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
+import 'core_firestore_guard.dart';
 import 'facility_firestore.dart';
 import 'genre_firestore.dart';
 import 'instrument_firestore.dart';
@@ -38,9 +39,11 @@ import 'post_firestore.dart';
 import 'public_catalog_read_policy.dart';
 
 class ProfileFirestore implements ProfileRepository {
-  final FirebaseFirestore _firestore;
+  final FirebaseFirestore? _injectedFirestore;
   ProfileFirestore({FirebaseFirestore? firestore})
-    : _firestore = firestore ?? FirebaseFirestore.instance;
+    : _injectedFirestore = firestore;
+  FirebaseFirestore get _firestore =>
+      _injectedFirestore ?? FirebaseFirestore.instance;
   CollectionReference<Map<String, dynamic>> get usersReference =>
       _firestore.collection(AppFirestoreCollectionConstants.users);
   Query<Map<String, dynamic>> get profileReference =>
@@ -97,10 +100,10 @@ class ProfileFirestore implements ProfileRepository {
       // A direct get for a slug-shaped, nonexistent document is denied by
       // resource-based rules. An empty, constrained public query is allowed
       // and lets vanity-URL resolution continue without touching legacy data.
-      final snapshot = await profileReference
-          .where('id', isEqualTo: idOrSlug)
-          .limit(1)
-          .get();
+      final snapshot = await CoreFirestoreGuard.guardRead(
+        () => profileReference.where('id', isEqualTo: idOrSlug).limit(1).get(),
+        tag: 'ProfileFirestore.retrievePublic',
+      );
       if (snapshot.docs.isNotEmpty) {
         final doc = snapshot.docs.first;
         final profile = AppProfile.fromJSON(doc.data())..id = doc.id;

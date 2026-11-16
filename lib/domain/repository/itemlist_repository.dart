@@ -22,7 +22,8 @@ abstract class ItemlistRepository {
 
   Future<Map<String, Itemlist>> fetchAll({bool onlyPublic = false,
     int maxLength = 100, String ownerId = '', String excludeFromProfileId = '',
-    OwnerType ownerType = OwnerType.profile, ItemlistType? itemlistType});
+    OwnerType ownerType = OwnerType.profile, ItemlistType? itemlistType,
+    bool includeAllOwnerTypes = false});
 
   Future<Map<String, Itemlist>> getByOwnerId(String ownerId, {bool onlyPublic = false, bool excludeMyFavorites = true,
     int maxLength = 100, OwnerType ownerType = OwnerType.profile, ItemlistType? itemlistType});

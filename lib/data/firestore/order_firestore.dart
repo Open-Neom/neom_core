@@ -8,10 +8,12 @@ import '../../domain/repository/order_repository.dart';
 import '../../utils/neom_error_logger.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
+import 'core_firestore_guard.dart';
 
 class OrderFirestore implements OrderRepository {
 
-  final orderReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.orders);
+  CollectionReference<Map<String, dynamic>> get orderReference =>
+      FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.orders);
 
   @override
   Future<String> insert(AppOrder order) async {
@@ -19,15 +21,15 @@ class OrderFirestore implements OrderRepository {
 
     String orderId = '';
     try {
-
-      if(order.id.isNotEmpty) {
-        await orderReference.doc(order.id).set(order.toJSON());
+      if (order.id.isNotEmpty) {
+        final cleanId = order.id.trim();
+        if (!CoreFirestoreGuard.isSafeDocId(cleanId)) return '';
+        order.id = cleanId;
+        await orderReference.doc(cleanId).set(order.toJSON());
       } else {
         var uuid = const Uuid();
         order.id = uuid.v4();
         await orderReference.doc(order.id).set(order.toJSON());
-        // DocumentReference documentReference = await orderReference.add(order.toJSON());
-        // order.id = documentReference.id;
       }
       orderId = order.id;
       AppConfig.logger.d("Order for ${order.description} was added with id $orderId");
@@ -36,19 +38,19 @@ class OrderFirestore implements OrderRepository {
     }
 
     return orderId;
-
   }
 
 
   @override
   Future<bool> remove(AppOrder order) async {
-    AppConfig.logger.d("Removing product ${order.id}");
+    final cleanId = order.id.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanId)) return false;
+    AppConfig.logger.d("Removing product $cleanId");
 
     try {
-      await orderReference.doc(order.id).delete();
-      AppConfig.logger.d("Order ${order.id} was removed");
+      await orderReference.doc(cleanId).delete();
+      AppConfig.logger.d("Order $cleanId was removed");
       return true;
-
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'OrderFirestore.remove');
     }
@@ -58,23 +60,23 @@ class OrderFirestore implements OrderRepository {
 
   @override
   Future<AppOrder> retrieveOrder(String orderId) async {
-    AppConfig.logger.d("Retrieving Order for id $orderId");
+    final cleanId = orderId.trim();
     AppOrder order = AppOrder();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanId)) return order;
+    AppConfig.logger.d("Retrieving Order for id $cleanId");
 
     try {
+      DocumentSnapshot documentSnapshot = await orderReference.doc(cleanId).get();
 
-      DocumentSnapshot documentSnapshot = await orderReference.doc(orderId).get();
-
-      if (documentSnapshot.exists) {
+      if (documentSnapshot.exists && documentSnapshot.data() != null) {
         AppConfig.logger.d("Snapshot is not empty");
-          order = AppOrder.fromJSON(documentSnapshot.data());
-          order.id = documentSnapshot.id;
-          AppConfig.logger.d(order.toString());
+        order = AppOrder.fromJSON(documentSnapshot.data());
+        order.id = documentSnapshot.id;
+        AppConfig.logger.d(order.toString());
         AppConfig.logger.d("Order ${order.id} was retrieved");
       } else {
-        AppConfig.logger.w("Order ${order.id} was not found");
+        AppConfig.logger.w("Order $cleanId was not found");
       }
-
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'OrderFirestore.retrieveOrder');
     }
@@ -87,20 +89,19 @@ class OrderFirestore implements OrderRepository {
     AppConfig.logger.d("Getting orders from list");
 
     Map<String, AppOrder> orders = {};
+    final chunks = CoreFirestoreGuard.chunkValidIds(orderIds);
+    if (chunks.isEmpty) return orders;
 
     try {
-      QuerySnapshot querySnapshot = await orderReference.get();
+      for (final chunk in chunks) {
+        final querySnapshot = await orderReference
+            .where(FieldPath.documentId, whereIn: chunk)
+            .get();
 
-      if (querySnapshot.docs.isNotEmpty) {
-        AppConfig.logger.d("QuerySnapshot is not empty");
         for (var documentSnapshot in querySnapshot.docs) {
-          if(orderIds.contains(documentSnapshot.id)){
-            AppConfig.logger.t("DocumentSnapshot with ${documentSnapshot.id} about to be parsed");
-            AppOrder order = AppOrder.fromJSON(documentSnapshot.data());
-            order.id = documentSnapshot.id;
-            AppConfig.logger.t("Order ${order.id} was retrieved with details");
-            orders[order.id] = order;
-          }
+          AppOrder order = AppOrder.fromJSON(documentSnapshot.data());
+          order.id = documentSnapshot.id;
+          orders[order.id] = order;
         }
       }
 
@@ -112,19 +113,21 @@ class OrderFirestore implements OrderRepository {
   }
 
 
-
   @override
   Future<bool> addInvoiceId({required String orderId, required String invoiceId}) async {
-    AppConfig.logger.d("Invoice $invoiceId would be added to order $orderId");
+    final cleanOrderId = orderId.trim();
+    final cleanInvoiceId = invoiceId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanOrderId) ||
+        !CoreFirestoreGuard.isSafeDocId(cleanInvoiceId)) {
+      return false;
+    }
+    AppConfig.logger.d("Invoice $cleanInvoiceId would be added to order $cleanOrderId");
 
     try {
-      DocumentSnapshot documentSnapshot = await orderReference
-          .doc(orderId).get();
-
-      await documentSnapshot.reference.update({
-        AppFirestoreConstants.invoiceIds: FieldValue.arrayUnion([invoiceId])
+      await orderReference.doc(cleanOrderId).update({
+        AppFirestoreConstants.invoiceIds: FieldValue.arrayUnion([cleanInvoiceId])
       });
-      AppConfig.logger.d("Invoice $invoiceId is now at Order $orderId");
+      AppConfig.logger.d("Invoice $cleanInvoiceId is now at Order $cleanOrderId");
       return true;
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'OrderFirestore.addInvoiceId');
@@ -136,16 +139,19 @@ class OrderFirestore implements OrderRepository {
 
   @override
   Future<bool> removeInvoiceId({required String orderId, required String invoiceId}) async {
-    AppConfig.logger.d("Invoice $invoiceId would be removed from order $orderId");
+    final cleanOrderId = orderId.trim();
+    final cleanInvoiceId = invoiceId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanOrderId) ||
+        !CoreFirestoreGuard.isSafeDocId(cleanInvoiceId)) {
+      return false;
+    }
+    AppConfig.logger.d("Invoice $cleanInvoiceId would be removed from order $cleanOrderId");
 
     try {
-      DocumentSnapshot documentSnapshot = await orderReference
-          .doc(orderId).get();
-
-      await documentSnapshot.reference.update({
-        AppFirestoreConstants.invoiceIds: FieldValue.arrayRemove([invoiceId])
+      await orderReference.doc(cleanOrderId).update({
+        AppFirestoreConstants.invoiceIds: FieldValue.arrayRemove([cleanInvoiceId])
       });
-      AppConfig.logger.d("Invoice $invoiceId was removed from Order $orderId");
+      AppConfig.logger.d("Invoice $cleanInvoiceId was removed from Order $cleanOrderId");
       return true;
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'OrderFirestore.removeInvoiceId');
@@ -157,16 +163,19 @@ class OrderFirestore implements OrderRepository {
 
   @override
   Future<bool> addPaymentId({required String orderId, required String paymentId}) async {
-    AppConfig.logger.d("Payment $paymentId would be added to order $orderId");
+    final cleanOrderId = orderId.trim();
+    final cleanPaymentId = paymentId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanOrderId) ||
+        !CoreFirestoreGuard.isSafeDocId(cleanPaymentId)) {
+      return false;
+    }
+    AppConfig.logger.d("Payment $cleanPaymentId would be added to order $cleanOrderId");
 
     try {
-      DocumentSnapshot documentSnapshot = await orderReference
-          .doc(orderId).get();
-
-      await documentSnapshot.reference.update({
-        AppFirestoreConstants.paymentIds: FieldValue.arrayUnion([paymentId])
+      await orderReference.doc(cleanOrderId).update({
+        AppFirestoreConstants.paymentIds: FieldValue.arrayUnion([cleanPaymentId])
       });
-      AppConfig.logger.d("Payment $paymentId is now at Order $orderId");
+      AppConfig.logger.d("Payment $cleanPaymentId is now at Order $cleanOrderId");
       return true;
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'OrderFirestore.addPaymentId');
@@ -178,16 +187,19 @@ class OrderFirestore implements OrderRepository {
 
   @override
   Future<bool> removePaymentId({required String orderId, required String paymentId}) async {
-    AppConfig.logger.d("Payment $paymentId would be removed from order $orderId");
+    final cleanOrderId = orderId.trim();
+    final cleanPaymentId = paymentId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanOrderId) ||
+        !CoreFirestoreGuard.isSafeDocId(cleanPaymentId)) {
+      return false;
+    }
+    AppConfig.logger.d("Payment $cleanPaymentId would be removed from order $cleanOrderId");
 
     try {
-      DocumentSnapshot documentSnapshot = await orderReference
-          .doc(orderId).get();
-
-      await documentSnapshot.reference.update({
-        AppFirestoreConstants.paymentIds: FieldValue.arrayRemove([paymentId])
+      await orderReference.doc(cleanOrderId).update({
+        AppFirestoreConstants.paymentIds: FieldValue.arrayRemove([cleanPaymentId])
       });
-      AppConfig.logger.d("Payment $paymentId was removed from Order $orderId");
+      AppConfig.logger.d("Payment $cleanPaymentId was removed from Order $cleanOrderId");
       return true;
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'OrderFirestore.removePaymentId');
@@ -195,6 +207,5 @@ class OrderFirestore implements OrderRepository {
 
     return false;
   }
-
 
 }

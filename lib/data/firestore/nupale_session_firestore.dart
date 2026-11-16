@@ -8,10 +8,13 @@ import '../../utils/neom_error_logger.dart';
 
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
+import 'core_firestore_guard.dart';
 
 class NupaleSessionFirestore implements NupaleSessionRepository {
 
-  final nupaleSessionsReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.nupaleSessions);
+  FirebaseFirestore get _firestore => FirebaseFirestore.instance;
+  CollectionReference<Map<String, dynamic>> get nupaleSessionsReference =>
+      _firestore.collection(AppFirestoreCollectionConstants.nupaleSessions);
 
   /// One collection per audience. The monthly payout reads only the member
   /// one, so authors' and free-tier reading can never reach the pool.
@@ -21,8 +24,8 @@ class NupaleSessionFirestore implements NupaleSessionRepository {
     ConsumptionAudience.freeTier: AppFirestoreCollectionConstants.freemiumNupaleSessions,
   };
 
-  CollectionReference _referenceFor(ConsumptionAudience audience) =>
-      FirebaseFirestore.instance.collection(collectionByAudience[audience]!);
+  CollectionReference<Map<String, dynamic>> _referenceFor(ConsumptionAudience audience) =>
+      _firestore.collection(collectionByAudience[audience]!);
 
   static Map<String, NupaleSession> _cachedAllSessions = {};
   static DateTime? _lastAllSessionsFetchTime;
@@ -47,7 +50,10 @@ class NupaleSessionFirestore implements NupaleSessionRepository {
     try {
       final reference = _referenceFor(session.audience);
       if(session.id.isNotEmpty) {
-        await reference.doc(session.id).set(session.toJSON());
+        final cleanId = session.id.trim();
+        if (!CoreFirestoreGuard.isSafeDocId(cleanId)) return '';
+        session.id = cleanId;
+        await reference.doc(cleanId).set(session.toJSON());
       } else {
         DocumentReference documentReference = await reference.add(session.toJSON());
         session.id = documentReference.id;
@@ -59,19 +65,19 @@ class NupaleSessionFirestore implements NupaleSessionRepository {
     }
 
     return session.id;
-
   }
 
 
   @override
   Future<bool> remove(String sessionId) async {
-    AppConfig.logger.d("Removing product $sessionId");
+    final cleanId = sessionId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanId)) return false;
+    AppConfig.logger.d("Removing product $cleanId");
 
     try {
-      await nupaleSessionsReference.doc(sessionId).delete();
-      AppConfig.logger.d("session $sessionId was removed");
+      await nupaleSessionsReference.doc(cleanId).delete();
+      AppConfig.logger.d("session $cleanId was removed");
       return true;
-
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'NupaleSessionFirestore.remove');
     }
@@ -81,23 +87,23 @@ class NupaleSessionFirestore implements NupaleSessionRepository {
 
   @override
   Future<NupaleSession> retrieveSession(String orderId) async {
-    AppConfig.logger.d("Retrieving session for id $orderId");
+    final cleanId = orderId.trim();
     NupaleSession session = NupaleSession();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanId)) return session;
+    AppConfig.logger.d("Retrieving session for id $cleanId");
 
     try {
+      DocumentSnapshot documentSnapshot = await nupaleSessionsReference.doc(cleanId).get();
 
-      DocumentSnapshot documentSnapshot = await nupaleSessionsReference.doc(orderId).get();
-
-      if (documentSnapshot.exists) {
+      if (documentSnapshot.exists && documentSnapshot.data() != null) {
         AppConfig.logger.d("Snapshot is not empty");
-          session = NupaleSession.fromJSON(documentSnapshot.data());
-          session.id = documentSnapshot.id;
-          AppConfig.logger.d(session.toString());
+        session = NupaleSession.fromJSON(documentSnapshot.data());
+        session.id = documentSnapshot.id;
+        AppConfig.logger.d(session.toString());
         AppConfig.logger.d("session ${session.id} was retrieved");
       } else {
-        AppConfig.logger.w("session ${session.id} was not found");
+        AppConfig.logger.w("session $cleanId was not found");
       }
-
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'NupaleSessionFirestore.retrieveSession');
     }
@@ -110,15 +116,16 @@ class NupaleSessionFirestore implements NupaleSessionRepository {
     AppConfig.logger.d("Getting ${sessionIds.length} sessions from list");
 
     Map<String, NupaleSession> sessions = {};
-    if (sessionIds.isEmpty) return sessions;
+    final chunks = CoreFirestoreGuard.chunkValidIds(sessionIds);
+    if (chunks.isEmpty) return sessions;
 
     try {
-      final docFutures = sessionIds.map((id) => nupaleSessionsReference.doc(id).get());
-      final snapshots = await Future.wait(docFutures);
-
-      for (var doc in snapshots) {
-        if (doc.exists && doc.data() != null) {
-          NupaleSession session = NupaleSession.fromJSON(doc.data()!);
+      for (final chunk in chunks) {
+        final snapshot = await nupaleSessionsReference
+            .where(FieldPath.documentId, whereIn: chunk)
+            .get();
+        for (var doc in snapshot.docs) {
+          NupaleSession session = NupaleSession.fromJSON(doc.data());
           session.id = doc.id;
           sessions[session.id] = session;
         }
@@ -139,7 +146,8 @@ class NupaleSessionFirestore implements NupaleSessionRepository {
       return Map<String, NupaleSession>.from(_cachedAllSessions);
     }
 
-    AppConfig.logger.d("Getting sessions from list (limit: $limit)");
+    final safeLimit = CoreFirestoreGuard.clampLimit(limit, defaultLimit: 200, maxLimit: 500);
+    AppConfig.logger.d("Getting sessions from list (limit: $safeLimit)");
 
     Map<String, NupaleSession> sessions = {};
 
@@ -149,9 +157,11 @@ class NupaleSessionFirestore implements NupaleSessionRepository {
       for (final audience in ConsumptionAudience.values) {
         Query query = _referenceFor(audience);
         if (itemId != null) {
-          query = query.where(AppFirestoreConstants.itemId, isEqualTo: itemId);
+          final cleanItemId = itemId.trim();
+          if (!CoreFirestoreGuard.isSafeDocId(cleanItemId)) continue;
+          query = query.where(AppFirestoreConstants.itemId, isEqualTo: cleanItemId);
         }
-        query = query.limit(limit);
+        query = query.limit(safeLimit);
 
         QuerySnapshot querySnapshot = await query.get();
         for (var documentSnapshot in querySnapshot.docs) {
@@ -182,14 +192,17 @@ class NupaleSessionFirestore implements NupaleSessionRepository {
 
   @override
   Future<Map<String, NupaleSession>> fetchByReaderEmail(String email, {bool skipTest = true}) async {
-    AppConfig.logger.d("Fetching sessions for readerEmail: $email");
+    final cleanEmail = email.trim();
+    if (cleanEmail.isEmpty) return {};
+    AppConfig.logger.d("Fetching sessions for readerEmail: $cleanEmail");
 
     Map<String, NupaleSession> sessions = {};
 
     try {
       for (final audience in ConsumptionAudience.values) {
         QuerySnapshot querySnapshot = await _referenceFor(audience)
-            .where(AppFirestoreConstants.readerEmail, isEqualTo: email)
+            .where(AppFirestoreConstants.readerEmail, isEqualTo: cleanEmail)
+            .limit(500)
             .get();
         for (var documentSnapshot in querySnapshot.docs) {
           NupaleSession session = NupaleSession.fromJSON(documentSnapshot.data());
@@ -200,7 +213,7 @@ class NupaleSessionFirestore implements NupaleSessionRepository {
         }
       }
 
-      AppConfig.logger.d("${sessions.length} sessions found for $email");
+      AppConfig.logger.d("${sessions.length} sessions found for $cleanEmail");
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'NupaleSessionFirestore.fetchByReaderEmail');
     }
@@ -214,24 +227,26 @@ class NupaleSessionFirestore implements NupaleSessionRepository {
     int deletedCount = 0;
 
     try {
-      // Obtener todos los documentos en la colección.
-      // Nota: Si la colección es muy grande, esto puede ser ineficiente y costoso.
-      // Firestore no tiene una consulta directa para "ID length".
-      QuerySnapshot querySnapshot = await nupaleSessionsReference.get();
+      QuerySnapshot querySnapshot = await nupaleSessionsReference.limit(2000).get();
 
       if (querySnapshot.docs.isNotEmpty) {
         AppConfig.logger.d("Found ${querySnapshot.docs.length} sessions. Checking IDs...");
-        // Iterar a través de los documentos
+        WriteBatch batch = _firestore.batch();
+        int ops = 0;
         for (var documentSnapshot in querySnapshot.docs) {
-          // Verificar la longitud del ID del documento
           if (documentSnapshot.id.length == 4) {
-            AppConfig.logger.d("Deleting session with short ID: ${documentSnapshot.id}");
-            // Eliminar el documento usando su referencia
-            await documentSnapshot.reference.delete();
+            batch.delete(documentSnapshot.reference);
             deletedCount++;
-          } else {
-
+            ops++;
+            if (ops >= 450) {
+              await batch.commit();
+              batch = _firestore.batch();
+              ops = 0;
+            }
           }
+        }
+        if (ops > 0) {
+          await batch.commit();
         }
         AppConfig.logger.d("Finished checking sessions. $deletedCount sessions with 4-character IDs were deleted.");
       } else {
@@ -242,7 +257,7 @@ class NupaleSessionFirestore implements NupaleSessionRepository {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'NupaleSessionFirestore.removeSessionsWithShortIds');
     }
 
-    return deletedCount; // Retornar el número de documentos eliminados
+    return deletedCount;
   }
 
   /// Elimina todos los documentos en la colección 'nupaleSessions' donde el campo 'isTest' sea true.
@@ -251,20 +266,27 @@ class NupaleSessionFirestore implements NupaleSessionRepository {
     int deletedCount = 0;
 
     try {
-      // Crear una consulta para obtener documentos donde 'isTest' es true.
-      Query query = nupaleSessionsReference.where(AppFirestoreConstants.isTest, isEqualTo: true); // Asumo que 'isTest' es el nombre del campo
-
-      // Ejecutar la consulta
-      QuerySnapshot querySnapshot = await query.get();
+      QuerySnapshot querySnapshot = await nupaleSessionsReference
+          .where(AppFirestoreConstants.isTest, isEqualTo: true)
+          .limit(2000)
+          .get();
 
       if (querySnapshot.docs.isNotEmpty) {
         AppConfig.logger.d("Found ${querySnapshot.docs.length} test sessions to delete.");
-        // Iterar a través de los documentos encontrados
+        WriteBatch batch = _firestore.batch();
+        int ops = 0;
         for (var documentSnapshot in querySnapshot.docs) {
-          AppConfig.logger.d("Deleting test session with ID: ${documentSnapshot.id}");
-          // Eliminar el documento usando su referencia
-          await documentSnapshot.reference.delete();
+          batch.delete(documentSnapshot.reference);
           deletedCount++;
+          ops++;
+          if (ops >= 450) {
+            await batch.commit();
+            batch = _firestore.batch();
+            ops = 0;
+          }
+        }
+        if (ops > 0) {
+          await batch.commit();
         }
         AppConfig.logger.d("Finished deleting test sessions. $deletedCount test sessions were deleted.");
       } else {
@@ -275,8 +297,7 @@ class NupaleSessionFirestore implements NupaleSessionRepository {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'NupaleSessionFirestore.removeTestSessions');
     }
 
-    return deletedCount; // Retornar el número de documentos eliminados
+    return deletedCount;
   }
-
 
 }

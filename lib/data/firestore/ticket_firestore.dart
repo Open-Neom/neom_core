@@ -4,9 +4,11 @@ import '../../domain/model/ticket.dart';
 import '../../domain/repository/ticket_repository.dart';
 import '../../utils/neom_error_logger.dart';
 import 'constants/app_firestore_collection_constants.dart';
+import 'core_firestore_guard.dart';
 
 class TicketFirestore implements TicketRepository {
-  final ticketsReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.tickets);
+  CollectionReference<Map<String, dynamic>> get ticketsReference =>
+      FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.tickets);
 
   @override
   Future<String> addTicket(Ticket ticket) async {
@@ -25,9 +27,11 @@ class TicketFirestore implements TicketRepository {
 
   @override
   Future<Ticket?> getTicket(String ticketId) async {
-    AppConfig.logger.d("TicketFirestore.getTicket: ticketId $ticketId");
+    final cleanId = ticketId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanId)) return null;
+    AppConfig.logger.d("TicketFirestore.getTicket: ticketId $cleanId");
     try {
-      final doc = await ticketsReference.doc(ticketId).get();
+      final doc = await ticketsReference.doc(cleanId).get();
       if (doc.exists && doc.data() != null) {
         return Ticket.fromJSON(doc.data()!);
       }
@@ -39,10 +43,15 @@ class TicketFirestore implements TicketRepository {
 
   @override
   Future<List<Ticket>> getTicketsByEvent(String eventId) async {
-    AppConfig.logger.d("TicketFirestore.getTicketsByEvent: eventId $eventId");
+    final cleanEventId = eventId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanEventId)) return [];
+    AppConfig.logger.d("TicketFirestore.getTicketsByEvent: eventId $cleanEventId");
     final List<Ticket> tickets = [];
     try {
-      final querySnapshot = await ticketsReference.where('eventId', isEqualTo: eventId).get();
+      final querySnapshot = await ticketsReference
+          .where('eventId', isEqualTo: cleanEventId)
+          .limit(500)
+          .get();
       for (var doc in querySnapshot.docs) {
         tickets.add(Ticket.fromJSON(doc.data()));
       }
@@ -54,10 +63,15 @@ class TicketFirestore implements TicketRepository {
 
   @override
   Future<List<Ticket>> getTicketsByBuyer(String buyerProfileId) async {
-    AppConfig.logger.d("TicketFirestore.getTicketsByBuyer: buyerProfileId $buyerProfileId");
+    final cleanBuyerId = buyerProfileId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanBuyerId)) return [];
+    AppConfig.logger.d("TicketFirestore.getTicketsByBuyer: buyerProfileId $cleanBuyerId");
     final List<Ticket> tickets = [];
     try {
-      final querySnapshot = await ticketsReference.where('buyerProfileId', isEqualTo: buyerProfileId).get();
+      final querySnapshot = await ticketsReference
+          .where('buyerProfileId', isEqualTo: cleanBuyerId)
+          .limit(500)
+          .get();
       for (var doc in querySnapshot.docs) {
         tickets.add(Ticket.fromJSON(doc.data()));
       }
@@ -69,9 +83,11 @@ class TicketFirestore implements TicketRepository {
 
   @override
   Future<bool> checkInTicket(String ticketId) async {
-    AppConfig.logger.d("TicketFirestore.checkInTicket: ticketId $ticketId");
+    final cleanId = ticketId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanId)) return false;
+    AppConfig.logger.d("TicketFirestore.checkInTicket: ticketId $cleanId");
     try {
-      await ticketsReference.doc(ticketId).update({
+      await ticketsReference.doc(cleanId).update({
         'checkedIn': true,
         'checkInDate': DateTime.now().millisecondsSinceEpoch,
       });

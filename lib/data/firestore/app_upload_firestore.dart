@@ -13,12 +13,17 @@ import '../../utils/platform/core_io.dart';
 import '../../utils/upload_metadata_resolver.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
+import 'core_firestore_guard.dart';
 import 'upload_task_platform.dart';
 
 class AppUploadFirestore implements AppUploadRepository {
 
-  final postsReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.posts);
-  final Reference storageRef = FirebaseStorage.instance.ref();
+  CollectionReference<Map<String, dynamic>> get postsReference =>
+      FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.posts);
+  Reference get storageRef => FirebaseStorage.instance.ref();
+
+  /// Hard ceiling (`250 MiB`) per uploaded media/release asset.
+  static const int maxUploadBytes = 250 * 1024 * 1024;
 
   /// Firebase Storage error codes worth retrying (transient/network).
   /// Everything else (unauthorized, quota, canceled, not-found…) fails fast.
@@ -35,13 +40,23 @@ class AppUploadFirestore implements AppUploadRepository {
   Future<String> uploadMediaFile(String mediaId, File file, MediaType mediaType, MediaUploadDestination uploadDestination, {UploadProgressCallback? onProgress}) async {
     String fileUrl = "";
     try {
-      AppConfig.logger.d('uploadMediaFile - mediaId: $mediaId, type: ${mediaType.name}, destination: ${uploadDestination.name}');
-      AppConfig.logger.d('uploadMediaFile - file path: ${file.path}');
-      if (!file.existsSync()) {
-        AppConfig.logger.e('El archivo no existe en la ruta: ${file.path}');
+      final safeMediaId = CoreFirestoreGuard.sanitizeStorageSegment(mediaId);
+      if (safeMediaId.isEmpty) {
+        AppConfig.logger.w('uploadMediaFile rejected empty/unsafe mediaId');
         return "";
       }
-      AppConfig.logger.d('uploadMediaFile - file exists, size: ${file.lengthSync()} bytes');
+      AppConfig.logger.d('uploadMediaFile - mediaId: $safeMediaId, type: ${mediaType.name}, destination: ${uploadDestination.name}');
+      if (FileSystemEntity.typeSync(file.path, followLinks: false) !=
+          FileSystemEntityType.file) {
+        AppConfig.logger.e('Archivo inválido o symlink en la ruta: ${file.path}');
+        return "";
+      }
+      final length = file.lengthSync();
+      if (length <= 0 || length > maxUploadBytes) {
+        AppConfig.logger.e('Tamaño de archivo fuera de límites ($length bytes): ${file.path}');
+        return "";
+      }
+      AppConfig.logger.d('uploadMediaFile - file exists, size: $length bytes');
 
       String folderName = '';
       switch(mediaType) {
@@ -66,7 +81,7 @@ class AppUploadFirestore implements AppUploadRepository {
           contentType: UploadMetadataResolver.contentTypeForExtension(extension));
 
       final subFolder = _subFolder(uploadDestination);
-      final fileName = "${uploadDestination.name.toLowerCase()}_$mediaId$extension";
+      final fileName = "${uploadDestination.name.toLowerCase()}_$safeMediaId$extension";
       AppConfig.logger.d('uploadMediaFile - uploading to: $folderName/$subFolder/$fileName ($metadata)');
 
       final ref = storageRef.child(folderName).child(subFolder).child(fileName);
@@ -86,7 +101,12 @@ class AppUploadFirestore implements AppUploadRepository {
   Future<String> uploadMediaBytes(String mediaId, Uint8List bytes, MediaType mediaType, MediaUploadDestination uploadDestination, {UploadProgressCallback? onProgress}) async {
     String fileUrl = "";
     try {
-      AppConfig.logger.d('uploadMediaBytes - mediaId: $mediaId, type: ${mediaType.name}, size: ${bytes.length} bytes');
+      final safeMediaId = CoreFirestoreGuard.sanitizeStorageSegment(mediaId);
+      if (safeMediaId.isEmpty || bytes.isEmpty || bytes.length > maxUploadBytes) {
+        AppConfig.logger.w('uploadMediaBytes rejected invalid mediaId or byte size (${bytes.length})');
+        return "";
+      }
+      AppConfig.logger.d('uploadMediaBytes - mediaId: $safeMediaId, type: ${mediaType.name}, size: ${bytes.length} bytes');
 
       String folderName = '';
       switch(mediaType) {
@@ -108,7 +128,7 @@ class AppUploadFirestore implements AppUploadRepository {
           contentType: UploadMetadataResolver.contentTypeForExtension(extension));
 
       final subFolder = _subFolder(uploadDestination);
-      final fileName = "${uploadDestination.name.toLowerCase()}_$mediaId$extension";
+      final fileName = "${uploadDestination.name.toLowerCase()}_$safeMediaId$extension";
       final ref = storageRef.child(folderName).child(subFolder).child(fileName);
       final storageSnap = await _uploadWithRetry(
           () async => ref.putData(bytes, metadata), onProgress: onProgress);
@@ -127,10 +147,22 @@ class AppUploadFirestore implements AppUploadRepository {
 
     String releaseItemUrl = '';
     try {
+      final safeFileName = CoreFirestoreGuard.sanitizeStorageSegment(fileName);
+      if (safeFileName.isEmpty) return '';
+      if (FileSystemEntity.typeSync(file.path, followLinks: false) !=
+          FileSystemEntityType.file) {
+        AppConfig.logger.e('uploadReleaseItem rejected non-regular file or symlink: ${file.path}');
+        return '';
+      }
+      final length = file.lengthSync();
+      if (length <= 0 || length > maxUploadBytes) {
+        AppConfig.logger.e('uploadReleaseItem rejected file size ($length bytes): ${file.path}');
+        return '';
+      }
       final metadata = SettableMetadata(
           contentType: UploadMetadataResolver.contentTypeForAppMediaType(type));
       final ref = storageRef.child(AppFirestoreConstants.releaseItemsFolder)
-          .child('$fileName.${type.value}');
+          .child('$safeFileName.${type.value}');
       final storageSnap = await _uploadWithRetry(
           () => startFileUpload(ref, file, metadata), onProgress: onProgress);
       releaseItemUrl = await storageSnap.ref.getDownloadURL();
@@ -145,11 +177,16 @@ class AppUploadFirestore implements AppUploadRepository {
   Future<String> uploadReleaseItemBytes(String fileName, Uint8List bytes, AppMediaType type, {UploadProgressCallback? onProgress}) async {
     String releaseItemUrl = '';
     try {
-      AppConfig.logger.d('uploadReleaseItemBytes - $fileName (${bytes.length} bytes)');
+      final safeFileName = CoreFirestoreGuard.sanitizeStorageSegment(fileName);
+      if (safeFileName.isEmpty || bytes.isEmpty || bytes.length > maxUploadBytes) {
+        AppConfig.logger.w('uploadReleaseItemBytes rejected invalid fileName or byte size (${bytes.length})');
+        return '';
+      }
+      AppConfig.logger.d('uploadReleaseItemBytes - $safeFileName (${bytes.length} bytes)');
       final metadata = SettableMetadata(
           contentType: UploadMetadataResolver.contentTypeForAppMediaType(type));
       final ref = storageRef.child(AppFirestoreConstants.releaseItemsFolder)
-          .child('$fileName.${type.value}');
+          .child('$safeFileName.${type.value}');
       final storageSnap = await _uploadWithRetry(
           () async => ref.putData(bytes, metadata), onProgress: onProgress);
       releaseItemUrl = await storageSnap.ref.getDownloadURL();

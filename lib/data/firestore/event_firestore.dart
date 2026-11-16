@@ -19,10 +19,13 @@ import 'profile_firestore.dart';
 import 'request_firestore.dart';
 
 class EventFirestore implements EventRepository {
-  final CollectionReference<Map<String, dynamic>> _eventsReference;
+  final FirebaseFirestore? _injectedFirestore;
 
   EventFirestore({FirebaseFirestore? firestore})
-    : _eventsReference = (firestore ?? FirebaseFirestore.instance).collection(
+    : _injectedFirestore = firestore;
+
+  CollectionReference<Map<String, dynamic>> get _eventsReference =>
+      (_injectedFirestore ?? FirebaseFirestore.instance).collection(
         AppFirestoreCollectionConstants.events,
       );
 

@@ -5,13 +5,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../app_config.dart';
 import '../../domain/model/app_release_item.dart';
-import '../../domain/model/item_list.dart';
-import '../../domain/model/post.dart';
 import '../../utils/enums/release_status.dart';
 import '../../utils/neom_error_logger.dart';
 import 'app_release_item_firestore.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
+import 'core_firestore_guard.dart';
 
 /// Service responsible for identifying duplicate [AppReleaseItem]s,
 /// scoring their completeness to determine the canonical record,
@@ -35,6 +34,8 @@ class ReleaseDeduplicationService {
       FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.requests);
   CollectionReference get _activityFeedRef =>
       FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.activityFeed);
+  Query<Map<String, dynamic>> get _profilesGroup =>
+      FirebaseFirestore.instance.collectionGroup(AppFirestoreCollectionConstants.profiles);
 
   bool _isDeduplicating = false;
 
@@ -144,10 +145,10 @@ class ReleaseDeduplicationService {
     }
 
     // Pricing models
-    if (item.digitalPrice != null && (item.digitalPrice!.amount > 0 || (item.digitalPrice!.currency != null))) {
+    if (item.digitalPrice != null) {
       score += 10;
     }
-    if (item.physicalPrice != null && (item.physicalPrice!.amount > 0 || (item.physicalPrice!.currency != null))) {
+    if (item.physicalPrice != null) {
       score += 10;
     }
 
@@ -348,7 +349,11 @@ class ReleaseDeduplicationService {
 
   /// Purges a single [duplicate] [AppReleaseItem] and removes all its cascading references.
   Future<bool> purgeDuplicate(AppReleaseItem duplicate, AppReleaseItem canonical) async {
-    if (duplicate.id.isEmpty || duplicate.id == canonical.id) return false;
+    if (!CoreFirestoreGuard.isSafeDocId(duplicate.id) ||
+        !CoreFirestoreGuard.isSafeDocId(canonical.id) ||
+        duplicate.id == canonical.id) {
+      return false;
+    }
 
     AppConfig.logger.w('🗑️ [Deduplication] Purging duplicate AppReleaseItem "${duplicate.name}" '
         '(ID: ${duplicate.id}) in favor of canonical (ID: ${canonical.id})');
@@ -395,7 +400,7 @@ class ReleaseDeduplicationService {
   /// Removes [duplicateId] from all itemlists and cleans empty orphan itemlists.
   Future<void> _cleanupItemlists(String duplicateId, String canonicalId) async {
     try {
-      final querySnapshot = await _itemlistsRef.get();
+      final querySnapshot = await _itemlistsRef.limit(1000).get();
       for (final doc in querySnapshot.docs) {
         final data = doc.data() as Map<String, dynamic>?;
         if (data == null) continue;
@@ -443,6 +448,7 @@ class ReleaseDeduplicationService {
       // Clean users
       final userSnapshot = await _usersRef
           .where('releaseItemIds', arrayContains: duplicateId)
+          .limit(500)
           .get();
 
       for (final doc in userSnapshot.docs) {
@@ -453,9 +459,9 @@ class ReleaseDeduplicationService {
       }
 
       // Clean profiles (favoriteItems)
-      final profileGroup = FirebaseFirestore.instance.collectionGroup(AppFirestoreCollectionConstants.profiles);
-      final profileSnapshot = await profileGroup
+      final profileSnapshot = await _profilesGroup
           .where('favoriteItems', arrayContains: duplicateId)
+          .limit(500)
           .get();
 
       for (final doc in profileSnapshot.docs) {

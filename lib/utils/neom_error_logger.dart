@@ -2,9 +2,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
+import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode, visibleForTesting;
+import 'package:sint_sentinel/sint_sentinel_core.dart';
 
+import '../data/firestore/core_firestore_guard.dart';
 import 'neom_logger.dart';
+import 'secure_logger.dart';
 
 /// Centralized error logger that sends errors to Firebase Crashlytics
 /// and stores aggregated error counts in Firestore for the error monitor.
@@ -23,6 +26,44 @@ class NeomErrorLogger {
 
   /// Maximum number of recent error messages to keep in the document.
   static const int _maxRecentErrors = 10;
+  static const int _maxPendingErrors = 200;
+
+  static final RegExp _unsafeIdentifierChars = RegExp(
+    r'[\x00-\x1F\x7F-\x9F\u061C\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]',
+  );
+
+  @visibleForTesting
+  static String sanitizeTelemetryIdentifier(
+    String raw, {
+    String fallback = 'unknown',
+    int maxLength = 64,
+  }) {
+    var cleaned = raw
+        .replaceAll(_unsafeIdentifierChars, '')
+        .replaceAll(RegExp(r'[/\\.\[\]*`~]+'), '_')
+        .trim();
+    if (cleaned.isEmpty ||
+        cleaned == 'constructor' ||
+        cleaned == 'prototype' ||
+        (cleaned.length >= 4 &&
+            cleaned.startsWith('__') &&
+            cleaned.endsWith('__'))) {
+      return fallback;
+    }
+    if (cleaned.length > maxLength) {
+      cleaned = cleaned.substring(0, maxLength);
+    }
+    return cleaned;
+  }
+
+  /// Optional test hook invoked with the sanitized error message.
+  @visibleForTesting
+  static void Function(
+    String sanitizedErrorMessage,
+    StackTrace? stackTrace, {
+    required String module,
+    required String operation,
+  })? debugOnRecordError;
 
   /// Batch queue for throttled Firestore writes.
   static final List<_ErrorEntry> _pendingErrors = [];
@@ -43,23 +84,38 @@ class NeomErrorLogger {
     bool fatal = false,
     bool skipDebug = true,
   }) async {
+    final safeModule = sanitizeTelemetryIdentifier(module);
+    final safeOperation = sanitizeTelemetryIdentifier(operation);
+    final sanitizedMessage = SecureLogger.sanitize(error.toString());
+    debugOnRecordError?.call(
+      sanitizedMessage,
+      stackTrace,
+      module: safeModule,
+      operation: safeOperation,
+    );
 
-
-    final errorMessage = error.toString();
-
-    // 1. Always log locally
-    neomLogger.e('[$module/$operation] $errorMessage');
+    // 1. Always log locally (redacted)
+    neomLogger.e('[$safeModule/$safeOperation] $sanitizedMessage');
     if (localQaLogsEnabled) return;
     if (kDebugMode && skipDebug) return;
 
-    // 2. Send to Crashlytics
-    _recordToCrashlytics(error, stackTrace, module, operation, fatal);
+    // 2. Send sanitized error to Crashlytics
+    _recordToCrashlytics(
+      sanitizedMessage,
+      stackTrace,
+      safeModule,
+      safeOperation,
+      fatal,
+    );
 
-    // 3. Queue for Firestore aggregation
+    // 3. Queue for Firestore aggregation (bounded)
+    if (_pendingErrors.length >= _maxPendingErrors) {
+      _pendingErrors.removeRange(0, _pendingErrors.length - _maxPendingErrors + 1);
+    }
     _pendingErrors.add(_ErrorEntry(
-      module: module,
-      operation: operation,
-      errorMessage: _truncate(errorMessage, 500),
+      module: safeModule,
+      operation: safeOperation,
+      errorMessage: _truncate(sanitizedMessage, 500),
       timestamp: DateTime.now(),
     ));
 
@@ -77,9 +133,24 @@ class NeomErrorLogger {
     required String module,
     required String operation,
   }) {
-    neomLogger.e('[$module/$operation] $error');
+    final safeModule = sanitizeTelemetryIdentifier(module);
+    final safeOperation = sanitizeTelemetryIdentifier(operation);
+    final sanitizedMessage = SecureLogger.sanitize(error.toString());
+    debugOnRecordError?.call(
+      sanitizedMessage,
+      stackTrace,
+      module: safeModule,
+      operation: safeOperation,
+    );
+    neomLogger.e('[$safeModule/$safeOperation] $sanitizedMessage');
     if (localQaLogsEnabled) return;
-    _recordToCrashlytics(error, stackTrace, module, operation, false);
+    _recordToCrashlytics(
+      sanitizedMessage,
+      stackTrace,
+      safeModule,
+      safeOperation,
+      false,
+    );
   }
 
   static void _recordToCrashlytics(
@@ -128,7 +199,7 @@ class NeomErrorLogger {
   /// }
   /// ```
   static Future<void> _flush() async {
-    if (_isFlushing || _pendingErrors.isEmpty) return;
+    if (_isFlushing || _pendingErrors.isEmpty || SintSentinel.isBlocking) return;
     _isFlushing = true;
 
     try {
@@ -168,7 +239,8 @@ class NeomErrorLogger {
           'timestamp': Timestamp.fromDate(e.timestamp),
         }).toList();
 
-        await firestore.runTransaction((transaction) async {
+        await CoreFirestoreGuard.guardWrite(
+          () => firestore.runTransaction((transaction) async {
           final snapshot = await transaction.get(docRef);
 
           if (snapshot.exists) {
@@ -211,7 +283,9 @@ class NeomErrorLogger {
               'updatedAt': FieldValue.serverTimestamp(),
             });
           }
-        });
+        }),
+          tag: 'NeomErrorLogger.flush',
+        );
       }
     } catch (e) {
       neomLogger.e('NeomErrorLogger flush failed: $e');
@@ -252,7 +326,15 @@ class NeomErrorLogger {
   }
 
   static String _truncate(String s, int maxLen) {
-    return s.length > maxLen ? s.substring(0, maxLen) : s;
+    if (s.length <= maxLen) return s;
+    var end = maxLen;
+    if (end > 0) {
+      final prevUnit = s.codeUnitAt(end - 1);
+      if (prevUnit >= 0xD800 && prevUnit <= 0xDBFF) {
+        end -= 1;
+      }
+    }
+    return s.substring(0, end);
   }
 }
 

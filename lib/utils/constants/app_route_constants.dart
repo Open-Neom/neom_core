@@ -119,6 +119,18 @@ class AppRouteConstants {
   static const String eventDetails = '/event/:eventId';
   static const String events = '/event';
   static const String eventTicketScanner = '/event/ticket-scanner';
+  static const String qrScanner = '/qr/scanner';
+
+  /// Construye la ruta al escáner QR universal indicando la sección de origen
+  /// y opcionalmente la ruta destino a la que debe redirigir tras escanear.
+  static String qrScannerPath({String origin = '', String next = ''}) {
+    final query = <String, String>{
+      if (origin.isNotEmpty) 'origin': origin,
+      if (next.isNotEmpty) 'next': next,
+    };
+    if (query.isEmpty) return qrScanner;
+    return Uri(path: qrScanner, queryParameters: query).toString();
+  }
 
   static const String feedActivity = '/feed/activity';
   static const String feedActivityDrawer = '/drawer/activity';
@@ -143,6 +155,7 @@ class AppRouteConstants {
   static const String billing = '/settings/billing';
   static const String settingsNotification = '/settings/notification';
   static const String subscriptionPlans = '/subscription/plans';
+  static const String accountNotifications = '/notifications/account';
   static const String contentPreferences = '/content/preferences';
   static const String about = '/about';
   static const String accountRemove = '/account/remove';

@@ -4,18 +4,34 @@ import '../../app_config.dart';
 import '../../domain/model/withdrawal_request.dart';
 import '../../utils/neom_error_logger.dart';
 import 'constants/app_firestore_collection_constants.dart';
+import 'core_firestore_guard.dart';
 
 class WithdrawalRequestFirestore {
 
-  final withdrawalRequestsReference = FirebaseFirestore.instance
-      .collection(AppFirestoreCollectionConstants.withdrawalRequests);
+  CollectionReference<Map<String, dynamic>> get withdrawalRequestsReference =>
+      FirebaseFirestore.instance
+          .collection(AppFirestoreCollectionConstants.withdrawalRequests);
 
   Future<String> insert(WithdrawalRequest request) async {
+    if (!request.appCoinsAmount.isFinite ||
+        !request.mxnAmount.isFinite ||
+        request.appCoinsAmount < 0 ||
+        request.mxnAmount < 0 ||
+        (request.appCoinsAmount <= 0 && request.mxnAmount <= 0)) {
+      AppConfig.logger.w(
+        'Rejected withdrawal request with invalid amounts: '
+        'appCoins=${request.appCoinsAmount}, mxn=${request.mxnAmount}',
+      );
+      return '';
+    }
     AppConfig.logger.d("Inserting withdrawal request for ${request.ownerEmail}");
 
     try {
       if (request.id.isNotEmpty) {
-        await withdrawalRequestsReference.doc(request.id).set(request.toJSON());
+        final cleanId = request.id.trim();
+        if (!CoreFirestoreGuard.isSafeDocId(cleanId)) return '';
+        request.id = cleanId;
+        await withdrawalRequestsReference.doc(cleanId).set(request.toJSON());
       } else {
         DocumentReference ref = await withdrawalRequestsReference.add(request.toJSON());
         request.id = ref.id;
@@ -30,13 +46,16 @@ class WithdrawalRequestFirestore {
   }
 
   Future<List<WithdrawalRequest>> fetchByOwner(String ownerEmail) async {
-    AppConfig.logger.d("Fetching withdrawal requests for $ownerEmail");
+    final cleanEmail = ownerEmail.trim();
+    if (cleanEmail.isEmpty) return [];
+    AppConfig.logger.d("Fetching withdrawal requests for $cleanEmail");
     List<WithdrawalRequest> requests = [];
 
     try {
       QuerySnapshot querySnapshot = await withdrawalRequestsReference
-          .where('ownerEmail', isEqualTo: ownerEmail)
+          .where('ownerEmail', isEqualTo: cleanEmail)
           .orderBy('createdTime', descending: true)
+          .limit(200)
           .get();
 
       for (var doc in querySnapshot.docs) {
@@ -50,7 +69,9 @@ class WithdrawalRequestFirestore {
   }
 
   Future<bool> updateStatus(String requestId, WithdrawalStatus status, {String? adminNote}) async {
-    AppConfig.logger.d("Updating withdrawal $requestId to ${status.name}");
+    final cleanId = requestId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanId)) return false;
+    AppConfig.logger.d("Updating withdrawal $cleanId to ${status.name}");
 
     try {
       Map<String, dynamic> updateData = {
@@ -63,7 +84,7 @@ class WithdrawalRequestFirestore {
         updateData['adminNote'] = adminNote;
       }
 
-      await withdrawalRequestsReference.doc(requestId).update(updateData);
+      await withdrawalRequestsReference.doc(cleanId).update(updateData);
       return true;
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'WithdrawalRequestFirestore.updateStatus');

@@ -8,40 +8,42 @@ import '../../domain/repository/coupon_repository.dart';
 import '../../utils/neom_error_logger.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
+import 'core_firestore_guard.dart';
 
 class CouponFirestore implements CouponRepository {
   
-  final couponsReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.coupons);
+  CollectionReference<Map<String, dynamic>> get couponsReference =>
+      FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.coupons);
 
 
   @override
   Future<bool> insert(AppCoupon coupon) async {
     AppConfig.logger.d("insert cupon: ${coupon.description}");
-    String couponId = "";
+    final cleanCode = coupon.code.trim();
 
-    // Verificar que el código del cupón no esté vacío antes de usarlo como ID
-    if (coupon.code.isEmpty) {
-      AppConfig.logger.e("Coupon code is empty, cannot create it with no code.");
-      return false; // Retornar cadena vacía o manejar el error apropiadamente
-    } else {
-      coupon.id = coupon.code;
+    if (!CoreFirestoreGuard.isSafeDocId(cleanCode)) {
+      AppConfig.logger.e("Coupon code is empty or invalid, cannot create coupon.");
+      return false;
     }
+    coupon.code = cleanCode;
+    coupon.id = cleanCode;
 
     try {
-      await couponsReference.doc(coupon.code).set(coupon.toJSON());
-      AppConfig.logger.i("Coupon inserted with ID (code): $couponId");
+      await couponsReference.doc(cleanCode).set(coupon.toJSON());
+      AppConfig.logger.i("Coupon inserted with ID (code): $cleanCode");
+      return true;
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'insert');
+      return false;
     }
-
-    return true;
   }
 
   /// OPTIMIZED: Added limit to prevent scanning entire coupon collection
   /// For most use cases, only active coupons are needed
   @override
   Future<Map<String, AppCoupon>> fetchAll({int limit = 100, bool onlyActive = false}) async {
-    AppConfig.logger.d("fetchAll coupons (limit: $limit, onlyActive: $onlyActive)");
+    final safeLimit = CoreFirestoreGuard.clampLimit(limit, defaultLimit: 100, maxLimit: 500);
+    AppConfig.logger.d("fetchAll coupons (limit: $safeLimit, onlyActive: $onlyActive)");
     Map<String, AppCoupon> coupons = {};
 
     try {
@@ -52,10 +54,11 @@ class CouponFirestore implements CouponRepository {
         query = query.where(AppFirestoreConstants.isActive, isEqualTo: true);
       }
 
-      QuerySnapshot snapshot = await query.limit(limit).get();
+      QuerySnapshot snapshot = await query.limit(safeLimit).get();
 
       for(var document in snapshot.docs) {
         AppCoupon coupon = AppCoupon.fromJSON(document.data());
+        if (coupon.id.isEmpty) coupon.id = document.id;
         coupons[coupon.id] = coupon;
       }
 
@@ -70,18 +73,20 @@ class CouponFirestore implements CouponRepository {
 
   @override
   Future<AppCoupon?> getCouponByCode(String couponCode) async {
-    AppConfig.logger.d("Getting Coupon By Code $couponCode");
+    final cleanCode = couponCode.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanCode)) return null;
+    AppConfig.logger.d("Getting Coupon By Code $cleanCode");
 
     AppCoupon? coupon;
 
     try {
-      QuerySnapshot querySnapshot = await couponsReference.where(FieldPath.documentId, isEqualTo: couponCode).get();
+      final doc = await couponsReference.doc(cleanCode).get();
 
-      if (querySnapshot.docs.isNotEmpty) {
-        coupon = AppCoupon.fromJSON(querySnapshot.docs.first.data());
-        coupon.id = querySnapshot.docs.first.id;
+      if (doc.exists && doc.data() != null) {
+        coupon = AppCoupon.fromJSON(doc.data());
+        coupon.id = doc.id;
       } else {
-        AppConfig.logger.d("No coupon found with code $couponCode");
+        AppConfig.logger.d("No coupon found with code $cleanCode");
       }
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getCouponByCode');
@@ -93,22 +98,27 @@ class CouponFirestore implements CouponRepository {
   /// OPTIMIZED: Direct document update instead of get() then update()
   @override
   Future<bool> addUsedBy(String couponId, String email) async {
+      final cleanId = couponId.trim();
+      final cleanEmail = email.trim();
+      if (!CoreFirestoreGuard.isSafeDocId(cleanId) || cleanEmail.isEmpty || cleanEmail.length > 256) {
+        return false;
+      }
 
-      AppConfig.logger.d("Incrementing usage count for coupon $couponId");
+      AppConfig.logger.d("Incrementing usage count for coupon $cleanId");
 
       try {
         // OPTIMIZATION: Direct update without reading first
-        await couponsReference.doc(couponId).update({
-          AppFirestoreConstants.usedBy: FieldValue.arrayUnion([email])
+        await couponsReference.doc(cleanId).update({
+          AppFirestoreConstants.usedBy: FieldValue.arrayUnion([cleanEmail])
         });
 
-        AppConfig.logger.d("Coupon $couponId was updated to include usedBy $email");
+        AppConfig.logger.d("Coupon $cleanId was updated to include usedBy $cleanEmail");
         return true;
       } catch (e, st) {
         NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'addUsedBy');
       }
 
-      AppConfig.logger.d("Coupon $couponId was not updated");
+      AppConfig.logger.d("Coupon $cleanId was not updated");
       return false;
   }
 

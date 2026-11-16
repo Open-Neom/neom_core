@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sint/sint.dart';
 
 /// Wrapper that loads a deferred library before rendering its child.
 ///
@@ -56,16 +57,6 @@ class _DeferredLoaderState extends State<DeferredLoader> {
   }
 
   @override
-  void didUpdateWidget(covariant DeferredLoader oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.libraryLoader != widget.libraryLoader ||
-        oldWidget.builder != widget.builder) {
-      _recoveryScheduled = false;
-      _load = _loadLibrary();
-    }
-  }
-
-  @override
   void reassemble() {
     super.reassemble();
     _recoveryScheduled = false;
@@ -119,13 +110,12 @@ class _DeferredLoaderState extends State<DeferredLoader> {
   }
 
   void _leave() {
-    final navigator = Navigator.of(context);
-    if (navigator.canPop()) {
-      navigator.maybePop();
+    if (Sint.canPop) {
+      Sint.maybePop();
     } else {
       // A direct web link can be the only route. Popping it would leave a
       // blank page; replace it with the host app's root instead.
-      navigator.pushReplacementNamed('/');
+      Sint.offNamed('/');
     }
   }
 
@@ -169,7 +159,7 @@ class _DeferredLoaderState extends State<DeferredLoader> {
                         TextButton(
                           onPressed: _leave,
                           child: Text(
-                            Navigator.of(context).canPop()
+                            Sint.canPop
                                 ? messages.back
                                 : messages.home,
                           ),
