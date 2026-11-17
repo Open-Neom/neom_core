@@ -409,4 +409,15 @@ class AppProperties {
     return appProperties['getDeeplinkUrl'] ?? {};
   }
 
+  String get satApiUser => (appProperties is Map ? appProperties['satApiUser'] : null) ?? '';
+  String get satApiKey => (appProperties is Map ? appProperties['satApiKey'] : null) ?? '';
+
+  static String getSatApiUser() {
+    return (appProperties is Map ? appProperties['satApiUser'] : null) ?? '';
+  }
+
+  static String getSatApiKey() {
+    return (appProperties is Map ? appProperties['satApiKey'] : null) ?? '';
+  }
+
 }

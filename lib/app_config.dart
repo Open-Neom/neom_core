@@ -33,6 +33,8 @@ class AppConfig {
 
   bool _isInitialized = false;
 
+  final AppProperties appProperties = AppProperties();
+
   AppInUse appInUse = AppInUse.o;
   String appVersion = '';
   int buildNumber = 0;
