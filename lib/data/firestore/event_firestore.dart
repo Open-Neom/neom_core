@@ -6,10 +6,12 @@ import '../../domain/model/app_request.dart';
 import '../../domain/model/collective_fulfillment.dart';
 import '../../domain/model/event.dart';
 import '../../domain/model/instrument_fulfillment.dart';
+import '../../domain/model/ticket.dart';
 import '../../domain/repository/event_repository.dart';
 import '../../utils/constants/core_constants.dart';
 import '../../utils/enums/event_action.dart';
 import '../../utils/neom_error_logger.dart';
+import '../api/app_platform_api.dart';
 import 'activity_feed_firestore.dart';
 import 'collective_firestore.dart';
 import 'constants/app_firestore_collection_constants.dart';
@@ -19,10 +21,12 @@ import 'profile_firestore.dart';
 import 'request_firestore.dart';
 
 class EventFirestore implements EventRepository {
-  final CollectionReference<Map<String, dynamic>> _eventsReference;
+  final FirebaseFirestore? _firestore;
 
-  EventFirestore({FirebaseFirestore? firestore})
-    : _eventsReference = (firestore ?? FirebaseFirestore.instance).collection(
+  EventFirestore({FirebaseFirestore? firestore}) : _firestore = firestore;
+
+  CollectionReference<Map<String, dynamic>> get _eventsReference =>
+      (_firestore ?? FirebaseFirestore.instance).collection(
         AppFirestoreCollectionConstants.events,
       );
 
@@ -31,9 +35,9 @@ class EventFirestore implements EventRepository {
   static Future<Map<String, Event>>? _getEventsInFlight;
   static const Duration _cacheTtl = Duration(minutes: 5);
 
-  /// Events are an authenticated-only surface. Keep this repository guarded
-  /// as defense in depth because deep links and background controllers can
-  /// reach it without passing through the UI's [AuthGuard].
+  /// Events are an authenticated-only surface on Firestore. On Gigmeout's
+  /// autonomous platform API, public event reads are served with `private: false`
+  /// while all mutations remain authenticated.
   bool get _hasAuthenticatedUser => AppConfig.instance.canPersistUserActivity;
 
   static void invalidateCache() {
@@ -41,13 +45,95 @@ class EventFirestore implements EventRepository {
     _lastEventsFetchTime = null;
   }
 
+  Map<String, dynamic> _asMap(dynamic res) {
+    if (res is Map) {
+      final inner = res['value'];
+      if (inner is Map) return Map<String, dynamic>.from(inner);
+      return Map<String, dynamic>.from(res);
+    }
+    return <String, dynamic>{};
+  }
+
+  List<Event> _parsePlatformItems(dynamic res) {
+    if (res is! Map) return <Event>[];
+    final raw = res['items'];
+    if (raw is! List) return <Event>[];
+    return raw.whereType<Map>().map((m) {
+      final map = Map<String, dynamic>.from(m);
+      final ev = Event.fromJSON(map);
+      if (ev.id.isEmpty && map['id'] != null) {
+        ev.id = map['id'].toString();
+      }
+      return ev;
+    }).toList();
+  }
+
+  /// Registers attendance to a free event on Gigmeout's autonomous server
+  /// and returns an HMAC-signed QR [Ticket] (`gmo://ticket/v1/...`).
+  Future<Ticket?> assistFreeEvent(
+    String eventId, {
+    String buyerName = '',
+  }) async {
+    if (!_hasAuthenticatedUser || eventId.isEmpty) return null;
+    if (!AppPlatformApi.isEnabled) return null;
+    try {
+      final res = await AppPlatformApi.client('events').mutate(
+        'assistFreeEvent',
+        <String, Object?>{
+          'eventId': eventId,
+          if (buyerName.isNotEmpty) 'buyerName': buyerName,
+        },
+        durable: false,
+      );
+      _cachedEvents.remove(eventId);
+      final map = _asMap(res);
+      if (map.isNotEmpty && (map['id'] != null || map['qrToken'] != null)) {
+        return Ticket.fromJSON(map);
+      }
+    } catch (e, st) {
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'EventFirestore.assistFreeEvent',
+      );
+      rethrow;
+    }
+    return null;
+  }
+
   @override
   Future<Event> retrieve(String eventId) async {
-    if (!_hasAuthenticatedUser) return Event();
+    if (eventId.isEmpty) return Event();
+    if (!AppPlatformApi.isEnabled && !_hasAuthenticatedUser) return Event();
     AppConfig.logger.t("Retrieving Event by ID: $eventId");
     if (_cachedEvents.containsKey(eventId)) {
       return _cachedEvents[eventId]!;
     }
+    if (AppPlatformApi.isEnabled) {
+      try {
+        final res = await AppPlatformApi.client('events').read(
+          'getEvent',
+          <String, Object?>{'eventId': eventId},
+          private: false,
+        );
+        final list = _parsePlatformItems(res);
+        if (list.isNotEmpty) {
+          final ev = list.first;
+          _cachedEvents[ev.id] = ev;
+          return ev;
+        }
+      } catch (e, st) {
+        NeomErrorLogger.recordError(
+          e,
+          st,
+          module: 'neom_core',
+          operation: 'EventFirestore.retrieve.platform',
+        );
+      }
+      return Event();
+    }
+
     Event event = Event();
 
     try {
@@ -85,7 +171,7 @@ class EventFirestore implements EventRepository {
     bool forceRefresh = false,
     int? limit,
   }) async {
-    if (!_hasAuthenticatedUser) return [];
+    if (!AppPlatformApi.isEnabled && !_hasAuthenticatedUser) return [];
     final cachedEvents = _cachedEvents.values.toList();
     final cacheIsFresh =
         _cachedEvents.isNotEmpty &&
@@ -98,6 +184,31 @@ class EventFirestore implements EventRepository {
         "Retrieving Events from in-memory cache: ${_cachedEvents.length} events",
       );
       return limit == null ? cachedEvents : cachedEvents.take(limit).toList();
+    }
+
+    if (AppPlatformApi.isEnabled) {
+      try {
+        final res = await AppPlatformApi.client('events').read(
+          'retrieveEvents',
+          const <String, Object?>{},
+          private: false,
+        );
+        final list = _parsePlatformItems(res)
+          ..sort((a, b) => b.createdTime.compareTo(a.createdTime));
+        for (final ev in list) {
+          _cachedEvents[ev.id] = ev;
+        }
+        _lastEventsFetchTime = DateTime.now();
+        return limit == null ? list : list.take(limit).toList();
+      } catch (e, st) {
+        NeomErrorLogger.recordError(
+          e,
+          st,
+          module: 'neom_core',
+          operation: 'EventFirestore.retrieveEvents.platform',
+        );
+        return <Event>[];
+      }
     }
 
     AppConfig.logger.d(
@@ -149,12 +260,40 @@ class EventFirestore implements EventRepository {
   /// Events stored without a date (`eventDate == 0`) are legacy rows and are
   /// excluded, matching the previous client-side filter.
   Future<List<Event>> retrieveUpcomingEvents({int? limit}) async {
-    if (!_hasAuthenticatedUser) return [];
+    if (!AppPlatformApi.isEnabled && !_hasAuthenticatedUser) return [];
     final now = DateTime.now().millisecondsSinceEpoch;
     AppConfig.logger.d(
       "Retrieving upcoming events"
       "${limit != null ? ' (limit: $limit)' : ''}",
     );
+
+    if (AppPlatformApi.isEnabled) {
+      try {
+        final res = await AppPlatformApi.client('events').read(
+          'retrieveEvents',
+          const <String, Object?>{},
+          private: false,
+        );
+        final list = _parsePlatformItems(res);
+        for (final ev in list) {
+          _cachedEvents[ev.id] = ev;
+        }
+        _lastEventsFetchTime = DateTime.now();
+        final upcoming = list
+            .where((ev) => ev.isRecurring || ev.eventDate >= now)
+            .toList()
+          ..sort((a, b) => a.eventDate.compareTo(b.eventDate));
+        return limit == null ? upcoming : upcoming.take(limit).toList();
+      } catch (e, st) {
+        NeomErrorLogger.recordError(
+          e,
+          st,
+          module: 'neom_core',
+          operation: 'EventFirestore.retrieveUpcomingEvents.platform',
+        );
+        return <Event>[];
+      }
+    }
 
     final List<Event> events = [];
 
@@ -187,8 +326,32 @@ class EventFirestore implements EventRepository {
   }
 
   Future<Event?> getBySlug(String slug) async {
-    if (!_hasAuthenticatedUser) return null;
+    if (!AppPlatformApi.isEnabled && !_hasAuthenticatedUser) return null;
     if (slug.isEmpty) return null;
+    if (AppPlatformApi.isEnabled) {
+      try {
+        final res = await AppPlatformApi.client('events').read(
+          'getEvent',
+          <String, Object?>{'eventId': slug},
+          private: false,
+        );
+        final list = _parsePlatformItems(res);
+        if (list.isNotEmpty) {
+          final ev = list.first;
+          _cachedEvents[ev.id] = ev;
+          return ev;
+        }
+      } catch (e, st) {
+        NeomErrorLogger.recordError(
+          e,
+          st,
+          module: 'neom_core',
+          operation: 'EventFirestore.getBySlug.platform',
+        );
+      }
+      return null;
+    }
+
     try {
       final querySnapshot = await _eventsReference
           .where('slug', isEqualTo: slug)
@@ -226,6 +389,24 @@ class EventFirestore implements EventRepository {
             : Event.generateSlug('${event.ownerName} ${event.name}');
       }
 
+      if (AppPlatformApi.isEnabled) {
+        final payload = event.toJSON();
+        if (eventId.isNotEmpty) {
+          payload['id'] = eventId;
+        }
+        final res = await AppPlatformApi.client('events').mutate(
+          'insert',
+          <String, Object?>{'event': payload},
+          durable: false,
+        );
+        final savedId = res is Map
+            ? (res['value'] ?? res['id'] ?? eventId).toString()
+            : (res ?? eventId).toString();
+        event.id = savedId;
+        invalidateCache();
+        return savedId;
+      }
+
       DocumentReference documentReference;
       if (eventId.isEmpty) {
         documentReference = await _eventsReference.add(event.toJSON());
@@ -257,6 +438,26 @@ class EventFirestore implements EventRepository {
   @override
   Future<bool> remove(Event event) async {
     if (!_hasAuthenticatedUser) return false;
+    if (AppPlatformApi.isEnabled) {
+      try {
+        await AppPlatformApi.client('events').mutate(
+          'remove',
+          <String, Object?>{'eventId': event.id},
+          durable: false,
+        );
+        invalidateCache();
+        return true;
+      } catch (e, st) {
+        NeomErrorLogger.recordError(
+          e,
+          st,
+          module: 'neom_core',
+          operation: 'EventFirestore.remove.platform',
+        );
+        return false;
+      }
+    }
+
     AppConfig.logger.t("Remove from firestore");
     bool wasDeleted = false;
     try {
@@ -294,7 +495,7 @@ class EventFirestore implements EventRepository {
 
   @override
   Future<Map<String, Event>> getEvents({bool forceRefresh = false}) async {
-    if (!_hasAuthenticatedUser) return {};
+    if (!AppPlatformApi.isEnabled && !_hasAuthenticatedUser) return {};
     if (!forceRefresh &&
         _cachedEvents.isNotEmpty &&
         _lastEventsFetchTime != null &&
@@ -311,7 +512,7 @@ class EventFirestore implements EventRepository {
     if (!forceRefresh && _getEventsInFlight != null) {
       AppConfig.logger.d('getEvents awaiting in-flight Firestore query');
       final events = await _getEventsInFlight!;
-      return _hasAuthenticatedUser
+      return (AppPlatformApi.isEnabled || _hasAuthenticatedUser)
           ? Map<String, Event>.from(events)
           : <String, Event>{};
     }
@@ -321,7 +522,7 @@ class EventFirestore implements EventRepository {
 
     try {
       final events = await fetch;
-      return _hasAuthenticatedUser
+      return (AppPlatformApi.isEnabled || _hasAuthenticatedUser)
           ? Map<String, Event>.from(events)
           : <String, Event>{};
     } finally {
@@ -332,6 +533,31 @@ class EventFirestore implements EventRepository {
   }
 
   Future<Map<String, Event>> _fetchEvents() async {
+    if (AppPlatformApi.isEnabled) {
+      final Map<String, Event> events = {};
+      try {
+        final res = await AppPlatformApi.client('events').read(
+          'retrieveEvents',
+          const <String, Object?>{},
+          private: false,
+        );
+        final list = _parsePlatformItems(res);
+        for (final ev in list) {
+          events[ev.id] = ev;
+          _cachedEvents[ev.id] = ev;
+        }
+        _lastEventsFetchTime = DateTime.now();
+      } catch (e, st) {
+        NeomErrorLogger.recordError(
+          e,
+          st,
+          module: 'neom_core',
+          operation: 'EventFirestore._fetchEvents.platform',
+        );
+      }
+      return events;
+    }
+
     AppConfig.logger.t("getEvents from Firestore");
     Map<String, Event> events = {};
 
@@ -367,7 +593,19 @@ class EventFirestore implements EventRepository {
 
   @override
   Future<Map<String, Event>> getEventsById(List<String> eventIds) async {
-    if (!_hasAuthenticatedUser) return {};
+    if (!AppPlatformApi.isEnabled && !_hasAuthenticatedUser) return {};
+    if (eventIds.isEmpty) return {};
+    if (AppPlatformApi.isEnabled) {
+      final all = await getEvents();
+      final Map<String, Event> matched = {};
+      for (final id in eventIds) {
+        if (all.containsKey(id)) {
+          matched[id] = all[id]!;
+        }
+      }
+      return matched;
+    }
+
     AppConfig.logger.t(
       "Retrieving ${eventIds.length} events By id from firestore",
     );
@@ -436,6 +674,32 @@ class EventFirestore implements EventRepository {
         isFulfilled: true,
       );
 
+      if (AppPlatformApi.isEnabled) {
+        final updated = <Map<String, dynamic>>[];
+        bool replaced = false;
+        for (final f in event.instrumentsFulfillment ?? <InstrumentFulfillment>[]) {
+          if (!replaced &&
+              f.id == previousInstrumentFulfillment.id &&
+              f.instrument.name == appRequest.instrument!.name) {
+            updated.add(instrumentFulfillment.toJSON());
+            replaced = true;
+          } else {
+            updated.add(f.toJSON());
+          }
+        }
+        if (!replaced) updated.add(instrumentFulfillment.toJSON());
+        await AppPlatformApi.client('events').mutate(
+          'setFulfillment',
+          <String, Object?>{
+            'eventId': event.id,
+            'instrumentsFulfillment': updated,
+          },
+          durable: false,
+        );
+        _cachedEvents.remove(event.id);
+        return true;
+      }
+
       // OPTIMIZED: Use direct update instead of get().then()
       final docRef = _eventsReference.doc(event.id);
       await docRef.update({
@@ -496,6 +760,28 @@ class EventFirestore implements EventRepository {
         isFulfilled: false,
       );
 
+      if (AppPlatformApi.isEnabled) {
+        final updated = <Map<String, dynamic>>[];
+        for (final f in event.instrumentsFulfillment ?? <InstrumentFulfillment>[]) {
+          if (f.instrument.name == appRequest.instrument!.name &&
+              (f.id == alreadyFulfilledInstrument.id || f.profileId == mate.id)) {
+            updated.add(instrumentFulfillment.toJSON());
+          } else {
+            updated.add(f.toJSON());
+          }
+        }
+        await AppPlatformApi.client('events').mutate(
+          'setFulfillment',
+          <String, Object?>{
+            'eventId': event.id,
+            'instrumentsFulfillment': updated,
+          },
+          durable: false,
+        );
+        _cachedEvents.remove(event.id);
+        return true;
+      }
+
       // OPTIMIZED: Use direct update instead of get().then()
       final docRef = _eventsReference.doc(event.id);
       await docRef.update({
@@ -527,8 +813,19 @@ class EventFirestore implements EventRepository {
 
   @override
   Future<List<Event>> retrievePlayingEvents(String profileId) async {
-    if (!_hasAuthenticatedUser) return [];
+    if (!AppPlatformApi.isEnabled && !_hasAuthenticatedUser) return [];
     AppConfig.logger.d("Retrieving PlayingEvents");
+
+    if (AppPlatformApi.isEnabled) {
+      final all = await retrieveEvents();
+      return all.where((event) {
+        if (event.ownerId == profileId) return true;
+        for (final instr in event.instrumentsFulfillment ?? <InstrumentFulfillment>[]) {
+          if (instr.profileId == profileId) return true;
+        }
+        return false;
+      }).toList();
+    }
 
     List<Event> events = <Event>[];
     try {
@@ -578,6 +875,16 @@ class EventFirestore implements EventRepository {
     AppConfig.logger.d("Event $eventId fulfilled");
 
     try {
+      if (AppPlatformApi.isEnabled) {
+        await AppPlatformApi.client('events').mutate(
+          'setFulfillment',
+          <String, Object?>{'eventId': eventId, 'isFulfilled': true},
+          durable: false,
+        );
+        _cachedEvents.remove(eventId);
+        return true;
+      }
+
       // OPTIMIZED: Use direct update instead of get().then()
       await _eventsReference.doc(eventId).update({
         AppFirestoreConstants.isFulfilled: true,
@@ -606,6 +913,16 @@ class EventFirestore implements EventRepository {
     AppConfig.logger.d("Event $eventId unfulfilled");
 
     try {
+      if (AppPlatformApi.isEnabled) {
+        await AppPlatformApi.client('events').mutate(
+          'setFulfillment',
+          <String, Object?>{'eventId': eventId, 'isFulfilled': false},
+          durable: false,
+        );
+        _cachedEvents.remove(eventId);
+        return true;
+      }
+
       // OPTIMIZED: Use direct update instead of get().then()
       await _eventsReference.doc(eventId).update({
         AppFirestoreConstants.isFulfilled: false,
@@ -634,6 +951,19 @@ class EventFirestore implements EventRepository {
     AppConfig.logger.t("$profileId would be added as going to Event $eventId");
 
     try {
+      if (AppPlatformApi.isEnabled) {
+        await AppPlatformApi.client('events').mutate(
+          'addGoingProfile',
+          <String, Object?>{
+            'eventId': eventId,
+            if (profileId.isNotEmpty) 'profileId': profileId,
+          },
+          durable: false,
+        );
+        _cachedEvents.remove(eventId);
+        return true;
+      }
+
       // OPTIMIZED: Use direct update instead of iterating all events
       await _eventsReference.doc(eventId).update({
         AppFirestoreConstants.goingProfiles: FieldValue.arrayUnion([profileId]),
@@ -665,6 +995,19 @@ class EventFirestore implements EventRepository {
     );
 
     try {
+      if (AppPlatformApi.isEnabled) {
+        await AppPlatformApi.client('events').mutate(
+          'leaveEvent',
+          <String, Object?>{
+            'eventId': eventId,
+            if (profileId.isNotEmpty) 'profileId': profileId,
+          },
+          durable: false,
+        );
+        _cachedEvents.remove(eventId);
+        return true;
+      }
+
       // OPTIMIZED: Use direct update instead of iterating all events
       await _eventsReference.doc(eventId).update({
         AppFirestoreConstants.goingProfiles: FieldValue.arrayRemove([
@@ -692,6 +1035,19 @@ class EventFirestore implements EventRepository {
     if (!_hasAuthenticatedUser) return false;
     AppConfig.logger.t("Updating event ${event.id}");
     try {
+      if (AppPlatformApi.isEnabled) {
+        await AppPlatformApi.client('events').mutate(
+          'update',
+          <String, Object?>{
+            'eventId': event.id,
+            'fields': event.toJSON(),
+          },
+          durable: false,
+        );
+        invalidateCache();
+        return true;
+      }
+
       await _eventsReference.doc(event.id).update(event.toJSON());
       AppConfig.logger.d("Event ${event.id} updated successfully");
       invalidateCache();
@@ -712,6 +1068,19 @@ class EventFirestore implements EventRepository {
     if (!_hasAuthenticatedUser) return false;
     AppConfig.logger.t("Updating event $eventId fields: ${fields.keys}");
     try {
+      if (AppPlatformApi.isEnabled) {
+        await AppPlatformApi.client('events').mutate(
+          'update',
+          <String, Object?>{
+            'eventId': eventId,
+            'fields': fields,
+          },
+          durable: false,
+        );
+        invalidateCache();
+        return true;
+      }
+
       await _eventsReference.doc(eventId).update(fields);
       AppConfig.logger.d("Event $eventId fields updated successfully");
       return true;
@@ -752,6 +1121,30 @@ class EventFirestore implements EventRepository {
         collectiveId: previousCollectiveFulfillment.collectiveId,
         hasAccepted: true,
       );
+
+      if (AppPlatformApi.isEnabled) {
+        final updated = <Map<String, dynamic>>[];
+        bool replaced = false;
+        for (final f in event.collectivesFulfillment ?? <CollectiveFulfillment>[]) {
+          if (f.collectiveId == collectiveId) {
+            updated.add(collectiveFulfillment.toJSON());
+            replaced = true;
+          } else {
+            updated.add(f.toJSON());
+          }
+        }
+        if (!replaced) updated.add(collectiveFulfillment.toJSON());
+        await AppPlatformApi.client('events').mutate(
+          'setFulfillment',
+          <String, Object?>{
+            'eventId': event.id,
+            'collectivesFulfillment': updated,
+          },
+          durable: false,
+        );
+        _cachedEvents.remove(event.id);
+        return true;
+      }
 
       // OPTIMIZED: Use direct update instead of get().then()
       final docRef = _eventsReference.doc(event.id);

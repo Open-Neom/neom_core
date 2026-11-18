@@ -49,6 +49,8 @@ abstract class ProfileRepository {
   Future<bool> addFavoriteItems(String profileId, List<String> itemIds);
   Future<bool> removeFavoriteItem(String profileId, String itemId);
   Future<bool> removeFavoriteItems(String profileId, List<String> itemIds);
+  Future<bool> saveItemlist(String profileId, String itemlistId);
+  Future<bool> unsaveItemlist(String profileId, String itemlistId);
 
   // Future<bool> addAllAppMediaItemIds(String profileId, List<String> itemIds);
 

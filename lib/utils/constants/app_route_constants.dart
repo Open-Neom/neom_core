@@ -397,6 +397,13 @@ class AppRouteConstants {
   // Remote Control
   static const String rc = '/rc';
 
+  // Gig Mastering (neom_mastering)
+  static const String mastering = '/mastering';
+  static const String masteringUpload = '/mastering/upload';
+  static const String masteringStyle = '/mastering/style';
+  static const String masteringPreview = '/mastering/preview';
+  static const String masteringSummary = '/mastering/summary';
+
   // ─── RESTful Path Builders (for navigation with dynamic IDs) ───
   // When a slug is provided and non-empty, it is used instead of the id
   // for web-friendly URLs, SEO, and deep linking compatibility.

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:geolocator/geolocator.dart';
 import 'package:sint/sint.dart';
 
@@ -11,8 +12,9 @@ import '../../domain/model/app_user.dart';
 import '../../domain/model/facility.dart';
 import '../../domain/model/place.dart';
 import '../../domain/model/post.dart';
+import '../../domain/repository/account_profiles_reader.dart';
+import '../../domain/repository/account_repository.dart';
 import '../../domain/repository/chamber_repository.dart';
-import '../../domain/repository/user_repository.dart';
 import '../../utils/core_utilities.dart';
 import '../../utils/enums/app_in_use.dart';
 import '../../utils/enums/facilitator_type.dart';
@@ -29,12 +31,14 @@ import 'place_firestore.dart';
 import 'post_firestore.dart';
 import 'profile_firestore.dart';
 
-class UserFirestore implements UserRepository {
+class UserFirestore implements AccountRepository, AccountProfilesReader {
 
-  UserFirestore({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+  UserFirestore({FirebaseFirestore? firestore, auth.User? Function()? currentUser})
+      : _firestore = firestore ?? FirebaseFirestore.instance,
+        _currentUser = currentUser ?? (() => auth.FirebaseAuth.instance.currentUser);
 
   final FirebaseFirestore _firestore;
+  final auth.User? Function() _currentUser;
   CollectionReference<Map<String, dynamic>> get userReference =>
       _firestore.collection(AppFirestoreCollectionConstants.users);
   Query<Map<String, dynamic>> get profileReference =>
@@ -73,6 +77,7 @@ class UserFirestore implements UserRepository {
   /// Existing accounts are never replaced, including legacy email-keyed ones.
   /// All initial profile writes use the known owner path instead of a global
   /// profile lookup before the account has finished being created.
+  @override
   Future<String> insertWithProfile(AppUser user, AppProfile profile) async {
     if (user.id.isEmpty || user.id.contains('/')) {
       throw ArgumentError.value(user.id, 'user.id', 'Invalid account ID');
@@ -325,6 +330,103 @@ class UserFirestore implements UserRepository {
       return const AccountLoadException(reason: AccountLoadFailure.invalidData);
     }
     return const AccountLoadException();
+  }
+
+  /// Lists every owned profile without changing the selected-profile login
+  /// bootstrap. The optional capability is used by API migration fallback only.
+  @override
+  Future<List<AppProfile>> getOwnedProfiles(String userId) async {
+    try {
+      if (userId.isEmpty || userId.length > 512 ||
+          userId.contains('/') || userId == '.' || userId == '..' ||
+          RegExp(r'[\x00-\x1f\x7f]').hasMatch(userId)) {
+        throw const AccountLoadException();
+      }
+      final actor = _currentUser();
+      if (actor == null || actor.uid.isEmpty) throw const AccountLoadException();
+      final actorUid = actor.uid;
+      final actorEmail = actor.email;
+      final verified = actor.emailVerified;
+      String canonicalEmail(String? value) => (value ?? '').trim().toLowerCase();
+      void checkSession() {
+        final current = _currentUser();
+        if (current == null || current.uid != actorUid ||
+            canonicalEmail(current.email) != canonicalEmail(actorEmail) ||
+            current.emailVerified != verified) {
+          throw const AccountLoadException();
+        }
+      }
+      void checkBinding(Map<String, dynamic> data) {
+        if (data['isBanned'] == true) throw const AccountLoadException();
+        for (final key in ['authUid', 'firebaseUid', 'uid']) {
+          final value = data[key];
+          if (value == null || value == '') continue;
+          if (value is! String || value != actorUid) {
+            throw const AccountLoadException();
+          }
+          break;
+        }
+      }
+      const options = GetOptions(source: Source.server);
+      final account = await userReference.doc(userId).get(options);
+      checkSession();
+      final data = account.data();
+      if (!account.exists || data == null) throw const AccountLoadException();
+      checkBinding(data);
+      if (userId != actorUid) {
+        final email = canonicalEmail(actorEmail);
+        if (!verified || email.isEmpty || data['email'] is! String ||
+            canonicalEmail(data['email'] as String) != email) {
+          throw const AccountLoadException();
+        }
+        // A UID-bound account takes priority over any legacy email account.
+        final exact = await userReference.doc(actorUid).get(options);
+        checkSession();
+        if (exact.exists) throw const AccountLoadException();
+        // Owner rules authorize the token's exact email. A query containing
+        // case variants could request documents those rules cannot authorize.
+        final owners = await userReference
+            .where(AppFirestoreConstants.email, isEqualTo: actorEmail)
+            .limit(2)
+            .get(options);
+        checkSession();
+        if (owners.docs.length != 1 || owners.docs.single.id != userId) {
+          throw const AccountLoadException();
+        }
+        checkBinding(owners.docs.single.data());
+      }
+      const pageSize = 50, maximumProfiles = 1000;
+      final profiles = userReference.doc(userId)
+          .collection(AppFirestoreCollectionConstants.profiles)
+          .orderBy(FieldPath.documentId);
+      final result = <AppProfile>[];
+      final seenCursors = <String>{};
+      DocumentSnapshot<Map<String, dynamic>>? cursor;
+      while (true) {
+        // One extra document detects overflow instead of returning a partial
+        // list when the supported account size is exceeded.
+        final count = result.length == maximumProfiles ? 1 : pageSize;
+        final query = cursor == null ? profiles : profiles.startAfterDocument(cursor);
+        final page = await query.limit(count).get(options);
+        checkSession();
+        if (result.length + page.docs.length > maximumProfiles) {
+          throw const AccountLoadException();
+        }
+        for (final document in page.docs) {
+          final profile = AppProfile.fromJSON(document.data());
+          profile.id = document.id;
+          result.add(profile);
+        }
+        if (page.docs.length < count) break;
+        cursor = page.docs.last;
+        if (!seenCursors.add(cursor.id)) throw const AccountLoadException();
+      }
+      checkSession();
+      return result;
+    } catch (_) {
+      // A failed/unauthorized read is never a successful empty or partial list.
+      throw const AccountLoadException();
+    }
   }
 
   /// Login bootstrap reads only this account's nested profiles. Auth is still
@@ -717,8 +819,8 @@ class UserFirestore implements UserRepository {
     return false;
   }
 
-  Future<AppProfile> updateCurrentProfile(String userId, String currentProfileId,
-  ) async {
+  @override
+  Future<AppProfile> updateCurrentProfile(String userId, String currentProfileId) async {
     AppConfig.logger.d("Updating current profile $userId");
     AppProfile profile = AppProfile();
     try {

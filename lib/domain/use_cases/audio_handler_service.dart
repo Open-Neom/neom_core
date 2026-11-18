@@ -30,4 +30,8 @@ abstract class AudioHandlerService {
   void registerUrlResolver(String owner, MediaUrlResolver resolver);
   void unregisterUrlResolver(String owner);
 
+  /// Enables or disables voice-chat coexistence mode (ducks music playback
+  /// without pausing `just_audio` while WebRTC voice is active in a room).
+  Future<void> setVoiceCoexistenceMode(bool active, {double duckVolume = 0.35}) async {}
+
 }

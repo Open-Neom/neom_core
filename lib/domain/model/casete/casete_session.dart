@@ -9,7 +9,9 @@ class CaseteSession {
   String itemId;
   String itemName;
   String ownerEmail; ///EMAIL OF OWNER
+  String ownerProfileId; ///PROFILE ID OF OWNER
   String listenerEmail; ///EMAIL OF READER
+  String listenerId; ///PROFILE ID OR UID OF LISTENER
 
   int casete; ///REAL Number of seconds listened
   int totalDuration; ///TOTAL DURATION OF THE ITEM IN SECONDS
@@ -34,7 +36,9 @@ class CaseteSession {
     this.itemId = '',
     this.itemName = '',
     this.ownerEmail = '',
+    this.ownerProfileId = '',
     this.listenerEmail = '',
+    this.listenerId = '',
     this.casete = 0,
     this.totalDuration = 0,
     this.createdTime = 0,
@@ -50,7 +54,9 @@ class CaseteSession {
       'itemId': itemId,
       'itemName': itemName,
       'ownerEmail': ownerEmail,
+      if (ownerProfileId.isNotEmpty) 'ownerProfileId': ownerProfileId,
       'listenerEmail': listenerEmail,
+      if (listenerId.isNotEmpty) 'listenerId': listenerId,
       'casete': casete,
       'totalDuration': totalDuration,
       'createdTime': createdTime,
@@ -67,7 +73,9 @@ class CaseteSession {
       itemId: json['itemId'] ?? '',
       itemName: json['itemName'] ?? '',
       ownerEmail: json['ownerEmail'] ?? json['ownerId'] ?? '',
+      ownerProfileId: json['ownerProfileId'] ?? '',
       listenerEmail: json['listenerEmail'] ?? json['readerId'] ?? '',
+      listenerId: json['listenerId'] ?? json['listenerUid'] ?? '',
       casete: json['casete'] ?? 0,
       totalDuration: json['totalDuration'] ?? 0,
       createdTime: json['createdTime'] ?? 0,

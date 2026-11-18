@@ -46,6 +46,7 @@ class AppUser {
 
   String customerId; ///Customer Stripe Id for future references
   String subscriptionId; ///If is not empty, user has minimum a basic plan
+  bool hasApprovedRehearsalRoom;
 
   AppUser({
     this.id = "",
@@ -74,6 +75,7 @@ class AppUser {
     this.currentProfileId = "",
     this.customerId = '',
     this.subscriptionId = '',
+    this.hasApprovedRehearsalRoom = false,
   });
 
   @override
@@ -111,7 +113,8 @@ class AppUser {
         spotifyToken = data["spotifyToken"] ?? "",
         currentProfileId = data["currentProfileId"] ?? "",
         customerId = data["customerId"] ?? "",
-        subscriptionId = data["subscriptionId"] ?? "";
+        subscriptionId = data["subscriptionId"] ?? "",
+        hasApprovedRehearsalRoom = data["hasApprovedRehearsalRoom"] == true;
 
   ///DEPRECATED
   // AppUser.fromFbProfile(profile) :
@@ -168,6 +171,7 @@ class AppUser {
       'spotifyToken': spotifyToken,
       'customerId': customerId,
       'subscriptionId': subscriptionId,
+      if (hasApprovedRehearsalRoom) 'hasApprovedRehearsalRoom': true,
     };
   }
 

@@ -3,7 +3,10 @@ import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fba;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:neom_core/app_config.dart';
+import 'package:neom_core/app_properties.dart';
+import 'package:neom_core/data/api/app_platform_api.dart';
 import 'package:neom_core/data/firestore/app_media_item_firestore.dart';
+import 'package:neom_core/data_backend_policy.dart';
 import 'package:neom_core/data/firestore/app_release_item_firestore.dart';
 import 'package:neom_core/data/firestore/itemlist_firestore.dart';
 import 'package:neom_core/data/firestore/post_firestore.dart';
@@ -172,6 +175,9 @@ void main() {
     Sint.reset();
     config.appInUse = AppInUse.g;
     config.isGuestMode = true;
+    AppProperties.appProperties = {
+      'dataBackend': {'enabled': true},
+    };
     ProfileFirestore.invalidateAllProfilesCache();
     AppReleaseItemFirestore.invalidateAllReleaseItemsCache();
     firestore = FakeFirebaseFirestore();
@@ -203,6 +209,7 @@ void main() {
     Sint.reset();
     config.isGuestMode = true;
     config.appInUse = AppInUse.o;
+    AppProperties.appProperties = {};
     ProfileFirestore.invalidateAllProfilesCache();
     AppReleaseItemFirestore.invalidateAllReleaseItemsCache();
   });
@@ -700,4 +707,104 @@ void main() {
       );
     },
   );
+
+  group('Gigmeout dataBackend.enabled Firebase vs ownServer switch', () {
+    test(
+      'dataBackend.enabled=false connects Gigmeout 100% to Firebase and unlocks signed-in writes',
+      () async {
+        AppProperties.appProperties = {
+          'dataBackend': {
+            'enabled': false,
+            'usersEnabled': true,
+            'profilesEnabled': true,
+            'baseUrl': 'https://www.gigmeout.com',
+            'mobileBaseUrl': 'https://www.gigmeout.com',
+            'firebaseFallback': true,
+            'syncEnabled': true,
+          },
+        };
+        config.appInUse = AppInUse.g;
+        signIn();
+
+        final policy = DataBackendPolicy.fromProperties(
+          AppInUse.g,
+          AppProperties.appProperties,
+        );
+        expect(policy.enabled, isFalse);
+        expect(policy.hasServer, isFalse);
+        expect(PublicCatalogReadPolicy.enabled, isFalse);
+        expect(PublicCatalogReadPolicy.canWriteLegacyCatalog, isTrue);
+        expect(AppPlatformApi.isEnabled, isFalse);
+
+        // Reads come directly from live Firebase collections.
+        expect(
+          (await AppReleaseItemFirestore(
+            firestore: firestore,
+          ).retrieveAll()).keys,
+          ['legacy-release'],
+        );
+        expect(
+          (await PostFirestore(firestore: firestore).retrievePosts()).single.id,
+          'legacy-post',
+        );
+        expect(
+          (await ItemlistFirestore(firestore: firestore).fetchAll()).keys,
+          ['legacy-list'],
+        );
+
+        // Signed-in writes succeed against live Firebase collections.
+        final newReleaseId = await AppReleaseItemFirestore(firestore: firestore)
+            .insert(
+              AppReleaseItem(
+                name: 'Firebase Native Song',
+                ownerName: 'Account owner',
+                ownerProfileId: 'own-profile',
+              ),
+            );
+        expect(newReleaseId, isNotEmpty);
+
+        final newPlaylistId = await ItemlistFirestore(firestore: firestore)
+            .insert(
+              Itemlist(
+                name: 'Firebase Playlist',
+                ownerId: 'own-profile',
+                ownerName: 'Account owner',
+              ),
+            );
+        expect(newPlaylistId, isNotEmpty);
+
+        final newPostId = await PostFirestore(firestore: firestore).insert(
+          Post(ownerId: 'own-profile', caption: 'Hola desde Firebase'),
+        );
+        expect(newPostId, isNotEmpty);
+      },
+    );
+
+    test(
+      'flipping dataBackend.enabled=true switches Gigmeout to ownServer policy cleanly',
+      () {
+        AppProperties.appProperties = {
+          'dataBackend': {
+            'enabled': true,
+            'usersEnabled': true,
+            'profilesEnabled': true,
+            'baseUrl': 'https://www.gigmeout.com',
+            'mobileBaseUrl': 'https://www.gigmeout.com',
+            'firebaseFallback': true,
+            'syncEnabled': true,
+          },
+        };
+        config.appInUse = AppInUse.g;
+
+        final policy = DataBackendPolicy.fromProperties(
+          AppInUse.g,
+          AppProperties.appProperties,
+        );
+        expect(policy.enabled, isTrue);
+        expect(policy.hasServer, isTrue);
+        expect(PublicCatalogReadPolicy.enabled, isTrue);
+        expect(AppPlatformApi.isEnabled, isTrue);
+      },
+    );
+  });
 }

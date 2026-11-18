@@ -12,7 +12,7 @@ import '../../domain/model/influence.dart';
 import '../../domain/model/place.dart';
 import '../../domain/model/post.dart';
 import '../../domain/repository/chamber_repository.dart';
-import '../../domain/repository/profile_repository.dart';
+import '../../domain/repository/profile_directory_repository.dart';
 import '../../utils/constants/core_constants.dart';
 import '../../utils/core_utilities.dart';
 import '../../utils/enums/app_in_use.dart';
@@ -37,7 +37,7 @@ import 'place_firestore.dart';
 import 'post_firestore.dart';
 import 'public_catalog_read_policy.dart';
 
-class ProfileFirestore implements ProfileRepository {
+class ProfileFirestore implements ProfileDirectoryRepository {
   final FirebaseFirestore _firestore;
   ProfileFirestore({FirebaseFirestore? firestore})
     : _firestore = firestore ?? FirebaseFirestore.instance;
@@ -1356,6 +1356,7 @@ class ProfileFirestore implements ProfileRepository {
   }
 
   /// Saves another user's playlist to this profile's library.
+  @override
   Future<bool> saveItemlist(String profileId, String itemlistId) async {
     AppConfig.logger.t(
       "Saving itemlist $itemlistId to Profile $profileId library",
@@ -1366,6 +1367,7 @@ class ProfileFirestore implements ProfileRepository {
   }
 
   /// Removes a saved playlist from this profile's library.
+  @override
   Future<bool> unsaveItemlist(String profileId, String itemlistId) async {
     AppConfig.logger.t(
       "Unsaving itemlist $itemlistId from Profile $profileId library",
@@ -1798,6 +1800,7 @@ class ProfileFirestore implements ProfileRepository {
 
   /// Retrieve a profile by its URL slug (normalized lowercase name without spaces).
   /// Used for vanity URL resolution: emxi.org/serzenmontoya → profile
+  @override
   Future<AppProfile?> getBySlug(String slug) async {
     if (slug.isEmpty) return null;
 
@@ -2217,6 +2220,7 @@ class ProfileFirestore implements ProfileRepository {
   /// Search profiles by name (case-insensitive partial match)
   /// OPTIMIZED: Removed expensive fallback that was fetching ALL profiles
   /// NOTE: Requires 'searchName' field to be set on profiles for search to work
+  @override
   Future<List<AppProfile>> searchByName(String query, {int limit = 20}) async {
     AppConfig.logger.d("Searching profiles by name: $query");
 

@@ -11,4 +11,5 @@ enum MediaUploadDestination {
   sponsor,
   ad,
   room,
+  mastering,
 }

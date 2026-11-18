@@ -1,3 +1,5 @@
+import 'package:neom_core/data/api/app_accounts.dart';
+import 'package:neom_core/data/api/app_platform_api.dart';
 import 'dart:core';
 
 import 'package:sint/sint.dart';
@@ -8,6 +10,7 @@ import '../../domain/model/app_profile.dart';
 import '../../domain/use_cases/mate_service.dart';
 import '../../domain/use_cases/user_service.dart';
 import '../../utils/constants/app_route_constants.dart';
+import '../../utils/enums/app_in_use.dart';
 import '../../utils/neom_error_logger.dart';
 import '../firestore/mate_firestore.dart';
 import '../firestore/profile_firestore.dart';
@@ -18,6 +21,8 @@ class MateController extends SintController implements MateService {
   AppProfile profile = AppProfile();
 
   final RxMap<String, AppProfile> _mates = <String, AppProfile>{}.obs;
+  final RxMap<String, Map<String, dynamic>> repertoireMatchMeta =
+      <String, Map<String, dynamic>>{}.obs;
   final RxMap<String, AppProfile> _followingProfiles = <String, AppProfile>{}.obs;
   final RxMap<String, AppProfile> _followerProfiles = <String, AppProfile>{}.obs;
   final RxMap<String, AppProfile> _profiles = <String, AppProfile>{}.obs;
@@ -63,21 +68,57 @@ class MateController extends SintController implements MateService {
   Future<void> loadMateProfiles() async {
     try {
       if(mateIds.isEmpty) {
-        ///TODO Implement once algorithm of mates and eventmates is available.
-        //await loadItemmates();
+        if (AppConfig.instance.appInUse == AppInUse.g && AppPlatformApi.isEnabled) {
+          await loadItemmates();
+        }
         await loadProfiles();
       } else {
         await loadMatesFromList(mateIds);
       }
 
-      ///TODO Implement once algorithm of itemmates and eventmates is available.
-      //totalProfiles.addAll(itemmates);
+      _totalProfiles.addAll(_mates);
       _totalProfiles.addAll(_profiles);
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'loadMateProfiles');
     }
 
     isLoading.value = false;
+    update();
+  }
+
+  Future<void> loadItemmates() async {
+    if (!AppPlatformApi.isEnabled || profile.id.isEmpty) return;
+    try {
+      final result = await AppPlatformApi.client('profiles').read<List<Map<String, dynamic>>>(
+        'findRepertoireMatches',
+        {'profileId': profile.id, 'limit': 50},
+        decode: (res) {
+          final raw = res['items'] as List? ?? const [];
+          return raw.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
+        },
+        fallback: () async => <Map<String, dynamic>>[],
+        referenceIds: (_) => const [],
+      );
+      final matchedProfiles = <String, AppProfile>{};
+      final metaMap = <String, Map<String, dynamic>>{};
+      for (final item in result) {
+        final p = AppProfile.fromJSON(item);
+        if (p.id.isEmpty) continue;
+        matchedProfiles[p.id] = p;
+        metaMap[p.id] = {
+          'matchedCount': item['matchedCount'] ?? 0,
+          'totalCallerSongs': item['totalCallerSongs'] ?? 0,
+          'matchPercentage': item['matchPercentage'] ?? 0,
+          'commonSongs': item['commonSongs'] ?? const [],
+          'instruments': item['instruments'] ?? const [],
+        };
+      }
+      _mates.value = matchedProfiles;
+      repertoireMatchMeta.value = metaMap;
+      profile.itemmates = matchedProfiles.keys.toList();
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'loadItemmates');
+    }
   }
 
   @override
@@ -162,7 +203,7 @@ class MateController extends SintController implements MateService {
       if(_profiles.isEmpty || loadAll) {
 
         if(loadAll) {
-          _profiles.value = await ProfileFirestore().retrieveAllProfiles();
+          _profiles.value = await AppProfiles.repository.retrieveAllProfiles();
           AppConfig.logger.d("Loaded ${_profiles.length} profiles (loadAll)");
         } else {
           // Collect all unique profile IDs we need
@@ -180,7 +221,7 @@ class MateController extends SintController implements MateService {
 
           // Only fetch needed profiles instead of ALL profiles
           if (neededProfileIds.isNotEmpty) {
-            _profiles.value = await ProfileFirestore().retrieveFromList(neededProfileIds.toList());
+            _profiles.value = await AppProfiles.repository.retrieveFromList(neededProfileIds.toList());
             AppConfig.logger.d("Loaded ${_profiles.length} needed profiles (instead of all)");
           }
         }
@@ -207,9 +248,11 @@ class MateController extends SintController implements MateService {
         });
       }
 
-      if((profile.itemmates?.isNotEmpty ?? false )&& _profiles.isNotEmpty) {
+      if ((profile.itemmates?.isNotEmpty ?? false) &&
+          _profiles.isNotEmpty &&
+          _mates.isEmpty) {
         _mates.value = _profiles.entries
-            .where((entry) => profile.following!.contains(entry.key))
+            .where((entry) => profile.itemmates!.contains(entry.key))
             .fold(<String, AppProfile>{}, (map, entry) {
           map[entry.key] = entry.value;
           return map;

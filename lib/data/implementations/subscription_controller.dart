@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:sint/sint.dart';
 
 import '../../app_config.dart';
+import '../../app_properties.dart';
 import '../../domain/model/app_profile.dart';
 import '../../domain/model/price.dart';
 import '../../domain/model/stripe/stripe_price.dart';
@@ -13,12 +14,15 @@ import '../../domain/use_cases/subscription_service.dart';
 import '../../domain/use_cases/user_service.dart';
 import '../../utils/constants/app_route_constants.dart';
 import '../../utils/constants/core_constants.dart';
+import '../../utils/enums/app_currency.dart';
+import '../../utils/enums/app_in_use.dart';
 import '../../utils/enums/facilitator_type.dart';
 import '../../utils/enums/place_type.dart';
 import '../../utils/enums/profile_type.dart';
 import '../../utils/enums/subscription_level.dart';
 import '../../utils/enums/subscription_status.dart';
 import '../../utils/neom_error_logger.dart';
+import '../api/app_platform_api.dart';
 import '../firestore/profile_firestore.dart';
 import '../firestore/subscription_plan_firestore.dart';
 import '../firestore/user_subscription_firestore.dart';
@@ -53,6 +57,48 @@ class SubscriptionController extends SintController implements SubscriptionServi
   @override
   Future<void> initializeSubscriptions() async {
     AppConfig.logger.t("Initializing Subscriptions");
+    if (AppPlatformApi.isEnabled) {
+      try {
+        final plans = await AppPlatformApi.client('subscriptions').read<List<SubscriptionPlan>>(
+          'getPlans',
+          const {},
+          decode: (res) {
+            final raw = res['items'];
+            if (raw is List) {
+              return raw
+                  .map((e) => SubscriptionPlan.fromJSON(Map<String, dynamic>.from(e as Map)))
+                  .toList();
+            }
+            return <SubscriptionPlan>[];
+          },
+          fallback: () => <SubscriptionPlan>[],
+        );
+        if (plans.isNotEmpty) {
+          _subscriptionPlans = {for (final p in plans) p.id: p};
+        } else {
+          final fallbackPrice = AppProperties.getSubscriptionPrice().amount > 0
+              ? AppProperties.getSubscriptionPrice().amount
+              : 80.0;
+          final defaultPlan = SubscriptionPlan(
+            id: 'gig_music_monthly',
+            name: 'Gig Music',
+            level: SubscriptionLevel.basic,
+            price: Price(amount: fallbackPrice, currency: AppCurrency.mxn),
+            isActive: true,
+            isLive: true,
+          );
+          _subscriptionPlans = {defaultPlan.id: defaultPlan};
+        }
+        setProfileTypePlans();
+        await setActiveSubscriptions();
+      } catch (e, st) {
+        NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'initializeSubscriptions.platform');
+      } finally {
+        _isLoading.value = false;
+      }
+      return;
+    }
+
     _subscriptionPlans = await SubscriptionPlanFirestore().getAll();
     if(_subscriptionPlans.isNotEmpty) {
       // Filter by environment: debug=test plans only, release=live plans only.
@@ -115,27 +161,29 @@ class SubscriptionController extends SintController implements SubscriptionServi
     AppConfig.logger.d("Setting Profile Type Plans for: ${_profileType.value.name}");
     _profilePlans.clear();
     _profilePlans.addAll(_subscriptionPlans);
-    switch(_profileType.value) {
-      case ProfileType.general:
+    if (AppConfig.instance.appInUse != AppInUse.g) {
+      switch(_profileType.value) {
+        case ProfileType.general:
+          _profilePlans.removeWhere((s, p) =>
+          (p.level?.value ?? 0) > SubscriptionLevel.family.value);
+        case ProfileType.appArtist:
+          _profilePlans.removeWhere((s, p) =>
+          (p.level?.value ?? 0) < SubscriptionLevel.creator.value);
+        case ProfileType.facilitator:
+        case ProfileType.host:
+          _profilePlans.removeWhere((s, p) {
+            final lv = p.level?.value ?? 0;
+            return lv != SubscriptionLevel.basic.value
+                && lv != SubscriptionLevel.professional.value
+                && lv != SubscriptionLevel.premium.value;
+          });
+        // case ProfileType.researcher:
+        case ProfileType.collective:
         _profilePlans.removeWhere((s, p) =>
-        (p.level?.value ?? 0) > SubscriptionLevel.family.value);
-      case ProfileType.appArtist:
-        _profilePlans.removeWhere((s, p) =>
-        (p.level?.value ?? 0) < SubscriptionLevel.creator.value);
-      case ProfileType.facilitator:
-      case ProfileType.host:
-        _profilePlans.removeWhere((s, p) {
-          final lv = p.level?.value ?? 0;
-          return lv != SubscriptionLevel.basic.value
-              && lv != SubscriptionLevel.professional.value
-              && lv != SubscriptionLevel.premium.value;
-        });
-      // case ProfileType.researcher:
-      case ProfileType.collective:
-      _profilePlans.removeWhere((s, p) =>
-      (p.level?.value ?? 0) < SubscriptionLevel.professional.value);
-      default:
-        break;
+        (p.level?.value ?? 0) < SubscriptionLevel.professional.value);
+        default:
+          break;
+      }
     }
 
     if (_profilePlans.isEmpty) {
@@ -156,6 +204,50 @@ class SubscriptionController extends SintController implements SubscriptionServi
     AppConfig.logger.d("Paying Subscription for: ${subscriptionPlan.name} from route: $fromRoute");
 
     try {
+      if (AppPlatformApi.isEnabled) {
+        final origin = kIsWeb ? Uri.base.origin : 'https://gigmeout.com';
+        final session = await AppPlatformApi.client('subscriptions').mutate(
+          'createCheckoutSession',
+          {
+            'purpose': 'gig_music_subscription',
+            'originUrl': origin,
+            'metadata': {'planId': subscriptionPlan.id},
+          },
+          durable: false,
+        );
+        if (session is Map) {
+          if (session['sandbox'] == true) {
+            final verified = await AppPlatformApi.client('payments').mutate(
+              'verifyCheckoutSession',
+              {
+                'localSessionId': session['sessionId'],
+                'sandboxToken': session['sandboxToken'],
+              },
+              durable: false,
+            );
+            if (verified is Map && verified['subscription'] is Map) {
+              final sub = UserSubscription.fromJSON(
+                Map<String, dynamic>.from(verified['subscription'] as Map),
+              );
+              userServiceImpl.userSubscription = sub;
+              userServiceImpl.user.subscriptionId = sub.subscriptionId;
+            }
+            await refreshActiveSubscriptions();
+            Sint.snackbar(
+              '¡Gig Music Activado!',
+              'Ya tienes escucha continua sin interrupción de tiempo e impulsas CASETE.',
+              snackPosition: SnackPosition.bottom,
+              duration: const Duration(seconds: 4),
+            );
+            update();
+            return;
+          } else if (session['checkoutUrl']?.toString().isNotEmpty ?? false) {
+            subscriptionPlan.href = session['checkoutUrl'].toString();
+            update();
+            return;
+          }
+        }
+      }
       Sint.toNamed(AppRouteConstants.orderConfirmation, arguments: [subscriptionPlan, fromRoute, profileType]);
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'paySubscription');
@@ -181,7 +273,9 @@ class SubscriptionController extends SintController implements SubscriptionServi
         subscription.endDate = endDateMs;
 
         // Store scheduled cancellation in Firestore (keeps status active until end date)
-        UserSubscriptionFirestore().scheduleCancellation(subscription.subscriptionId, endDateMs);
+        if (!AppPlatformApi.isEnabled) {
+          UserSubscriptionFirestore().scheduleCancellation(subscription.subscriptionId, endDateMs);
+        }
 
         final endDate = DateTime.fromMillisecondsSinceEpoch(endDateMs);
         final formattedDate = '${endDate.day}/${endDate.month}/${endDate.year}';
@@ -312,9 +406,10 @@ class SubscriptionController extends SintController implements SubscriptionServi
         _selectedPlan = plan;
         _selectedPlanName.value = selectedPlan.name;
         _selectedPlanImgUrl.value = selectedPlan.imgUrl;
-        if(kDebugMode) {
-          _selectedPrice.value = Price(amount: 59);
-        } else {
+        if(kDebugMode && selectedPlan.price == null) {
+          final fallbackAmount = AppProperties.getSubscriptionPrice().amount;
+          _selectedPrice.value = Price(amount: fallbackAmount > 0 ? fallbackAmount : 80);
+        } else if (selectedPlan.price != null) {
           _selectedPrice.value = selectedPlan.price!;
         }
 
@@ -372,6 +467,37 @@ class SubscriptionController extends SintController implements SubscriptionServi
   }
 
   Future<void> _loadActiveSubscriptions() async {
+    if (AppPlatformApi.isEnabled) {
+      try {
+        final subs = await AppPlatformApi.client('subscriptions').read<List<UserSubscription>>(
+          'getMySubscription',
+          const {},
+          decode: (res) {
+            final raw = res['items'];
+            if (raw is List) {
+              return raw
+                  .map((e) => UserSubscription.fromJSON(Map<String, dynamic>.from(e as Map)))
+                  .toList();
+            }
+            return <UserSubscription>[];
+          },
+          fallback: () => <UserSubscription>[],
+        );
+        for (final subscription in subs) {
+          if (subscription.status == SubscriptionStatus.active && subscription.level != null) {
+            _activeSubscriptions.putIfAbsent(subscription.level!, () => []).add(subscription);
+            userServiceImpl.userSubscription = subscription;
+            if (subscription.subscriptionId.isNotEmpty) {
+              userServiceImpl.user.subscriptionId = subscription.subscriptionId;
+            }
+          }
+        }
+      } catch (e, st) {
+        NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: '_loadActiveSubscriptions.platform');
+      }
+      return;
+    }
+
     List<UserSubscription> subscriptions = await UserSubscriptionFirestore().getAll();
     if(subscriptions.isNotEmpty) {
       for(UserSubscription subscription in subscriptions) {

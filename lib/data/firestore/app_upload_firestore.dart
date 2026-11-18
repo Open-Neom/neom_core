@@ -213,6 +213,7 @@ class AppUploadFirestore implements AppUploadRepository {
     MediaUploadDestination.sponsor => 'sponsors',
     MediaUploadDestination.ad => 'ads',
     MediaUploadDestination.room => 'rooms',
+    MediaUploadDestination.mastering => 'mastering',
   };
 
 }

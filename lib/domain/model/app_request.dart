@@ -261,7 +261,10 @@ class AppRequest {
       instrument = data["instrument"] != null ? Instrument.fromJSON(data["instrument"]) : null;
       percentageCoverage = double.parse((data["percentageCoverage"] ?? '0').toString());
       distanceKm = data["distanceKm"] ?? 0;
-      requestDecision = EnumToString.fromString(RequestDecision.values, data["requestDecision"] ?? RequestDecision.pending.name) ?? RequestDecision.pending;
+      final rawDecision = (data["requestDecision"] ?? RequestDecision.pending.name).toString();
+      requestDecision = rawDecision == 'accepted'
+          ? RequestDecision.confirmed
+          : (EnumToString.fromString(RequestDecision.values, rawDecision) ?? RequestDecision.pending);
       gameRequestType = data["gameRequestType"] != null
           ? EnumToString.fromString(GameRequestType.values, data["gameRequestType"])
           : null;

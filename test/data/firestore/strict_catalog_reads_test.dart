@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:neom_core/app_config.dart';
+import 'package:neom_core/app_properties.dart';
 import 'package:neom_core/data/firestore/app_release_item_firestore.dart';
 import 'package:neom_core/data/firestore/post_firestore.dart';
 import 'package:neom_core/utils/enums/app_in_use.dart';
@@ -106,6 +107,9 @@ void main() {
     Sint.reset();
     config.appInUse = AppInUse.g;
     config.isGuestMode = true;
+    AppProperties.appProperties = {
+      'dataBackend': {'enabled': true},
+    };
     AppReleaseItemFirestore.invalidateAllReleaseItemsCache();
     firestore = _ControlledFirestore();
   });
@@ -114,6 +118,7 @@ void main() {
     Sint.reset();
     config.appInUse = AppInUse.o;
     config.isGuestMode = true;
+    AppProperties.appProperties = {};
     AppReleaseItemFirestore.invalidateAllReleaseItemsCache();
   });
 

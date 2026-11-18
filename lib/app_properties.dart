@@ -20,6 +20,9 @@ class AppProperties {
 
   AppProperties._internal(); // Constructor privado para Singleton
 
+  /// Hosts which bind configurable repositories must await their properties.
+  static Future<void> ensureInitialized() => _instance._init();
+
   static dynamic get appProperties => CloudProperties.appProperties;
   static set appProperties(dynamic val) => CloudProperties.appProperties = val;
 
@@ -322,8 +325,14 @@ class AppProperties {
   }
 
   static Price getSubscriptionPrice() {
-    double amount = (appProperties['subscriptionPrice'] ?? 0).toDouble();
-    String currency = appProperties['subscriptionCurrency'] ?? 'MXN';
+    final rawPrice = appProperties['subscriptionPrice'];
+    final double amount = rawPrice is num
+        ? rawPrice.toDouble()
+        : (double.tryParse((rawPrice ?? '0').toString()) ?? 0.0);
+    final String currency = (appProperties['subscriptionCurrency'] ??
+            appProperties['subscriptionCURRENCY'] ??
+            'MXN')
+        .toString();
     AppCurrency appCurrency = AppCurrency.values.firstWhere(
       (e) => e.toString().split('.').last.toUpperCase() == currency.toUpperCase(),
       orElse: () => AppCurrency.mxn,

@@ -9,6 +9,7 @@ import '../../domain/model/app_profile.dart';
 import '../../domain/model/app_user.dart';
 import '../../domain/model/collective.dart';
 import '../../domain/model/user_subscription.dart';
+import '../../domain/repository/account_repository.dart';
 import '../../domain/repository/chamber_repository.dart';
 import '../../domain/use_cases/account_load_lifecycle.dart';
 import '../../domain/use_cases/login_service.dart';
@@ -24,20 +25,21 @@ import '../../utils/enums/subscription_status.dart';
 import '../../utils/enums/user_role.dart';
 import '../../utils/enums/verification_level.dart';
 import '../../utils/neom_error_logger.dart';
+import '../api/app_accounts.dart';
 import '../firestore/app_release_item_firestore.dart';
 import '../firestore/itemlist_firestore.dart';
-import '../firestore/profile_firestore.dart';
-import '../firestore/user_firestore.dart';
 import '../firestore/user_subscription_firestore.dart';
 import 'app_hive_controller.dart';
 import 'geolocator_controller.dart';
 
 class UserController extends SintController implements UserService, AccountLoadLifecycle {
 
-  UserController({UserFirestore? userFirestore, Future<void> Function()? persistProfileInfo,
+  UserController({
+    AccountRepository? userFirestore,
+    Future<void> Function()? persistProfileInfo,
     this.accountLoadTimeout = const Duration(seconds: 20),
   })
-      : userFirestore = userFirestore ?? UserFirestore(),
+      : userFirestore = userFirestore ?? AppUsers.account,
         _persistProfileInfo = persistProfileInfo ?? (() => AppHiveController()
             .writeProfileInfo(overwrite: true, throwOnError: true,
            )) {
@@ -50,11 +52,19 @@ class UserController extends SintController implements UserService, AccountLoadL
     }
   }
 
-  UserFirestore userFirestore;
+  AccountRepository userFirestore;
   final Future<void> Function() _persistProfileInfo;
   final Duration accountLoadTimeout;
   int _accountLoadGeneration = 0;
   Completer<void>? _accountLoadInvalidation;
+  Object? lastBackgroundAccountError;
+
+  void _backgroundAccountOperation(Future<dynamic> operation) {
+    unawaited(operation.then<void>((_) {}).catchError((Object error) {
+      lastBackgroundAccountError = error;
+      AppConfig.logger.w('Background account operation pending or failed (${error.runtimeType})');
+    }));
+  }
   
   AppUser _user = AppUser();
   AppProfile _profile = AppProfile();
@@ -97,7 +107,7 @@ class UserController extends SintController implements UserService, AccountLoadL
 
       if(user.id.isNotEmpty && user.profiles.isNotEmpty) {
         for (var prof in user.profiles) {
-          await ProfileFirestore().remove(userId: user.id, profileId: prof.id);
+          await AppProfiles.repository.remove(userId: user.id, profileId: prof.id);
         }
         await userFirestore.remove(user.id);
       }
@@ -290,7 +300,7 @@ class UserController extends SintController implements UserService, AccountLoadL
 
     try {
 
-      String profileId = await ProfileFirestore().insert(user.id, _newProfile);
+      String profileId = await AppProfiles.repository.insert(user.id, _newProfile);
 
       if(profileId.isNotEmpty) {
         _newProfile.id = profileId;
@@ -298,7 +308,7 @@ class UserController extends SintController implements UserService, AccountLoadL
         profile = _newProfile;
 
         if(profileId.isNotEmpty) {
-          userFirestore.updateCurrentProfile(user.id, profileId);
+          _backgroundAccountOperation(userFirestore.updateCurrentProfile(user.id, profileId));
           AppConfig.logger.i("Additional profile created successfully.");
           Sint.offAllNamed(AppRouteConstants.home);
         } else {
@@ -331,7 +341,7 @@ class UserController extends SintController implements UserService, AccountLoadL
     AppConfig.logger.d("User looked up by ${user.id}");
 
     try {
-      user.profiles = await ProfileFirestore().retrieveByUserId(user.id);
+      user.profiles = await AppProfiles.repository.retrieveByUserId(user.id);
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getProfiles',
       );
@@ -443,8 +453,7 @@ class UserController extends SintController implements UserService, AccountLoadL
     AppConfig.logger.d("removeProfile method Started");
     try {
 
-      if(await ProfileFirestore().remove(userId: user.id, profileId: profile.id,
-      )) {
+      if(await AppProfiles.repository.remove(userId: user.id, profileId: profile.id)) {
         user.profiles.removeWhere((element) => element.id == profile.id);
         if(user.profiles.isNotEmpty) {
           profile = await userFirestore.updateCurrentProfile(user.id, user.profiles.first.id,
@@ -586,7 +595,7 @@ class UserController extends SintController implements UserService, AccountLoadL
 
     try {
       user.customerId = customerId;
-      userFirestore.updateCustomerId(user.id, customerId);
+      _backgroundAccountOperation(userFirestore.updateCustomerId(user.id, customerId));
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'updateCustomerId',
       );
@@ -601,7 +610,7 @@ class UserController extends SintController implements UserService, AccountLoadL
 
     try {
       user.subscriptionId = subscriptionId;
-      userFirestore.updateSubscriptionId(user.id, subscriptionId);
+      _backgroundAccountOperation(userFirestore.updateSubscriptionId(user.id, subscriptionId));
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'updateSubscriptionId',
       );
@@ -620,13 +629,13 @@ class UserController extends SintController implements UserService, AccountLoadL
         if(await userFirestore.isAvailablePhone(phone)) {
 
           if(user.countryCode != countryCode) {
-            userFirestore.updateCountryCode(user.id, countryCode);
+            _backgroundAccountOperation(userFirestore.updateCountryCode(user.id, countryCode));
             user.countryCode = countryCode;
           } else {
             AppConfig.logger.d("Same Country Code");
           }
 
-          userFirestore.updatePhoneNumber(user.id, phone);
+          _backgroundAccountOperation(userFirestore.updatePhoneNumber(user.id, phone));
           user.phoneNumber = phone;
           wasUpdated = true;
         } else {
@@ -693,8 +702,7 @@ class UserController extends SintController implements UserService, AccountLoadL
             // Reset profile verification level back to general
             if (user.profiles.isNotEmpty) {
               final profile = user.profiles.first;
-              ProfileFirestore().updateVerificationLevel(profile.id, VerificationLevel.none,
-              );
+              _backgroundAccountOperation(AppProfiles.repository.updateVerificationLevel(profile.id, VerificationLevel.none));
               profile.verificationLevel = VerificationLevel.none;
             }
             _userSubscription = null;

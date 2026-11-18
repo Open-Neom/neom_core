@@ -10,6 +10,7 @@ import '../../domain/repository/external_item_repository.dart';
 import '../../utils/enums/external_media_source.dart';
 import '../../utils/enums/media_item_type.dart';
 import '../../utils/neom_error_logger.dart';
+import '../api/app_platform_api.dart';
 import 'constants/app_firestore_collection_constants.dart';
 
 class ExternalItemFirestore implements ExternalItemRepository {
@@ -115,15 +116,17 @@ class ExternalItemFirestore implements ExternalItemRepository {
   @override
   Future<void> insert(ExternalItem externalItem) async {
     AppConfig.logger.t("Adding externalItem to database collection");
-    try {
-      if(externalItem.url.contains("spotify") || externalItem.url.contains("p.scdn.co")) {
-        externalItem.source = ExternalSource.spotify;
-      } else if(externalItem.url.contains("youtube")) {
-        externalItem.source = ExternalSource.youtube;
-      } else {
-        externalItem.source = ExternalSource.other;
-      }
+    if(externalItem.url.contains("spotify") || externalItem.url.contains("p.scdn.co") || externalItem.permaUrl.contains("spotify")) {
+      externalItem.source = ExternalSource.spotify;
+    } else if(externalItem.url.contains("youtube") || externalItem.permaUrl.contains("youtube") || externalItem.source == ExternalSource.youtube) {
+      externalItem.source = ExternalSource.youtube;
+    } else if (externalItem.source == ExternalSource.other) {
+      externalItem.source = ExternalSource.other;
+    }
 
+    if (AppPlatformApi.isEnabled) return;
+
+    try {
       await externalItemReference.doc(externalItem.id).set(externalItem.toJSON());
       AppConfig.logger.d("ExternalItem inserted into Firestore");
     } catch (e, st) {
@@ -134,6 +137,7 @@ class ExternalItemFirestore implements ExternalItemRepository {
 
   @override
   Future<bool> remove(ExternalItem externalItem) async {
+    if (AppPlatformApi.isEnabled) return true;
     AppConfig.logger.d("Removing externalItem from database collection");
     try {
       await externalItemReference.doc(externalItem.id).delete();
@@ -146,6 +150,19 @@ class ExternalItemFirestore implements ExternalItemRepository {
 
   @override
   Future<bool> removeItemFromList(String profileId, String itemlistId, ExternalItem externalItem) async {
+    if (AppPlatformApi.isEnabled) {
+      try {
+        final ok = await AppPlatformApi.client('itemlists').mutate(
+          'deleteExternalItem',
+          {'itemlistId': itemlistId, 'itemId': externalItem.id},
+          durable: false,
+        );
+        return ok == true;
+      } catch (e, st) {
+        NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ExternalItemFirestore.removeItemFromList.platform');
+        return false;
+      }
+    }
     AppConfig.logger.d("Removing ItemlistItem for user $profileId");
 
     try {
@@ -178,6 +195,10 @@ class ExternalItemFirestore implements ExternalItemRepository {
 
   @override
   Future<void> existsOrInsert(ExternalItem externalItem) async {
+    if (AppPlatformApi.isEnabled) {
+      await insert(externalItem);
+      return;
+    }
     AppConfig.logger.t("existsOrInsert externalItem ${externalItem.id}");
 
     try {

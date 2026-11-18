@@ -60,6 +60,7 @@ class Event {
   List<String>? watchingProfiles;
   List<String>? goingProfiles;
   int guestsLimit;
+  int ticketsSold;
   bool isOnline;
   String? url;
   bool isOutdoor;
@@ -119,6 +120,7 @@ class Event {
     this.isOutdoor = false,
     this.isTest = false,
     this.guestsLimit = 0,
+    this.ticketsSold = 0,
     this.isEdited = false,
     this.slug = '',
     this.isRecurring = false,
@@ -153,6 +155,7 @@ class Event {
       isOutdoor = false,
       isTest = false,
       guestsLimit = 0,
+      ticketsSold = 0,
       isEdited = false,
       slug = '',
       isRecurring = false,
@@ -223,6 +226,7 @@ class Event {
       isOutdoor = data["isOutdoor"] ?? false,
       isTest = data["isTest"] ?? false,
       guestsLimit = data["guestsLimit"] ?? 0,
+      ticketsSold = (data["ticketsSold"] is num) ? (data["ticketsSold"] as num).toInt() : 0,
       isEdited = data["isEdited"] ?? false,
       slug = data["slug"] ?? "",
       isRecurring = data["isRecurring"] ?? false,
@@ -270,6 +274,7 @@ class Event {
     'isTest': isTest,
     'isOutdoor': isOutdoor,
     'guestsLimit': guestsLimit,
+    'ticketsSold': ticketsSold,
     'isEdited': isEdited,
     'slug': slug,
     'isRecurring': isRecurring,

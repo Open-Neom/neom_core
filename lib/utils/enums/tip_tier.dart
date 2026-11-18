@@ -1,4 +1,5 @@
 enum TipTier {
+  aplauso(1, 'aplauso'),
   cafe(5, 'cafe'),
   cuerdas(25, 'cuerdas'),
   amplificador(100, 'amplificador');

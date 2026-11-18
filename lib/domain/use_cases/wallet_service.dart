@@ -5,6 +5,9 @@ import '../model/app_product.dart';
 
 abstract class WalletService {
 
+  double get balance => 0;
+  Future<void> refreshWallet() async {}
+
   void changeAppCoinProduct(AppProduct selectedProduct);
   void setActualCurrency({required AppCurrency productCurrency});
   void changePaymentCurrency({required AppCurrency newCurrency});

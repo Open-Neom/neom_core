@@ -98,6 +98,8 @@ class AppProfile {
   VerificationLevel verificationLevel;
   int lastNameUpdate = 0;
   String slug;
+  bool hasApprovedRehearsalRoom;
+  List<String>? facilityTypes;
 
   AppProfile({
     this.id = "",
@@ -120,6 +122,8 @@ class AppProfile {
     this.verificationLevel = VerificationLevel.none,
     this.lastNameUpdate = 0,
     this.slug = "",
+    this.hasApprovedRehearsalRoom = false,
+    this.facilityTypes,
     this.itemmates,
     this.eventmates,
     this.followers,
@@ -229,6 +233,8 @@ class AppProfile {
       'verificationLevel': verificationLevel.name,
       'lastNameUpdate': lastNameUpdate,
       'slug': slug,
+      if (hasApprovedRehearsalRoom) 'hasApprovedRehearsalRoom': true,
+      if (facilityTypes != null && facilityTypes!.isNotEmpty) 'facilityTypes': facilityTypes,
       'itemlists': itemlists?.map((key, value) => MapEntry(key, value.toJSON())),
       'giglists': giglists?.map((key, value) => MapEntry(key, value.toJSON())),
       'instruments': instruments?.map((key, value) => MapEntry(key, value.toJSON())),
@@ -295,6 +301,8 @@ class AppProfile {
       'verificationLevel': verificationLevel.name,
       'lastNameUpdate': lastNameUpdate,
       'slug': slug,
+      if (hasApprovedRehearsalRoom) 'hasApprovedRehearsalRoom': true,
+      if (facilityTypes != null && facilityTypes!.isNotEmpty) 'facilityTypes': facilityTypes,
       'itemlists': itemlists?.map((key, value) => MapEntry(key, value.toJSON())),
       'giglists': giglists?.map((key, value) => MapEntry(key, value.toJSON())),
       'facilities': facilities != null
@@ -354,6 +362,8 @@ class AppProfile {
         verificationLevel = EnumToString.fromString(VerificationLevel.values, data["verificationLevel"] ?? VerificationLevel.none.name) ?? VerificationLevel.none,
         lastNameUpdate = data["lastNameUpdate"] ?? 0,
         slug = data["slug"] ?? "",
+        hasApprovedRehearsalRoom = data["hasApprovedRehearsalRoom"] == true,
+        facilityTypes = data["facilityTypes"]?.cast<String>() ?? [],
         giglists = data["giglists"] != null
             ? (data["giglists"] as Map).map((key, value) {
           return MapEntry(
@@ -400,7 +410,9 @@ class AppProfile {
         showPhone = true,
         portfolioUrl = "",
         verificationLevel = EnumToString.fromString(VerificationLevel.values, data["verificationLevel"] ?? VerificationLevel.none.name) ?? VerificationLevel.none,
-        slug = data["slug"] ?? "";
+        slug = data["slug"] ?? "",
+        hasApprovedRehearsalRoom = data["hasApprovedRehearsalRoom"] == true,
+        facilityTypes = data["facilityTypes"]?.cast<String>() ?? [];
 
 
   Map<String, dynamic> toProfileInstrumentsJSON() {

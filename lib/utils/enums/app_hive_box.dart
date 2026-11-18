@@ -18,6 +18,7 @@ enum AppHiveBox {
   visitedProfiles(true), // Recently visited profiles cache
   inbox(false),        // Messages cache
   syncQueue(false),    // Offline actions queue
+  mastering(false),    // Gig Mastering drafts & history
   cache(false);        // Local library and general cache
 
   final bool limit;

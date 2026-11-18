@@ -1,10 +1,11 @@
+import 'package:neom_core/data/api/app_accounts.dart';
+
+import 'package:neom_core/data/api/app_release_items.dart';
 import '../app_config.dart';
-import '../data/firestore/app_release_item_firestore.dart';
-import '../data/firestore/collective_firestore.dart';
 import '../data/firestore/blog_entry_firestore.dart';
+import '../data/firestore/collective_firestore.dart';
 import '../data/firestore/event_firestore.dart';
 import '../data/firestore/post_firestore.dart';
-import '../data/firestore/profile_firestore.dart';
 
 /// Declarative slug route definition — inspired by go_router's GoRoute.
 ///
@@ -58,7 +59,7 @@ class SlugRouter {
       type: 'profile',
       priority: 0,
       resolve: (slug) async {
-        final profile = await ProfileFirestore().getBySlug(slug);
+        final profile = await AppProfiles.directory.getBySlug(slug);
         if (profile != null && profile.id.isNotEmpty) {
           return SlugMatch(type: 'profile', id: profile.id, slug: slug, entity: profile);
         }
@@ -69,7 +70,7 @@ class SlugRouter {
       type: 'item',
       priority: 1,
       resolve: (slug) async {
-        final item = await AppReleaseItemFirestore().getBySlug(slug);
+        final item = await AppReleaseItems.repository.getBySlug(slug);
         if (item != null && item.id.isNotEmpty) {
           return SlugMatch(type: 'item', id: item.id, slug: slug, entity: item);
         }
@@ -155,13 +156,13 @@ class SlugRouter {
     if (slugOrId.isEmpty) return null;
 
     AppConfig.logger.d('SlugRouter: resolving profile "$slugOrId"');
-    final profile = await ProfileFirestore().getBySlug(slugOrId);
+    final profile = await AppProfiles.directory.getBySlug(slugOrId);
     if (profile != null && profile.id.isNotEmpty) {
       return SlugMatch(type: 'profile', id: profile.id, slug: slugOrId, entity: profile);
     }
 
     // Fallback: try by profile document ID
-    final profileById = await ProfileFirestore().retrieve(slugOrId);
+    final profileById = await AppProfiles.repository.retrieve(slugOrId);
     if (profileById.id.isNotEmpty) {
       return SlugMatch(type: 'profile', id: profileById.id, slug: profileById.slug, entity: profileById);
     }

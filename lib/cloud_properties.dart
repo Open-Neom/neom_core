@@ -365,6 +365,26 @@ class CloudProperties {
     }
   }
 
+  /// Calls secureOps Cloud Function to orchestrate multi-API audio mastering
+  /// (Music.AI Reference/Parametric, RoEx Tonn, LANDR, Auphonic).
+  static Future<Map<String, dynamic>?> masteringProxy({
+    required String operation,
+    String provider = 'auto',
+    Map<String, dynamic>? payload,
+  }) async {
+    try {
+      return await callSecureOps({
+        'action': 'masteringProxy',
+        'operation': operation,
+        'provider': provider,
+        ...?payload,
+      });
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'masteringProxy');
+      return null;
+    }
+  }
+
   // ═══════════════════════════════════════════
   // Service Account
   // ═══════════════════════════════════════════
