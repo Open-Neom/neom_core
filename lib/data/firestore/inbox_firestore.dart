@@ -4,41 +4,52 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../app_config.dart';
 import '../../app_properties.dart';
-import '../../utils/enums/user_role.dart';
 import '../../domain/model/app_profile.dart';
 import '../../domain/model/inbox.dart';
 import '../../domain/model/inbox_message.dart';
 import '../../domain/model/inbox_profile_info.dart';
 import '../../domain/repository/inbox_repository.dart';
-
 import '../../utils/constants/core_constants.dart';
+import '../../utils/enums/inbox_room_kind.dart';
 import '../../utils/enums/inbox_room_type.dart';
+import '../../utils/enums/user_role.dart';
 import '../../utils/neom_error_logger.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
+import 'core_firestore_guard.dart';
 import 'user_firestore.dart';
 
 class InboxFirestore implements InboxRepository {
-  
-  final inboxReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.inbox);
-  final messageReference = FirebaseFirestore.instance.collectionGroup(AppFirestoreCollectionConstants.messages);
+
+  FirebaseFirestore get _firestore => FirebaseFirestore.instance;
+  CollectionReference<Map<String, dynamic>> get inboxReference =>
+      _firestore.collection(AppFirestoreCollectionConstants.inbox);
+  Query<Map<String, dynamic>> get messageReference =>
+      _firestore.collectionGroup(AppFirestoreCollectionConstants.messages);
 
   @override
   Future<bool> addMessage(String inboxRoomId, InboxMessage message,
       {InboxRoomType inboxRoomType = InboxRoomType.profile}) async {
-    AppConfig.logger.t("Adding Message to inbox $inboxRoomId");
+    final cleanRoomId = inboxRoomId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanRoomId)) return false;
+    AppConfig.logger.t("Adding Message to inbox $cleanRoomId");
 
     try {
-      await inboxReference.doc(inboxRoomId).collection(AppFirestoreCollectionConstants.messages)
-          .add(message.toJSON());
-      AppConfig.logger.d("${message.text} message added");
-
-      if(inboxRoomType == InboxRoomType.profile) {
-        await inboxReference.doc(inboxRoomId)
-            .update({AppFirestoreConstants.lastMessage: message.toJSON()});
-      }
-
-      AppConfig.logger.i("${message.text} last message added");
+      await CoreFirestoreGuard.guardWrite(
+        () async {
+          await inboxReference
+              .doc(cleanRoomId)
+              .collection(AppFirestoreCollectionConstants.messages)
+              .add(message.toJSON());
+          if (inboxRoomType == InboxRoomType.profile) {
+            await inboxReference
+                .doc(cleanRoomId)
+                .update({AppFirestoreConstants.lastMessage: message.toJSON()});
+          }
+        },
+        tag: 'InboxFirestore.addMessage',
+      );
+      AppConfig.logger.i("Last message updated for inbox $cleanRoomId");
       return true;
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'InboxFirestore.addMessage');
@@ -51,21 +62,29 @@ class InboxFirestore implements InboxRepository {
   /// OPTIMIZED: Now requires inboxId for direct document access instead of scanning all messages
   @override
   Future<bool> handleLikeMessage(String profileId, String messageId, bool isLiked, {String? inboxId}) async {
-    AppConfig.logger.t("handleLikeMessage: profileId=$profileId, messageId=$messageId, isLiked=$isLiked");
+    final cleanProfileId = profileId.trim();
+    final cleanMessageId = messageId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanProfileId) ||
+        !CoreFirestoreGuard.isSafeDocId(cleanMessageId)) {
+      return false;
+    }
+    AppConfig.logger.t("handleLikeMessage: profileId=$cleanProfileId, messageId=$cleanMessageId, isLiked=$isLiked");
     try {
-      if (inboxId != null && inboxId.isNotEmpty) {
+      if (inboxId != null && inboxId.trim().isNotEmpty) {
+        final cleanInboxId = inboxId.trim();
+        if (!CoreFirestoreGuard.isSafeDocId(cleanInboxId)) return false;
         // OPTIMIZED: Direct document access - 1 read instead of scanning all messages
         final messageRef = inboxReference
-            .doc(inboxId)
+            .doc(cleanInboxId)
             .collection(AppFirestoreCollectionConstants.messages)
-            .doc(messageId);
+            .doc(cleanMessageId);
 
         if (isLiked) {
-          await messageRef.update({AppFirestoreConstants.likedProfiles: FieldValue.arrayRemove([profileId])});
+          await messageRef.update({AppFirestoreConstants.likedProfiles: FieldValue.arrayRemove([cleanProfileId])});
         } else {
-          await messageRef.update({AppFirestoreConstants.likedProfiles: FieldValue.arrayUnion([profileId])});
+          await messageRef.update({AppFirestoreConstants.likedProfiles: FieldValue.arrayUnion([cleanProfileId])});
         }
-        AppConfig.logger.d("Message $messageId like updated directly");
+        AppConfig.logger.d("Message $cleanMessageId like updated directly");
         return true;
       }
 
@@ -73,22 +92,22 @@ class InboxFirestore implements InboxRepository {
       // This is less efficient but limited to prevent full scan
       AppConfig.logger.w("handleLikeMessage called without inboxId - using limited collectionGroup query");
       final querySnapshot = await messageReference
-          .where(FieldPath.documentId, isEqualTo: messageId)
+          .where(FieldPath.documentId, isEqualTo: cleanMessageId)
           .limit(1)
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
         final document = querySnapshot.docs.first;
         if (isLiked) {
-          await document.reference.update({AppFirestoreConstants.likedProfiles: FieldValue.arrayRemove([profileId])});
+          await document.reference.update({AppFirestoreConstants.likedProfiles: FieldValue.arrayRemove([cleanProfileId])});
         } else {
-          await document.reference.update({AppFirestoreConstants.likedProfiles: FieldValue.arrayUnion([profileId])});
+          await document.reference.update({AppFirestoreConstants.likedProfiles: FieldValue.arrayUnion([cleanProfileId])});
         }
-        AppConfig.logger.d("Message $messageId like updated via collectionGroup");
+        AppConfig.logger.d("Message $cleanMessageId like updated via collectionGroup");
         return true;
       }
 
-      AppConfig.logger.w("Message $messageId not found");
+      AppConfig.logger.w("Message $cleanMessageId not found");
       return false;
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'InboxFirestore.handleLikeMessage');
@@ -104,11 +123,21 @@ class InboxFirestore implements InboxRepository {
   /// Toggle a multi-emoji reaction on a message (reactions: emoji → profileIds).
   Future<bool> reactToMessage(String inboxId, String messageId, String emoji,
       String profileId, {bool remove = false}) async {
+    final cleanInboxId = inboxId.trim();
+    final cleanMessageId = messageId.trim();
+    final cleanProfileId = profileId.trim();
+    final safeEmoji = CoreFirestoreGuard.sanitizeFieldSegment(emoji);
+    if (!CoreFirestoreGuard.isSafeDocId(cleanInboxId) ||
+        !CoreFirestoreGuard.isSafeDocId(cleanMessageId) ||
+        !CoreFirestoreGuard.isSafeDocId(cleanProfileId) ||
+        safeEmoji.isEmpty) {
+      return false;
+    }
     try {
-      await _messageRef(inboxId, messageId).update({
-        'reactions.$emoji': remove
-            ? FieldValue.arrayRemove([profileId])
-            : FieldValue.arrayUnion([profileId]),
+      await _messageRef(cleanInboxId, cleanMessageId).update({
+        'reactions.$safeEmoji': remove
+            ? FieldValue.arrayRemove([cleanProfileId])
+            : FieldValue.arrayUnion([cleanProfileId]),
       });
       return true;
     } catch (e, st) {
@@ -119,8 +148,14 @@ class InboxFirestore implements InboxRepository {
 
   /// Pin / unpin a message.
   Future<bool> setMessagePinned(String inboxId, String messageId, bool pinned) async {
+    final cleanInboxId = inboxId.trim();
+    final cleanMessageId = messageId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanInboxId) ||
+        !CoreFirestoreGuard.isSafeDocId(cleanMessageId)) {
+      return false;
+    }
     try {
-      await _messageRef(inboxId, messageId).update({'isPinned': pinned});
+      await _messageRef(cleanInboxId, cleanMessageId).update({'isPinned': pinned});
       return true;
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'InboxFirestore.setMessagePinned');
@@ -130,27 +165,66 @@ class InboxFirestore implements InboxRepository {
 
   /// Increments the thread reply count on the parent message.
   Future<void> incrementReplyCount(String inboxId, String parentMessageId) async {
+    final cleanInboxId = inboxId.trim();
+    final cleanParentId = parentMessageId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanInboxId) ||
+        !CoreFirestoreGuard.isSafeDocId(cleanParentId)) {
+      return;
+    }
     try {
-      await _messageRef(inboxId, parentMessageId).update({'replyCount': FieldValue.increment(1)});
+      await _messageRef(cleanInboxId, cleanParentId).update({'replyCount': FieldValue.increment(1)});
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'InboxFirestore.incrementReplyCount');
     }
   }
 
-  /// Casts a single vote on an inline poll: removes the voter from every option
-  /// then adds them to [optionIndex] (one vote per person).
-  Future<bool> votePoll(String inboxId, String messageId, int optionIndex, String profileId) async {
+  /// Casts a vote on an inline poll. When [allowMultiple] is false (default),
+  /// removes the voter from every option before adding to [optionIndex]; when
+  /// true, toggles [profileId] on [optionIndex] independently.
+  Future<bool> votePoll(
+    String inboxId,
+    String messageId,
+    int optionIndex,
+    String profileId, {
+    bool allowMultiple = false,
+  }) async {
+    final cleanInboxId = inboxId.trim();
+    final cleanMessageId = messageId.trim();
+    final cleanProfileId = profileId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanInboxId) ||
+        !CoreFirestoreGuard.isSafeDocId(cleanMessageId) ||
+        !CoreFirestoreGuard.isSafeDocId(cleanProfileId) ||
+        optionIndex < 0 ||
+        optionIndex > 100) {
+      return false;
+    }
     try {
-      final ref = _messageRef(inboxId, messageId);
-      await FirebaseFirestore.instance.runTransaction((tx) async {
+      final ref = _messageRef(cleanInboxId, cleanMessageId);
+      await _firestore.runTransaction((tx) async {
         final snap = await tx.get(ref);
         final data = snap.data() as Map<String, dynamic>?;
         if (data == null) return;
         final poll = Map<String, dynamic>.from(data['pollData'] ?? {});
+        final multi = allowMultiple || (poll['allowMultiple'] == true);
         final votes = Map<String, dynamic>.from(poll['votes'] ?? {});
-        votes.updateAll((k, v) => (List<String>.from(v ?? []))..remove(profileId));
         final key = optionIndex.toString();
-        votes[key] = (List<String>.from(votes[key] ?? []))..add(profileId);
+        final currentForKey = List<String>.from(votes[key] ?? []);
+        final alreadyVotedThis = currentForKey.contains(cleanProfileId);
+        if (!multi) {
+          votes.updateAll(
+            (k, v) => (List<String>.from(v ?? []))..remove(cleanProfileId),
+          );
+          if (!alreadyVotedThis) {
+            votes[key] = (List<String>.from(votes[key] ?? []))..add(cleanProfileId);
+          }
+        } else {
+          if (alreadyVotedThis) {
+            currentForKey.remove(cleanProfileId);
+          } else {
+            currentForKey.add(cleanProfileId);
+          }
+          votes[key] = currentForKey;
+        }
         poll['votes'] = votes;
         tx.update(ref, {'pollData': poll});
       });
@@ -161,13 +235,151 @@ class InboxFirestore implements InboxRepository {
     }
   }
 
+  /// Edits a sent message text and records `editedTime`.
+  Future<bool> editMessage(
+    String inboxId,
+    String messageId,
+    String newText,
+  ) async {
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await _messageRef(inboxId, messageId).update({
+        'text': newText,
+        'editedTime': now,
+      });
+      return true;
+    } catch (e, st) {
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'InboxFirestore.editMessage',
+      );
+      return false;
+    }
+  }
+
+  /// Marks a message as deleted for everyone (WhatsApp-style tombstone).
+  Future<bool> deleteMessageForEveryone(
+    String inboxId,
+    String messageId,
+  ) async {
+    try {
+      await _messageRef(inboxId, messageId).update({
+        'isDeletedForEveryone': true,
+        'text': '',
+        'mediaUrl': '',
+        'pollData': null,
+        'locationData': null,
+        'documentData': null,
+        'contactData': null,
+      });
+      return true;
+    } catch (e, st) {
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'InboxFirestore.deleteMessageForEveryone',
+      );
+      return false;
+    }
+  }
+
+  /// Hides a message only for [profileId] ("Eliminar para mí").
+  Future<bool> deleteMessageForMe(
+    String inboxId,
+    String messageId,
+    String profileId,
+  ) async {
+    try {
+      await _messageRef(inboxId, messageId).update({
+        'hiddenForProfileIds': FieldValue.arrayUnion([profileId]),
+      });
+      return true;
+    } catch (e, st) {
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'InboxFirestore.deleteMessageForMe',
+      );
+      return false;
+    }
+  }
+
+  /// Stars or unstars a message for [profileId].
+  Future<bool> setMessageStarred(
+    String inboxId,
+    String messageId,
+    String profileId,
+    bool starred,
+  ) async {
+    try {
+      await _messageRef(inboxId, messageId).update({
+        'starredByProfileIds': starred
+            ? FieldValue.arrayUnion([profileId])
+            : FieldValue.arrayRemove([profileId]),
+      });
+      return true;
+    } catch (e, st) {
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'InboxFirestore.setMessageStarred',
+      );
+      return false;
+    }
+  }
+
+  /// Creates a multi-member group room in Firestore.
+  Future<Inbox> createGroupRoom({
+    required String name,
+    String description = '',
+    String photoUrl = '',
+    required List<String> memberIds,
+    required String creatorId,
+  }) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final docRef = inboxReference.doc('group_${now}_${creatorId.hashCode.abs()}');
+    final allMembers = <String>{
+      if (creatorId.isNotEmpty) creatorId,
+      ...memberIds.where((id) => id.isNotEmpty),
+    }.toList();
+    final group = Inbox(
+      id: docRef.id,
+      name: name.trim(),
+      description: description.trim(),
+      photoUrl: photoUrl,
+      isPrivate: true,
+      roomKind: InboxRoomKind.group,
+      profileIds: allMembers,
+      adminIds: creatorId.isNotEmpty ? [creatorId] : const [],
+      createdTime: now,
+    );
+    try {
+      await docRef.set(group.toJSON());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'InboxFirestore.createGroupRoom',
+      );
+    }
+    return group;
+  }
+
 
   @override
   Future<bool> inboxExists(String inboxId) async {
+    final cleanId = inboxId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanId)) return false;
     AppConfig.logger.d("");
 
     try {
-      DocumentSnapshot documentSnapshot = await inboxReference.doc(inboxId).get();
+      DocumentSnapshot documentSnapshot = await inboxReference.doc(cleanId).get();
       if(documentSnapshot.exists){
         return true;
       }
@@ -182,20 +394,23 @@ class InboxFirestore implements InboxRepository {
 
   @override
   Future<List<InboxMessage>> retrieveMessages(String inboxId) async {
-    AppConfig.logger.t("Retrieving messages for inbox room $inboxId from firestore");
+    final cleanId = inboxId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanId)) return [];
+    AppConfig.logger.t("Retrieving messages for inbox room $cleanId from firestore");
     List<InboxMessage> messages = [];
 
     try {
-      QuerySnapshot querySnapshot = await inboxReference.doc(inboxId)
+      QuerySnapshot querySnapshot = await inboxReference.doc(cleanId)
           .collection(AppFirestoreCollectionConstants.messages)
-          .orderBy(AppFirestoreConstants.createdTime).get();
+          .orderBy(AppFirestoreConstants.createdTime)
+          .limitToLast(200)
+          .get();
       if (querySnapshot.docs.isNotEmpty) {
         for (var messageSnapshot in querySnapshot.docs) {
           final data = messageSnapshot.data();
           if (data == null) continue;
           InboxMessage message = InboxMessage.fromJSON(data as Map<String, dynamic>);
           message.id = messageSnapshot.id;
-          AppConfig.logger.t('Message text ${message.text}');
           messages.add(message);
         }
         AppConfig.logger.t("${messages.length} messages retrieved");
@@ -213,10 +428,13 @@ class InboxFirestore implements InboxRepository {
 
   @override
   Future<bool> addInbox(Inbox inbox) async {
+    final cleanId = inbox.id.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanId)) return false;
+    inbox.id = cleanId;
     AppConfig.logger.d("");
 
     try {
-      await inboxReference.doc(inbox.id).set(inbox.toJSON());
+      await inboxReference.doc(cleanId).set(inbox.toJSON());
       AppConfig.logger.d("");
       return true;
     } catch (e, st) {
@@ -228,14 +446,16 @@ class InboxFirestore implements InboxRepository {
 
   @override
   Future<List<Inbox>> getProfileInbox(String profileId) async {
-    AppConfig.logger.t("Getting Inbox for Profile $profileId from firestore");
+    final cleanProfileId = profileId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanProfileId)) return [];
+    AppConfig.logger.t("Getting Inbox for Profile $cleanProfileId from firestore");
 
     List<Inbox> inboxs = [];
 
     try {
       // OPTIMIZED: Added limit to prevent loading too many conversations
       QuerySnapshot querySnapshot = await inboxReference
-          .where(AppFirestoreConstants.profileIds, arrayContains: profileId)
+          .where(AppFirestoreConstants.profileIds, arrayContains: cleanProfileId)
           .orderBy(AppFirestoreConstants.createdTime, descending: true)
           .limit(50) // Only load last 50 conversations
           .get();
@@ -262,12 +482,18 @@ class InboxFirestore implements InboxRepository {
 
   @override
   Future<Inbox> getOrCreateInboxRoom(AppProfile profile, AppProfile itemmate) async {
-    AppConfig.logger.d("Getting or creating InboxRoom for profile ${profile.id}");
+    final cleanProfileId = profile.id.trim();
+    final cleanMateId = itemmate.id.trim();
+    AppConfig.logger.d("Getting or creating InboxRoom for profile $cleanProfileId");
 
     Inbox inbox = Inbox();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanProfileId) ||
+        !CoreFirestoreGuard.isSafeDocId(cleanMateId)) {
+      return inbox;
+    }
 
-    String inboxRoomId = "${profile.id}_${itemmate.id}";
-    String mateInboxRoomId = "${itemmate.id}_${profile.id}";
+    String inboxRoomId = "${cleanProfileId}_$cleanMateId";
+    String mateInboxRoomId = "${cleanMateId}_$cleanProfileId";
 
     try {
       DocumentSnapshot documentSnapshot = await inboxReference.doc(inboxRoomId).get();
@@ -275,7 +501,7 @@ class InboxFirestore implements InboxRepository {
         AppConfig.logger.d("Retrieving inbox from main user");
         final data = documentSnapshot.data();
         if (data != null) {
-          inbox = Inbox.fromJSON(data as Map<String, dynamic>);
+          inbox = Inbox.fromJSON(data);
           inbox.id = documentSnapshot.id;
         }
       } else {
@@ -285,15 +511,12 @@ class InboxFirestore implements InboxRepository {
           final itemmateData = itemmateDocumentSnapshot.data();
           if (itemmateData != null) {
             inbox = Inbox.fromJSON(itemmateData as Map<String, dynamic>);
-            inbox.id = documentSnapshot.id;
+            inbox.id = itemmateDocumentSnapshot.id;
           }
         } else {
           AppConfig.logger.i("Creating inbox from main user");
           inbox.id = inboxRoomId;
-          List<String> profileIds = [];
-          profileIds.add(profile.id);
-          profileIds.add(itemmate.id);
-          inbox.profileIds = profileIds;
+          inbox.profileIds = [cleanProfileId, cleanMateId];
 
           await inboxReference.doc(inboxRoomId).set(inbox.toJSON());
         }
@@ -301,12 +524,12 @@ class InboxFirestore implements InboxRepository {
 
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'InboxFirestore.getOrCreateInboxRoom');
-      
+
       // Fallback for offline mesh swarm:
       // Construct the inbox room ID locally if Firestore is unreachable,
       // allowing active swarm peers to engage in messaging.
       inbox.id = inboxRoomId;
-      inbox.profileIds = [profile.id, itemmate.id];
+      inbox.profileIds = [cleanProfileId, cleanMateId];
     }
 
     AppConfig.logger.d(inbox.toString());
@@ -322,13 +545,18 @@ class InboxFirestore implements InboxRepository {
 
   @override
   Stream<List<InboxMessage>> messageStream(String inboxId, {int limit = 50}) {
-    AppConfig.logger.t("Iniciando stream de mensajes para: $inboxId (limit: $limit)");
+    final cleanId = inboxId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanId)) {
+      return Stream<List<InboxMessage>>.value(const <InboxMessage>[]);
+    }
+    final safeLimit = CoreFirestoreGuard.clampLimit(limit, defaultLimit: 50, maxLimit: 200);
+    AppConfig.logger.t("Iniciando stream de mensajes para: $cleanId (limit: $safeLimit)");
 
     return inboxReference
-        .doc(inboxId)
+        .doc(cleanId)
         .collection(AppFirestoreCollectionConstants.messages)
         .orderBy(AppFirestoreConstants.createdTime, descending: true) // Most recent first
-        .limit(limit) // Limit to reduce Firestore reads
+        .limit(safeLimit) // Limit to reduce Firestore reads
         .snapshots()
         .map((snapshot) {
       // Reverse to show oldest first in UI
@@ -352,7 +580,7 @@ class InboxFirestore implements InboxRepository {
       if (doc.exists) {
         final data = doc.data();
         if (data != null) {
-          inbox = Inbox.fromJSON(data as Map<String, dynamic>);
+          inbox = Inbox.fromJSON(data);
           inbox.id = doc.id;
         }
         // Backfill the marker on rooms created before this flag existed.
@@ -406,7 +634,7 @@ class InboxFirestore implements InboxRepository {
       if (doc.exists) {
         final data = doc.data();
         if (data != null) {
-          inbox = Inbox.fromJSON(data as Map<String, dynamic>);
+          inbox = Inbox.fromJSON(data);
           inbox.id = doc.id;
         }
         // Keep membership in sync (new staff / first open) + backfill marker.
@@ -455,7 +683,7 @@ class InboxFirestore implements InboxRepository {
         AppConfig.logger.d("Retrieving inbox from main user");
         final data = documentSnapshot.data();
         if (data != null) {
-          inbox = Inbox.fromJSON(data as Map<String, dynamic>);
+          inbox = Inbox.fromJSON(data);
           inbox.id = documentSnapshot.id;
         }
       } else {
@@ -476,8 +704,15 @@ class InboxFirestore implements InboxRepository {
 
   /// Updates the customer-support handoff state of a room (Itzli ↔ human).
   Future<void> setSupportHandoff(String roomId, Map<String, dynamic> data) async {
+    final cleanRoomId = roomId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanRoomId)) return;
+    final safeData = CoreFirestoreGuard.sanitizeUpdateMap(
+      data,
+      immutableKeys: const {'id', 'createdTime'},
+    );
+    if (safeData.isEmpty) return;
     try {
-      await inboxReference.doc(roomId).set(data, SetOptions(merge: true));
+      await inboxReference.doc(cleanRoomId).set(safeData, SetOptions(merge: true));
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'InboxFirestore.setSupportHandoff');
     }
@@ -488,6 +723,7 @@ class InboxFirestore implements InboxRepository {
   Stream<List<Inbox>> streamSupportQueue() {
     return inboxReference
         .where('isSupportRoom', isEqualTo: true)
+        .limit(200)
         .snapshots()
         .map((snap) {
           final rooms = snap.docs.map((d) {
@@ -510,9 +746,10 @@ class InboxFirestore implements InboxRepository {
   /// active first — so the ERP lists each one the moment it's created.
   /// Sorted client-side to avoid excluding rooms missing the order field.
   Stream<List<Inbox>> streamRecentSupportRooms({int limit = 100}) {
+    final safeLimit = CoreFirestoreGuard.clampLimit(limit, defaultLimit: 100, maxLimit: 300);
     return inboxReference
         .where('isSupportRoom', isEqualTo: true)
-        .limit(limit)
+        .limit(safeLimit)
         .snapshots()
         .map((snap) {
           final rooms = snap.docs.map((d) {
@@ -534,6 +771,7 @@ class InboxFirestore implements InboxRepository {
       final snap = await inboxReference
           .where('needsHuman', isEqualTo: true)
           .orderBy('lastUserAt', descending: true)
+          .limit(200)
           .get();
       return snap.docs.map((d) {
         final inbox = Inbox.fromJSON(d.data());
@@ -548,8 +786,16 @@ class InboxFirestore implements InboxRepository {
 
   @override
   Stream<InboxProfileInfo> getInboxProfileInfo(String roomId, String profileId) {
-    return inboxReference.doc(roomId).collection(AppFirestoreCollectionConstants.roomProfiles)
-        .doc(profileId).snapshots().map((doc) => InboxProfileInfo.fromJSON(doc.data() ?? {}));
+    final cleanRoomId = roomId.trim();
+    final cleanProfileId = profileId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanRoomId) ||
+        !CoreFirestoreGuard.isSafeDocId(cleanProfileId)) {
+      return Stream<InboxProfileInfo>.value(
+        InboxProfileInfo.fromJSON(const <String, dynamic>{}),
+      );
+    }
+    return inboxReference.doc(cleanRoomId).collection(AppFirestoreCollectionConstants.roomProfiles)
+        .doc(cleanProfileId).snapshots().map((doc) => InboxProfileInfo.fromJSON(doc.data() ?? {}));
   }
 
   /// OPTIMIZED: Obtiene el conteo de mensajes sin leer para un perfil.
@@ -557,13 +803,15 @@ class InboxFirestore implements InboxRepository {
   /// - El lastMessage.ownerId != profileId (no es del usuario actual)
   /// - El lastMessage.seenTime == 0 (no ha sido visto)
   Future<int> getUnreadInboxCount(String profileId) async {
-    AppConfig.logger.t("Getting unread inbox count for profile $profileId");
+    final cleanProfileId = profileId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanProfileId)) return 0;
+    AppConfig.logger.t("Getting unread inbox count for profile $cleanProfileId");
     int unreadCount = 0;
 
     try {
       // OPTIMIZED: Added limit and orderBy to reduce reads - only check most recent conversations
       QuerySnapshot querySnapshot = await inboxReference
-          .where(AppFirestoreConstants.profileIds, arrayContains: profileId)
+          .where(AppFirestoreConstants.profileIds, arrayContains: cleanProfileId)
           .orderBy(AppFirestoreConstants.createdTime, descending: true)
           .limit(20) // Only check last 20 conversations for unread count
           .get();
@@ -578,7 +826,7 @@ class InboxFirestore implements InboxRepository {
             // Verificar si hay mensaje sin leer
             if (inbox.lastMessage != null &&
                 inbox.lastMessage!.ownerId.isNotEmpty &&
-                inbox.lastMessage!.ownerId != profileId &&
+                inbox.lastMessage!.ownerId != cleanProfileId &&
                 inbox.lastMessage!.seenTime == 0) {
               unreadCount++;
             }
@@ -597,12 +845,22 @@ class InboxFirestore implements InboxRepository {
   }
 
   @override
-  Future<void> setLastTyping(String roomId, String profileId) {
-    return inboxReference.doc(roomId)
-        .collection(AppFirestoreCollectionConstants.roomProfiles)
-        .doc(profileId).set({
-          AppFirestoreConstants.lastTyping: DateTime.now().millisecondsSinceEpoch,
-        });
+  Future<void> setLastTyping(String roomId, String profileId) async {
+    final cleanRoomId = roomId.trim();
+    final cleanProfileId = profileId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanRoomId) ||
+        !CoreFirestoreGuard.isSafeDocId(cleanProfileId)) {
+      return;
+    }
+    try {
+      await inboxReference.doc(cleanRoomId)
+          .collection(AppFirestoreCollectionConstants.roomProfiles)
+          .doc(cleanProfileId).set({
+            AppFirestoreConstants.lastTyping: DateTime.now().millisecondsSinceEpoch,
+          });
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'InboxFirestore.setLastTyping');
+    }
   }
 
   /// Marca el último mensaje de una conversación como leído.

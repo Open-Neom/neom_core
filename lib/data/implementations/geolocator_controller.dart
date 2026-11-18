@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/services.dart' show MissingPluginException;
 import 'package:geolocator/geolocator.dart';
 
 import '../../app_config.dart';
@@ -9,6 +10,7 @@ import '../../utils/constants/core_constants.dart';
 import '../../utils/neom_error_logger.dart';
 import '../../utils/platform/core_geocoding.dart';
 import '../../utils/platform/core_geolocation.dart';
+import '../../utils/platform/core_io.dart';
 import '../firestore/profile_firestore.dart';
 
 class GeoLocatorController implements GeoLocatorService {
@@ -71,6 +73,9 @@ class GeoLocatorController implements GeoLocatorService {
   }
 
 
+  bool get _isDesktop =>
+      !kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isLinux);
+
   @override
   Future<LocationPermission> requestPermission() async {
     if (kIsWeb) {
@@ -78,24 +83,40 @@ class GeoLocatorController implements GeoLocatorService {
       return pos != null ? LocationPermission.whileInUse : LocationPermission.denied;
     }
 
+    if (!kIsWeb && Platform.isLinux) {
+      AppConfig.logger.d('Location permission prompts are unsupported on Linux.');
+      return LocationPermission.denied;
+    }
+
     bool serviceEnabled;
     LocationPermission permission = LocationPermission.unableToDetermine;
 
     try {
-
       serviceEnabled = await Geolocator.isLocationServiceEnabled();
 
       if (!serviceEnabled) {
-        return Future.error('Location services are disabled.');
+        AppConfig.logger.w('Location services are disabled.');
+        return LocationPermission.denied;
       }
 
       permission = await Geolocator.checkPermission();
       AppConfig.logger.d('Current LocationPermission is: ${permission.name}');
 
-      permission = await Geolocator.requestPermission();
-      AppConfig.logger.d('New LocationPermission is: ${permission.name}');
-
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        AppConfig.logger.d('New LocationPermission is: ${permission.name}');
+      }
+    } on MissingPluginException {
+      AppConfig.logger.w('Geolocator plugin unavailable on current platform.');
+      return LocationPermission.denied;
+    } on UnimplementedError {
+      AppConfig.logger.w('Geolocator permission API unimplemented on current platform.');
+      return LocationPermission.denied;
     } catch (e, st) {
+      if (_isDesktop) {
+        AppConfig.logger.w('Desktop location permission unavailable: $e');
+        return LocationPermission.denied;
+      }
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'requestPermission');
     }
 
@@ -124,7 +145,13 @@ class GeoLocatorController implements GeoLocatorService {
 
       serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        return Future.error('Location services are disabled.');
+        AppConfig.logger.w('Location services are disabled.');
+        return null;
+      }
+
+      if (Platform.isLinux) {
+        position = await platformGetCurrentPosition();
+        return position;
       }
 
       permission = await Geolocator.checkPermission();
@@ -132,26 +159,28 @@ class GeoLocatorController implements GeoLocatorService {
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          // Sint.offAndToNamed(AppRouteConstants.introRequiredPermissions);
-          // Sint.toNamed(AppRouteConstants.logout,
-          //     arguments: [AppRouteConstants.logout, AppRouteConstants.login]);
-          // return Future.error('Location permissions are denied');
+          return null;
         }
       }
 
       if (permission == LocationPermission.deniedForever) {
-        // position = null;
-        ///DEPRECATED
-        // Sint.toNamed(AppRouteConstants.logout,
-        //     arguments: [AppRouteConstants.logout, AppRouteConstants.login]);
-        // return Future.error('Location permissions are permanently denied,'
-        //     ' we cannot request permissions.');
+        return null;
       } else {
         position = await platformGetCurrentPosition();
       }
 
       AppConfig.logger.t("Position: ${position.toString()}");
+    } on MissingPluginException {
+      AppConfig.logger.w('Geolocator plugin unavailable on current platform.');
+      return null;
+    } on UnimplementedError {
+      AppConfig.logger.w('Geolocator API unimplemented on current platform.');
+      return null;
     } catch (e, st) {
+      if (_isDesktop) {
+        AppConfig.logger.w('Desktop location unavailable: $e');
+        return null;
+      }
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getCurrentPosition');
     }
 

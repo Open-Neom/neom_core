@@ -1,9 +1,11 @@
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:neom_core/data/api/app_accounts.dart';
-
 import 'package:neom_core/data/api/app_release_items.dart';
+
 import '../app_config.dart';
 import '../data/firestore/blog_entry_firestore.dart';
 import '../data/firestore/collective_firestore.dart';
+import '../data/firestore/core_firestore_guard.dart';
 import '../data/firestore/event_firestore.dart';
 import '../data/firestore/post_firestore.dart';
 
@@ -112,18 +114,45 @@ class SlugRouter {
     ),
   ];
 
+  static final RegExp _unsafeSlugChars = RegExp(
+    r'[\x00-\x1F\x7F-\x9F\u0085\u061C\u200B-\u200F\u2028-\u202E\u2060-\u2069\uFEFF/\\?&#]',
+  );
+  static final RegExp _encodedSlugUnsafe = RegExp(
+    r'%(?:00|2e|2f|5c|25|c2%[89][0-9a-f]|d8%9c|e2%80%(?:8[b-f]|a[8-e])|e2%81%a[0-9]|ef%bb%bf)',
+    caseSensitive: false,
+  );
+
+  @visibleForTesting
+  static String? normalizeSafeSlugInput(String? raw, {int maxLength = 128}) {
+    if (raw == null ||
+        _unsafeSlugChars.hasMatch(raw) ||
+        _encodedSlugUnsafe.hasMatch(raw)) {
+      return null;
+    }
+    final trimmed = raw.trim();
+    if (trimmed.isEmpty ||
+        trimmed.length > maxLength ||
+        trimmed == '.' ||
+        trimmed.contains('..') ||
+        !CoreFirestoreGuard.isSafeDocId(trimmed)) {
+      return null;
+    }
+    return trimmed;
+  }
+
   /// Resolve a vanity slug — fires ALL queries in parallel,
   /// returns the highest-priority match.
   ///
   /// With 5 sequential queries each taking ~200ms, the old approach
   /// took up to 1s worst case. Parallel resolution completes in ~200ms.
   static Future<SlugMatch?> resolve(String slug) async {
-    if (slug.isEmpty) return null;
+    final safeSlug = normalizeSafeSlugInput(slug);
+    if (safeSlug == null) return null;
 
-    AppConfig.logger.d('SlugRouter: resolving "$slug" across ${_routes.length} routes (parallel)');
+    AppConfig.logger.d('SlugRouter: resolving "$safeSlug" across ${_routes.length} routes (parallel)');
 
     // Fire all queries simultaneously
-    final futures = _routes.map((route) => route.resolve(slug));
+    final futures = _routes.map((route) => route.resolve(safeSlug));
     final results = await Future.wait(futures);
 
     // Collect non-null matches
@@ -135,34 +164,35 @@ class SlugRouter {
     }
 
     if (matches.isEmpty) {
-      AppConfig.logger.d('SlugRouter: no match for "$slug"');
+      AppConfig.logger.d('SlugRouter: no match for "$safeSlug"');
       return null;
     }
 
     // Return highest priority (lowest number) match
     if (matches.length > 1) {
-      AppConfig.logger.w('SlugRouter: ${matches.length} matches for "$slug": '
+      AppConfig.logger.w('SlugRouter: ${matches.length} matches for "$safeSlug": '
           '${matches.map((m) => m.type).join(", ")}. Using highest priority.');
     }
 
     // matches are already ordered by _routes priority since we iterated in order
     final match = matches.first;
-    AppConfig.logger.i('SlugRouter: resolved "$slug" → ${match.type} (${match.id})');
+    AppConfig.logger.i('SlugRouter: resolved "$safeSlug" → ${match.type} (${match.id})');
     return match;
   }
 
   /// Resolve a profile by slug or ID — used for /@username or /u/{slug} URLs.
   static Future<SlugMatch?> resolveProfile(String slugOrId) async {
-    if (slugOrId.isEmpty) return null;
+    final safeSlugOrId = normalizeSafeSlugInput(slugOrId);
+    if (safeSlugOrId == null) return null;
 
-    AppConfig.logger.d('SlugRouter: resolving profile "$slugOrId"');
-    final profile = await AppProfiles.directory.getBySlug(slugOrId);
+    AppConfig.logger.d('SlugRouter: resolving profile "$safeSlugOrId"');
+    final profile = await AppProfiles.directory.getBySlug(safeSlugOrId);
     if (profile != null && profile.id.isNotEmpty) {
-      return SlugMatch(type: 'profile', id: profile.id, slug: slugOrId, entity: profile);
+      return SlugMatch(type: 'profile', id: profile.id, slug: safeSlugOrId, entity: profile);
     }
 
     // Fallback: try by profile document ID
-    final profileById = await AppProfiles.repository.retrieve(slugOrId);
+    final profileById = await AppProfiles.repository.retrieve(safeSlugOrId);
     if (profileById.id.isNotEmpty) {
       return SlugMatch(type: 'profile', id: profileById.id, slug: profileById.slug, entity: profileById);
     }
@@ -172,15 +202,16 @@ class SlugRouter {
 
   /// Resolve a prefixed blog slug/ID — tries slug first, then ID.
   static Future<SlugMatch?> resolveBlog(String slugOrId) async {
-    if (slugOrId.isEmpty) return null;
+    final safeSlugOrId = normalizeSafeSlugInput(slugOrId);
+    if (safeSlugOrId == null) return null;
 
-    final entry = await BlogEntryFirestore().getBySlug(slugOrId);
+    final entry = await BlogEntryFirestore().getBySlug(safeSlugOrId);
     if (entry != null && entry.id.isNotEmpty) {
-      return SlugMatch(type: 'blog', id: entry.id, slug: slugOrId, entity: entry);
+      return SlugMatch(type: 'blog', id: entry.id, slug: safeSlugOrId, entity: entry);
     }
 
     // Fallback: try by ID
-    final entryById = await BlogEntryFirestore().retrieve(slugOrId);
+    final entryById = await BlogEntryFirestore().retrieve(safeSlugOrId);
     if (entryById.id.isNotEmpty) {
       return SlugMatch(type: 'blog', id: entryById.id, slug: '', entity: entryById);
     }

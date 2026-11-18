@@ -48,6 +48,9 @@ class CoreConstants {
   static const int articlesFeedTurn = 10;
   static const int booksFeedTurn = 12;
   static const int gamesFeedTurn = 14;
+  static const int houseAdFeedTurn = 3;
+  static const int externalAdFeedTurn = 7;
+  static const int featureCarouselFeedTurn = 10;
 
   static const itemTab = 'items';
   static const goingTab = 'going';

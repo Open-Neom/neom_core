@@ -221,4 +221,11 @@ abstract class ErpIntegrationService {
   /// `{id, name, email, phoneNumber, currentProfileId, subscriptionId}` or null
   /// when no match is found.
   Future<Map<String, dynamic>?> lookupAppUser(String query);
+
+  /// Ingests a confirmed cultural fair (FIL) participant registration into ERP
+  /// operations (`erpFilParticipants`) and records its paid `ErpIncome`.
+  /// Idempotent by `{eventId}_{participantId}`. Defaults to a safe no-op `false`
+  /// for host apps or test doubles that do not implement FIL operations.
+  Future<bool> ingestFilRegistration(Map<String, dynamic> registration) async =>
+      false;
 }

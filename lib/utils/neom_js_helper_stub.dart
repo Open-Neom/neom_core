@@ -2,6 +2,9 @@
 class NeomJsHelper {
   NeomJsHelper._();
 
+  static bool isSameSiteWebUrl(String candidateUrl, String trustedOriginUrl) =>
+      true;
+
   static void hideLoadingSplash() {
     // No-op on native platforms
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sint/sint.dart';
 
 /// Wrapper that loads a deferred library before rendering its child.
 ///
@@ -47,11 +48,28 @@ class _DeferredLoaderState extends State<DeferredLoader> {
   late Future<void> _load;
   bool _isLoading = false;
   int _attempt = 0;
+  bool? _recoveryScheduled;
 
   @override
   void initState() {
     super.initState();
     _load = _loadLibrary();
+  }
+
+  @override
+  void reassemble() {
+    super.reassemble();
+    _recoveryScheduled = false;
+    // Defer reload to post-frame so parent route/widget updates (e.g.
+    // SintDelegate.refreshRoutes) replace stale pre-reload tear-offs first.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && !_isLoading) {
+        final nextLoad = _loadLibrary();
+        setState(() {
+          _load = nextLoad;
+        });
+      }
+    });
   }
 
   Future<void> _loadLibrary() async {
@@ -92,13 +110,12 @@ class _DeferredLoaderState extends State<DeferredLoader> {
   }
 
   void _leave() {
-    final navigator = Navigator.of(context);
-    if (navigator.canPop()) {
-      navigator.maybePop();
+    if (Sint.canPop) {
+      Sint.maybePop();
     } else {
       // A direct web link can be the only route. Popping it would leave a
       // blank page; replace it with the host app's root instead.
-      navigator.pushReplacementNamed('/');
+      Sint.offNamed('/');
     }
   }
 
@@ -142,7 +159,7 @@ class _DeferredLoaderState extends State<DeferredLoader> {
                         TextButton(
                           onPressed: _leave,
                           child: Text(
-                            Navigator.of(context).canPop()
+                            Sint.canPop
                                 ? messages.back
                                 : messages.home,
                           ),
@@ -154,7 +171,23 @@ class _DeferredLoaderState extends State<DeferredLoader> {
               ),
             );
           }
-          return widget.builder();
+          try {
+            final built = widget.builder();
+            _recoveryScheduled = false;
+            return built;
+          } on Error catch (error) {
+            if (error.toString().contains('Deferred library') &&
+                _recoveryScheduled != true) {
+              _recoveryScheduled = true;
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) _retry();
+              });
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
+            rethrow;
+          }
         }
         return const Scaffold(body: Center(child: CircularProgressIndicator()));
       },

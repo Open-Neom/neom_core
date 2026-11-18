@@ -8,6 +8,7 @@ import '../../domain/repository/mate_repository.dart';
 import '../../utils/enums/profile_type.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
+import 'core_firestore_guard.dart';
 import 'profile_document_locator.dart';
 import 'facility_firestore.dart';
 import 'genre_firestore.dart';
@@ -17,8 +18,10 @@ import 'place_firestore.dart';
 class MateFirestore implements MateRepository {
 
   var logger = AppConfig.logger;
-  final usersReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.users);
-  final profileReference = FirebaseFirestore.instance.collectionGroup(AppFirestoreCollectionConstants.profiles);
+  CollectionReference<Map<String, dynamic>> get usersReference =>
+      FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.users);
+  Query<Map<String, dynamic>> get profileReference =>
+      FirebaseFirestore.instance.collectionGroup(AppFirestoreCollectionConstants.profiles);
   final _profileLocator = ProfileDocumentLocator();
 
   /// Profile document for [profileId]. Delegates to the shared locator so the
@@ -28,13 +31,15 @@ class MateFirestore implements MateRepository {
 
   /// OPTIMIZED: Helper to update a profile field
   Future<bool> _updateProfileField(String profileId, Map<String, dynamic> data) async {
+    final cleanId = profileId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanId)) return false;
     try {
-      final docRef = await _getProfileDocumentReference(profileId);
+      final docRef = await _getProfileDocumentReference(cleanId);
       if (docRef != null) {
         await docRef.update(data);
         return true;
       }
-      logger.w('Profile $profileId not found for update');
+      logger.w('Profile $cleanId not found for update');
     } catch (e) {
       logger.e('Error updating profile: $e');
     }
@@ -46,15 +51,16 @@ class MateFirestore implements MateRepository {
     logger.d("Retrieving Itemmate Simple $mateId");
     AppProfile mate = AppProfile();
 
-    if (mateId.isEmpty) {
-      logger.w('Cannot get mate: mateId is empty');
+    final cleanMateId = mateId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanMateId)) {
+      logger.w('Cannot get mate: mateId is invalid');
       return mate;
     }
 
     try {
       // First try: Query by 'id' field
       final querySnapshot = await profileReference
-          .where('id', isEqualTo: mateId)
+          .where('id', isEqualTo: cleanMateId)
           .limit(1)
           .get();
 
@@ -65,7 +71,7 @@ class MateFirestore implements MateRepository {
       } else {
         // Legacy profiles without an `id` field: the shared locator owns that
         // scan and memoizes the result, so it is not repeated per mate.
-        final reference = await _profileLocator.locate(mateId);
+        final reference = await _profileLocator.locate(cleanMateId);
         if (reference != null) {
           final document = await reference.get();
           final data = document.data();
@@ -87,21 +93,28 @@ class MateFirestore implements MateRepository {
 
   @override
   Future<bool> addMate(String profileId, String mateId) async {
-    logger.d("$profileId would be itemmate with $mateId");
+    final cleanProfileId = profileId.trim();
+    final cleanMateId = mateId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanProfileId) ||
+        !CoreFirestoreGuard.isSafeDocId(cleanMateId) ||
+        cleanProfileId == cleanMateId) {
+      return false;
+    }
+    logger.d("$cleanProfileId would be itemmate with $cleanMateId");
 
     try {
       // OPTIMIZED: Update both profiles in parallel using targeted queries
       final results = await Future.wait([
-        _updateProfileField(profileId, {
-          AppFirestoreConstants.itemmates: FieldValue.arrayUnion([mateId])
+        _updateProfileField(cleanProfileId, {
+          AppFirestoreConstants.itemmates: FieldValue.arrayUnion([cleanMateId])
         }),
-        _updateProfileField(mateId, {
-          AppFirestoreConstants.itemmates: FieldValue.arrayUnion([profileId])
+        _updateProfileField(cleanMateId, {
+          AppFirestoreConstants.itemmates: FieldValue.arrayUnion([cleanProfileId])
         }),
       ]);
 
       if (results.every((success) => success)) {
-        logger.d("$profileId and $mateId are itemmates now");
+        logger.d("$cleanProfileId and $cleanMateId are itemmates now");
         return true;
       }
     } catch (e) {
@@ -114,21 +127,27 @@ class MateFirestore implements MateRepository {
 
   @override
   Future<bool> removeMate(String profileId, String mateId) async {
-    logger.d("$profileId would not be itemmate with $mateId");
+    final cleanProfileId = profileId.trim();
+    final cleanMateId = mateId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanProfileId) ||
+        !CoreFirestoreGuard.isSafeDocId(cleanMateId)) {
+      return false;
+    }
+    logger.d("$cleanProfileId would not be itemmate with $cleanMateId");
 
     try {
       // OPTIMIZED: Update both profiles in parallel using targeted queries
       final results = await Future.wait([
-        _updateProfileField(profileId, {
-          AppFirestoreConstants.itemmates: FieldValue.arrayRemove([mateId])
+        _updateProfileField(cleanProfileId, {
+          AppFirestoreConstants.itemmates: FieldValue.arrayRemove([cleanMateId])
         }),
-        _updateProfileField(mateId, {
-          AppFirestoreConstants.itemmates: FieldValue.arrayRemove([profileId])
+        _updateProfileField(cleanMateId, {
+          AppFirestoreConstants.itemmates: FieldValue.arrayRemove([cleanProfileId])
         }),
       ]);
 
       if (results.every((success) => success)) {
-        logger.d("$profileId and $mateId are not mates now");
+        logger.d("$cleanProfileId and $cleanMateId are not mates now");
         return true;
       }
     } catch (e) {
@@ -151,16 +170,13 @@ class MateFirestore implements MateRepository {
     Map<String, AppProfile> itemmates = {};
     if(mateIds.isEmpty) return itemmates;
 
-    // Filter out empty IDs
-    final validIds = mateIds.where((id) => id.isNotEmpty).toList();
-    if (validIds.isEmpty) return itemmates;
+    final chunks = CoreFirestoreGuard.chunkValidIds(mateIds);
+    if (chunks.isEmpty) return itemmates;
 
     try {
       // OPTIMIZED: Query by 'id' field using whereIn
       // (collectionGroup queries don't support FieldPath.documentId with simple IDs)
-      const batchSize = 30;
-      for (var i = 0; i < validIds.length; i += batchSize) {
-        final batch = validIds.skip(i).take(batchSize).toList();
+      for (final batch in chunks) {
         final querySnapshot = await profileReference
             .where('id', whereIn: batch)
             .get();

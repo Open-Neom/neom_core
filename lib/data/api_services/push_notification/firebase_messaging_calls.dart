@@ -20,6 +20,76 @@ class FirebaseMessagingCalls {
   /// This helps reduce FCM costs by limiting mass notifications.
   /// Users beyond this limit will still get ActivityFeed notifications in-app.
   static const int maxPushNotificationsPerBatch = 100;
+  static const int _maxFcmResponseBytes = 64 * 1024;
+  static final RegExp _safeFirebaseProjectIdRe = RegExp(
+    r'^[a-z0-9][a-z0-9-]{3,62}$',
+  );
+  static final RegExp _headerControlCharsRe = RegExp(r'[\x00-\x1F\x7F]');
+
+  /// Redacts an FCM registration token for diagnostic logs without throwing
+  /// `RangeError` on short tokens or leaking token prefixes.
+  static String redactTokenForLog(String raw) {
+    final trimmed = raw.trim();
+    if (trimmed.isEmpty) return '<empty>';
+    return '***(${trimmed.length} chars)';
+  }
+
+  /// Builds a validated `https://fcm.googleapis.com/v1/projects/<id>/messages:send`
+  /// URI, rejecting path traversal or malformed Firebase project IDs.
+  static Uri? buildSafeFcmSendUri(String rawProjectId) {
+    final cleanId = rawProjectId.trim();
+    if (!_safeFirebaseProjectIdRe.hasMatch(cleanId)) return null;
+    final fcmUrl = AppGoogleUtilities.fcmGoogleAPIUrl.replaceFirst(
+      AppGoogleUtilities.projectId,
+      cleanId,
+    );
+    final uri = Uri.tryParse(fcmUrl);
+    if (uri == null ||
+        uri.scheme.toLowerCase() != 'https' ||
+        uri.userInfo.isNotEmpty ||
+        uri.host.toLowerCase() != 'fcm.googleapis.com') {
+      return null;
+    }
+    return uri;
+  }
+
+  static Future<http.Response> _postFcmNoRedirect(
+    Uri uri, {
+    required String accessToken,
+    required String body,
+    http.Client? injectedClient,
+  }) async {
+    final cleanToken = accessToken.replaceAll(_headerControlCharsRe, '').trim();
+    if (cleanToken.isEmpty) {
+      throw const FormatException('Invalid empty OAuth2 access token');
+    }
+    final client = injectedClient ?? http.Client();
+    try {
+      final req = http.Request('POST', uri)
+        ..followRedirects = false
+        ..headers['Content-Type'] = 'application/json'
+        ..headers['Authorization'] = 'Bearer $cleanToken'
+        ..body = body;
+      final streamed =
+          await client.send(req).timeout(const Duration(seconds: 10));
+      final chunks = <int>[];
+      await for (final chunk in streamed.stream.timeout(const Duration(seconds: 10))) {
+        if (chunks.length + chunk.length > _maxFcmResponseBytes) {
+          throw const FormatException('FCM response exceeded 64 KiB');
+        }
+        chunks.addAll(chunk);
+      }
+      return http.Response.bytes(
+        chunks,
+        streamed.statusCode,
+        headers: streamed.headers,
+      );
+    } finally {
+      if (injectedClient == null) {
+        client.close();
+      }
+    }
+  }
 
   /// Sends push notifications to multiple users with a limit.
   /// Only the first [maxPushNotificationsPerBatch] users will receive push notifications.
@@ -83,7 +153,7 @@ class FirebaseMessagingCalls {
       }
 
       AppConfig.logger.d("Sending push notification to profile $toProfileId");
-      AppConfig.logger.d("FCM Token: ${recipientFcmToken.substring(0, 20)}...");
+      AppConfig.logger.d("FCM Token: ${redactTokenForLog(recipientFcmToken)}");
 
       // Secure path: proxy via Cloud Function (no credentials on the device).
       final sentViaCloud = await CloudProperties.sendNotificationViaCloud(
@@ -127,25 +197,23 @@ class FirebaseMessagingCalls {
       ));
 
       // Build FCM URL
-      String fcmUrl = AppGoogleUtilities.fcmGoogleAPIUrl.replaceFirst(
-        AppGoogleUtilities.projectId,
-        AppProperties.getFirebaseProjectId(),
-      );
+      final fcmUri = buildSafeFcmSendUri(AppProperties.getFirebaseProjectId());
+      if (fcmUri == null) {
+        AppConfig.logger.e('Invalid Firebase projectId for FCM send endpoint');
+        return null;
+      }
 
-      // Send the notification
-      response = await http.post(
-        Uri.parse(fcmUrl),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $accessToken',
-        },
+      // Send the notification without following redirects (protects Bearer token)
+      response = await _postFcmNoRedirect(
+        fcmUri,
+        accessToken: accessToken,
         body: body,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         AppConfig.logger.i("Push notification sent successfully to $toProfileId");
       } else {
-        AppConfig.logger.e("Firebase Messaging Error: ${response.statusCode} - ${response.body}");
+        AppConfig.logger.e("Firebase Messaging Error: ${response.statusCode}");
       }
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'sendPrivatePushNotification');
@@ -198,22 +266,22 @@ class FirebaseMessagingCalls {
       String body = jsonEncode(buildPublicPayload(notificationType, title: title, message: message,
           fromProfile: fromProfile, toProfileId: toProfileId, referenceId: referenceId, imgUrl: imgUrl));
 
-      String fcmUrl = AppGoogleUtilities.fcmGoogleAPIUrl.replaceFirst(AppGoogleUtilities.projectId, AppProperties.getFirebaseProjectId());
-      Uri uri = Uri.parse(fcmUrl);
+      final fcmUri = buildSafeFcmSendUri(AppProperties.getFirebaseProjectId());
+      if (fcmUri == null) {
+        AppConfig.logger.e('Invalid Firebase projectId for public FCM send endpoint');
+        return null;
+      }
 
-      response = await http.post(
-        uri,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $accessToken',
-        },
+      response = await _postFcmNoRedirect(
+        fcmUri,
+        accessToken: accessToken,
         body: body,
       );
 
       if(response.statusCode == 200 || response.statusCode == 201) {
         AppConfig.logger.i("Firebase Messaginng Response returned as: ${response.statusCode}");
       } else {
-        AppConfig.logger.e("Firebase Messaging Error: ${response.statusCode} - ${response.body}");
+        AppConfig.logger.e("Firebase Messaging Error: ${response.statusCode}");
       }
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'sendPublicPushNotification');
@@ -302,7 +370,7 @@ class FirebaseMessagingCalls {
         "message": messagePayload
       };
 
-      AppConfig.logger.d("FCM Payload built for token: ${profileFCMToken.substring(0, 20)}...");
+      AppConfig.logger.d("FCM Payload built for token: ${redactTokenForLog(profileFCMToken)}");
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'buildPrivatePayload');
     }
@@ -402,15 +470,18 @@ class FirebaseMessagingCalls {
     String? accessToken;
     String serviceAccount = jsonEncode(CloudProperties.serviceAccount);
 
+    final authClient = http.Client();
     try {
       auth.ServiceAccountCredentials credentials = auth.ServiceAccountCredentials.fromJson(serviceAccount);
       var scopes = ['https://www.googleapis.com/auth/firebase.messaging'];
 
       auth.AccessCredentials accessCredentials = await auth.obtainAccessCredentialsViaServiceAccount(
-          credentials, scopes, http.Client());
+          credentials, scopes, authClient);
       accessToken = accessCredentials.accessToken.data;
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'getAccessToken');
+    } finally {
+      authClient.close();
     }
 
     return accessToken;

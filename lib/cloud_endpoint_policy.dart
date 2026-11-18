@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 
+import 'utils/core_utilities.dart';
+
 /// Resolves direct HTTP Cloud Function endpoints without letting debug/profile
 /// builds reach production by accident.
 ///
@@ -53,6 +55,51 @@ class CloudEndpointPolicy {
     );
   }
 
+  static const Set<String> _forbiddenProtoKeys = <String>{
+    '__proto__',
+    'constructor',
+    'prototype',
+  };
+  static final RegExp _safeEndpointSegmentPattern = RegExp(
+    r'^[A-Za-z0-9._-]{1,128}$',
+  );
+  static final RegExp _unsafeEmulatorHostChars = RegExp(
+    r'[\x00-\x20\x7F-\x9F/\\@?#\u0085\u061C\u200B-\u200F\u2028-\u202E\u2060-\u2064\u2066-\u2069\u3002\uFF0E\uFF61\uFEFF]',
+  );
+  static final RegExp _rawEncodedTraversalRe = RegExp(
+    r'%(?:2e|2f|5c|25|00)',
+    caseSensitive: false,
+  );
+
+  static bool _isSafeEndpointSegment(String raw) =>
+      _safeEndpointSegmentPattern.hasMatch(raw) &&
+      raw != '.' &&
+      raw != '..' &&
+      !raw.contains('..') &&
+      !(raw.startsWith('__') && raw.endsWith('__')) &&
+      !_forbiddenProtoKeys.contains(raw.toLowerCase());
+
+  static bool _hasRawUrlTraversal(String rawUrl) {
+    if (rawUrl.contains(r'\') || _rawEncodedTraversalRe.hasMatch(rawUrl)) {
+      return true;
+    }
+    final schemeIdx = rawUrl.indexOf('://');
+    if (schemeIdx <= 0) return true;
+    final afterScheme = rawUrl.substring(schemeIdx + 3);
+    final beforeQuery = afterScheme.split('?').first.split('#').first;
+    final slashIdx = beforeQuery.indexOf('/');
+    if (slashIdx < 0) return false;
+    final rawPath = beforeQuery.substring(slashIdx);
+    for (final seg in rawPath.split('/')) {
+      if (seg == '.' ||
+          seg == '..' ||
+          _forbiddenProtoKeys.contains(seg.toLowerCase())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   @visibleForTesting
   static String resolveFunctionUrl({
     required String functionName,
@@ -64,7 +111,24 @@ class CloudEndpointPolicy {
     String projectId = 'demo-emxi-local',
     String region = 'us-central1',
   }) {
-    if (isRelease) return productionUrl;
+    if (isRelease) {
+      final trimmedProd = productionUrl.trim();
+      if (_hasRawUrlTraversal(trimmedProd)) {
+        throw StateError(
+          'URL productiva insegura o invalida para "$functionName".',
+        );
+      }
+      final prodUri = Uri.tryParse(trimmedProd);
+      if (prodUri == null ||
+          prodUri.scheme.toLowerCase() != 'https' ||
+          prodUri.userInfo.isNotEmpty ||
+          !CoreUtilities.isSafePublicMediaUri(prodUri)) {
+        throw StateError(
+          'URL productiva insegura o invalida para "$functionName".',
+        );
+      }
+      return trimmedProd;
+    }
 
     if (!usesEmulators) {
       throw StateError(
@@ -74,11 +138,16 @@ class CloudEndpointPolicy {
       );
     }
 
-    if (functionName.isEmpty ||
-        host.isEmpty ||
+    final cleanHost = host.trim();
+    if (!_isSafeEndpointSegment(functionName) ||
+        cleanHost.isEmpty ||
+        cleanHost.length > 255 ||
+        _unsafeEmulatorHostChars.hasMatch(cleanHost) ||
+        !port.toDouble().isFinite ||
         port <= 0 ||
-        projectId.isEmpty ||
-        region.isEmpty) {
+        port > 65535 ||
+        !_isSafeEndpointSegment(projectId) ||
+        !_isSafeEndpointSegment(region)) {
       throw StateError(
         'Configuracion invalida del Functions Emulator para "$functionName".',
       );
@@ -86,7 +155,7 @@ class CloudEndpointPolicy {
 
     return Uri(
       scheme: 'http',
-      host: host,
+      host: cleanHost,
       port: port,
       pathSegments: [projectId, region, functionName],
     ).toString();

@@ -21,6 +21,7 @@ import '../../utils/enums/place_type.dart';
 import '../../utils/enums/profile_type.dart';
 import '../../utils/enums/subscription_level.dart';
 import '../../utils/enums/subscription_status.dart';
+import '../../utils/enums/user_role.dart';
 import '../../utils/neom_error_logger.dart';
 import '../api/app_platform_api.dart';
 import '../firestore/profile_firestore.dart';
@@ -498,16 +499,30 @@ class SubscriptionController extends SintController implements SubscriptionServi
       return;
     }
 
-    List<UserSubscription> subscriptions = await UserSubscriptionFirestore().getAll();
-    if(subscriptions.isNotEmpty) {
-      for(UserSubscription subscription in subscriptions) {
-        if(subscription.status == SubscriptionStatus.active && subscription.level != null) {
-          if(_activeSubscriptions[subscription.level] == null) {
-            _activeSubscriptions[subscription.level!] = [];
+    try {
+      final userRole = userServiceImpl.user.userRole;
+      if (userRole != UserRole.admin && userRole != UserRole.superAdmin) {
+        // Non-staff sessions: guard against querying all user subscriptions which fails with PERMISSION_DENIED.
+        // Instead, safely register current user's active subscription if available.
+        final userSub = userServiceImpl.userSubscription;
+        if (userSub != null && userSub.status == SubscriptionStatus.active && userSub.level != null) {
+          _activeSubscriptions[userSub.level!] = [userSub];
+        }
+        return;
+      }
+      List<UserSubscription> subscriptions = await UserSubscriptionFirestore().getAll();
+      if(subscriptions.isNotEmpty) {
+        for(UserSubscription subscription in subscriptions) {
+          if(subscription.status == SubscriptionStatus.active && subscription.level != null) {
+            if(_activeSubscriptions[subscription.level] == null) {
+              _activeSubscriptions[subscription.level!] = [];
+            }
+            _activeSubscriptions[subscription.level]?.add(subscription);
           }
-          _activeSubscriptions[subscription.level]?.add(subscription);
         }
       }
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'loadActiveSubscriptions');
     }
   }
 

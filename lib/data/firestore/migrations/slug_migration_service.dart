@@ -17,9 +17,9 @@ import '../constants/app_firestore_collection_constants.dart';
 /// WriteBatch commits every 500 documents.
 class SlugMigrationService {
 
-  static const int _batchLimit = 500;
+  static const int _batchLimit = 450;
 
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  FirebaseFirestore get _firestore => FirebaseFirestore.instance;
 
   /// Per-collection statistics from the last run.
   Map<String, SlugMigrationStats> collectionStats = {};

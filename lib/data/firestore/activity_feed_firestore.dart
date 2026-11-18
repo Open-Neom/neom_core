@@ -9,27 +9,35 @@ import '../../utils/enums/activity_feed_type.dart';
 import '../../utils/neom_error_logger.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
+import 'core_firestore_guard.dart';
 
 class ActivityFeedFirestore implements ActivityFeedRepository {
 
-  final activityFeedReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.activityFeed);
-  final feedItemsReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.activityFeedItems);
-  final globalActivityFeedReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.globalActivityFeed);
+  FirebaseFirestore get _firestore => FirebaseFirestore.instance;
+  CollectionReference<Map<String, dynamic>> get activityFeedReference =>
+      _firestore.collection(AppFirestoreCollectionConstants.activityFeed);
+  CollectionReference<Map<String, dynamic>> get feedItemsReference =>
+      _firestore.collection(AppFirestoreCollectionConstants.activityFeedItems);
+  CollectionReference<Map<String, dynamic>> get globalActivityFeedReference =>
+      _firestore.collection(AppFirestoreCollectionConstants.globalActivityFeed);
 
   @override
   Future<void> removeActivityById(String ownerId, String activityFeedId) async {
-    AppConfig.logger.d("removeActivityById for ownerId $ownerId & activityFeedId $activityFeedId");
+    final cleanOwnerId = ownerId.trim();
+    final cleanFeedId = activityFeedId.trim();
+    AppConfig.logger.d("removeActivityById for ownerId $cleanOwnerId & activityFeedId $cleanFeedId");
 
-    if (ownerId.isEmpty || activityFeedId.isEmpty) {
-      AppConfig.logger.w("Owner ID or Activity Feed ID is empty");
+    if (!CoreFirestoreGuard.isSafeDocId(cleanOwnerId) ||
+        !CoreFirestoreGuard.isSafeDocId(cleanFeedId)) {
+      AppConfig.logger.w("Owner ID or Activity Feed ID is invalid");
       return;
     }
 
     try {
       // OPTIMIZED: Use await instead of .then() and direct delete
-      final docRef = activityFeedReference.doc(ownerId)
+      final docRef = activityFeedReference.doc(cleanOwnerId)
           .collection(AppFirestoreCollectionConstants.activityFeedItems)
-          .doc(activityFeedId);
+          .doc(cleanFeedId);
       final doc = await docRef.get();
       if (doc.exists) await docRef.delete();
     } catch (e, st) {
@@ -41,20 +49,22 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
   @override
   Future<void> removeByReferenceActivity(String ownerId, ActivityFeedType activityFeedType,
       {String activityReferenceId = ""}) async {
+    final cleanOwnerId = ownerId.trim();
+    final cleanRefId = activityReferenceId.trim();
 
-    AppConfig.logger.d("removeByReferenceActivity for ownerId $ownerId,"
-        " activityFeedType $activityFeedType, activityReferenceId $activityReferenceId");
+    AppConfig.logger.d("removeByReferenceActivity for ownerId $cleanOwnerId,"
+        " activityFeedType $activityFeedType, activityReferenceId $cleanRefId");
 
-    if (activityReferenceId.isEmpty) {
-      AppConfig.logger.w("activityReferenceId is empty, skipping removal");
+    if (!CoreFirestoreGuard.isSafeDocId(cleanOwnerId) || cleanRefId.isEmpty) {
+      AppConfig.logger.w("ownerId or activityReferenceId is invalid, skipping removal");
       return;
     }
 
     try {
       // OPTIMIZED: Use where query instead of fetching all activities
       QuerySnapshot querySnapshot = await activityFeedReference
-          .doc(ownerId).collection(AppFirestoreCollectionConstants.activityFeedItems)
-          .where(AppFirestoreConstants.activityReferenceId, isEqualTo: activityReferenceId)
+          .doc(cleanOwnerId).collection(AppFirestoreCollectionConstants.activityFeedItems)
+          .where(AppFirestoreConstants.activityReferenceId, isEqualTo: cleanRefId)
           .where(AppFirestoreConstants.activityFeedType, isEqualTo: activityFeedType.name)
           .limit(10) // Usually only a few activities per reference
           .get();
@@ -74,14 +84,16 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
   @override
   Future<String> insert(ActivityFeed activityFeed) async {
     //add only activity my by other user (to avoid getting notification for our own like)
-    AppConfig.logger.d("Inserting activity feed for ${activityFeed.ownerId} with type ${activityFeed.activityFeedType}");
-    bool isNotActivityOwner = activityFeed.profileId != activityFeed.ownerId;
+    final cleanOwnerId = activityFeed.ownerId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanOwnerId)) return "";
+    AppConfig.logger.d("Inserting activity feed for $cleanOwnerId with type ${activityFeed.activityFeedType}");
+    bool isNotActivityOwner = activityFeed.profileId != cleanOwnerId;
     String activityFeedId = "";
 
     try {
       if(isNotActivityOwner) {
         DocumentReference documentReference = await activityFeedReference
-            .doc(activityFeed.ownerId)
+            .doc(cleanOwnerId)
             .collection(AppFirestoreCollectionConstants.activityFeedItems)
             .add(activityFeed.toJSON());
 
@@ -97,11 +109,13 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
 
   @override
   Future<List<ActivityFeed>> retrieve(String profileId) async {
-    AppConfig.logger.t("Retrieving activity feed for profile $profileId");
+    final cleanProfileId = profileId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanProfileId)) return [];
+    AppConfig.logger.t("Retrieving activity feed for profile $cleanProfileId");
     List<ActivityFeed> feedItems=[];
 
     try {
-      QuerySnapshot querySnapshot = await activityFeedReference.doc(profileId)
+      QuerySnapshot querySnapshot = await activityFeedReference.doc(cleanProfileId)
           .collection(AppFirestoreCollectionConstants.activityFeedItems)
           .orderBy(AppFirestoreConstants.createdTime, descending: true)
           .limit(CoreConstants.activityFeedLimit)
@@ -120,47 +134,60 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
 
   @override
   Future<bool> removePostActivity(String postId) async {
-    AppConfig.logger.t("Removing post $postId");
+    final cleanPostId = postId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanPostId)) return false;
+    AppConfig.logger.t("Removing post $cleanPostId");
     bool postActivityFeedRemoved = false;
-    QuerySnapshot querySnapshot = await feedItemsReference
-        .where(AppFirestoreConstants.activityFeedId, isEqualTo: postId)
-        .get();
+    try {
+      QuerySnapshot querySnapshot = await feedItemsReference
+          .where(AppFirestoreConstants.activityFeedId, isEqualTo: cleanPostId)
+          .limit(500)
+          .get();
 
-    int activityFeedCounter = 0;
-    if (querySnapshot.docs.isNotEmpty) {
-      AppConfig.logger.d("Snapshot is not empty ${querySnapshot.docs.length} results found");
-      for (var snapshot in querySnapshot.docs) {
-        await snapshot.reference.delete();
-        activityFeedCounter++;
+      int activityFeedCounter = 0;
+      if (querySnapshot.docs.isNotEmpty) {
+        AppConfig.logger.d("Snapshot is not empty ${querySnapshot.docs.length} results found");
+        for (var snapshot in querySnapshot.docs) {
+          await snapshot.reference.delete();
+          activityFeedCounter++;
+        }
+
+        postActivityFeedRemoved = true;
+        AppConfig.logger.d("$activityFeedCounter were removed from feed Collection");
       }
-
-      postActivityFeedRemoved = true;
-      AppConfig.logger.d("$activityFeedCounter were removed from feed Collection");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'removePostActivity');
     }
 
     return postActivityFeedRemoved;
-
   }
 
 
   @override
   Future<bool> removeEventActivity(String eventId) async {
-    AppConfig.logger.t("Remove event activity for $eventId");
+    final cleanEventId = eventId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanEventId)) return false;
+    AppConfig.logger.t("Remove event activity for $cleanEventId");
     bool eventActivityFeedRemoved = false;
-    QuerySnapshot querySnapshot = await feedItemsReference
-        .where(AppFirestoreConstants.activityFeedId, isEqualTo: eventId)
-        .get();
+    try {
+      QuerySnapshot querySnapshot = await feedItemsReference
+          .where(AppFirestoreConstants.activityFeedId, isEqualTo: cleanEventId)
+          .limit(500)
+          .get();
 
-    int activityFeedCounter = 0;
-    if (querySnapshot.docs.isNotEmpty) {
-      AppConfig.logger.d("Snapshot is not empty ${querySnapshot.docs.length} results found");
-      for (var snapshot in querySnapshot.docs) {
-        await snapshot.reference.delete();
-        activityFeedCounter++;
+      int activityFeedCounter = 0;
+      if (querySnapshot.docs.isNotEmpty) {
+        AppConfig.logger.d("Snapshot is not empty ${querySnapshot.docs.length} results found");
+        for (var snapshot in querySnapshot.docs) {
+          await snapshot.reference.delete();
+          activityFeedCounter++;
+        }
+
+        eventActivityFeedRemoved = true;
+        AppConfig.logger.d("$activityFeedCounter were removed from feed Collection");
       }
-
-      eventActivityFeedRemoved = true;
-      AppConfig.logger.d("$activityFeedCounter were removed from feed Collection");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'removeEventActivity');
     }
 
     return eventActivityFeedRemoved;
@@ -169,23 +196,30 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
 
   @override
   Future<bool> removeRequestActivity(String requestId) async {
+    final cleanRequestId = requestId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanRequestId)) return false;
     AppConfig.logger.d("");
     bool eventActivityFeedRemoved = false;
-    QuerySnapshot querySnapshot = await feedItemsReference
-        .where(AppFirestoreConstants.activityFeedId, isEqualTo: requestId)
-        .get();
+    try {
+      QuerySnapshot querySnapshot = await feedItemsReference
+          .where(AppFirestoreConstants.activityFeedId, isEqualTo: cleanRequestId)
+          .limit(500)
+          .get();
 
-    int activityFeedCounter = 0;
-    if (querySnapshot.docs.isNotEmpty) {
-      AppConfig.logger.d("Snapshot is not empty ${querySnapshot.docs.length} results found");
+      int activityFeedCounter = 0;
+      if (querySnapshot.docs.isNotEmpty) {
+        AppConfig.logger.d("Snapshot is not empty ${querySnapshot.docs.length} results found");
 
-      for (var snapshot in querySnapshot.docs) {
-        await snapshot.reference.delete();
-        activityFeedCounter++;
+        for (var snapshot in querySnapshot.docs) {
+          await snapshot.reference.delete();
+          activityFeedCounter++;
+        }
+
+        eventActivityFeedRemoved = true;
+        AppConfig.logger.d("$activityFeedCounter were removed from feed Collection");
       }
-
-      eventActivityFeedRemoved = true;
-      AppConfig.logger.d("$activityFeedCounter were removed from feed Collection");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'removeRequestActivity');
     }
 
     return eventActivityFeedRemoved;
@@ -207,12 +241,18 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
 
   @override
   Future<void> setAsRead({required String ownerId, required String activityFeedId}) async {
+    final cleanOwnerId = ownerId.trim();
+    final cleanFeedId = activityFeedId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanOwnerId) ||
+        !CoreFirestoreGuard.isSafeDocId(cleanFeedId)) {
+      return;
+    }
     AppConfig.logger.d("");
 
     try {
-      activityFeedReference.doc(ownerId)
+      await activityFeedReference.doc(cleanOwnerId)
           .collection(AppFirestoreCollectionConstants.activityFeedItems)
-          .doc(activityFeedId).update({
+          .doc(cleanFeedId).update({
             AppFirestoreConstants.unread: false
           });
     } catch (e, st) {
@@ -223,12 +263,14 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
   /// OPTIMIZED: Future-based method to get unread notifications count once.
   /// Use this instead of streams for polling-based updates to reduce Firestore reads.
   Future<int> getUnreadNotificationsCount(String profileId) async {
-    AppConfig.logger.t("Getting unread notifications count for profile $profileId");
+    final cleanProfileId = profileId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanProfileId)) return 0;
+    AppConfig.logger.t("Getting unread notifications count for profile $cleanProfileId");
 
     try {
       // Use count() aggregation if available (Firestore 3.x+), otherwise use limited query
       final querySnapshot = await activityFeedReference
-          .doc(profileId)
+          .doc(cleanProfileId)
           .collection(AppFirestoreCollectionConstants.activityFeedItems)
           .where(AppFirestoreConstants.unread, isEqualTo: true)
           .limit(20) // OPTIMIZED: Reduced limit - only need to know if there are unread items
@@ -248,10 +290,14 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
   /// Limita a 100 para evitar lecturas excesivas - si hay más de 99, muestra "99+"
   @Deprecated('Use getUnreadNotificationsCount() with polling instead to reduce Firestore reads')
   Stream<int> getUnreadNotificationsCountStream(String profileId) {
-    AppConfig.logger.t("Starting unread notifications count stream for profile $profileId");
+    final cleanProfileId = profileId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanProfileId)) {
+      return Stream<int>.value(0);
+    }
+    AppConfig.logger.t("Starting unread notifications count stream for profile $cleanProfileId");
 
     return activityFeedReference
-        .doc(profileId)
+        .doc(cleanProfileId)
         .collection(AppFirestoreCollectionConstants.activityFeedItems)
         .where(AppFirestoreConstants.unread, isEqualTo: true)
         .limit(100) // Limit to reduce Firestore reads
@@ -288,13 +334,14 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
   /// [lastCheckTime] - Only get notifications after this timestamp (milliseconds)
   /// [limit] - Maximum number of notifications to retrieve
   Future<List<ActivityFeed>> retrieveGlobal({int lastCheckTime = 0, int limit = 20}) async {
+    final safeLimit = CoreFirestoreGuard.clampLimit(limit, defaultLimit: 20, maxLimit: 200);
     AppConfig.logger.t("Retrieving global notifications since $lastCheckTime");
     List<ActivityFeed> globalFeedItems = [];
 
     try {
       Query query = globalActivityFeedReference
           .orderBy(AppFirestoreConstants.createdTime, descending: true)
-          .limit(limit);
+          .limit(safeLimit);
 
       // If lastCheckTime is provided, only get newer notifications
       if (lastCheckTime > 0) {
@@ -324,18 +371,20 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
     AppConfig.logger.d("Inserting ${activityFeeds.length} activity feeds in batch");
 
     try {
-      // Firestore batch limit is 500 operations
-      const batchLimit = 500;
+      // Safe margin below Firestore 500 operations/batch ceiling
+      const batchLimit = 450;
       final batches = <WriteBatch>[];
-      var currentBatch = FirebaseFirestore.instance.batch();
+      var currentBatch = _firestore.batch();
       var operationCount = 0;
 
       for (final activityFeed in activityFeeds) {
+        final cleanOwnerId = activityFeed.ownerId.trim();
+        if (!CoreFirestoreGuard.isSafeDocId(cleanOwnerId)) continue;
         // Skip if profile is the owner (no self-notifications)
-        if (activityFeed.profileId == activityFeed.ownerId) continue;
+        if (activityFeed.profileId == cleanOwnerId) continue;
 
         final docRef = activityFeedReference
-            .doc(activityFeed.ownerId)
+            .doc(cleanOwnerId)
             .collection(AppFirestoreCollectionConstants.activityFeedItems)
             .doc(); // Auto-generate ID
 
@@ -345,7 +394,7 @@ class ActivityFeedFirestore implements ActivityFeedRepository {
         // If we hit the batch limit, save this batch and start a new one
         if (operationCount >= batchLimit) {
           batches.add(currentBatch);
-          currentBatch = FirebaseFirestore.instance.batch();
+          currentBatch = _firestore.batch();
           operationCount = 0;
         }
       }

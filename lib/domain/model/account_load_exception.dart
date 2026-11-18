@@ -8,6 +8,7 @@ enum AccountLoadFailure {
   unavailable,
   timeout,
   invalidData,
+  emailVerificationRequired,
 }
 
 /// Account loading failed; this is never evidence that an account is new.

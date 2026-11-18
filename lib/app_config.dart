@@ -5,13 +5,12 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'utils/neom_logger.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sint/sint.dart';
+import 'package:sint_sentinel/sint_sentinel_core.dart';
 
 import 'app_properties.dart';
 import 'cloud_properties.dart';
-import 'utils/neom_error_logger.dart';
 import 'data/firestore/app_info_firestore.dart';
 import 'data/implementations/app_hive_controller.dart';
 import 'domain/model/app_info.dart';
@@ -21,6 +20,8 @@ import 'domain/use_cases/user_service.dart';
 import 'utils/enums/app_in_use.dart';
 import 'utils/enums/auth_status.dart';
 import 'utils/enums/itemlist_type.dart';
+import 'utils/neom_error_logger.dart';
+import 'utils/neom_logger.dart';
 
 class AppConfig {
 
@@ -31,6 +32,8 @@ class AppConfig {
   AppConfig._internal();
 
   bool _isInitialized = false;
+
+  final AppProperties appProperties = AppProperties();
 
   AppInUse appInUse = AppInUse.o;
   String appVersion = '';
@@ -91,6 +94,22 @@ class AppConfig {
   int timelinePromoFrequency = 10;
   Map<AppInUse, String> promoEndpoints = {};
 
+  bool appInfoLoaded = false;
+  final List<void Function(AppInfo)> _appInfoListeners = [];
+
+  void addAppInfoListener(void Function(AppInfo) listener) {
+    if (!_appInfoListeners.contains(listener)) {
+      _appInfoListeners.add(listener);
+    }
+    if (appInfoLoaded) {
+      listener(appInfo);
+    }
+  }
+
+  void removeAppInfoListener(void Function(AppInfo) listener) {
+    _appInfoListeners.remove(listener);
+  }
+
 
   /// Inicialización manual para controlar mejor el ciclo de vida
 
@@ -106,6 +125,15 @@ class AppConfig {
       appInUse = app;
       CloudProperties.appInUse = app;
       NeomErrorLogger.appInUseName = app.name;
+      if (!SintSentinel.isInitialized) {
+        unawaited(
+          SintSentinel.init(
+            config: kDebugMode
+                ? SentinelConfig.development()
+                : SentinelConfig.ecosystem(),
+          ),
+        );
+      }
       _initCrashlytics();
       _initFirestoreSettings();
       // _getAppInfo() does a Firestore round-trip and is only used by
@@ -166,7 +194,15 @@ class AppConfig {
       appInfo = await AppInfoFirestore().retrieve();
       lastStableVersion = appInfo.version;
       lastStableBuild = appInfo.build;
+      appInfoLoaded = true;
       AppConfig.logger.d(appInfo.toString());
+      for (final listener in List<void Function(AppInfo)>.from(_appInfoListeners)) {
+        try {
+          listener(appInfo);
+        } catch (e) {
+          logger.w("AppInfo listener error: $e");
+        }
+      }
     } else {
       AppConfig.logger.w("Firebase not initialized, cannot retrieve app info.");
       lastStableVersion = "0.0.0";

@@ -16,6 +16,8 @@ class AppInfo {
   bool releaseRevisionEnabled;
   bool demoReleaseEnabled;
   bool showAds;
+  bool? showAdsExplicit;
+  Map<String, dynamic> adConfig;
 
   AppInfo({
     this.version = "",
@@ -31,6 +33,8 @@ class AppInfo {
     this.releaseRevisionEnabled = false,
     this.demoReleaseEnabled = false,
     this.showAds = false,
+    this.showAdsExplicit,
+    this.adConfig = const {},
   });
 
 
@@ -52,7 +56,11 @@ class AppInfo {
     maintenanceMode = data["maintenanceMode"] ?? false,
     releaseRevisionEnabled = data["releaseRevisionEnabled"] ?? false,
     demoReleaseEnabled = data["demoReleaseEnabled"] ?? false,
-    showAds = data["showAds"] ?? false;
+    showAds = data["showAds"] ?? false,
+    showAdsExplicit = data["showAds"] is bool ? data["showAds"] as bool : null,
+    adConfig = data["adConfig"] is Map
+        ? Map<String, dynamic>.from(data["adConfig"] as Map)
+        : const {};
 
 
   Map<String, dynamic> toJSON() {
@@ -70,6 +78,7 @@ class AppInfo {
       'releaseRevisionEnabled': releaseRevisionEnabled,
       'demoReleaseEnabled': demoReleaseEnabled,
       'showAds': showAds,
+      if (adConfig.isNotEmpty) 'adConfig': adConfig,
     };
   }
 

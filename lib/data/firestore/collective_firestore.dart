@@ -12,6 +12,7 @@ import '../../domain/repository/collective_repository.dart';
 import '../../utils/enums/owner_type.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
+import 'core_firestore_guard.dart';
 import 'itemlist_firestore.dart';
 import 'profile_firestore.dart';
 import 'request_firestore.dart';
@@ -19,15 +20,18 @@ import 'request_firestore.dart';
 class CollectiveFirestore implements CollectiveRepository {
 
   var logger = AppConfig.logger;
-  final collectivesReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.collectives);
+  CollectionReference<Map<String, dynamic>> get collectivesReference =>
+      FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.collectives);
 
   @override
   Future<Collective> retrieve(String collectiveId) async {
-    logger.t("Retrieving Collectives from firestore");
+    final cleanId = collectiveId.trim();
     Collective collective = Collective();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanId)) return collective;
+    logger.t("Retrieving Collectives from firestore");
 
     try {
-      DocumentSnapshot documentSnapshot = await collectivesReference.doc(collectiveId).get();
+      DocumentSnapshot documentSnapshot = await collectivesReference.doc(cleanId).get();
       // FIXED: Added null check after .data()
       if (documentSnapshot.exists && documentSnapshot.data() != null) {
         collective = Collective.fromJSON(documentSnapshot.data() as Map<String, dynamic>);
@@ -46,10 +50,11 @@ class CollectiveFirestore implements CollectiveRepository {
 
 
   Future<Collective?> getBySlug(String slug) async {
-    if (slug.isEmpty) return null;
+    final cleanSlug = slug.trim();
+    if (cleanSlug.isEmpty) return null;
     try {
       final querySnapshot = await collectivesReference
-          .where('slug', isEqualTo: slug)
+          .where('slug', isEqualTo: cleanSlug)
           .limit(1)
           .get();
       if (querySnapshot.docs.isNotEmpty) {
@@ -134,24 +139,23 @@ class CollectiveFirestore implements CollectiveRepository {
 
 
   Future<bool> addMemberToCollective(CollectiveMember collectiveMember, String collectiveId) async {
-    logger.d("Adding member to collective $collectiveId");
+    final cleanId = collectiveId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanId)) return false;
+    logger.d("Adding member to collective $cleanId");
     bool addedMember = false;
 
     try {
-
-      DocumentSnapshot documentSnapshot = await collectivesReference.doc(collectiveId).get();
-      await documentSnapshot.reference
+      await collectivesReference
+          .doc(cleanId)
           .collection(AppFirestoreCollectionConstants.members)
           .add(collectiveMember.toJSON());
 
       addedMember = true;
-
     } catch (e) {
       logger.e(e.toString());
     }
-    await Future.delayed(const Duration(seconds: 1));
-    addedMember ? logger.d("Member was added to collective $collectiveId") :
-    logger.d("Member was not added to collective $collectiveId");
+    addedMember ? logger.d("Member was added to collective $cleanId") :
+    logger.d("Member was not added to collective $cleanId");
     return addedMember;
   }
 
@@ -159,30 +163,33 @@ class CollectiveFirestore implements CollectiveRepository {
   /// OPTIMIZED: Parallel operations + removeCollectiveRequests called once (not N times)
   @override
   Future<bool> remove(Collective collective) async {
-    logger.d("Removing collective ${collective.id}");
+    final cleanId = collective.id.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanId)) return false;
+    logger.d("Removing collective $cleanId");
     bool wasDeleted = false;
     try {
       final List<Future> operations = [];
 
       // Delete collective document
-      operations.add(collectivesReference.doc(collective.id).delete());
+      operations.add(collectivesReference.doc(cleanId).delete());
 
       // OPTIMIZATION: Remove collective requests ONCE, not once per member
-      operations.add(RequestFirestore().removeCollectiveRequests(collective.id));
+      operations.add(RequestFirestore().removeCollectiveRequests(cleanId));
 
       // OPTIMIZATION: Remove collective from all member profiles in parallel
-      for (var collectiveMemberId in collective.members!.keys) {
+      final memberKeys = collective.members?.keys ?? const <String>[];
+      for (var collectiveMemberId in memberKeys) {
         CollectiveMember collectiveMember = collective.members?[collectiveMemberId] ?? CollectiveMember();
         if (collectiveMemberId == collectiveMember.profileId && collectiveMember.profileId.isNotEmpty) {
           operations.add(
-            ProfileFirestore().removeCollective(profileId: collectiveMember.profileId, collectiveId: collective.id)
+            ProfileFirestore().removeCollective(profileId: collectiveMember.profileId, collectiveId: cleanId)
           );
         }
       }
 
       await Future.wait(operations);
       wasDeleted = true;
-      logger.i("Collective ${collective.id} removed successfully");
+      logger.i("Collective $cleanId removed successfully");
 
     } catch (e) {
       logger.e(e.toString());
@@ -196,13 +203,14 @@ class CollectiveFirestore implements CollectiveRepository {
   /// Also loads members in parallel instead of sequential N+1
   @override
   Future<Map<String, Collective>> getCollectives({int limit = 20}) async {
-    logger.d("Getting collectives with limit: $limit");
+    final safeLimit = CoreFirestoreGuard.clampLimit(limit, defaultLimit: 20, maxLimit: 200);
+    logger.d("Getting collectives with limit: $safeLimit");
     Map<String, Collective> collectives = {};
 
     try {
       QuerySnapshot snapshot = await collectivesReference
           .orderBy(AppFirestoreConstants.createdTime, descending: true)
-          .limit(limit)  // OPTIMIZATION: Prevent full collection scan
+          .limit(safeLimit)  // OPTIMIZATION: Prevent full collection scan
           .get();
 
       logger.d("${snapshot.docs.length} Collectives Found as Snapshot");
@@ -242,15 +250,14 @@ class CollectiveFirestore implements CollectiveRepository {
     logger.d("Retrieving ${collectiveIds.length} collectives from list");
     Map<String, Collective> collectives = {};
 
-    if (collectiveIds.isEmpty) return collectives;
+    final chunks = CoreFirestoreGuard.chunkValidIds(collectiveIds);
+    if (chunks.isEmpty) return collectives;
 
     try {
       // OPTIMIZATION: Use whereIn batches instead of scanning entire collection
-      const batchSize = 10; // Firestore whereIn limit
       final List<Collective> collectiveList = [];
 
-      for (var i = 0; i < collectiveIds.length; i += batchSize) {
-        final batch = collectiveIds.skip(i).take(batchSize).toList();
+      for (final batch in chunks) {
         QuerySnapshot snapshot = await collectivesReference
             .where(FieldPath.documentId, whereIn: batch)
             .get();
@@ -456,40 +463,44 @@ class CollectiveFirestore implements CollectiveRepository {
 
 
   Future<bool> addGenreToCollective(Genre genre, String collectiveId) async {
-
-    logger.d("Adding genre to collective $collectiveId");
+    final cleanId = collectiveId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanId)) return false;
+    logger.d("Adding genre to collective $cleanId");
     bool addedGenre = false;
 
     try {
-
-      DocumentSnapshot documentSnapshot = await collectivesReference.doc(collectiveId).get();
-      await documentSnapshot.reference
+      await collectivesReference
+          .doc(cleanId)
           .collection(AppFirestoreCollectionConstants.genres)
           .add(genre.toJSON());
 
       addedGenre = true;
-
     } catch (e) {
       logger.e(e.toString());
     }
-    await Future.delayed(const Duration(seconds: 1));
-    addedGenre ? logger.d("Genre was added to collective $collectiveId") :
-    logger.d("Genre was not added to collective $collectiveId");
+    addedGenre ? logger.d("Genre was added to collective $cleanId") :
+    logger.d("Genre was not added to collective $cleanId");
     return addedGenre;
   }
 
   /// OPTIMIZED: Direct document access instead of scanning all collectives
   @override
   Future<bool> addPlayingEvent(String collectiveId, String eventId) async {
-    logger.t("$collectiveId would add event $eventId");
+    final cleanCollectiveId = collectiveId.trim();
+    final cleanEventId = eventId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanCollectiveId) ||
+        !CoreFirestoreGuard.isSafeDocId(cleanEventId)) {
+      return false;
+    }
+    logger.t("$cleanCollectiveId would add event $cleanEventId");
 
     try {
       // OPTIMIZATION: Direct document update instead of full collection scan
-      await collectivesReference.doc(collectiveId).update({
-        AppFirestoreConstants.playingEvents: FieldValue.arrayUnion([eventId])
+      await collectivesReference.doc(cleanCollectiveId).update({
+        AppFirestoreConstants.playingEvents: FieldValue.arrayUnion([cleanEventId])
       });
 
-      logger.d("$collectiveId has added event $eventId");
+      logger.d("$cleanCollectiveId has added event $cleanEventId");
       return true;
     } catch (e) {
       logger.e(e.toString());
@@ -500,21 +511,27 @@ class CollectiveFirestore implements CollectiveRepository {
   /// OPTIMIZED: Direct document updates in parallel instead of scanning all collectives
   @override
   Future<bool> addPlayingEventToCollectives(List<String> collectiveIds, String eventId) async {
-    logger.d("$collectiveIds would add $eventId");
+    final cleanEventId = eventId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanEventId)) return false;
+    logger.d("$collectiveIds would add $cleanEventId");
 
-    if (collectiveIds.isEmpty) return true;
+    final validIds = collectiveIds
+        .map((id) => id.trim())
+        .where(CoreFirestoreGuard.isSafeDocId)
+        .toList();
+    if (validIds.isEmpty) return true;
 
     try {
       // OPTIMIZATION: Update each collective directly in parallel
-      final updates = collectiveIds.map((collectiveId) =>
+      final updates = validIds.map((collectiveId) =>
         collectivesReference.doc(collectiveId).update({
-          AppFirestoreConstants.playingEvents: FieldValue.arrayUnion([eventId])
+          AppFirestoreConstants.playingEvents: FieldValue.arrayUnion([cleanEventId])
         })
       );
 
       await Future.wait(updates);
 
-      logger.d("$collectiveIds has added event $eventId");
+      logger.d("$validIds has added event $cleanEventId");
       return true;
     } catch (e) {
       logger.e(e.toString());
@@ -526,15 +543,21 @@ class CollectiveFirestore implements CollectiveRepository {
   /// OPTIMIZED: Direct document access instead of scanning all collectives
   @override
   Future<bool> removePlayingEvent(String collectiveId, String eventId) async {
-    logger.d("Collective $collectiveId would remove event $eventId");
+    final cleanCollectiveId = collectiveId.trim();
+    final cleanEventId = eventId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanCollectiveId) ||
+        !CoreFirestoreGuard.isSafeDocId(cleanEventId)) {
+      return false;
+    }
+    logger.d("Collective $cleanCollectiveId would remove event $cleanEventId");
 
     try {
       // OPTIMIZATION: Direct document update instead of full collection scan
-      await collectivesReference.doc(collectiveId).update({
-        AppFirestoreConstants.playingEvents: FieldValue.arrayRemove([eventId])
+      await collectivesReference.doc(cleanCollectiveId).update({
+        AppFirestoreConstants.playingEvents: FieldValue.arrayRemove([cleanEventId])
       });
 
-      logger.d("$collectiveId has removed event $eventId");
+      logger.d("$cleanCollectiveId has removed event $cleanEventId");
       return true;
     } catch (e) {
       logger.e(e.toString());

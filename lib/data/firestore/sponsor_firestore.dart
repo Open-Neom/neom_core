@@ -12,7 +12,8 @@ import 'constants/app_firestore_constants.dart';
 class SponsorFirestore implements SponsorRepository {
 
   var logger = AppConfig.logger;
-  final sponsorsReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.sponsors);
+  CollectionReference<Map<String, dynamic>> get sponsorsReference =>
+      FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.sponsors);
   List<QueryDocumentSnapshot> _documentTimeline = [];
   int documentTimelineCounter = 0;
 
@@ -40,11 +41,12 @@ class SponsorFirestore implements SponsorRepository {
 
     try {
       QuerySnapshot snapshot = await sponsorsReference
-          .limit(CoreConstants.sponsorsLimit)
           .where(AppFirestoreConstants.isActive, isEqualTo: true)
+          .limit(CoreConstants.sponsorsLimit)
           .get();
 
-      _documentTimeline = snapshot.docs;
+      _documentTimeline = List<QueryDocumentSnapshot>.from(snapshot.docs);
+      documentTimelineCounter = 0;
 
       for (int i = 0; i < _documentTimeline.length; i++) {
         Sponsor sponsor = Sponsor.fromJSON(_documentTimeline.elementAt(i).data());
@@ -55,7 +57,6 @@ class SponsorFirestore implements SponsorRepository {
       logger.e(e.toString());
     }
 
-    //documentTimelineCounter++;
     return sponsors;
   }
 
@@ -63,11 +64,16 @@ class SponsorFirestore implements SponsorRepository {
   Future<Map<String, Sponsor>> getNextSponsorsTimeline() async {
     logger.d("Getting Next Timeline Posts");
     Map<String, Sponsor> sponsors = {};
+    if (_documentTimeline.isEmpty) return sponsors;
 
     try {
+      final cursor = _documentTimeline.last;
+      documentTimelineCounter = _documentTimeline.length;
       QuerySnapshot snapshot = await sponsorsReference
-          .startAfterDocument(_documentTimeline[documentTimelineCounter++])
-          .limit(CoreConstants.sponsorsLimit).get();
+          .where(AppFirestoreConstants.isActive, isEqualTo: true)
+          .startAfterDocument(cursor)
+          .limit(CoreConstants.sponsorsLimit)
+          .get();
 
       _documentTimeline.addAll(snapshot.docs);
 

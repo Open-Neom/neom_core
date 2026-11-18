@@ -6,14 +6,16 @@ import '../../domain/repository/blog_entry_repository.dart';
 import '../../utils/neom_error_logger.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
+import 'core_firestore_guard.dart';
 
 /// Firestore implementation for BlogEntry operations.
 /// Collection: /blog/{blogId}
 class BlogEntryFirestore implements BlogEntryRepository {
 
-  final blogReference = FirebaseFirestore.instance.collection(
-    AppFirestoreCollectionConstants.blog,
-  );
+  CollectionReference<Map<String, dynamic>> get blogReference =>
+      FirebaseFirestore.instance.collection(
+        AppFirestoreCollectionConstants.blog,
+      );
 
   // Pagination cache
   DocumentSnapshot? _lastCommunityDocument;
@@ -58,12 +60,15 @@ class BlogEntryFirestore implements BlogEntryRepository {
     return entryId;
   }
 
-  /// Retrieve a BlogEntry by its URL slug.
+  /// Retrieve a published BlogEntry by its URL slug.
   Future<BlogEntry?> getBySlug(String slug) async {
-    if (slug.isEmpty) return null;
+    final cleanSlug = slug.trim();
+    if (cleanSlug.isEmpty) return null;
     try {
       final querySnapshot = await blogReference
-          .where('slug', isEqualTo: slug)
+          .where(AppFirestoreConstants.isDraft, isEqualTo: false)
+          .where(AppFirestoreConstants.isHidden, isEqualTo: false)
+          .where('slug', isEqualTo: cleanSlug)
           .limit(1)
           .get();
       if (querySnapshot.docs.isNotEmpty) {
@@ -80,9 +85,11 @@ class BlogEntryFirestore implements BlogEntryRepository {
 
   @override
   Future<bool> update(BlogEntry entry) async {
-    AppConfig.logger.d("Update BlogEntry: ${entry.id}");
+    final cleanId = entry.id.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanId)) return false;
+    AppConfig.logger.d("Update BlogEntry: $cleanId");
     try {
-      await blogReference.doc(entry.id).update(entry.toJSON());
+      await blogReference.doc(cleanId).update(entry.toJSON());
       return true;
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'update');
@@ -92,9 +99,11 @@ class BlogEntryFirestore implements BlogEntryRepository {
 
   @override
   Future<bool> remove(String entryId) async {
-    AppConfig.logger.d("Remove BlogEntry: $entryId");
+    final cleanId = entryId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanId)) return false;
+    AppConfig.logger.d("Remove BlogEntry: $cleanId");
     try {
-      await blogReference.doc(entryId).delete();
+      await blogReference.doc(cleanId).delete();
       return true;
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'remove');
@@ -104,10 +113,12 @@ class BlogEntryFirestore implements BlogEntryRepository {
 
   @override
   Future<BlogEntry> retrieve(String entryId) async {
-    AppConfig.logger.d("Retrieve BlogEntry: $entryId");
+    final cleanId = entryId.trim();
     BlogEntry entry = BlogEntry();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanId)) return entry;
+    AppConfig.logger.d("Retrieve BlogEntry: $cleanId");
     try {
-      DocumentSnapshot snapshot = await blogReference.doc(entryId).get();
+      DocumentSnapshot snapshot = await blogReference.doc(cleanId).get();
       if (snapshot.exists && snapshot.data() != null) {
         entry = BlogEntry.fromJSON(snapshot.data() as Map<String, dynamic>);
         entry.id = snapshot.id;
@@ -125,7 +136,8 @@ class BlogEntryFirestore implements BlogEntryRepository {
     String? authorId,
     String? searchQuery,
   }) async {
-    AppConfig.logger.d("getCommunityEntries - limit: $limit, authorId: $authorId");
+    final safeLimit = CoreFirestoreGuard.clampLimit(limit, defaultLimit: 50, maxLimit: 500);
+    AppConfig.logger.d("getCommunityEntries - limit: $safeLimit, authorId: $authorId");
     List<BlogEntry> entries = [];
 
     try {
@@ -133,16 +145,18 @@ class BlogEntryFirestore implements BlogEntryRepository {
           .where(AppFirestoreConstants.isDraft, isEqualTo: false)
           .where(AppFirestoreConstants.isHidden, isEqualTo: false)
           .orderBy('publishedTime', descending: true)
-          .limit(limit);
+          .limit(safeLimit);
 
       // Filter by author if specified
-      if (authorId != null && authorId.isNotEmpty) {
+      if (authorId != null && authorId.trim().isNotEmpty) {
+        final cleanAuthorId = authorId.trim();
+        if (!CoreFirestoreGuard.isSafeDocId(cleanAuthorId)) return entries;
         query = blogReference
             .where(AppFirestoreConstants.isDraft, isEqualTo: false)
             .where(AppFirestoreConstants.isHidden, isEqualTo: false)
-            .where(AppFirestoreConstants.ownerId, isEqualTo: authorId)
+            .where(AppFirestoreConstants.ownerId, isEqualTo: cleanAuthorId)
             .orderBy('publishedTime', descending: true)
-            .limit(limit);
+            .limit(safeLimit);
       }
 
       // Pagination
@@ -191,22 +205,25 @@ class BlogEntryFirestore implements BlogEntryRepository {
 
   @override
   Future<List<BlogEntry>> getProfileEntries(String profileId, {bool includeDrafts = false}) async {
-    AppConfig.logger.d("getProfileEntries for: $profileId, includeDrafts: $includeDrafts");
+    final cleanProfileId = profileId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanProfileId)) return [];
+    AppConfig.logger.d("getProfileEntries for: $cleanProfileId, includeDrafts: $includeDrafts");
     List<BlogEntry> entries = [];
 
     try {
       Query query;
       if (includeDrafts) {
-        // Get all entries for this profile
         query = blogReference
-            .where(AppFirestoreConstants.ownerId, isEqualTo: profileId)
-            .orderBy(AppFirestoreConstants.modifiedTime, descending: true);
+            .where(AppFirestoreConstants.ownerId, isEqualTo: cleanProfileId)
+            .orderBy(AppFirestoreConstants.modifiedTime, descending: true)
+            .limit(200);
       } else {
-        // Get only published entries
         query = blogReference
-            .where(AppFirestoreConstants.ownerId, isEqualTo: profileId)
             .where(AppFirestoreConstants.isDraft, isEqualTo: false)
-            .orderBy('publishedTime', descending: true);
+            .where(AppFirestoreConstants.isHidden, isEqualTo: false)
+            .where(AppFirestoreConstants.ownerId, isEqualTo: cleanProfileId)
+            .orderBy('publishedTime', descending: true)
+            .limit(200);
       }
 
       QuerySnapshot snapshot = await query.get();
@@ -228,17 +245,19 @@ class BlogEntryFirestore implements BlogEntryRepository {
   /// Quick check if a profile has any published blog entries.
   /// Uses a simple query with limit(1) to minimize reads.
   Future<bool> hasPublishedEntries(String profileId) async {
-    AppConfig.logger.d("hasPublishedEntries for: $profileId");
+    final cleanProfileId = profileId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanProfileId)) return false;
+    AppConfig.logger.d("hasPublishedEntries for: $cleanProfileId");
     try {
-      // Simple query: just check if ANY entry exists for this owner
-      // This avoids the compound index requirement for ownerId + isDraft
       QuerySnapshot snapshot = await blogReference
-          .where(AppFirestoreConstants.ownerId, isEqualTo: profileId)
+          .where(AppFirestoreConstants.isDraft, isEqualTo: false)
+          .where(AppFirestoreConstants.isHidden, isEqualTo: false)
+          .where(AppFirestoreConstants.ownerId, isEqualTo: cleanProfileId)
           .limit(1)
           .get();
 
       final hasEntries = snapshot.docs.isNotEmpty;
-      AppConfig.logger.d("hasPublishedEntries: $hasEntries for $profileId");
+      AppConfig.logger.d("hasPublishedEntries: $hasEntries for $cleanProfileId");
       return hasEntries;
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'hasPublishedEntries');
@@ -248,14 +267,17 @@ class BlogEntryFirestore implements BlogEntryRepository {
 
   @override
   Future<List<BlogEntry>> getDrafts(String profileId) async {
-    AppConfig.logger.d("getDrafts for: $profileId");
+    final cleanProfileId = profileId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanProfileId)) return [];
+    AppConfig.logger.d("getDrafts for: $cleanProfileId");
     List<BlogEntry> drafts = [];
 
     try {
       QuerySnapshot snapshot = await blogReference
-          .where(AppFirestoreConstants.ownerId, isEqualTo: profileId)
+          .where(AppFirestoreConstants.ownerId, isEqualTo: cleanProfileId)
           .where(AppFirestoreConstants.isDraft, isEqualTo: true)
           .orderBy(AppFirestoreConstants.modifiedTime, descending: true)
+          .limit(200)
           .get();
 
       for (var doc in snapshot.docs) {
@@ -274,9 +296,11 @@ class BlogEntryFirestore implements BlogEntryRepository {
 
   @override
   Future<bool> publish(String entryId) async {
-    AppConfig.logger.d("Publish BlogEntry: $entryId");
+    final cleanId = entryId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanId)) return false;
+    AppConfig.logger.d("Publish BlogEntry: $cleanId");
     try {
-      await blogReference.doc(entryId).update({
+      await blogReference.doc(cleanId).update({
         AppFirestoreConstants.isDraft: false,
         'publishedTime': DateTime.now().millisecondsSinceEpoch,
         AppFirestoreConstants.modifiedTime: DateTime.now().millisecondsSinceEpoch,
@@ -290,9 +314,11 @@ class BlogEntryFirestore implements BlogEntryRepository {
 
   @override
   Future<bool> unpublish(String entryId) async {
-    AppConfig.logger.d("Unpublish BlogEntry: $entryId");
+    final cleanId = entryId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanId)) return false;
+    AppConfig.logger.d("Unpublish BlogEntry: $cleanId");
     try {
-      await blogReference.doc(entryId).update({
+      await blogReference.doc(cleanId).update({
         AppFirestoreConstants.isDraft: true,
         AppFirestoreConstants.modifiedTime: DateTime.now().millisecondsSinceEpoch,
       });
@@ -305,10 +331,16 @@ class BlogEntryFirestore implements BlogEntryRepository {
 
   @override
   Future<bool> addSavedByProfile(String entryId, String profileId) async {
-    AppConfig.logger.d("Add bookmark for entry: $entryId by profile: $profileId");
+    final cleanEntryId = entryId.trim();
+    final cleanProfileId = profileId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanEntryId) ||
+        !CoreFirestoreGuard.isSafeDocId(cleanProfileId)) {
+      return false;
+    }
+    AppConfig.logger.d("Add bookmark for entry: $cleanEntryId by profile: $cleanProfileId");
     try {
-      await blogReference.doc(entryId).update({
-        AppFirestoreConstants.savedByProfiles: FieldValue.arrayUnion([profileId]),
+      await blogReference.doc(cleanEntryId).update({
+        AppFirestoreConstants.savedByProfiles: FieldValue.arrayUnion([cleanProfileId]),
       });
       return true;
     } catch (e, st) {
@@ -319,10 +351,16 @@ class BlogEntryFirestore implements BlogEntryRepository {
 
   @override
   Future<bool> removeSavedByProfile(String entryId, String profileId) async {
-    AppConfig.logger.d("Remove bookmark for entry: $entryId by profile: $profileId");
+    final cleanEntryId = entryId.trim();
+    final cleanProfileId = profileId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanEntryId) ||
+        !CoreFirestoreGuard.isSafeDocId(cleanProfileId)) {
+      return false;
+    }
+    AppConfig.logger.d("Remove bookmark for entry: $cleanEntryId by profile: $cleanProfileId");
     try {
-      await blogReference.doc(entryId).update({
-        AppFirestoreConstants.savedByProfiles: FieldValue.arrayRemove([profileId]),
+      await blogReference.doc(cleanEntryId).update({
+        AppFirestoreConstants.savedByProfiles: FieldValue.arrayRemove([cleanProfileId]),
       });
       return true;
     } catch (e, st) {
@@ -333,9 +371,11 @@ class BlogEntryFirestore implements BlogEntryRepository {
 
   @override
   Future<bool> incrementViewCount(String entryId) async {
-    AppConfig.logger.t("Increment view count for entry: $entryId");
+    final cleanId = entryId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanId)) return false;
+    AppConfig.logger.t("Increment view count for entry: $cleanId");
     try {
-      await blogReference.doc(entryId).update({
+      await blogReference.doc(cleanId).update({
         'viewCount': FieldValue.increment(1),
       });
       return true;
@@ -347,14 +387,18 @@ class BlogEntryFirestore implements BlogEntryRepository {
 
   @override
   Future<List<BlogEntry>> getSavedEntries(String profileId) async {
-    AppConfig.logger.d("getSavedEntries for: $profileId");
+    final cleanProfileId = profileId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanProfileId)) return [];
+    AppConfig.logger.d("getSavedEntries for: $cleanProfileId");
     List<BlogEntry> entries = [];
 
     try {
       QuerySnapshot snapshot = await blogReference
-          .where(AppFirestoreConstants.savedByProfiles, arrayContains: profileId)
+          .where(AppFirestoreConstants.savedByProfiles, arrayContains: cleanProfileId)
           .where(AppFirestoreConstants.isDraft, isEqualTo: false)
+          .where(AppFirestoreConstants.isHidden, isEqualTo: false)
           .orderBy('publishedTime', descending: true)
+          .limit(200)
           .get();
 
       for (var doc in snapshot.docs) {
@@ -373,13 +417,14 @@ class BlogEntryFirestore implements BlogEntryRepository {
 
   /// Stream for real-time community entries updates.
   Stream<List<BlogEntry>> getCommunityEntriesStream({int limit = 50}) {
+    final safeLimit = CoreFirestoreGuard.clampLimit(limit, defaultLimit: 50, maxLimit: 200);
     AppConfig.logger.t("Starting community entries stream");
 
     return blogReference
         .where(AppFirestoreConstants.isDraft, isEqualTo: false)
         .where(AppFirestoreConstants.isHidden, isEqualTo: false)
         .orderBy('publishedTime', descending: true)
-        .limit(limit)
+        .limit(safeLimit)
         .snapshots()
         .map((snapshot) {
       List<BlogEntry> entries = [];
@@ -407,7 +452,8 @@ class BlogEntryFirestore implements BlogEntryRepository {
       return List<BlogEntry>.from(_cachedTimelineEntries);
     }
 
-    AppConfig.logger.d("getLatestEntriesForTimeline from Firestore - limit: $limit");
+    final safeLimit = CoreFirestoreGuard.clampLimit(limit, defaultLimit: 20, maxLimit: 200);
+    AppConfig.logger.d("getLatestEntriesForTimeline from Firestore - limit: $safeLimit");
     List<BlogEntry> entries = [];
 
     try {
@@ -415,7 +461,7 @@ class BlogEntryFirestore implements BlogEntryRepository {
           .where(AppFirestoreConstants.isDraft, isEqualTo: false)
           .where(AppFirestoreConstants.isHidden, isEqualTo: false)
           .orderBy('publishedTime', descending: true)
-          .limit(limit);
+          .limit(safeLimit);
 
       // Pagination using timestamp
       if (lastPublishedTime != null) {
@@ -448,15 +494,15 @@ class BlogEntryFirestore implements BlogEntryRepository {
     AppConfig.logger.d("getEntriesByIds: ${ids.length} IDs");
     List<BlogEntry> entries = [];
 
-    if (ids.isEmpty) return entries;
+    final chunks = CoreFirestoreGuard.chunkValidIds(ids);
+    if (chunks.isEmpty) return entries;
 
     try {
-      // Firestore limits whereIn to 10 items, so batch if needed
-      for (var i = 0; i < ids.length; i += 10) {
-        final batch = ids.sublist(i, i + 10 > ids.length ? ids.length : i + 10);
-
+      for (final batch in chunks) {
         QuerySnapshot snapshot = await blogReference
             .where(FieldPath.documentId, whereIn: batch)
+            .where(AppFirestoreConstants.isDraft, isEqualTo: false)
+            .where(AppFirestoreConstants.isHidden, isEqualTo: false)
             .get();
 
         for (var doc in snapshot.docs) {

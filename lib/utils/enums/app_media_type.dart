@@ -8,7 +8,11 @@ enum AppMediaType {
   youtube('mp4'),
   audio('mp3'),
   sharedPost('post'),
-  poll('poll');
+  poll('poll'),
+  document('pdf'),
+  location('loc'),
+  contact('vcf'),
+  sticker('webp');
 
   final String value;
   const AppMediaType(this.value);

@@ -1,13 +1,14 @@
 import 'dart:convert';
+
 import 'package:flutter/services.dart';
 
-import 'utils/neom_logger.dart';
 import 'cloud_properties.dart';
 import 'domain/model/price.dart';
 import 'utils/constants/data_assets.dart';
 import 'utils/enums/app_currency.dart';
 import 'utils/enums/app_in_use.dart';
 import 'utils/neom_error_logger.dart';
+import 'utils/neom_logger.dart';
 
 class AppProperties {
 
@@ -416,6 +417,17 @@ class AppProperties {
 
   static Map<String, dynamic> getDeeplinkUrl() {
     return appProperties['getDeeplinkUrl'] ?? {};
+  }
+
+  String get satApiUser => (appProperties is Map ? appProperties['satApiUser'] : null) ?? '';
+  String get satApiKey => (appProperties is Map ? appProperties['satApiKey'] : null) ?? '';
+
+  static String getSatApiUser() {
+    return (appProperties is Map ? appProperties['satApiUser'] : null) ?? '';
+  }
+
+  static String getSatApiKey() {
+    return (appProperties is Map ? appProperties['satApiKey'] : null) ?? '';
   }
 
 }

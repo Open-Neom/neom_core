@@ -107,4 +107,7 @@ class AppFirestoreCollectionConstants {
   static const String saiaDomainSnapshots = "saiaDomainSnapshots";
   static const String saiaUserContexts = "saiaUserContexts";
 
+  static const String foundingCampaigns = "foundingCampaigns";
+  static const String foundingPledges = "foundingPledges";
+
 }

@@ -2,7 +2,8 @@ import 'dart:convert';
 
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
+import 'package:flutter/foundation.dart'
+    show kDebugMode, kIsWeb, visibleForTesting;
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
@@ -11,12 +12,113 @@ import 'utils/constants/data_assets.dart';
 import 'utils/enums/app_in_use.dart';
 import 'utils/neom_error_logger.dart';
 import 'utils/neom_logger.dart';
+import 'utils/secure_logger.dart';
 
 /// Sensitive values (API keys, secrets) and cloud operations (proxies, secureOps).
 ///
 /// Reads from the shared config map loaded by [AppProperties].
 /// Call [init] after AppProperties loads the JSON.
 class CloudProperties {
+  static const int maxSecureOpsResponseBytes = 8 * 1024 * 1024;
+  static const int _maxNormalizeDepth = 32;
+  static const int _maxCollectionItems = 4096;
+  static const Set<String> _forbiddenProtoKeys = <String>{
+    '__proto__',
+    'constructor',
+    'prototype',
+  };
+  static const Set<String> _allowedProxyMethods = <String>{
+    'GET',
+    'POST',
+    'PUT',
+    'PATCH',
+    'DELETE',
+    'HEAD',
+  };
+  static final RegExp _unsafeControlOrBidi = RegExp(
+    r'[\x00-\x1F\x7F-\x9F\u0085\u061C\u200B-\u200F\u2028-\u202E\u2060-\u2064\u2066-\u2069\uFEFF]',
+  );
+  static final RegExp _stripeSessionIdPattern = RegExp(
+    r'^[A-Za-z0-9_-]{1,128}$',
+  );
+  static final RegExp _secretKeyNamePattern = RegExp(
+    r'^[A-Za-z0-9_.-]{1,128}$',
+  );
+  static final RegExp _encodedPathTraversalRe = RegExp(
+    r'%(?:2e|2f|5c|25|00)',
+    caseSensitive: false,
+  );
+
+  @visibleForTesting
+  static String? sanitizeBearerToken(String? raw) {
+    if (raw == null) return null;
+    if (_unsafeControlOrBidi.hasMatch(raw)) return null;
+    final clean = raw.trim();
+    if (clean.isEmpty || clean.length > 8192 || RegExp(r'\s').hasMatch(clean)) {
+      return null;
+    }
+    return clean;
+  }
+
+  @visibleForTesting
+  static bool isValidStripeSessionId(String raw) {
+    if (raw.isEmpty || _unsafeControlOrBidi.hasMatch(raw)) return false;
+    final clean = raw.trim();
+    if (!_stripeSessionIdPattern.hasMatch(clean)) return false;
+    if ((clean.startsWith('__') && clean.endsWith('__')) ||
+        _forbiddenProtoKeys.contains(clean.toLowerCase())) {
+      return false;
+    }
+    return true;
+  }
+
+  @visibleForTesting
+  static bool isSafeHttpMethod(String raw) =>
+      !_unsafeControlOrBidi.hasMatch(raw) &&
+      !RegExp(r'\s').hasMatch(raw.trim()) &&
+      _allowedProxyMethods.contains(raw.trim().toUpperCase());
+
+  @visibleForTesting
+  static bool isSafeProxyPath(String raw) {
+    if (raw.isEmpty ||
+        raw.length > 1024 ||
+        _unsafeControlOrBidi.hasMatch(raw) ||
+        raw.contains(r'\') ||
+        _encodedPathTraversalRe.hasMatch(raw)) {
+      return false;
+    }
+    final clean = raw.trim();
+    if (clean.isEmpty ||
+        clean.startsWith('//') ||
+        clean.contains('://') ||
+        RegExp(r'\s').hasMatch(clean)) {
+      return false;
+    }
+    final pathPart = clean.split('?').first.split('#').first;
+    final segments = pathPart.split('/');
+    for (final seg in segments) {
+      if (seg == '.' ||
+          seg == '..' ||
+          _forbiddenProtoKeys.contains(seg.toLowerCase())) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @visibleForTesting
+  static bool isSafeSecretKeyName(String raw) {
+    if (raw.isEmpty || _unsafeControlOrBidi.hasMatch(raw)) return false;
+    final clean = raw.trim();
+    if (!_secretKeyNamePattern.hasMatch(clean) ||
+        clean == '.' ||
+        clean.contains('..') ||
+        (clean.startsWith('__') && clean.endsWith('__')) ||
+        _forbiddenProtoKeys.contains(clean.toLowerCase())) {
+      return false;
+    }
+    return true;
+  }
   static AppInUse? appInUse;
   static dynamic appProperties = {};
 
@@ -152,7 +254,11 @@ class CloudProperties {
 
       final url = Uri.parse(_getSecureOpsWebUrl());
 
-      final token = user != null ? await user.getIdToken() : null;
+      final rawToken = user != null ? await user.getIdToken() : null;
+      final token = sanitizeBearerToken(rawToken);
+      if (!isPublicAction && token == null) {
+        throw Exception('Authentication required — invalid ID token');
+      }
       final headers = <String, String>{
         'Content-Type': 'application/json',
         if (token != null) 'Authorization': 'Bearer $token',
@@ -171,27 +277,38 @@ class CloudProperties {
         if (CloudEndpointPolicy.usesLocalEndpoints) {
           throw StateError(
             '${CloudEndpointPolicy.emulatorUnavailableMessage} '
-            'Error original: $error',
+            'Error original: ${SecureLogger.sanitize(error.toString())}',
           );
         }
         rethrow;
       }
 
+      if (response.bodyBytes.length > maxSecureOpsResponseBytes) {
+        throw const FormatException(
+          'secureOpsWeb response exceeds 8 MiB limit',
+        );
+      }
+
       if (response.statusCode != 200) {
-        throw Exception('secureOpsWeb HTTP ${response.statusCode}: ${response.body}');
+        final safeBody = SecureLogger.sanitize(response.body);
+        throw Exception('secureOpsWeb HTTP ${response.statusCode}: $safeBody');
       }
 
       final body = jsonDecode(response.body);
       if (body is Map<String, dynamic>) {
         if (body['error'] != null) {
           final err = body['error'];
-          throw Exception(err is Map ? (err['message'] ?? 'Unknown error') : err.toString());
+          final rawErrMsg =
+              err is Map ? (err['message'] ?? 'Unknown error') : err.toString();
+          throw Exception(SecureLogger.sanitize(rawErrMsg.toString()));
         }
         // onCall wraps in 'result', HTTP returns directly
-        if (body.containsKey('result') && body['result'] is Map) {
-          return body['result'] as Map<String, dynamic>;
-        }
-        return body;
+        final rawPayload =
+            (body.containsKey('result') && body['result'] is Map)
+                ? body['result']
+                : body;
+        final normalizedWeb = normalizeJsonValue(rawPayload);
+        return normalizedWeb is Map<String, dynamic> ? normalizedWeb : {};
       }
       return {};
     }
@@ -213,17 +330,37 @@ class CloudProperties {
     return {};
   }
 
-  static dynamic _normalizeJsonValue(dynamic value) {
+  @visibleForTesting
+  static dynamic normalizeJsonValue(dynamic value, [int depth = 0]) {
+    if (depth > _maxNormalizeDepth || value == null) return null;
+    if (value is num) {
+      if (value is double && !value.isFinite) return null;
+      return value;
+    }
     if (value is Map) {
-      return value.map<String, dynamic>(
-        (key, val) => MapEntry(key.toString(), _normalizeJsonValue(val)),
-      );
+      final out = <String, dynamic>{};
+      for (final entry in value.entries) {
+        if (out.length >= _maxCollectionItems) break;
+        final key = entry.key?.toString() ?? '';
+        if (key.isEmpty || _forbiddenProtoKeys.contains(key.toLowerCase())) {
+          continue;
+        }
+        out[key] = normalizeJsonValue(entry.value, depth + 1);
+      }
+      return out;
     }
     if (value is List) {
-      return value.map(_normalizeJsonValue).toList();
+      final out = <dynamic>[];
+      for (final item in value.take(_maxCollectionItems)) {
+        out.add(normalizeJsonValue(item, depth + 1));
+      }
+      return out;
     }
     return value;
   }
+
+  static dynamic _normalizeJsonValue(dynamic value) =>
+      normalizeJsonValue(value);
 
   /// Calls secureOps Cloud Function to send a push notification server-side.
   /// Targets a device [token] or, alternatively, an FCM [topic] (e.g. 'allUsers').
@@ -254,10 +391,11 @@ class CloudProperties {
 
   /// Verifies a Stripe Checkout Session via Cloud Function without exposing secret key.
   static Future<bool> verifyStripeSession(String sessionId) async {
-    if (sessionId.isEmpty) return false;
+    if (!isValidStripeSessionId(sessionId)) return false;
+    final cleanSessionId = sessionId.trim();
     try {
       final callable = FirebaseFunctions.instance.httpsCallable('verifyStripeSession');
-      final result = await callable.call({'sessionId': sessionId});
+      final result = await callable.call({'sessionId': cleanSessionId});
       if (result.data != null && result.data is Map) {
         final map = Map<String, dynamic>.from(result.data as Map);
         return map['isPaid'] == true;
@@ -276,11 +414,14 @@ class CloudProperties {
     String? body,
     bool isLive = true,
   }) async {
+    if (!isSafeProxyPath(path) || !isSafeHttpMethod(method)) {
+      return null;
+    }
     try {
       return await callSecureOps({
         'action': 'stripeProxy',
-        'method': method,
-        'path': path,
+        'method': method.trim().toUpperCase(),
+        'path': path.trim(),
         'body': body,
         'isLive': isLive,
       });
@@ -296,11 +437,14 @@ class CloudProperties {
     String method = 'GET',
     Map<String, dynamic>? body,
   }) async {
+    if (!isSafeProxyPath(path) || !isSafeHttpMethod(method)) {
+      return null;
+    }
     try {
       return await callSecureOps({
         'action': 'wooProxy',
-        'method': method,
-        'path': path,
+        'method': method.trim().toUpperCase(),
+        'path': path.trim(),
         'body': body,
       });
     } catch (e, st) {
@@ -311,10 +455,11 @@ class CloudProperties {
 
   /// Retrieves a specific secret from Cloud Functions (e.g. googleApiKey for Maps)
   static Future<String> getSecretFromCloud(String key) async {
+    if (!isSafeSecretKeyName(key)) return '';
     try {
       final result = await callSecureOps({
         'action': 'getSecret',
-        'key': key,
+        'key': key.trim(),
       });
       return result['value'] ?? '';
     } catch (e, st) {
@@ -329,11 +474,14 @@ class CloudProperties {
     String method = 'GET',
     Map<String, dynamic>? body,
   }) async {
+    if (!isSafeProxyPath(path) || !isSafeHttpMethod(method)) {
+      return null;
+    }
     try {
       return await callSecureOps({
         'action': 'wooMediaProxy',
-        'method': method,
-        'path': path,
+        'method': method.trim().toUpperCase(),
+        'path': path.trim(),
         'body': body,
       });
     } catch (e, st) {

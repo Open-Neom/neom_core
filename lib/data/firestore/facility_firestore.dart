@@ -9,17 +9,24 @@ import '../../utils/enums/facilitator_type.dart';
 import '../../utils/neom_error_logger.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
+import 'core_firestore_guard.dart';
 import 'profile_document_locator.dart';
 
 class FacilityFirestore implements FacilityRepository {
 
-  final profileReference = FirebaseFirestore.instance.collectionGroup(AppFirestoreCollectionConstants.profiles);
+  Query<Map<String, dynamic>> get profileReference =>
+      FirebaseFirestore.instance.collectionGroup(AppFirestoreCollectionConstants.profiles);
   final _profileLocator = ProfileDocumentLocator();
 
   /// Profile document for [profileId]. Delegates to the shared locator so the
   /// indexed lookup and its memoization are not duplicated per repository.
-  Future<DocumentReference?> _getProfileDocumentReference(String profileId) =>
-      _profileLocator.locate(profileId);
+  Future<DocumentReference?> _getProfileDocumentReference(String profileId) {
+    final cleanId = profileId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanId)) {
+      return Future<DocumentReference?>.value(null);
+    }
+    return _profileLocator.locate(cleanId);
+  }
 
   @override
   Future<Map<String,Facility>> retrieveFacilities(profileId) async {
@@ -50,16 +57,18 @@ class FacilityFirestore implements FacilityRepository {
 
   @override
   Future<bool> removeFacility({required String profileId, required String facilityId}) async {
-    AppConfig.logger.d("Removing $facilityId for by $profileId");
+    final cleanFacilityId = facilityId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanFacilityId)) return false;
+    AppConfig.logger.d("Removing $cleanFacilityId for by $profileId");
     try {
       // OPTIMIZED: Query only the specific profile
       final docRef = await _getProfileDocumentReference(profileId);
       if (docRef != null) {
         await docRef
             .collection(AppFirestoreCollectionConstants.facilities)
-            .doc(facilityId)
+            .doc(cleanFacilityId)
             .delete();
-        AppConfig.logger.d("Facility $facilityId removed");
+        AppConfig.logger.d("Facility $cleanFacilityId removed");
         return true;
       }
     } catch (e, st) {
@@ -92,26 +101,30 @@ class FacilityFirestore implements FacilityRepository {
   @override
   Future<bool> updateMainFacility({required String profileId,
       required String facilityId, required String prevFacilityId}) async {
+    final cleanFacilityId = facilityId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanFacilityId)) return false;
 
-    AppConfig.logger.d("Updating $facilityId as main for $profileId");
+    AppConfig.logger.d("Updating $cleanFacilityId as main for $profileId");
 
     try {
       // OPTIMIZED: Query only the specific profile
       final docRef = await _getProfileDocumentReference(profileId);
       if (docRef != null) {
-        AppConfig.logger.i("Facility $facilityId as main facility at facilities collection");
+        AppConfig.logger.i("Facility $cleanFacilityId as main facility at facilities collection");
         await docRef
             .collection(AppFirestoreCollectionConstants.facilities)
-            .doc(facilityId)
+            .doc(cleanFacilityId)
             .update({AppFirestoreConstants.isMain: true});
 
-        AppConfig.logger.d("Facility $facilityId as main facility at profile level");
+        AppConfig.logger.d("Facility $cleanFacilityId as main facility at profile level");
 
-        if (prevFacilityId.isNotEmpty) {
-          AppConfig.logger.d("Facility $prevFacilityId unset from main facility");
+        final cleanPrevId = prevFacilityId.trim();
+        if (CoreFirestoreGuard.isSafeDocId(cleanPrevId) &&
+            cleanPrevId != cleanFacilityId) {
+          AppConfig.logger.d("Facility $cleanPrevId unset from main facility");
           await docRef
               .collection(AppFirestoreCollectionConstants.facilities)
-              .doc(prevFacilityId)
+              .doc(cleanPrevId)
               .update({AppFirestoreConstants.isMain: false});
         }
         return true;

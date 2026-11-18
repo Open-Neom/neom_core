@@ -8,14 +8,17 @@ import '../../utils/neom_error_logger.dart';
 import '../../utils/release_catalog_visibility.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
+import 'core_firestore_guard.dart';
 
 import 'public_catalog_read_policy.dart';
 import 'release_deduplication_service.dart';
 
 class AppReleaseItemFirestore implements AppReleaseItemRepository {
-  final FirebaseFirestore _firestore;
+  final FirebaseFirestore? _injectedFirestore;
   AppReleaseItemFirestore({FirebaseFirestore? firestore})
-    : _firestore = firestore ?? FirebaseFirestore.instance;
+    : _injectedFirestore = firestore;
+  FirebaseFirestore get _firestore =>
+      _injectedFirestore ?? FirebaseFirestore.instance;
   CollectionReference<Map<String, dynamic>> get appReleaseItemReference =>
       PublicCatalogReadPolicy.collection(
         _firestore,
@@ -231,12 +234,17 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
 
     Map<String, AppReleaseItem> rawReleaseItems = {};
     try {
-      final read = forceRefresh
-          ? _releaseQuery.get(const GetOptions(source: Source.server))
-          : _releaseQuery.get();
-      final QuerySnapshot querySnapshot = await (throwOnError
-          ? read.timeout(const Duration(seconds: 20))
-          : read);
+      final QuerySnapshot querySnapshot = await CoreFirestoreGuard.guardRead(
+        () {
+          final read = forceRefresh
+              ? _releaseQuery.get(const GetOptions(source: Source.server))
+              : _releaseQuery.get();
+          return throwOnError
+              ? read.timeout(const Duration(seconds: 20))
+              : read;
+        },
+        tag: 'AppReleaseItemFirestore.retrieveAll',
+      );
 
       for (var queryDocumentSnapshot in querySnapshot.docs) {
         if (queryDocumentSnapshot.exists) {
@@ -288,7 +296,10 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
     AppReleaseItem appReleaseItem = AppReleaseItem();
     try {
       // OPTIMIZED: Use await instead of .then()
-      final doc = await appReleaseItemReference.doc(releaseItemId).get();
+      final doc = await CoreFirestoreGuard.guardRead(
+        () => appReleaseItemReference.doc(releaseItemId).get(),
+        tag: 'AppReleaseItemFirestore.retrieve',
+      );
       if (doc.exists && PublicCatalogReadPolicy.accepts(doc.data())) {
         final rawItem = AppReleaseItem.fromJSON(doc.data())..id = doc.id;
         if (_isVisibleToCurrentUser(rawItem)) {
@@ -437,7 +448,10 @@ class AppReleaseItemFirestore implements AppReleaseItemRepository {
         return (await retrieve(releaseItemId)).id.isNotEmpty;
       }
       // OPTIMIZED: Use await instead of .then()
-      final doc = await appReleaseItemReference.doc(releaseItemId).get();
+      final doc = await CoreFirestoreGuard.guardRead(
+        () => appReleaseItemReference.doc(releaseItemId).get(),
+        tag: 'AppReleaseItemFirestore.retrieve',
+      );
       if (doc.exists && PublicCatalogReadPolicy.accepts(doc.data())) {
         AppConfig.logger.d("AppMediaItem found");
         return true;

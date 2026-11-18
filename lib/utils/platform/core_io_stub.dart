@@ -1,9 +1,29 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+enum FileSystemEntityType { file, directory, link, unixDomainSock, pipe, notFound }
+
 abstract class FileSystemEntity {
   final String path;
   FileSystemEntity(this.path);
+
+  static FileSystemEntityType typeSync(
+    String path, {
+    bool followLinks = true,
+  }) =>
+      FileSystemEntityType.notFound;
+
+  static bool isLinkSync(String path) => false;
+}
+
+/// Stub FileSystemException class for web platform.
+class FileSystemException implements Exception {
+  final String message;
+  final String? path;
+  const FileSystemException([this.message = '', this.path]);
+
+  @override
+  String toString() => 'FileSystemException: $message, path = $path';
 }
 
 /// Stub FileStat class for web platform.
@@ -17,16 +37,20 @@ class FileStat {
 /// Stub File class for web platform.
 /// Provides the same API surface as dart:io File.
 class File extends FileSystemEntity {
-  File(String path) : super(path);
+  File(super.path);
 
   factory File.fromUri(Uri uri) => File(uri.path);
 
   Future<FileStat> stat() async =>
       FileStat(DateTime.fromMillisecondsSinceEpoch(0), 0);
   FileStat statSync() => FileStat(DateTime.fromMillisecondsSinceEpoch(0), 0);
+  File get absolute => this;
+
   Directory get parent {
     final idx = path.lastIndexOf('/');
-    return Directory(idx > 0 ? path.substring(0, idx) : '.');
+    if (idx > 0) return Directory(path.substring(0, idx));
+    if (idx == 0) return Directory('/');
+    return Directory('.');
   }
 
   bool existsSync() => false;
@@ -54,12 +78,29 @@ class File extends FileSystemEntity {
 
 /// Stub Directory class for web platform.
 class Directory extends FileSystemEntity {
-  Directory(String path) : super(path);
+  Directory(super.path);
+
+  static Directory get systemTemp => Directory('/tmp');
+
+  Directory get absolute => this;
+
+  Directory get parent {
+    final idx = path.lastIndexOf('/');
+    if (idx > 0) return Directory(path.substring(0, idx));
+    if (idx == 0) return Directory('/');
+    return Directory('.');
+  }
 
   Future<bool> exists() async => false;
   bool existsSync() => false;
   Future<Directory> create({bool recursive = false}) async => this;
+  void createSync({bool recursive = false}) {}
+  Future<Directory> createTemp([String? prefix]) async =>
+      Directory('$path/${prefix ?? 'tmp'}');
+  Future<FileSystemEntity> delete({bool recursive = false}) async => this;
+  void deleteSync({bool recursive = false}) {}
   Stream<FileSystemEntity> list({bool recursive = false, bool followLinks = true}) => const Stream.empty();
+  List<FileSystemEntity> listSync({bool recursive = false, bool followLinks = true}) => const [];
 }
 
 /// Stub Platform class for web platform.
@@ -70,8 +111,10 @@ class Platform {
   static bool get isWindows => false;
   static bool get isLinux => false;
   static bool get isFuchsia => false;
+  static String get pathSeparator => '/';
   static String get operatingSystemVersion => '';
   static String get version => '';
+  static Map<String, String> get environment => const <String, String>{};
 }
 
 /// No-op exit function for web.
@@ -103,7 +146,7 @@ class ProcessResult {
 
 
 /// Stub IOSink for web platform — discards everything written to it.
-/// Mirrors the StreamSink<List<int>> surface used by streaming downloads.
+/// Mirrors the `StreamSink<List<int>>` surface used by streaming downloads.
 class _StubIOSink implements StreamSink<List<int>> {
   @override
   void add(List<int> event) {}

@@ -7,10 +7,12 @@ import '../../utils/enums/subscription_level.dart';
 import '../../utils/neom_error_logger.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
+import 'core_firestore_guard.dart';
 
 class SubscriptionPlanFirestore {
   
-  final subscriptionPlanReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.subscriptionPlans);
+  CollectionReference<Map<String, dynamic>> get subscriptionPlanReference =>
+      FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.subscriptionPlans);
 
   /// Todos los planes del modo actual.
   ///
@@ -27,7 +29,7 @@ class SubscriptionPlanFirestore {
 
     try {
 
-      QuerySnapshot querySnapshot = await subscriptionPlanReference.get();
+      final querySnapshot = await subscriptionPlanReference.limit(200).get();
 
       if (querySnapshot.docs.isNotEmpty) {
         AppConfig.logger.t("Snapshot is not empty");
@@ -46,14 +48,12 @@ class SubscriptionPlanFirestore {
         }
         AppConfig.logger.d("${plans.length} plans found");
 
-        // Ordenar los planes basados en el nivel
+        // Ordenar los planes basados en el nivel sin null-bang inseguro
         final sortedPlans = Map.fromEntries(plans.entries.toList()
           ..sort((a, b) {
-            // Obtener los niveles desde los nombres
-            SubscriptionLevel levelA = a.value.level!;
-            SubscriptionLevel levelB = b.value.level!;
-            // Comparar por el valor numérico del nivel
-            return levelA.value.compareTo(levelB.value);
+            final levelA = a.value.level?.value ?? 0;
+            final levelB = b.value.level?.value ?? 0;
+            return levelA.compareTo(levelB);
           }));
 
         return sortedPlans;
@@ -70,8 +70,9 @@ class SubscriptionPlanFirestore {
 
     try {
 
-      QuerySnapshot querySnapshot = await subscriptionPlanReference
+      final querySnapshot = await subscriptionPlanReference
           .where(AppFirestoreConstants.level, isEqualTo: level.value)
+          .limit(100)
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
@@ -94,10 +95,11 @@ class SubscriptionPlanFirestore {
     String planId = "";
 
     try {
-
-      if(plan.id.isNotEmpty) {
-        await subscriptionPlanReference.doc(plan.id).set(plan.toJSON());
-        planId = plan.id;
+      final cleanId = plan.id.trim();
+      if (cleanId.isNotEmpty) {
+        if (!CoreFirestoreGuard.isSafeDocId(cleanId)) return '';
+        await subscriptionPlanReference.doc(cleanId).set(plan.toJSON());
+        planId = cleanId;
       } else {
         DocumentReference documentReference = await subscriptionPlanReference
             .add(plan.toJSON());
@@ -115,11 +117,13 @@ class SubscriptionPlanFirestore {
   }
 
   Future<bool> remove(String planId) async {
-    AppConfig.logger.d("Removing product $planId");
+    final cleanId = planId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanId)) return false;
+    AppConfig.logger.d("Removing product $cleanId");
 
     try {
-      await subscriptionPlanReference.doc(planId).delete();
-      AppConfig.logger.d("Product $planId removed");
+      await subscriptionPlanReference.doc(cleanId).delete();
+      AppConfig.logger.d("Product $cleanId removed");
       return true;
 
     } catch (e, st) {
@@ -130,9 +134,13 @@ class SubscriptionPlanFirestore {
 
   /// Updates a single field or multiple fields on an existing plan document.
   Future<void> update(String planId, Map<String, dynamic> data) async {
+    final cleanId = planId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanId)) return;
+    final safeData = CoreFirestoreGuard.sanitizeUpdateMap(data);
+    if (safeData.isEmpty) return;
     try {
-      await subscriptionPlanReference.doc(planId).update(data);
-      AppConfig.logger.d("Plan $planId updated");
+      await subscriptionPlanReference.doc(cleanId).update(safeData);
+      AppConfig.logger.d("Plan $cleanId updated");
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'SubscriptionPlanFirestore.update');
     }
@@ -142,13 +150,25 @@ class SubscriptionPlanFirestore {
   Future<int> backfillIsLive({bool defaultValue = true}) async {
     int updated = 0;
     try {
-      final snapshot = await subscriptionPlanReference.get();
+      final db = FirebaseFirestore.instance;
+      final snapshot = await subscriptionPlanReference.limit(500).get();
+      WriteBatch batch = db.batch();
+      int ops = 0;
       for (final doc in snapshot.docs) {
         final data = doc.data();
         if (!data.containsKey('isLive')) {
-          await subscriptionPlanReference.doc(doc.id).update({'isLive': defaultValue});
+          batch.update(doc.reference, {'isLive': defaultValue});
           updated++;
+          ops++;
+          if (ops >= 450) {
+            await batch.commit();
+            batch = db.batch();
+            ops = 0;
+          }
         }
+      }
+      if (ops > 0) {
+        await batch.commit();
       }
       AppConfig.logger.d("backfillIsLive: $updated plans updated");
     } catch (e, st) {

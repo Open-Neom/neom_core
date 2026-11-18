@@ -13,9 +13,11 @@ import 'constants/app_firestore_collection_constants.dart';
 import 'public_catalog_read_policy.dart';
 
 class AppMediaItemFirestore implements AppMediaItemRepository {
-  final FirebaseFirestore _firestore;
+  final FirebaseFirestore? _injectedFirestore;
   AppMediaItemFirestore({FirebaseFirestore? firestore})
-    : _firestore = firestore ?? FirebaseFirestore.instance;
+    : _injectedFirestore = firestore;
+  FirebaseFirestore get _firestore =>
+      _injectedFirestore ?? FirebaseFirestore.instance;
   CollectionReference<Map<String, dynamic>> get appMediaItemReference =>
       PublicCatalogReadPolicy.collection(
         _firestore,

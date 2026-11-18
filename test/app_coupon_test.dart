@@ -44,11 +44,13 @@ void main() {
       expect(c.isUsedUp, isTrue);
     });
 
-    test('usageLimit == 0 with no users → used up (degenerate but predictable)',
+    test('usageLimit == 0 means unlimited (aligned with expiresAt == 0 and ShopCheckoutController), while negative fails closed',
         () {
-      final c = AppCoupon(usageLimit: 0);
-      expect(c.isUsedUp, isTrue,
-          reason: '0 users >= 0 limit — any redemption should be blocked');
+      final unlimited = AppCoupon(usageLimit: 0);
+      expect(unlimited.isUsedUp, isFalse);
+
+      final invalidNegative = AppCoupon(usageLimit: -1);
+      expect(invalidNegative.isUsedUp, isTrue);
     });
   });
 

@@ -119,11 +119,25 @@ class AppRouteConstants {
   static const String eventDetails = '/event/:eventId';
   static const String events = '/event';
   static const String eventTicketScanner = '/event/ticket-scanner';
+  static const String qrScanner = '/qr/scanner';
+
+  /// Construye la ruta al escáner QR universal indicando la sección de origen
+  /// y opcionalmente la ruta destino a la que debe redirigir tras escanear.
+  static String qrScannerPath({String origin = '', String next = ''}) {
+    final query = <String, String>{
+      if (origin.isNotEmpty) 'origin': origin,
+      if (next.isNotEmpty) 'next': next,
+    };
+    if (query.isEmpty) return qrScanner;
+    return Uri(path: qrScanner, queryParameters: query).toString();
+  }
 
   static const String feedActivity = '/feed/activity';
   static const String feedActivityDrawer = '/drawer/activity';
   static const String calendar = '/calendar';
   static const String agenda = '/agenda';
+  static const String publicAgenda = '/agendar';
+  static const String filAgenda = '/fil-guadalajara/agendar';
 
   static const String collectives = '/collectives';
   static const String collectivesRoom = '/collectives/room';
@@ -143,6 +157,7 @@ class AppRouteConstants {
   static const String billing = '/settings/billing';
   static const String settingsNotification = '/settings/notification';
   static const String subscriptionPlans = '/subscription/plans';
+  static const String accountNotifications = '/notifications/account';
   static const String contentPreferences = '/content/preferences';
   static const String about = '/about';
   static const String accountRemove = '/account/remove';
@@ -162,6 +177,9 @@ class AppRouteConstants {
   static const String booking = '/booking';
   static const String bookingPlaces = '/booking/places';
   static const String bookingSearch = '/booking/search';
+  static const String bookingHost = '/booking/host';
+  static const String bookingScanner = '/booking/scanner';
+  static const String bookingPass = '/booking/pass';
   static const String directory = '/directory';
   static const String request = '/request';
   static const String requestUp = '/request-up';
@@ -474,4 +492,15 @@ class AppRouteConstants {
   static String museumAuctionPath(String id) => '/museum/auction/$id';
   static String blogEntryPath(String id, {String slug = ''}) =>
       '/blog/${_slugOrId(id, slug)}';
+
+  // --- EMXI Fondeos (neom_founding) ---
+  static const String foundingHome = '/founding';
+  static const String foundingCreate = '/founding/create';
+  static const String foundingPledge = '/founding/pledge';
+  static const String foundingMyPledges = '/founding/my-pledges';
+  static const String foundingDashboard = '/founding/dashboard';
+  static const String foundingAdmin = '/founding/admin';
+  static const String foundingDetail = '/founding/:slug';
+  static String foundingPath(String id, {String slug = ''}) =>
+      '/founding/${Uri.encodeComponent(_slugOrId(id, slug))}';
 }
