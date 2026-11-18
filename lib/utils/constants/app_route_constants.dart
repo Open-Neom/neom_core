@@ -136,6 +136,8 @@ class AppRouteConstants {
   static const String feedActivityDrawer = '/drawer/activity';
   static const String calendar = '/calendar';
   static const String agenda = '/agenda';
+  static const String publicAgenda = '/agendar';
+  static const String filAgenda = '/fil-guadalajara/agendar';
 
   static const String collectives = '/collectives';
   static const String collectivesRoom = '/collectives/room';
