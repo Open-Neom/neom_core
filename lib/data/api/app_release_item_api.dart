@@ -245,8 +245,12 @@ class AppReleaseItemApi implements AppReleaseItemRepository {
   @override
   Future<Map<String, AppReleaseItem>> retrieveAll({
     bool forceRefresh = false,
-  }) => _retrieveAll(forceRefresh);
-  Future<Map<String, AppReleaseItem>> _retrieveAll(bool forceRefresh) async {
+    bool throwOnError = false,
+  }) => _retrieveAll(forceRefresh, throwOnError: throwOnError);
+  Future<Map<String, AppReleaseItem>> _retrieveAll(
+    bool forceRefresh, {
+    bool throwOnError = false,
+  }) async {
     if (forceRefresh || !_catalogReconciliationActors.contains(actorId())) {
       try {
         await requestCloudReconciliation();
@@ -254,9 +258,13 @@ class AppReleaseItemApi implements AppReleaseItemRepository {
         lastSyncError = error;
       }
     }
-    return _read({
-      'forceRefresh': '$forceRefresh',
-    }, () => firebase.retrieveAll(forceRefresh: forceRefresh));
+    return _read(
+      {'forceRefresh': '$forceRefresh'},
+      () => firebase.retrieveAll(
+        forceRefresh: forceRefresh,
+        throwOnError: throwOnError,
+      ),
+    );
   }
 
   @override
