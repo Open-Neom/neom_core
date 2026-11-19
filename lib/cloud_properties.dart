@@ -240,15 +240,19 @@ class CloudProperties {
   /// On mobile, uses the callable secureOps via Firebase SDK.
   static Future<Map<String, dynamic>> callSecureOps(Map<String, dynamic> data) async {
     if (kIsWeb) {
-      // `getConfig` es la única que no cuesta dinero y puede correr sin
-      // sesión. El resto estaban en esta lista como «públicas», que era justo
-      // lo que dejaba el proxy abierto: ahora se firma antes de llamar.
-      final isPublicAction = data['action'] == 'getConfig';
+      // `getConfig` no requiere sesión. En apps embebidas (EMXI/Cyberneom/Gigmeout)
+      // donde Firebase Auth anónimo se mantiene desactivado por seguridad de
+      // Firestore, `geminiProxy` intenta firmar si hay sesión y, si no, deja que
+      // `secureOpsWeb` valide el origen oficial + rate-limit por IP en servidor.
+      final action = data['action'];
+      final isPublicAction = action == 'getConfig';
+      final allowsGuestOriginProxy =
+          action == 'geminiProxy' && (appInUse ?? AppInUse.o) != AppInUse.i;
       final user = isPublicAction
           ? FirebaseAuth.instance.currentUser
           : await _ensureSignedIn();
 
-      if (user == null && !isPublicAction) {
+      if (user == null && !isPublicAction && !allowsGuestOriginProxy) {
         throw Exception('Authentication required — user not logged in');
       }
 
@@ -256,7 +260,7 @@ class CloudProperties {
 
       final rawToken = user != null ? await user.getIdToken() : null;
       final token = sanitizeBearerToken(rawToken);
-      if (!isPublicAction && token == null) {
+      if (!isPublicAction && !allowsGuestOriginProxy && token == null) {
         throw Exception('Authentication required — invalid ID token');
       }
       final headers = <String, String>{
