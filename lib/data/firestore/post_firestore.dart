@@ -8,6 +8,7 @@ import '../../utils/enums/post_type.dart';
 import '../../utils/neom_error_logger.dart';
 import '../../utils/position_utilities.dart';
 import '../../utils/post_utilities.dart';
+import '../../utils/release_catalog_visibility.dart';
 import 'activity_feed_firestore.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'constants/app_firestore_constants.dart';
@@ -22,6 +23,13 @@ class PostFirestore implements PostRepository {
       !AppConfig.instance.canPersistUserActivity;
 
   bool _canRead(Post post) => !_readsPublicData || post.isPubliclyVisible;
+
+  bool _isVisibleInFeed(Post post) =>
+      _canRead(post) &&
+      ReleaseCatalogVisibility.isPostVisible(
+        post,
+        app: AppConfig.instance.appInUse,
+      );
 
   final FirebaseFirestore? _injectedFirestore;
   PostFirestore({FirebaseFirestore? firestore})
@@ -102,7 +110,7 @@ class PostFirestore implements PostRepository {
           if (data != null) {
             Post post = Post.fromJSON(data as Map<String, dynamic>);
             post.id = postSnapshot.id;
-            if (_canRead(post)) posts.add(post);
+            if (_isVisibleInFeed(post)) posts.add(post);
           }
         }
         AppConfig.logger.t("${posts.length} posts found");
@@ -372,7 +380,7 @@ class PostFirestore implements PostRepository {
           AppConfig.logger.t(
             'Post ${post.id} of type ${post.type.name} at ${post.location}',
           );
-          if (post.type != PostType.event && _canRead(post)) {
+          if (post.type != PostType.event && _isVisibleInFeed(post)) {
             posts.add(post);
           }
         }
@@ -417,7 +425,7 @@ class PostFirestore implements PostRepository {
 
       for (var doc in snapshot.docs) {
         Post post = Post.fromJSON(doc.data());
-        if (_canRead(post) &&
+        if (_isVisibleInFeed(post) &&
             (forceRefresh || !_diverseDocTimeline.containsKey(doc.id))) {
           post.id = doc.id;
           if (!PublicCatalogReadPolicy.enabled &&
@@ -640,7 +648,7 @@ class PostFirestore implements PostRepository {
         post.id = snapshot.docs.elementAt(i).id;
 
         if ((profileId == post.ownerId || profileId.isEmpty) &&
-            _canRead(post)) {
+            _isVisibleInFeed(post)) {
           if (post.location.isEmpty && post.position != null) {
             post.location =
                 await PositionUtilities.getFormattedAddressFromPosition(
@@ -739,7 +747,7 @@ class PostFirestore implements PostRepository {
           }
         }
 
-        if (_canRead(post)) entries.add(post);
+        if (_isVisibleInFeed(post)) entries.add(post);
       }
 
       AppConfig.logger.d("Community blog entries found: ${entries.length}");
@@ -770,7 +778,7 @@ class PostFirestore implements PostRepository {
           for (var doc in snapshot.docs) {
             Post post = Post.fromJSON(doc.data());
             post.id = doc.id;
-            if (_canRead(post)) entries.add(post);
+            if (_isVisibleInFeed(post)) entries.add(post);
           }
           AppConfig.logger.d(
             "Community blog entries stream: ${entries.length}",
@@ -935,7 +943,7 @@ class PostFirestore implements PostRepository {
       for (var doc in queryDocumentSnapshots) {
         if (!_diverseDocTimeline.containsKey(doc.id)) {
           Post post = Post.fromJSON(doc.data());
-          if (!_canRead(post)) continue;
+          if (!_isVisibleInFeed(post)) continue;
           post.id = doc.id;
           if (post.location.isEmpty && post.position?.latitude != 0) {
             post.location =

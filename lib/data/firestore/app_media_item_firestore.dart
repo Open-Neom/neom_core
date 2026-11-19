@@ -9,6 +9,7 @@ import '../../domain/model/item_list.dart';
 import '../../domain/repository/app_media_item_repository.dart';
 import '../../utils/enums/media_item_type.dart';
 import '../../utils/neom_error_logger.dart';
+import '../../utils/release_catalog_visibility.dart';
 import 'constants/app_firestore_collection_constants.dart';
 import 'public_catalog_read_policy.dart';
 
@@ -90,6 +91,10 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
 
           if (!appMediaItem.isSuspended &&
               appMediaItem.isAudioContent &&
+              ReleaseCatalogVisibility.isMediaItemVisible(
+                appMediaItem,
+                app: AppConfig.instance.appInUse,
+              ) &&
               (type == null || appMediaItem.type == type) &&
               (excludeTypes == null ||
                   !excludeTypes.contains(appMediaItem.type))) {
@@ -136,7 +141,11 @@ class AppMediaItemFirestore implements AppMediaItemRepository {
             documentSnapshot.data(),
           );
           appMediaItem.id = documentSnapshot.id;
-          if (!appMediaItem.isSuspended) {
+          if (!appMediaItem.isSuspended &&
+              ReleaseCatalogVisibility.isMediaItemVisible(
+                appMediaItem,
+                app: AppConfig.instance.appInUse,
+              )) {
             AppConfig.logger.d(
               "AppMediaItem ${appMediaItem.name} was retrieved with details",
             );

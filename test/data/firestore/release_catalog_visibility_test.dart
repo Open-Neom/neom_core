@@ -2,7 +2,9 @@ import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fba;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:neom_core/app_config.dart';
+import 'package:neom_core/data/firestore/app_media_item_firestore.dart';
 import 'package:neom_core/data/firestore/app_release_item_firestore.dart';
+import 'package:neom_core/data/firestore/post_firestore.dart';
 import 'package:neom_core/data/firestore/release_deduplication_service.dart';
 import 'package:neom_core/domain/model/app_profile.dart';
 import 'package:neom_core/domain/model/app_release_item.dart';
@@ -246,6 +248,92 @@ void main() {
         ['legacy-pending'],
       );
       expect(firestore.dump(), before);
+    },
+  );
+
+  test(
+    'Gigmeout hides legacy gigmeout.io releases, media items, and posts non-destructively',
+    () async {
+      config.appInUse = AppInUse.g;
+      AppReleaseItemFirestore.invalidateAllReleaseItemsCache();
+      final gigFirestore = FakeFirebaseFirestore();
+      final releaseRepo = AppReleaseItemFirestore(firestore: gigFirestore);
+      final mediaRepo = AppMediaItemFirestore(firestore: gigFirestore);
+      final postRepo = PostFirestore(firestore: gigFirestore);
+
+      const fbAudio =
+          'https://firebasestorage.googleapis.com/v0/b/gig-me-out.appspot.com/o/track.mp3?alt=media';
+      const fbCover =
+          'https://firebasestorage.googleapis.com/v0/b/gig-me-out.appspot.com/o/cover.jpg?alt=media';
+
+      await gigFirestore.doc('appReleaseItems/fb-song').set({
+        ...sharedFields,
+        'name': 'Firebase Song',
+        'slug': 'firebase-song',
+        'previewUrl': fbAudio,
+        'imgUrl': fbCover,
+      });
+      await gigFirestore.doc('appReleaseItems/legacy-gig-song').set({
+        ...sharedFields,
+        'name': 'Legacy Gigmeout Song',
+        'slug': 'legacy-gigmeout-song',
+        'previewUrl': fbAudio,
+        'imgUrl': 'https://gigmeout.io//',
+      });
+      await gigFirestore.doc('appMediaItems/fb-media').set({
+        'name': 'Firebase Media',
+        'url': fbAudio,
+        'imgUrl': fbCover,
+        'isSuspended': false,
+      });
+      await gigFirestore.doc('appMediaItems/legacy-gig-media').set({
+        'name': 'Legacy Media',
+        'url': 'https://gigmeout.io/media/old.mp3',
+        'imgUrl': 'https://gigmeout.io/media/old.jpg',
+        'isSuspended': false,
+      });
+      await gigFirestore.doc('posts/fb-post').set({
+        'ownerId': 'artist-1',
+        'caption': 'Fresh track',
+        'type': 'releaseItem',
+        'mediaUrl': fbCover,
+        'createdTime': 200,
+        'lastInteraction': 200,
+        'isPrivate': false,
+        'isDraft': false,
+        'isHidden': false,
+        'isScheduled': false,
+      });
+      await gigFirestore.doc('posts/legacy-gig-post').set({
+        'ownerId': 'artist-1',
+        'caption': 'Old release share',
+        'type': 'releaseItem',
+        'mediaUrl': 'https://gigmeout.io//',
+        'createdTime': 100,
+        'lastInteraction': 100,
+        'isPrivate': false,
+        'isDraft': false,
+        'isHidden': false,
+        'isScheduled': false,
+      });
+
+      final before = gigFirestore.dump();
+
+      final releases = await releaseRepo.retrieveAll();
+      expect(releases.keys, ['fb-song']);
+
+      final mediaAll = await mediaRepo.fetchAll();
+      expect(mediaAll.keys, ['fb-media']);
+      final mediaList = await mediaRepo.retrieveFromList([
+        'fb-media',
+        'legacy-gig-media',
+      ]);
+      expect(mediaList.keys, ['fb-media']);
+
+      final posts = await postRepo.retrievePosts();
+      expect(posts.map((p) => p.id), ['fb-post']);
+
+      expect(gigFirestore.dump(), before);
     },
   );
 }
