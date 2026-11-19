@@ -14,6 +14,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  hive_ce: ^2.23.3
 
   sint: ^2.0.2
 
@@ -51,7 +52,7 @@ dependencies:
 
   http: ^1.6.0
 
-  hive_flutter: ^1.1.0
+  hive_ce_flutter: ^2.5.0
 
 
   enum_to_string: ^2.2.1

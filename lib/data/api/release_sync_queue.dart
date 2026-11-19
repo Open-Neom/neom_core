@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 
 abstract interface class ReleaseSyncQueue {
   Future<void> put(String key, Map<String, dynamic> job);

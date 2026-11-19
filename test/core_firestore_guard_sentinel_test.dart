@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hive/hive.dart';
+import 'package:hive_ce/hive_ce.dart';
 import 'package:neom_core/data/firestore/core_firestore_guard.dart';
 import 'package:sint_sentinel/sint_sentinel_core.dart';
 

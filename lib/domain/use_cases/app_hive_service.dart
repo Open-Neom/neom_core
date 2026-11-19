@@ -1,4 +1,4 @@
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 
 import '../../utils/enums/app_locale.dart';
 import '../../utils/platform/core_io.dart';
