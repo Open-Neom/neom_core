@@ -1,13 +1,14 @@
 import 'package:flutter/cupertino.dart';
 
 import '../../utils/enums/app_item_state.dart';
+import '../../utils/enums/itemlist_type.dart';
 import '../model/app_media_item.dart';
 import '../model/item_list.dart';
 
 abstract class ItemlistService {
 
   Future<void> restart();
-  Future<void> createItemlist();
+  Future<void> createItemlist({ItemlistType? type});
   Future<void> updateItemlist(String itemlistId, Itemlist itemlist);
   Future<void> deleteItemlist(Itemlist itemlist);
   void clearNewItemlist();
@@ -15,7 +16,7 @@ abstract class ItemlistService {
 
   List<Itemlist> getItemlists();
   void setAppMediaItem(AppMediaItem item);
-  Future<Itemlist> createBasicItemlist();
+  Future<Itemlist> createBasicItemlist({ItemlistType? type});
   void setSelectedItemlist(String selectedItemlist);
   String getSelectedItemlist();
   void setAppItemState(AppItemState newState);

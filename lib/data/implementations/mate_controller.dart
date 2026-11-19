@@ -5,13 +5,18 @@ import 'dart:core';
 import 'package:sint/sint.dart';
 
 import '../../app_config.dart';
+import '../../cloud_properties.dart';
 import '../../domain/model/app_media_item.dart';
 import '../../domain/model/app_profile.dart';
+import '../../domain/model/item_list.dart';
 import '../../domain/use_cases/mate_service.dart';
 import '../../domain/use_cases/user_service.dart';
 import '../../utils/constants/app_route_constants.dart';
+import '../../utils/core_utilities.dart';
 import '../../utils/enums/app_in_use.dart';
+import '../../utils/enums/itemlist_type.dart';
 import '../../utils/neom_error_logger.dart';
+import '../firestore/itemlist_firestore.dart';
 import '../firestore/mate_firestore.dart';
 import '../firestore/profile_firestore.dart';
 
@@ -68,7 +73,7 @@ class MateController extends SintController implements MateService {
   Future<void> loadMateProfiles() async {
     try {
       if(mateIds.isEmpty) {
-        if (AppConfig.instance.appInUse == AppInUse.g && AppPlatformApi.isEnabled) {
+        if (AppConfig.instance.appInUse == AppInUse.g) {
           await loadItemmates();
         }
         await loadProfiles();
@@ -87,37 +92,232 @@ class MateController extends SintController implements MateService {
   }
 
   Future<void> loadItemmates() async {
-    if (!AppPlatformApi.isEnabled || profile.id.isEmpty) return;
+    if (profile.id.isEmpty) return;
+
+    if (AppPlatformApi.isEnabled) {
+      try {
+        final result = await AppPlatformApi.client('profiles').read<List<Map<String, dynamic>>>(
+          'findRepertoireMatches',
+          {'profileId': profile.id, 'limit': 50},
+          decode: (res) {
+            final raw = res['items'] as List? ?? const [];
+            return raw.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
+          },
+          fallback: () async => <Map<String, dynamic>>[],
+          referenceIds: (_) => const [],
+        );
+        _applyRepertoireMatches(result);
+      } catch (e, st) {
+        NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'loadItemmates');
+      }
+      return;
+    }
+
+    await _loadItemmatesFromFirebase();
+  }
+
+  void _applyRepertoireMatches(List<Map<String, dynamic>> result) {
+    final matchedProfiles = <String, AppProfile>{};
+    final metaMap = <String, Map<String, dynamic>>{};
+    for (final item in result) {
+      final p = AppProfile.fromJSON(item);
+      if (p.id.isEmpty) continue;
+      matchedProfiles[p.id] = p;
+      metaMap[p.id] = {
+        'matchedCount': item['matchedCount'] ?? 0,
+        'totalCallerSongs': item['totalCallerSongs'] ?? 0,
+        'matchPercentage': item['matchPercentage'] ?? 0,
+        'commonSongs': item['commonSongs'] ?? const [],
+        'instruments': item['instruments'] ?? const [],
+      };
+    }
+    _mates.value = matchedProfiles;
+    repertoireMatchMeta.value = metaMap;
+    profile.itemmates = matchedProfiles.keys.toList();
+  }
+
+  Future<void> _loadItemmatesFromFirebase() async {
     try {
-      final result = await AppPlatformApi.client('profiles').read<List<Map<String, dynamic>>>(
-        'findRepertoireMatches',
-        {'profileId': profile.id, 'limit': 50},
-        decode: (res) {
-          final raw = res['items'] as List? ?? const [];
-          return raw.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
-        },
-        fallback: () async => <Map<String, dynamic>>[],
-        referenceIds: (_) => const [],
+      // 1. Prefer server-side Cloud Function when deployed.
+      final cloudRes = await CloudProperties.findRepertoireMatchesViaCloud(
+        profileId: profile.id,
+        limit: 50,
       );
+      if (cloudRes != null && cloudRes['items'] is List) {
+        final rawItems = (cloudRes['items'] as List)
+            .whereType<Map>()
+            .map((e) => Map<String, dynamic>.from(e))
+            .toList();
+        _applyRepertoireMatches(rawItems);
+        return;
+      }
+
+      // 2. Direct Firestore fallback: match across public Giglists & legacy
+      //    repertoire lists using the exact same canonical song key as the server.
+      final repo = ItemlistFirestore();
+      final callerLists = Map<String, Itemlist>.from(profile.itemlists ?? {});
+      if (callerLists.isEmpty) {
+        callerLists.addAll(await repo.getByOwnerId(profile.id));
+        profile.itemlists = Map<String, Itemlist>.from(callerLists);
+      }
+
+      final callerSongs = <String, Map<String, String>>{};
+      final callerRawIds = <String, String>{};
+
+      void registerSong(
+        Map<String, Map<String, String>> canonicalMap,
+        Map<String, String> rawMap,
+        String rawId,
+        String name,
+        String artist,
+        String imgUrl,
+      ) {
+        final cleanId = rawId.trim();
+        if (cleanId.isEmpty) return;
+        final mKey = CoreUtilities.normalizeSongMatchKey(name, artist);
+        final canonicalKey = mKey.isNotEmpty ? 'mk:$mKey' : 'id:$cleanId';
+        canonicalMap.putIfAbsent(
+          canonicalKey,
+          () => {
+            'id': cleanId,
+            'name': name.isNotEmpty ? name : cleanId,
+            'artist': artist,
+            'imgUrl': imgUrl,
+          },
+        );
+        rawMap[cleanId] = canonicalKey;
+      }
+
+      void collectFromList(
+        Itemlist list,
+        Map<String, Map<String, String>> canonicalMap,
+        Map<String, String> rawMap,
+      ) {
+        for (final ext in list.externalItems ?? const []) {
+          registerSong(canonicalMap, rawMap, ext.id, ext.name, ext.ownerName, ext.imgUrl);
+        }
+        for (final med in list.appMediaItems ?? const []) {
+          registerSong(canonicalMap, rawMap, med.id, med.name, med.ownerName, med.imgUrl);
+        }
+        for (final rel in list.appReleaseItems ?? const []) {
+          registerSong(canonicalMap, rawMap, rel.id, rel.name, rel.ownerName, rel.imgUrl);
+        }
+      }
+
+      // Prefer Giglists first; include legacy playlists containing external items
+      final callerRepertoireLists = callerLists.values.where(
+        (l) =>
+            l.type == ItemlistType.giglist ||
+            (l.externalItems?.isNotEmpty ?? false) ||
+            l.type == ItemlistType.playlist,
+      );
+      for (final list in callerRepertoireLists) {
+        collectFromList(list, callerSongs, callerRawIds);
+      }
+      for (final favId in profile.favoriteItems ?? const <String>[]) {
+        if (!callerRawIds.containsKey(favId)) {
+          registerSong(callerSongs, callerRawIds, favId, '', '', '');
+        }
+      }
+
+      final totalCallerSongs = callerSongs.length;
+      if (totalCallerSongs == 0) return;
+
+      final publicGiglists = await repo.fetchAll(
+        onlyPublic: true,
+        maxLength: 100,
+        excludeFromProfileId: profile.id,
+        itemlistType: ItemlistType.giglist,
+      );
+      final publicPlaylists = await repo.fetchAll(
+        onlyPublic: true,
+        maxLength: 100,
+        excludeFromProfileId: profile.id,
+        itemlistType: ItemlistType.playlist,
+      );
+
+      final listsByOwner = <String, List<Itemlist>>{};
+      for (final list in [...publicGiglists.values, ...publicPlaylists.values]) {
+        if (list.ownerId.isEmpty || list.ownerId == profile.id) continue;
+        if (list.type != ItemlistType.giglist &&
+            (list.externalItems?.isEmpty ?? true) &&
+            (list.appMediaItems?.isEmpty ?? true)) {
+          continue;
+        }
+        listsByOwner.putIfAbsent(list.ownerId, () => []).add(list);
+      }
+      if (listsByOwner.isEmpty) return;
+
+      final candidateMatches = <String, List<Map<String, String>>>{};
+      for (final entry in listsByOwner.entries) {
+        final candSongs = <String, Map<String, String>>{};
+        final candRawIds = <String, String>{};
+        for (final list in entry.value) {
+          collectFromList(list, candSongs, candRawIds);
+        }
+        if (candSongs.isEmpty) continue;
+
+        final common = <Map<String, String>>[];
+        for (final songEntry in callerSongs.entries) {
+          final canonicalKey = songEntry.key;
+          final songInfo = songEntry.value;
+          final matched = candSongs.containsKey(canonicalKey) ||
+              candRawIds.containsKey(songInfo['id']);
+          if (matched) {
+            common.add(songInfo);
+          }
+        }
+        if (common.isNotEmpty) {
+          candidateMatches[entry.key] = common;
+        }
+      }
+      if (candidateMatches.isEmpty) return;
+
+      final candidateProfiles = await AppProfiles.repository.retrieveFromList(
+        candidateMatches.keys.toList(),
+      );
+
+      final ranked = <MapEntry<AppProfile, Map<String, dynamic>>>[];
+      for (final entry in candidateMatches.entries) {
+        final prof = candidateProfiles[entry.key];
+        if (prof == null || prof.id.isEmpty) continue;
+        final common = entry.value;
+        final pct = ((common.length / totalCallerSongs) * 100).round().clamp(0, 100);
+        ranked.add(
+          MapEntry(prof, {
+            'matchedCount': common.length,
+            'totalCallerSongs': totalCallerSongs,
+            'matchPercentage': pct,
+            'commonSongs': common.take(10).toList(),
+            'instruments': prof.instruments?.keys.toList() ?? const [],
+          }),
+        );
+      }
+
+      ranked.sort((a, b) {
+        final countCmp = (b.value['matchedCount'] as int)
+            .compareTo(a.value['matchedCount'] as int);
+        if (countCmp != 0) return countCmp;
+        return (b.value['matchPercentage'] as int)
+            .compareTo(a.value['matchPercentage'] as int);
+      });
+
       final matchedProfiles = <String, AppProfile>{};
       final metaMap = <String, Map<String, dynamic>>{};
-      for (final item in result) {
-        final p = AppProfile.fromJSON(item);
-        if (p.id.isEmpty) continue;
-        matchedProfiles[p.id] = p;
-        metaMap[p.id] = {
-          'matchedCount': item['matchedCount'] ?? 0,
-          'totalCallerSongs': item['totalCallerSongs'] ?? 0,
-          'matchPercentage': item['matchPercentage'] ?? 0,
-          'commonSongs': item['commonSongs'] ?? const [],
-          'instruments': item['instruments'] ?? const [],
-        };
+      for (final entry in ranked.take(50)) {
+        matchedProfiles[entry.key.id] = entry.key;
+        metaMap[entry.key.id] = entry.value;
       }
       _mates.value = matchedProfiles;
       repertoireMatchMeta.value = metaMap;
       profile.itemmates = matchedProfiles.keys.toList();
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'loadItemmates');
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: '_loadItemmatesFromFirebase',
+      );
     }
   }
 

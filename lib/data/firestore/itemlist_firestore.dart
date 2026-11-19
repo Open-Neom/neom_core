@@ -10,6 +10,7 @@ import '../../domain/model/item_list.dart';
 import '../../domain/model/neom/neom_chamber_preset.dart';
 import '../../domain/repository/itemlist_repository.dart';
 import '../../utils/constants/core_constants.dart';
+import '../../utils/enums/external_media_source.dart';
 import '../../utils/enums/itemlist_type.dart';
 import '../../utils/enums/owner_type.dart';
 import '../../utils/neom_error_logger.dart';
@@ -53,7 +54,32 @@ class ItemlistFirestore implements ItemlistRepository {
     ).retrieveFromList(ids('appMediaItemIds'));
     itemlist.appReleaseItems = releases.values.toList();
     itemlist.appMediaItems = media.values.toList();
-    itemlist.externalItems = [];
+    if (itemlist.public && itemlist.type == ItemlistType.giglist) {
+      // Public Giglists expose reference-only external repertoire metadata
+      // (never stream URLs) so musicians and visitors can browse repertoires.
+      itemlist.externalItems = (itemlist.externalItems ?? const <ExternalItem>[])
+          .map(
+            (e) => ExternalItem(
+              id: e.id,
+              name: e.name,
+              ownerName: e.ownerName,
+              ownerId: e.ownerId,
+              album: e.album,
+              duration: e.duration,
+              imgUrl: e.imgUrl,
+              galleryUrls: e.galleryUrls,
+              url: '',
+              permaUrl: e.permaUrl,
+              source: e.source,
+              type: e.type,
+              state: e.state,
+              publishedYear: e.publishedYear,
+            ),
+          )
+          .toList();
+    } else {
+      itemlist.externalItems = [];
+    }
     return itemlist;
   }
 
@@ -99,16 +125,20 @@ class ItemlistFirestore implements ItemlistRepository {
       }
 
       // Re-publishing the same album is an update, not a rival address.
+      // Scope by type so a Giglist and a Playlist with the same title never collide.
       if (itemlist.id.isEmpty &&
           itemlist.ownerSlug.isNotEmpty &&
           itemlist.slug.isNotEmpty) {
         final existing = await getByOwnerAndSlug(
           itemlist.ownerSlug,
           itemlist.slug,
+          type: itemlist.type,
         );
-        if (existing != null && existing.id.isNotEmpty) {
+        if (existing != null &&
+            existing.id.isNotEmpty &&
+            existing.type == itemlist.type) {
           AppConfig.logger.w(
-            "Itemlist '${itemlist.name}' by ${itemlist.ownerName} "
+            "Itemlist '${itemlist.name}' (${itemlist.type.name}) by ${itemlist.ownerName} "
             "already exists (${existing.id}); updating it",
           );
           itemlist.id = existing.id;
@@ -137,6 +167,10 @@ class ItemlistFirestore implements ItemlistRepository {
 
           for (var doc in recentDocs.docs) {
             final data = doc.data();
+            final existingType = (data['type'] as String? ?? '').trim();
+            if (existingType.isNotEmpty && existingType != itemlist.type.name) {
+              continue;
+            }
             final existingSlug = data['slug'] as String? ?? '';
             final existingName = data['name'] as String? ?? '';
             if ((itemlist.slug.isNotEmpty && existingSlug == itemlist.slug) ||
@@ -813,18 +847,27 @@ class ItemlistFirestore implements ItemlistRepository {
     return false;
   }
 
+  static ExternalItem _sanitizeExternalItemForStorage(ExternalItem item) {
+    // YouTube Music repertoire items must never store a direct streaming URL.
+    if (item.source == ExternalSource.youtube) {
+      item.url = '';
+    }
+    return item;
+  }
+
   @override
   Future<bool> addExternalItem(
     String itemlistId,
     ExternalItem externalItem,
   ) async {
+    final safeItem = _sanitizeExternalItemForStorage(externalItem);
     if (AppPlatformApi.isEnabled) {
       try {
         final ok = await AppPlatformApi.client('itemlists').mutate(
           'addExternalItem',
           {
             'itemlistId': itemlistId,
-            'externalItem': externalItem.toJSON(),
+            'externalItem': safeItem.toJSON(),
           },
           durable: false,
         );
@@ -844,12 +887,26 @@ class ItemlistFirestore implements ItemlistRepository {
     bool addedItem = false;
 
     try {
-      DocumentReference documentReference = itemlistReference.doc(itemlistId);
-      await documentReference.update({
-        AppFirestoreConstants.externalItems: FieldValue.arrayUnion([
-          externalItem.toJSON(),
-        ]),
-      });
+      final documentReference = itemlistReference.doc(itemlistId);
+      final snapshot = await documentReference.get();
+      if (snapshot.exists && snapshot.data() != null) {
+        final existing = Itemlist.fromJSON(snapshot.data()!);
+        final list = List<ExternalItem>.from(existing.externalItems ?? const []);
+        list.removeWhere((e) => e.id == safeItem.id);
+        list.add(safeItem);
+        await documentReference.update({
+          AppFirestoreConstants.externalItems:
+              list.map((e) => e.toJSON()).toList(),
+          AppFirestoreConstants.modifiedTime:
+              DateTime.now().millisecondsSinceEpoch,
+        });
+      } else {
+        await documentReference.update({
+          AppFirestoreConstants.externalItems: FieldValue.arrayUnion([
+            safeItem.toJSON(),
+          ]),
+        });
+      }
 
       addedItem = true;
     } catch (e, st) {
@@ -867,6 +924,101 @@ class ItemlistFirestore implements ItemlistRepository {
             "ExternalItem was not added to itemlist $itemlistId",
           );
     return addedItem;
+  }
+
+  /// Adds multiple external repertoire items (e.g. imported from a YouTube
+  /// playlist) in a single deduplicated Firestore update.
+  Future<int> addExternalItemsBulk(
+    String itemlistId,
+    List<ExternalItem> items,
+  ) async {
+    if (itemlistId.trim().isEmpty || items.isEmpty) return 0;
+    final sanitized = items
+        .where((e) => e.id.trim().isNotEmpty)
+        .map(_sanitizeExternalItemForStorage)
+        .toList();
+    if (sanitized.isEmpty) return 0;
+
+    if (AppPlatformApi.isEnabled) {
+      int added = 0;
+      for (final item in sanitized) {
+        if (await addExternalItem(itemlistId, item)) added++;
+      }
+      return added;
+    }
+    if (PublicCatalogReadPolicy.enabled) return 0;
+
+    try {
+      final documentReference = itemlistReference.doc(itemlistId);
+      final snapshot = await documentReference.get();
+      final data = snapshot.data();
+      if (!snapshot.exists || data == null) return 0;
+
+      final existing = Itemlist.fromJSON(data);
+      final mergedById = <String, ExternalItem>{
+        for (final e in existing.externalItems ?? const <ExternalItem>[])
+          if (e.id.isNotEmpty) e.id: e,
+      };
+      int newlyAdded = 0;
+      for (final item in sanitized) {
+        if (!mergedById.containsKey(item.id)) newlyAdded++;
+        mergedById[item.id] = item;
+      }
+
+      await documentReference.update({
+        AppFirestoreConstants.externalItems:
+            mergedById.values.map((e) => e.toJSON()).toList(),
+        if (existing.imgUrl.isEmpty && sanitized.first.imgUrl.isNotEmpty)
+          AppFirestoreConstants.imgUrl: sanitized.first.imgUrl,
+        AppFirestoreConstants.modifiedTime:
+            DateTime.now().millisecondsSinceEpoch,
+      });
+
+      return newlyAdded > 0 ? newlyAdded : sanitized.length;
+    } catch (e, st) {
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'ItemlistFirestore.addExternalItemsBulk',
+      );
+      return 0;
+    }
+  }
+
+  /// Persists the reordered item arrays cleanly without mixing external items
+  /// into internal `appMediaItems`.
+  Future<bool> updateItemsOrder(Itemlist itemlist) async {
+    if (itemlist.id.trim().isEmpty) return false;
+    if (AppPlatformApi.isEnabled) {
+      return update(itemlist);
+    }
+    if (PublicCatalogReadPolicy.enabled) return false;
+
+    try {
+      await itemlistReference.doc(itemlist.id).update({
+        AppFirestoreConstants.appMediaItems:
+            itemlist.appMediaItems?.map((m) => m.toJSON()).toList() ?? [],
+        AppFirestoreConstants.appReleaseItems:
+            itemlist.appReleaseItems?.map((r) => r.toJSON()).toList() ?? [],
+        AppFirestoreConstants.externalItems:
+            itemlist.externalItems
+                ?.map((e) => _sanitizeExternalItemForStorage(e).toJSON())
+                .toList() ??
+            [],
+        AppFirestoreConstants.modifiedTime:
+            DateTime.now().millisecondsSinceEpoch,
+      });
+      return true;
+    } catch (e, st) {
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'ItemlistFirestore.updateItemsOrder',
+      );
+      return false;
+    }
   }
 
   @override
@@ -955,15 +1107,21 @@ class ItemlistFirestore implements ItemlistRepository {
   /// The kind is not part of the match: it makes the URL self-describing, but
   /// an album re-labelled as an EP should keep resolving from links already
   /// shared. The artist plus the title is what identifies it.
-  Future<Itemlist?> getByOwnerAndSlug(String ownerSlug, String slug) async {
+  Future<Itemlist?> getByOwnerAndSlug(
+    String ownerSlug,
+    String slug, {
+    ItemlistType? type,
+  }) async {
     if (ownerSlug.isEmpty || slug.isEmpty) return null;
 
     try {
-      final querySnapshot = await _itemlistQuery
+      Query<Map<String, dynamic>> query = _itemlistQuery
           .where('ownerSlug', isEqualTo: ownerSlug)
-          .where('slug', isEqualTo: slug)
-          .limit(1)
-          .get();
+          .where('slug', isEqualTo: slug);
+      if (type != null) {
+        query = query.where('type', isEqualTo: type.name);
+      }
+      final querySnapshot = await query.limit(1).get();
 
       if (querySnapshot.docs.isNotEmpty) {
         final doc = querySnapshot.docs.first;

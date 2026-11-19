@@ -798,15 +798,84 @@ class CoreUtilities {
   }
 
   static List<Itemlist> filterItemlists(List<Itemlist> lists, ItemlistType type) {
-    if(lists.isEmpty) return [];
+    if (lists.isEmpty) return [];
 
-    if (type.isAudio) {
-      lists.removeWhere((list) => !list.type.isAudio);
+    final filtered = List<Itemlist>.from(lists);
+    if (type == ItemlistType.giglist) {
+      filtered.removeWhere((list) => list.type != ItemlistType.giglist);
+    } else if (type.isStreamableAudio) {
+      filtered.removeWhere((list) => !list.type.isStreamableAudio);
     } else {
-      lists.removeWhere((list) => list.type != type);
+      filtered.removeWhere((list) => list.type != type);
     }
 
-    return lists;
+    return filtered;
+  }
+
+  /// Normalizes a song title + artist into a canonical repertoire match key.
+  /// Mirrors `normalizeSongMatchKey` in Gigmeout's platform server so Firebase
+  /// and own-server Songmate matching produce identical results.
+  static String normalizeSongMatchKey(String title, [String artist = '']) {
+    String cleanChannel(String raw) => raw
+        .replaceAll(RegExp(r'\s*-\s*topic\s*$', caseSensitive: false), '')
+        .replaceAll(RegExp(r'vevo\s*$', caseSensitive: false), '')
+        .replaceAll(RegExp(r'\s+(?:official|oficial|music)\s*$', caseSensitive: false), '')
+        .trim();
+
+    String stripAccents(String s) {
+      const from = 'áàäâãéèëêíìïîóòöôõúùüûñçÁÀÄÂÃÉÈËÊÍÌÏÎÓÒÖÔÕÚÙÜÛÑÇ';
+      const to = 'aaaaaeeeeiiiiooooouuuuncAAAAAEEEEIIIIOOOOOUUUUNC';
+      final sb = StringBuffer();
+      for (var i = 0; i < s.length; i++) {
+        final idx = from.indexOf(s[i]);
+        sb.write(idx >= 0 ? to[idx] : s[i]);
+      }
+      return sb.toString();
+    }
+
+    String cleanPart(String raw) => stripAccents(raw.toLowerCase())
+        .replaceAll(
+          RegExp(
+            r'\((?:official|oficial|video|audio|lyric|lyrics|remaster(?:ed|izado)?|live|hd|4k|en vivo|letra|visualizer|acustico|acoustic)[^)]*\)',
+            caseSensitive: false,
+          ),
+          ' ',
+        )
+        .replaceAll(
+          RegExp(
+            r'\[(?:official|oficial|video|audio|lyric|lyrics|remaster(?:ed|izado)?|live|hd|4k|en vivo|letra|visualizer|acustico|acoustic)[^\]]*\]',
+            caseSensitive: false,
+          ),
+          ' ',
+        )
+        .replaceAll(
+          RegExp(
+            r'\b(?:official\s+music\s+video|video\s+oficial|audio\s+oficial|official\s+video|official\s+audio|lyric\s+video|remastered\s*\d*)\b',
+            caseSensitive: false,
+          ),
+          ' ',
+        )
+        .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
+        .replaceAll(RegExp(r'^-+|-+$'), '');
+
+    var rawTitle = title.trim();
+    var rawArtist = cleanChannel(artist);
+    var aCompact = cleanPart(rawArtist).replaceAll('-', '');
+
+    final dashIdx = rawTitle.indexOf(' - ');
+    if (dashIdx > 0) {
+      final left = rawTitle.substring(0, dashIdx).trim();
+      final right = rawTitle.substring(dashIdx + 3).trim();
+      final leftCompact = cleanPart(cleanChannel(left)).replaceAll('-', '');
+      if (right.isNotEmpty && (aCompact.isEmpty || leftCompact == aCompact)) {
+        rawTitle = right;
+        if (aCompact.isEmpty) aCompact = leftCompact;
+      }
+    }
+
+    final t = cleanPart(rawTitle);
+    if (t.isEmpty) return '';
+    return aCompact.isNotEmpty ? '$t::$aCompact' : t;
   }
 
   static const Set<String> _sharedMultiTenantSuffixes = <String>{

@@ -109,6 +109,7 @@ class Itemlist {
     ownerType = OwnerType.profile,
     appReleaseItems = [],
     appMediaItems = [],
+    externalItems = [],
     isModifiable = true,
     dominantColor = "",
     tracksCount = 0,
@@ -268,11 +269,11 @@ class Itemlist {
       return null;
     }
 
-    dynamic foundItem = allItems.firstWhere((item) {
-      return item.id == itemId;
-    });
+    for (final item in allItems) {
+      if (item.id == itemId) return item;
+    }
 
-    return foundItem;
+    return null;
   }
 
 }

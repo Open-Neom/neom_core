@@ -533,6 +533,47 @@ class CloudProperties {
     }
   }
 
+  /// Calls secureOps Cloud Function to proxy cached YouTube Music searches and
+  /// public playlist imports without exposing `GOOGLE_API_KEY` to the client.
+  static Future<Map<String, dynamic>?> ytmusicProxy({
+    required String operation,
+    Map<String, dynamic>? payload,
+  }) async {
+    try {
+      return await callSecureOps({
+        'action': 'ytmusicProxy',
+        'operation': operation,
+        ...?payload,
+      });
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_core', operation: 'ytmusicProxy');
+      return null;
+    }
+  }
+
+  /// Calls secureOps Cloud Function to compute Songmates repertoire matches
+  /// across public Giglists/repertoires in Firestore.
+  static Future<Map<String, dynamic>?> findRepertoireMatchesViaCloud({
+    required String profileId,
+    int limit = 50,
+  }) async {
+    try {
+      return await callSecureOps({
+        'action': 'findRepertoireMatches',
+        'profileId': profileId,
+        'limit': limit,
+      });
+    } catch (e, st) {
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'findRepertoireMatchesViaCloud',
+      );
+      return null;
+    }
+  }
+
   // ═══════════════════════════════════════════
   // Service Account
   // ═══════════════════════════════════════════

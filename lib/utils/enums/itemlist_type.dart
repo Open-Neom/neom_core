@@ -25,4 +25,14 @@ enum ItemlistType {
       this == ItemlistType.radioStation ||
       this == ItemlistType.meditation;
 
+  /// Streamable audio lists shown in Gig Music / audio player feeds.
+  ///
+  /// Excludes [ItemlistType.giglist], which is strictly a musician repertoire
+  /// list (YouTube Music references + preview-only for Songmate matching, not
+  /// full-song streaming playlists).
+  bool get isStreamableAudio => isAudio && this != ItemlistType.giglist;
+
+  /// Whether this list represents a musician repertoire / connection list.
+  bool get isRepertoire => this == ItemlistType.giglist;
+
 }
