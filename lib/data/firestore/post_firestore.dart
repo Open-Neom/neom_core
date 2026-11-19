@@ -149,6 +149,7 @@ class PostFirestore implements PostRepository {
     }
   }
 
+  @override
   Future<Post?> getBySlug(String slug) async {
     if (slug.isEmpty) return null;
     try {
@@ -326,6 +327,7 @@ class PostFirestore implements PostRepository {
     return false;
   }
 
+  @override
   Future<bool> updateFields(String postId, Map<String, dynamic> fields) async {
     if (!_canWriteCatalog) return false;
     AppConfig.logger.d("Updating post $postId fields");
