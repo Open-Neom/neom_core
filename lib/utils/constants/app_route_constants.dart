@@ -199,6 +199,8 @@ class AppRouteConstants {
   static const String libraryHome = '/library/';
   static const String topBooks = '/books/top';
   static const String bookDetails = '/book/:bookId';
+  static const String freebooks = '/freebooks';
+  static const String freebookDetails = '/freebooks/:bookId';
 
   static const String blog = '/blog';
   static const String blogEditor = '/blog/editor';
@@ -431,6 +433,8 @@ class AppRouteConstants {
 
   static String bookPath(String id, {String slug = ''}) =>
       '/book/${Uri.encodeComponent(_slugOrId(id, slug))}';
+  static String freebookPath(String id, {String slug = ''}) =>
+      '/freebooks/${Uri.encodeComponent(_slugOrId(id, slug))}';
   static String readingPath(String id, {String slug = ''}) =>
       '/reading/${Uri.encodeComponent(_slugOrId(id, slug))}';
   static String matePath(String id, {String slug = ''}) =>
