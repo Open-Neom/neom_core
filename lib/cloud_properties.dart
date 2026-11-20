@@ -148,7 +148,7 @@ class CloudProperties {
         break;
       case AppInUse.c:
         productionUrl =
-            'https://us-central1-cyberneom-app.cloudfunctions.net/secureOpsWeb';
+            'https://us-central1-cyberneom-edd2d.cloudfunctions.net/secureOpsWeb';
         break;
       case AppInUse.i:
         productionUrl =
