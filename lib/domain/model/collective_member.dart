@@ -34,6 +34,7 @@ class CollectiveMember {
   @override
   bool operator ==(Object other) =>
       other is CollectiveMember &&
+          id == other.id &&
           name == other.name &&
           imgUrl == other.imgUrl &&
           profileId == other.profileId &&
@@ -43,15 +44,16 @@ class CollectiveMember {
           isMuted == other.isMuted;
 
   @override
-  int get hashCode =>
-      id.hashCode ^
-      name.hashCode ^
-      imgUrl.hashCode ^
-      profileId.hashCode ^
-      instrument.hashCode ^
-      vocalType.hashCode ^
-      role.hashCode ^
-      isMuted.hashCode;
+  int get hashCode => Object.hash(
+        id,
+        name,
+        imgUrl,
+        profileId,
+        instrument?.name,
+        vocalType,
+        role,
+        isMuted,
+      );
 
   Map<String, dynamic> toJSON()=>{
     'name': name,

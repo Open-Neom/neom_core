@@ -25,10 +25,12 @@ class CollectiveDawProject {
   String name;
   String description;
   String ownerId;
+  String ownerAuthUid;
   String ownerName;
   String ownerImgUrl;
   String? collectiveId;
   String? collectiveName;
+  List<String> collaboratorAuthUids;
   int bpm;
   int trackCount;
   String? coverImgUrl;
@@ -41,10 +43,12 @@ class CollectiveDawProject {
     this.name = '',
     this.description = '',
     this.ownerId = '',
+    this.ownerAuthUid = '',
     this.ownerName = '',
     this.ownerImgUrl = '',
     this.collectiveId,
     this.collectiveName,
+    this.collaboratorAuthUids = const [],
     this.bpm = 120,
     this.trackCount = 0,
     this.coverImgUrl,
@@ -65,10 +69,12 @@ class CollectiveDawProject {
       'name': name,
       'description': description,
       'ownerId': ownerId,
+      'ownerAuthUid': ownerAuthUid,
       'ownerName': ownerName,
       'ownerImgUrl': ownerImgUrl,
       'collectiveId': collectiveId,
       'collectiveName': collectiveName,
+      'collaboratorAuthUids': collaboratorAuthUids,
       'bpm': bpm,
       'trackCount': trackCount,
       'coverImgUrl': coverImgUrl,
@@ -84,10 +90,15 @@ class CollectiveDawProject {
       name: json['name']?.toString() ?? '',
       description: json['description']?.toString() ?? '',
       ownerId: json['ownerId']?.toString() ?? '',
+      ownerAuthUid: json['ownerAuthUid']?.toString() ?? '',
       ownerName: json['ownerName']?.toString() ?? '',
       ownerImgUrl: json['ownerImgUrl']?.toString() ?? '',
       collectiveId: json['collectiveId']?.toString(),
       collectiveName: json['collectiveName']?.toString(),
+      collaboratorAuthUids: (json['collaboratorAuthUids'] as List?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          const [],
       bpm: (json['bpm'] is num) ? (json['bpm'] as num).toInt() : 120,
       trackCount: (json['trackCount'] is num) ? (json['trackCount'] as num).toInt() : 0,
       coverImgUrl: json['coverImgUrl']?.toString(),

@@ -1,3 +1,4 @@
+import '../../utils/enums/collective_member_role.dart';
 import '../model/collective.dart';
 import '../model/collective_member.dart';
 
@@ -10,6 +11,8 @@ abstract class CollectiveRepository {
   Future<Map<String, Collective>> getCollectives();
   Future<Map<String, Collective>> getCollectivesFromList(List<String> collectiveIds);
 
+  Future<String> addCollectiveMember(String collectiveId, CollectiveMember collectiveMember);
+  Future<bool> updateCollectiveMemberRole(String collectiveId, String memberId, CollectiveMemberRole role);
   Future<bool> fulfillCollectiveMember(String collectiveId, CollectiveMember collectiveMember);
   Future<bool> unfulfillCollectiveMember(String collectiveId, CollectiveMember collectiveMember);
 

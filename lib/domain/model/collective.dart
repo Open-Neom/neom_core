@@ -66,6 +66,9 @@ class Collective {
   Map<String, CollectiveMember>? members;
 
   String slug;
+  String ownerAuthUid;
+  List<String> memberProfileIds;
+  List<String> adminProfileIds;
 
   static String generateSlug(String title) {
     return title.toLowerCase()
@@ -83,7 +86,7 @@ class Collective {
     this.reason = UsageReason.any,
     this.pricePerHour,
     this.reviewStars = 10.0,
-    this.isActive = false,
+    this.isActive = true,
     this.createdTime = 0,
     this.lastSession = 0,
     this.position,
@@ -107,7 +110,27 @@ class Collective {
     this.boardId = '',
     this.channels,
     this.slug = '',
+    this.ownerAuthUid = '',
+    this.memberProfileIds = const [],
+    this.adminProfileIds = const [],
   });
+
+  bool hasMemberProfile(String profileId) {
+    final cleanId = profileId.trim();
+    if (cleanId.isEmpty) return false;
+    if (memberProfileIds.contains(cleanId)) return true;
+    return members?.values.any((m) => m.profileId == cleanId) ?? false;
+  }
+
+  bool isAdminProfile(String profileId) {
+    final cleanId = profileId.trim();
+    if (cleanId.isEmpty) return false;
+    if (adminProfileIds.contains(cleanId)) return true;
+    final matched = members?.values.where((m) => m.profileId == cleanId);
+    if (matched == null || matched.isEmpty) return false;
+    final role = matched.first.role.name;
+    return role == 'founder' || role == 'owner' || role == 'lead' || role == 'moderator';
+  }
 
   @override
   String toString() {
@@ -152,6 +175,9 @@ class Collective {
       'boardId': boardId,
       'channels': channels,
       'slug': slug,
+      'ownerAuthUid': ownerAuthUid,
+      'memberProfileIds': memberProfileIds,
+      'adminProfileIds': adminProfileIds,
     };
   }
 
@@ -169,6 +195,7 @@ class Collective {
         createdTime = data["createdTime"] ?? 0,
         lastSession = data["lastSession"] ?? 0,
         position = PositionParser.JSONtoPosition(data["position"]),
+        lastReview = data["lastReview"] is Map ? Review.fromJSON(data["lastReview"]) : null,
         bannedGenres = data["bannedGenres"]?.cast<String>() ?? [],
         itemmates = data["itemmates"]?.cast<String>() ?? [],
         eventmates = data["eventmates"]?.cast<String>() ?? [],
@@ -189,6 +216,9 @@ class Collective {
         invitationRequests = data["invitationRequests"]?.cast<String>() ?? [],
         boardId = data["boardId"] ?? '',
         channels = data["channels"]?.cast<String>() ?? [],
-        slug = data["slug"] ?? '';
+        slug = data["slug"] ?? '',
+        ownerAuthUid = data["ownerAuthUid"]?.toString() ?? '',
+        memberProfileIds = (data["memberProfileIds"] as List?)?.map((e) => e.toString()).toList() ?? const [],
+        adminProfileIds = (data["adminProfileIds"] as List?)?.map((e) => e.toString()).toList() ?? const [];
 
 }

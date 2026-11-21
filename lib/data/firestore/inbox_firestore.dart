@@ -20,8 +20,10 @@ import 'core_firestore_guard.dart';
 import 'user_firestore.dart';
 
 class InboxFirestore implements InboxRepository {
+  final FirebaseFirestore? _injectedFirestore;
+  InboxFirestore({FirebaseFirestore? firestore}) : _injectedFirestore = firestore;
 
-  FirebaseFirestore get _firestore => FirebaseFirestore.instance;
+  FirebaseFirestore get _firestore => _injectedFirestore ?? FirebaseFirestore.instance;
   CollectionReference<Map<String, dynamic>> get inboxReference =>
       _firestore.collection(AppFirestoreCollectionConstants.inbox);
   Query<Map<String, dynamic>> get messageReference =>
@@ -45,6 +47,18 @@ class InboxFirestore implements InboxRepository {
             await inboxReference
                 .doc(cleanRoomId)
                 .update({AppFirestoreConstants.lastMessage: message.toJSON()});
+          } else {
+            // Collective/group rooms may not yet have a pre-existing parent
+            // inbox doc (legacy bands or topic channels); merge safely so
+            // lastMessage stays fresh without throwing `not-found`.
+            await inboxReference.doc(cleanRoomId).set(
+              {
+                'id': cleanRoomId,
+                'roomKind': InboxRoomKind.collective.name,
+                AppFirestoreConstants.lastMessage: message.toJSON(),
+              },
+              SetOptions(merge: true),
+            );
           }
         },
         tag: 'InboxFirestore.addMessage',
@@ -57,6 +71,130 @@ class InboxFirestore implements InboxRepository {
 
     AppConfig.logger.d("Message not send");
     return false;
+  }
+
+  /// Ensures a first-class parent `inbox/{collectiveId}` group chat room
+  /// document exists and mirrors the collective's current metadata & members so
+  /// the chat appears in `InboxPage` / `InboxWebPage` with unread badges.
+  Future<Inbox> ensureCollectiveRoom({
+    required String collectiveId,
+    required String name,
+    String photoUrl = '',
+    String description = '',
+    List<String> profileIds = const [],
+    List<String> adminIds = const [],
+  }) async {
+    final cleanId = collectiveId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanId)) return Inbox();
+
+    final cleanMembers = profileIds
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toSet()
+        .toList();
+    final cleanAdmins = adminIds
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toSet()
+        .toList();
+
+    try {
+      final docRef = inboxReference.doc(cleanId);
+      final existing = await docRef.get();
+      final now = DateTime.now().millisecondsSinceEpoch;
+      if (existing.exists && existing.data() != null) {
+        final inbox = Inbox.fromJSON(existing.data()!)..id = existing.id;
+        final updates = <String, dynamic>{
+          'id': cleanId,
+          'roomKind': InboxRoomKind.collective.name,
+          if (name.trim().isNotEmpty) 'name': name.trim(),
+          if (photoUrl.trim().isNotEmpty) 'photoUrl': photoUrl.trim(),
+          if (description.trim().isNotEmpty) 'description': description.trim(),
+          if (cleanMembers.isNotEmpty) 'profileIds': cleanMembers,
+          if (cleanAdmins.isNotEmpty) 'adminIds': cleanAdmins,
+        };
+        await docRef.set(updates, SetOptions(merge: true));
+        inbox
+          ..roomKind = InboxRoomKind.collective
+          ..name = name.trim().isNotEmpty ? name.trim() : inbox.name
+          ..photoUrl = photoUrl.trim().isNotEmpty ? photoUrl.trim() : inbox.photoUrl
+          ..description = description.trim().isNotEmpty ? description.trim() : inbox.description
+          ..profileIds = cleanMembers.isNotEmpty ? cleanMembers : inbox.profileIds
+          ..adminIds = cleanAdmins.isNotEmpty ? cleanAdmins : inbox.adminIds;
+        return inbox;
+      }
+
+      final inbox = Inbox(
+        id: cleanId,
+        isPrivate: true,
+        profileIds: cleanMembers,
+        createdTime: now,
+        roomKind: InboxRoomKind.collective,
+        name: name.trim(),
+        photoUrl: photoUrl.trim(),
+        description: description.trim(),
+        adminIds: cleanAdmins,
+      );
+      await docRef.set(inbox.toJSON(), SetOptions(merge: true));
+      return inbox;
+    } catch (e, st) {
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'InboxFirestore.ensureCollectiveRoom',
+      );
+      return Inbox(
+        id: cleanId,
+        roomKind: InboxRoomKind.collective,
+        name: name.trim(),
+        photoUrl: photoUrl.trim(),
+        profileIds: cleanMembers,
+        adminIds: cleanAdmins,
+      );
+    }
+  }
+
+  /// Keeps `inbox/{collectiveId}` membership and admins aligned with the
+  /// collective's member roster.
+  Future<void> syncCollectiveRoomMembers({
+    required String collectiveId,
+    required List<String> profileIds,
+    List<String>? adminIds,
+    String? name,
+    String? photoUrl,
+  }) async {
+    final cleanId = collectiveId.trim();
+    if (!CoreFirestoreGuard.isSafeDocId(cleanId)) return;
+    try {
+      final cleanMembers = profileIds
+          .map((e) => e.trim())
+          .where((e) => e.isNotEmpty)
+          .toSet()
+          .toList();
+      final payload = <String, dynamic>{
+        'id': cleanId,
+        'roomKind': InboxRoomKind.collective.name,
+        'profileIds': cleanMembers,
+        if (adminIds != null)
+          'adminIds': adminIds
+              .map((e) => e.trim())
+              .where((e) => e.isNotEmpty)
+              .toSet()
+              .toList(),
+        if (name != null && name.trim().isNotEmpty) 'name': name.trim(),
+        if (photoUrl != null && photoUrl.trim().isNotEmpty)
+          'photoUrl': photoUrl.trim(),
+      };
+      await inboxReference.doc(cleanId).set(payload, SetOptions(merge: true));
+    } catch (e, st) {
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'InboxFirestore.syncCollectiveRoomMembers',
+      );
+    }
   }
 
   /// OPTIMIZED: Now requires inboxId for direct document access instead of scanning all messages
