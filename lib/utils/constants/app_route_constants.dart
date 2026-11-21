@@ -201,6 +201,12 @@ class AppRouteConstants {
   static const String bookDetails = '/book/:bookId';
   static const String freebooks = '/freebooks';
   static const String freebookDetails = '/freebooks/:bookId';
+  static const String audiobooks = '/audiobooks';
+  static const String audiobookDetails = '/audiobooks/:audiobookId';
+
+  /// Public Spanish alias for EMXI (`https://emxi.org/audiolecturas`).
+  static const String audiolecturas = '/audiolecturas';
+  static const String audiolecturaDetails = '/audiolecturas/:audiobookId';
 
   static const String blog = '/blog';
   static const String blogEditor = '/blog/editor';
@@ -435,6 +441,10 @@ class AppRouteConstants {
       '/book/${Uri.encodeComponent(_slugOrId(id, slug))}';
   static String freebookPath(String id, {String slug = ''}) =>
       '/freebooks/${Uri.encodeComponent(_slugOrId(id, slug))}';
+  static String audiobookPath(String id, {String slug = ''}) =>
+      '/audiobooks/${Uri.encodeComponent(_slugOrId(id, slug))}';
+  static String audiolecturaPath(String id, {String slug = ''}) =>
+      '/audiolecturas/${Uri.encodeComponent(_slugOrId(id, slug))}';
   static String readingPath(String id, {String slug = ''}) =>
       '/reading/${Uri.encodeComponent(_slugOrId(id, slug))}';
   static String matePath(String id, {String slug = ''}) =>
