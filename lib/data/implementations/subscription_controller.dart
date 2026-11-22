@@ -75,7 +75,7 @@ class SubscriptionController extends SintController implements SubscriptionServi
           fallback: () => <SubscriptionPlan>[],
         );
         if (plans.isNotEmpty) {
-          _subscriptionPlans = {for (final p in plans) p.id: p};
+          _subscriptionPlans = {for (final p in plans.where((p) => p.isActive)) p.id: p};
         } else {
           final fallbackPrice = AppProperties.getSubscriptionPrice().amount > 0
               ? AppProperties.getSubscriptionPrice().amount
@@ -106,19 +106,18 @@ class SubscriptionController extends SintController implements SubscriptionServi
       // Role does NOT affect which environment is used — admins in debug
       // should still see test plans to avoid hitting the live Stripe API.
       final isLiveMode = !kDebugMode;
-      _subscriptionPlans.removeWhere((_, plan) => plan.isLive != isLiveMode);
+      _subscriptionPlans.removeWhere((_, plan) => plan.isLive != isLiveMode || !plan.isActive);
 
       final keysToRemove = <String>[];
 
       for(final entry in _subscriptionPlans.entries) {
         final plan = entry.value;
         StripePrice? stripePrice = await Sint.find<StripeApiService>().getPrice(plan.priceId);
-        if(stripePrice != null) {
+        if(stripePrice != null && stripePrice.active) {
           plan.price = Price.fromStripe(stripePrice);
         } else {
-          // Price could not be fetched — plan belongs to the other Stripe
-          // environment (test vs live). Remove it so only valid plans show.
-          AppConfig.logger.w('Plan "${entry.key}" skipped: priceId ${plan.priceId} not found in current Stripe environment');
+          // Price could not be fetched or is archived in Stripe — omit from checkout.
+          AppConfig.logger.w('Plan "${entry.key}" skipped: priceId ${plan.priceId} unavailable or inactive in current Stripe environment');
           keysToRemove.add(entry.key);
           continue;
         }
