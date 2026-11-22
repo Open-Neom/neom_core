@@ -268,6 +268,12 @@ class CloudProperties {
         if (token != null) 'Authorization': 'Bearer $token',
       };
 
+      final isAiAction =
+          action == 'geminiProxy' ||
+          action == 'aiProxy' ||
+          action == 'synthesizeSpeech' ||
+          action == 'embeddingProxy';
+      final requestTimeout = Duration(seconds: isAiAction ? 60 : 15);
       late final http.Response response;
       try {
         response = await http
@@ -276,7 +282,7 @@ class CloudProperties {
               headers: headers,
               body: jsonEncode({'data': data}),
             )
-            .timeout(const Duration(seconds: 15));
+            .timeout(requestTimeout);
       } catch (error) {
         if (CloudEndpointPolicy.usesLocalEndpoints) {
           throw StateError(
