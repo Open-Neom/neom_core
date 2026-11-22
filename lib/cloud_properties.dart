@@ -578,6 +578,73 @@ class CloudProperties {
     }
   }
 
+  /// Calls secureOps Cloud Function to execute an atomic server-side GigCoins
+  /// tip transfer from the authenticated caller to a creator's wallet.
+  static Future<Map<String, dynamic>?> sendTipViaCloud({
+    required String recipientId,
+    required double amount,
+    String? recipientEmail,
+    String? senderProfileId,
+    String? senderName,
+    String? senderAvatarUrl,
+    String tier = 'custom',
+    String? message,
+    String? contextType,
+    String? contextId,
+  }) async {
+    try {
+      return await callSecureOps({
+        'action': 'sendTip',
+        'recipientId': recipientId,
+        'amount': amount,
+        if (recipientEmail != null && recipientEmail.isNotEmpty)
+          'recipientEmail': recipientEmail,
+        if (senderProfileId != null && senderProfileId.isNotEmpty)
+          'senderProfileId': senderProfileId,
+        if (senderName != null && senderName.isNotEmpty)
+          'senderName': senderName,
+        if (senderAvatarUrl != null && senderAvatarUrl.isNotEmpty)
+          'senderAvatarUrl': senderAvatarUrl,
+        'tier': tier,
+        if (message != null && message.isNotEmpty) 'message': message,
+        if (contextType != null && contextType.isNotEmpty)
+          'contextType': contextType,
+        if (contextId != null && contextId.isNotEmpty) 'contextId': contextId,
+      });
+    } catch (e, st) {
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'sendTipViaCloud',
+      );
+      return null;
+    }
+  }
+
+  /// Calls secureOps Cloud Function to fetch/refresh aggregated monthly CASETE
+  /// pool stats (`casetePoolStats/{YYYY-MM}`).
+  static Future<Map<String, dynamic>?> fetchCasetePoolStatsViaCloud({
+    int? year,
+    int? month,
+  }) async {
+    try {
+      return await callSecureOps({
+        'action': 'casetePoolStats',
+        'year': ?year,
+        'month': ?month,
+      });
+    } catch (e, st) {
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'fetchCasetePoolStatsViaCloud',
+      );
+      return null;
+    }
+  }
+
   // ═══════════════════════════════════════════
   // Service Account
   // ═══════════════════════════════════════════
