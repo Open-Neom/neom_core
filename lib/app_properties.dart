@@ -293,8 +293,14 @@ class AppProperties {
     return appProperties['instagramUrl'] ?? '';
   }
 
-  static String getEmail() {
-    return appProperties['contactEmail'] ?? '';
+  static String getEmail() => getContactEmail();
+
+  /// Returns `contactEmail` directly from the active app's `assets/properties.json`.
+  static String getContactEmail() {
+    if (appProperties is Map) {
+      return appProperties['contactEmail']?.toString().trim() ?? '';
+    }
+    return '';
   }
 
   static String getSubscriptionPlansUrl() {

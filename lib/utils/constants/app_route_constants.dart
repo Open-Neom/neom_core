@@ -137,7 +137,16 @@ class AppRouteConstants {
   static const String calendar = '/calendar';
   static const String agenda = '/agenda';
   static const String publicAgenda = '/agendar';
+  static const String publicAgendaSlug = '/agendar/:slug';
   static const String filAgenda = '/fil-guadalajara/agendar';
+
+  /// Builds the public booking URL path for an optional area/member [slug].
+  /// Returns `/agendar` when [slug] is empty, or `/agendar/<slug>` otherwise.
+  static String publicAgendaPath([String? slug]) {
+    final clean = (slug ?? '').trim().toLowerCase();
+    if (clean.isEmpty) return publicAgenda;
+    return '$publicAgenda/${Uri.encodeComponent(clean)}';
+  }
 
   static const String collectives = '/collectives';
   static const String collectivesRoom = '/collectives/room';

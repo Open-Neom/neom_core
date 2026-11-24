@@ -158,8 +158,9 @@ class AppConfig {
         FirebaseFirestore.instance.settings = const Settings(
           persistenceEnabled: true,
           cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+          webPersistentTabManager: WebPersistentMultipleTabManager(),
         );
-        logger.d("Firestore offline persistence & cache enabled");
+        logger.d("Firestore offline persistence & multi-tab web cache enabled");
       }
     } catch (e) {
       logger.d("Firestore settings already configured or skipped: $e");

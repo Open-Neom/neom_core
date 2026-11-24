@@ -174,8 +174,8 @@ class Event {
       ownerName = data["ownerName"] ?? "",
       ownerEmail = data['ownerEmail'] ?? "",
       public = data["public"] ?? true,
-      createdTime = data["createdTime"] ?? 0,
-      eventDate = data["eventDate"] ?? 0,
+      createdTime = (data["createdTime"] is num) ? (data["createdTime"] as num).toInt() : 0,
+      eventDate = (data["eventDate"] is num) ? (data["eventDate"] as num).toInt() : 0,
       reason =
           EnumToString.fromString(
             UsageReason.values,
@@ -188,8 +188,10 @@ class Event {
           }).toList() ??
           [],
       genres = List.from(data["genres"]?.cast<String>() ?? []),
-      itemPercentageCoverage = data["itemPercentageCoverage"] ?? 0,
-      distanceKm = data["distanceKm"] ?? 0,
+      itemPercentageCoverage = (data["itemPercentageCoverage"] is num)
+          ? (data["itemPercentageCoverage"] as num).toDouble()
+          : 0.0,
+      distanceKm = (data["distanceKm"] is num) ? (data["distanceKm"] as num).toInt() : 0,
       paymentPrice = Price.fromJSON(data["paymentPrice"] ?? {}),
       coverPrice = Price.fromJSON(data["coverPrice"] ?? {}),
       type =
@@ -225,7 +227,7 @@ class Event {
       url = data["url"],
       isOutdoor = data["isOutdoor"] ?? false,
       isTest = data["isTest"] ?? false,
-      guestsLimit = data["guestsLimit"] ?? 0,
+      guestsLimit = (data["guestsLimit"] is num) ? (data["guestsLimit"] as num).toInt() : 0,
       ticketsSold = (data["ticketsSold"] is num) ? (data["ticketsSold"] as num).toInt() : 0,
       isEdited = data["isEdited"] ?? false,
       slug = data["slug"] ?? "",

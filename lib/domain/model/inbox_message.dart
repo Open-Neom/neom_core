@@ -9,6 +9,11 @@ class InboxMessage {
 
   String text;
   int createdTime;
+
+  /// Local arrival of an incoming message envelope (ms), if observed.
+  /// File completion and outgoing acknowledgments have their own deliveredTime.
+  int receivedTime;
+  int get timelineTime => receivedTime > 0 ? receivedTime : createdTime;
   int seenTime;
 
   AppMediaType type;
@@ -35,7 +40,7 @@ class InboxMessage {
   /// `{ 'question': String, 'options': [String], 'votes': { '0': [profileIds] }, 'allowMultiple': bool }`.
   Map<String, dynamic>? pollData;
 
-  /// Track the transmission medium over which this message was received ('ble', 'wifi', 'swarm', 'data')
+  /// Transport on which the last link delivered this message, when known.
   String receivedMedia;
 
   // ── Open Neom Standard Rich Messaging Extensions ────────────────────────
@@ -81,10 +86,10 @@ class InboxMessage {
   /// Profile IDs who starred/highlighted this message (`⭐`).
   List<String> starredByProfileIds;
 
-  /// Mesh hop count (`0` for cloud, `>= 1` for BLE/Wi-Fi/Río Colmena relays).
+  /// Reported mesh path length. Zero means unobserved or inapplicable.
   int hopCount;
 
-  /// Approximate proximity distance in meters when received on a nearby channel.
+  /// Approximate distance from the sender, when attributable to this message.
   double? distanceMeters;
 
   InboxMessage({
@@ -94,6 +99,7 @@ class InboxMessage {
     this.profileImgUrl = "",
     this.text = "",
     this.createdTime = 0,
+    this.receivedTime = 0,
     this.seenTime = 0,
     this.type = AppMediaType.text,
     this.mediaUrl = "",
@@ -156,6 +162,7 @@ class InboxMessage {
       'profileImgUrl': profileImgUrl,
       'text': text,
       'createdTime': createdTime,
+      if (receivedTime > 0) 'receivedTime': receivedTime,
       'seenTime': seenTime,
       'type': type.name,
       'mediaUrl': mediaUrl,
@@ -200,6 +207,7 @@ class InboxMessage {
         profileImgUrl = data["profileImgUrl"] ?? "",
         text = data["text"] ?? "",
         createdTime = data["createdTime"] ?? 0,
+        receivedTime = data["receivedTime"] ?? 0,
         seenTime = data["seenTime"] ?? 0,
         type = data["type"] != null
             ? (EnumToString.fromString(AppMediaType.values, data["type"]) ??

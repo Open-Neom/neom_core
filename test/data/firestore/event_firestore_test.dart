@@ -468,5 +468,69 @@ void main() {
         expect(snapshot.docs.length, 30);
       });
     });
+
+    group('past events & numeric coercion regression', () {
+      test(
+        'getEvents parses int itemPercentageCoverage and is not poisoned by limited retrieveEvents',
+        () async {
+          authenticate();
+          final nowMs = DateTime.now().millisecondsSinceEpoch;
+          await eventsRef.doc('upcoming_web_int').set({
+            'name': 'Próximo Evento',
+            'slug': 'proximo-evento',
+            'ownerId': 'profile_1',
+            'public': true,
+            'isTest': false,
+            'status': 'scheduled',
+            'createdTime': nowMs,
+            'eventDate': nowMs + 86400000,
+            // Web SDK writes 0 as integerValue; Dart VM must coerce to double.
+            'itemPercentageCoverage': 0,
+          });
+          await eventsRef.doc('past_event_1').set({
+            'name': 'Evento Pasado 1',
+            'slug': 'evento-pasado-1',
+            'ownerId': 'profile_1',
+            'public': true,
+            'isTest': false,
+            'status': 'scheduled',
+            'createdTime': nowMs - 100000,
+            'eventDate': nowMs - 86400000 * 30,
+            'itemPercentageCoverage': 0,
+          });
+          await eventsRef.doc('past_event_2').set({
+            'name': 'Evento Pasado 2',
+            'slug': 'evento-pasado-2',
+            'ownerId': 'profile_1',
+            'public': true,
+            'isTest': false,
+            'status': 'scheduled',
+            'createdTime': nowMs - 200000,
+            'eventDate': nowMs - 86400000 * 60,
+            'itemPercentageCoverage': 0.5,
+          });
+
+          final repository = EventFirestore(firestore: fakeFirestore);
+
+          // Simulate TimelineController warming only a limited slice first.
+          final limited = await repository.retrieveEvents(limit: 1);
+          expect(limited.length, 1);
+          expect(limited.first.id, 'upcoming_web_int');
+          expect(limited.first.itemPercentageCoverage, 0.0);
+
+          // Opening Eventos calls getEvents() without forceRefresh; it must
+          // fetch the complete set including past events instead of returning
+          // the partial cache from the limited timeline query.
+          final allEvents = await repository.getEvents();
+          expect(allEvents.keys, containsAll([
+            'upcoming_web_int',
+            'past_event_1',
+            'past_event_2',
+          ]));
+          expect(allEvents['past_event_1']!.itemPercentageCoverage, 0.0);
+          expect(allEvents['past_event_2']!.itemPercentageCoverage, 0.5);
+        },
+      );
+    });
   });
 }

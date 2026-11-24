@@ -8,7 +8,6 @@ import '../../domain/model/event.dart';
 import '../../domain/model/instrument_fulfillment.dart';
 import '../../domain/model/ticket.dart';
 import '../../domain/repository/event_repository.dart';
-import '../../utils/constants/core_constants.dart';
 import '../../utils/enums/event_action.dart';
 import '../../utils/neom_error_logger.dart';
 import '../api/app_platform_api.dart';
@@ -33,8 +32,10 @@ class EventFirestore implements EventRepository {
 
   static final Map<String, Event> _cachedEvents = {};
   static DateTime? _lastEventsFetchTime;
+  static bool _fullEventsCacheReady = false;
   static Future<Map<String, Event>>? _getEventsInFlight;
   static const Duration _cacheTtl = Duration(minutes: 5);
+  static const int _eventsListLimit = 60;
 
   /// Events are an authenticated-only surface on Firestore. On Gigmeout's
   /// autonomous platform API, public event reads are served with `private: false`
@@ -44,6 +45,7 @@ class EventFirestore implements EventRepository {
   static void invalidateCache() {
     _cachedEvents.clear();
     _lastEventsFetchTime = null;
+    _fullEventsCacheReady = false;
   }
 
   Map<String, dynamic> _asMap(dynamic res) {
@@ -178,7 +180,9 @@ class EventFirestore implements EventRepository {
         _cachedEvents.isNotEmpty &&
         _lastEventsFetchTime != null &&
         DateTime.now().difference(_lastEventsFetchTime!) < _cacheTtl;
-    final cacheCovers = limit == null || cachedEvents.length >= limit;
+    final cacheCovers =
+        (limit == null && _fullEventsCacheReady) ||
+        (limit != null && cachedEvents.length >= limit);
 
     if (!forceRefresh && cacheIsFresh && cacheCovers) {
       AppConfig.logger.d(
@@ -200,6 +204,7 @@ class EventFirestore implements EventRepository {
           _cachedEvents[ev.id] = ev;
         }
         _lastEventsFetchTime = DateTime.now();
+        _fullEventsCacheReady = true;
         return limit == null ? list : list.take(limit).toList();
       } catch (e, st) {
         NeomErrorLogger.recordError(
@@ -229,12 +234,22 @@ class EventFirestore implements EventRepository {
         for (var postSnapshot in querySnapshot.docs) {
           final data = postSnapshot.data();
           if (data == null) continue;
-          Event event = Event.fromJSON(data as Map<String, dynamic>);
-          event.id = postSnapshot.id;
-          events.add(event);
-          _cachedEvents[event.id] = event;
+          try {
+            Event event = Event.fromJSON(data as Map<String, dynamic>);
+            event.id = postSnapshot.id;
+            events.add(event);
+            _cachedEvents[event.id] = event;
+          } catch (e, st) {
+            NeomErrorLogger.recordError(
+              e,
+              st,
+              module: 'neom_core',
+              operation: 'EventFirestore.retrieveEvents.parse:${postSnapshot.id}',
+            );
+          }
         }
         _lastEventsFetchTime = DateTime.now();
+        if (limit == null) _fullEventsCacheReady = true;
         AppConfig.logger.d("${events.length} events found");
         return events;
       }
@@ -498,6 +513,7 @@ class EventFirestore implements EventRepository {
   Future<Map<String, Event>> getEvents({bool forceRefresh = false}) async {
     if (!AppPlatformApi.isEnabled && !_hasAuthenticatedUser) return {};
     if (!forceRefresh &&
+        _fullEventsCacheReady &&
         _cachedEvents.isNotEmpty &&
         _lastEventsFetchTime != null &&
         DateTime.now().difference(_lastEventsFetchTime!) < _cacheTtl) {
@@ -548,6 +564,7 @@ class EventFirestore implements EventRepository {
           _cachedEvents[ev.id] = ev;
         }
         _lastEventsFetchTime = DateTime.now();
+        _fullEventsCacheReady = true;
       } catch (e, st) {
         NeomErrorLogger.recordError(
           e,
@@ -565,20 +582,30 @@ class EventFirestore implements EventRepository {
     try {
       QuerySnapshot snapshot = await _eventsReference
           .orderBy(AppFirestoreConstants.createdTime, descending: true)
-          .limit(CoreConstants.eventsLimit)
+          .limit(_eventsListLimit)
           .get();
       if (!_hasAuthenticatedUser) return {};
 
       for (var documentSnapshot in snapshot.docs) {
         final data = documentSnapshot.data();
         if (data == null) continue;
-        Event event = Event.fromJSON(data as Map<String, dynamic>);
-        event.id = documentSnapshot.id;
-        events[event.id] = event;
-        _cachedEvents[event.id] = event;
+        try {
+          Event event = Event.fromJSON(data as Map<String, dynamic>);
+          event.id = documentSnapshot.id;
+          events[event.id] = event;
+          _cachedEvents[event.id] = event;
+        } catch (e, st) {
+          NeomErrorLogger.recordError(
+            e,
+            st,
+            module: 'neom_core',
+            operation: 'EventFirestore.getEvents.parse:${documentSnapshot.id}',
+          );
+        }
       }
 
       _lastEventsFetchTime = DateTime.now();
+      _fullEventsCacheReady = true;
       AppConfig.logger.d("${events.length} Events Found");
     } catch (e, st) {
       NeomErrorLogger.recordError(
