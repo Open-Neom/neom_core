@@ -14,6 +14,19 @@ void main() {
     expect(UploadMetadataResolver.resolveBytesExtension(signature, MediaType.video), '.mp4');
     expect(UploadMetadataResolver.resolveBytesExtension([], MediaType.audio), '.mp3');
   });
+
+  test('binary audio sniffs WAV, FLAC, OGG, and M4A containers accurately', () {
+    final wavHeader = [0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x41, 0x56, 0x45];
+    final flacHeader = [0x66, 0x4C, 0x61, 0x43, 0, 0, 0, 0, 0, 0, 0, 0];
+    final oggHeader = [0x4F, 0x67, 0x67, 0x53, 0, 0, 0, 0, 0, 0, 0, 0];
+    final m4aHeader = [0, 0, 0, 0x20, 0x66, 0x74, 0x79, 0x70, 0x4D, 0x34, 0x41, 0x20];
+
+    expect(UploadMetadataResolver.resolveBytesExtension(wavHeader, MediaType.audio), '.wav');
+    expect(UploadMetadataResolver.contentTypeForExtension('.wav'), 'audio/wav');
+    expect(UploadMetadataResolver.resolveBytesExtension(flacHeader, MediaType.audio), '.flac');
+    expect(UploadMetadataResolver.resolveBytesExtension(oggHeader, MediaType.audio), '.ogg');
+    expect(UploadMetadataResolver.resolveBytesExtension(m4aHeader, MediaType.audio), '.m4a');
+  });
   group('UploadMetadataResolver.defaultExtensionFor', () {
     test('keeps the historical per-type defaults', () {
       expect(UploadMetadataResolver.defaultExtensionFor(MediaType.image), '.jpg');
