@@ -34,6 +34,8 @@ class SubscriptionController extends SintController implements SubscriptionServi
   AppProfile profile = AppProfile();
 
   final RxBool _isLoading = true.obs;
+  final RxInt _plansVersion = 0.obs;
+  Future<void>? _initializing;
   final Rx<String> _selectedPlanName = ''.obs;
   final Rx<String> _selectedPlanImgUrl = ''.obs;
   final Rx<Price> _selectedPrice = Price().obs;
@@ -56,8 +58,19 @@ class SubscriptionController extends SintController implements SubscriptionServi
   }
 
   @override
-  Future<void> initializeSubscriptions() async {
+  Future<void> initializeSubscriptions() {
+    final inFlight = _initializing;
+    if (inFlight != null) return inFlight;
+    final run = _runInitializeSubscriptions().whenComplete(() {
+      _initializing = null;
+    });
+    _initializing = run;
+    return run;
+  }
+
+  Future<void> _runInitializeSubscriptions() async {
     AppConfig.logger.t("Initializing Subscriptions");
+    _isLoading.value = true;
     if (AppPlatformApi.isEnabled) {
       try {
         final plans = await AppPlatformApi.client('subscriptions').read<List<SubscriptionPlan>>(
@@ -75,7 +88,9 @@ class SubscriptionController extends SintController implements SubscriptionServi
           fallback: () => <SubscriptionPlan>[],
         );
         if (plans.isNotEmpty) {
-          _subscriptionPlans = {for (final p in plans.where((p) => p.isActive)) p.id: p};
+          _subscriptionPlans = _sortPlans({
+            for (final p in plans.where((p) => p.isActive)) p.id: p,
+          });
         } else {
           final fallbackPrice = AppProperties.getSubscriptionPrice().amount > 0
               ? AppProperties.getSubscriptionPrice().amount
@@ -90,6 +105,7 @@ class SubscriptionController extends SintController implements SubscriptionServi
           );
           _subscriptionPlans = {defaultPlan.id: defaultPlan};
         }
+        _plansVersion.value++;
         setProfileTypePlans();
         await setActiveSubscriptions();
       } catch (e, st) {
@@ -100,55 +116,120 @@ class SubscriptionController extends SintController implements SubscriptionServi
       return;
     }
 
-    _subscriptionPlans = await SubscriptionPlanFirestore().getAll();
-    if(_subscriptionPlans.isNotEmpty) {
-      // Filter by environment: debug=test plans only, release=live plans only.
-      // Role does NOT affect which environment is used — admins in debug
-      // should still see test plans to avoid hitting the live Stripe API.
-      final isLiveMode = !kDebugMode;
-      _subscriptionPlans.removeWhere((_, plan) => plan.isLive != isLiveMode || !plan.isActive);
+    try {
+      final fetched = await SubscriptionPlanFirestore().getAll();
+      final resolved = <String, SubscriptionPlan>{};
 
-      final keysToRemove = <String>[];
+      if (fetched.isNotEmpty) {
+        // Filter by environment: debug=test plans only, release=live plans only.
+        // Role does NOT affect which environment is used — admins in debug
+        // should still see test plans to avoid hitting the live Stripe API.
+        final isLiveMode = !kDebugMode;
+        final eligible = Map<String, SubscriptionPlan>.fromEntries(
+          fetched.entries.where(
+            (e) => e.value.isLive == isLiveMode && e.value.isActive,
+          ),
+        );
 
-      for(final entry in _subscriptionPlans.entries) {
-        final plan = entry.value;
-        StripePrice? stripePrice = await Sint.find<StripeApiService>().getPrice(plan.priceId);
-        if(stripePrice != null && stripePrice.active) {
-          plan.price = Price.fromStripe(stripePrice);
-        } else {
-          // Price could not be fetched or is archived in Stripe — omit from checkout.
-          AppConfig.logger.w('Plan "${entry.key}" skipped: priceId ${plan.priceId} unavailable or inactive in current Stripe environment');
-          keysToRemove.add(entry.key);
-          continue;
-        }
+        final stripeApi = Sint.isRegistered<StripeApiService>()
+            ? Sint.find<StripeApiService>()
+            : null;
+        final isGuest = AppConfig.instance.isGuestMode;
 
-        // Optional yearly price
-        if (plan.priceIdYearly.isNotEmpty) {
-          try {
-            final yearlyStripe = await Sint.find<StripeApiService>().getPrice(plan.priceIdYearly);
-            if (yearlyStripe != null) {
-              plan.priceYearly = Price.fromStripe(yearlyStripe);
+        final entries = await Future.wait(
+          eligible.entries.map((entry) async {
+            final plan = entry.value;
+            StripePrice? stripePrice;
+            if (stripeApi != null && plan.priceId.isNotEmpty) {
+              try {
+                stripePrice = await stripeApi.getPrice(plan.priceId);
+              } catch (e) {
+                AppConfig.logger.w(
+                  'Stripe price fetch failed for plan "${entry.key}": $e',
+                );
+              }
             }
-          } catch (e) {
-            AppConfig.logger.w('Yearly price not available for plan "${entry.key}": $e');
+
+            if (stripePrice != null) {
+              if (!stripePrice.active) {
+                AppConfig.logger.w(
+                  'Plan "${entry.key}" skipped: priceId ${plan.priceId} is inactive in Stripe',
+                );
+                return null;
+              }
+              plan.price = Price.fromStripe(stripePrice);
+            } else if (isGuest &&
+                plan.price != null &&
+                plan.price!.amount > 0) {
+              // Guests browsing "Choose your plan" cannot call authenticated
+              // stripeProxy; display Firestore-synced price read-only (checkout
+              // still requires sign-in and server-side live Stripe verification).
+              AppConfig.logger.d(
+                'Plan "${entry.key}" using Firestore-synced price for guest display',
+              );
+            } else {
+              AppConfig.logger.w(
+                'Plan "${entry.key}" skipped: priceId ${plan.priceId} unavailable or inactive in current Stripe environment',
+              );
+              return null;
+            }
+
+            // Optional yearly price
+            if (stripeApi != null && plan.priceIdYearly.isNotEmpty) {
+              try {
+                final yearlyStripe = await stripeApi.getPrice(plan.priceIdYearly);
+                if (yearlyStripe != null && yearlyStripe.active) {
+                  plan.priceYearly = Price.fromStripe(yearlyStripe);
+                }
+              } catch (e) {
+                AppConfig.logger.w(
+                  'Yearly price not available for plan "${entry.key}": $e',
+                );
+              }
+            }
+
+            return MapEntry(entry.key, plan);
+          }),
+        );
+
+        for (final entry in entries) {
+          if (entry != null) {
+            resolved[entry.key] = entry.value;
           }
         }
       }
 
-      for (final key in keysToRemove) {
-        _subscriptionPlans.remove(key);
-      }
-
+      _subscriptionPlans = _sortPlans(resolved);
       // Enrich founder plans with remaining seats from Firestore counters
       await _loadFounderCounters();
+      _plansVersion.value++;
+      setProfileTypePlans();
 
-      if(_subscriptionPlans.isNotEmpty) {
-        setProfileTypePlans();
-      }
+      await setActiveSubscriptions();
+    } catch (e, st) {
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_core',
+        operation: 'initializeSubscriptions',
+      );
+    } finally {
+      _isLoading.value = false;
     }
+  }
 
-    await setActiveSubscriptions();
-    _isLoading.value = false;
+  static Map<String, SubscriptionPlan> _sortPlans(
+    Map<String, SubscriptionPlan> source,
+  ) {
+    final sorted = source.entries.toList()
+      ..sort((a, b) {
+        final levelCmp =
+            (a.value.level?.value ?? 0).compareTo(b.value.level?.value ?? 0);
+        if (levelCmp != 0) return levelCmp;
+        return (a.value.price?.amount ?? 0)
+            .compareTo(b.value.price?.amount ?? 0);
+      });
+    return Map<String, SubscriptionPlan>.fromEntries(sorted);
   }
 
   @override
@@ -157,34 +238,41 @@ class SubscriptionController extends SintController implements SubscriptionServi
   }
 
   @override
-  void setProfileTypePlans() {
-    AppConfig.logger.d("Setting Profile Type Plans for: ${_profileType.value.name}");
-    _profilePlans.clear();
-    _profilePlans.addAll(_subscriptionPlans);
+  Map<String, SubscriptionPlan> plansForProfileType(ProfileType type) {
+    // Subscribe reactive observers (Obx) to plan refreshes.
+    _plansVersion.value;
+    final filtered = Map<String, SubscriptionPlan>.from(_subscriptionPlans);
     if (AppConfig.instance.appInUse != AppInUse.g) {
-      switch(_profileType.value) {
+      switch (type) {
         case ProfileType.general:
-          _profilePlans.removeWhere((s, p) =>
-          (p.level?.value ?? 0) > SubscriptionLevel.family.value);
+          filtered.removeWhere((s, p) =>
+              (p.level?.value ?? 0) > SubscriptionLevel.family.value);
         case ProfileType.appArtist:
-          _profilePlans.removeWhere((s, p) =>
-          (p.level?.value ?? 0) < SubscriptionLevel.creator.value);
+          filtered.removeWhere((s, p) =>
+              (p.level?.value ?? 0) < SubscriptionLevel.creator.value);
         case ProfileType.facilitator:
         case ProfileType.host:
-          _profilePlans.removeWhere((s, p) {
+          filtered.removeWhere((s, p) {
             final lv = p.level?.value ?? 0;
-            return lv != SubscriptionLevel.basic.value
-                && lv != SubscriptionLevel.professional.value
-                && lv != SubscriptionLevel.premium.value;
+            return lv != SubscriptionLevel.basic.value &&
+                lv != SubscriptionLevel.professional.value &&
+                lv != SubscriptionLevel.premium.value;
           });
-        // case ProfileType.researcher:
         case ProfileType.collective:
-        _profilePlans.removeWhere((s, p) =>
-        (p.level?.value ?? 0) < SubscriptionLevel.professional.value);
+          filtered.removeWhere((s, p) =>
+              (p.level?.value ?? 0) < SubscriptionLevel.professional.value);
         default:
           break;
       }
     }
+    return _sortPlans(filtered);
+  }
+
+  @override
+  void setProfileTypePlans() {
+    AppConfig.logger.d("Setting Profile Type Plans for: ${_profileType.value.name}");
+    _profilePlans.clear();
+    _profilePlans.addAll(plansForProfileType(_profileType.value));
 
     if (_profilePlans.isEmpty) {
       AppConfig.logger.w('No plans available for profile type: $profileType');

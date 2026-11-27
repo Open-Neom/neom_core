@@ -47,6 +47,16 @@ class AppConfig {
   bool isGuestMode = true;
   bool isAdminMode = false;
 
+  /// True ONLY when the active host application is **Admineom** (`AppInUse.a`).
+  ///
+  /// Admineom binds [appInUse] to the managed tenant's brand (e.g. `AppInUse.e`
+  /// on `admin.emxi.org`) so theme colors, ERP context, and copy match the
+  /// managed product. Shared modules inspect [isAdminConsoleHost] to decide
+  /// whether admin actions navigate locally (inside Admineom) or launch
+  /// Admineom via cross-subdomain SSO (from consumer apps like EMXI, Gigmeout,
+  /// or Cyberneom).
+  bool isAdminConsoleHost = false;
+
   /// Whether the current client may persist user-attributed activity.
   ///
   /// Guest mode is intentionally read-only. Requiring a loaded user as well

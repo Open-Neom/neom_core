@@ -34,4 +34,14 @@ abstract class AudioHandlerService {
   /// without pausing `just_audio` while WebRTC voice is active in a room).
   Future<void> setVoiceCoexistenceMode(bool active, {double duckVolume = 0.35}) async {}
 
+  /// Registers a callback invoked right before this handler begins audio
+  /// playback so competing local audio surfaces (such as Read-Aloud book
+  /// narration) can pause themselves and prevent simultaneous audio.
+  void registerPlaybackStartedListener(
+    String owner,
+    Future<void> Function() onPlaybackStarted,
+  ) {}
+
+  void unregisterPlaybackStartedListener(String owner) {}
+
 }

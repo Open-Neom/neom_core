@@ -171,6 +171,9 @@ class UserController extends SintController implements UserService, AccountLoadL
     invalidateAccountLoad();
     AppConfig.logger.d("Clearing User");
     user = AppUser();
+    _userSubscription = null;
+    _subscriptionLevel = SubscriptionLevel.freemium;
+    _isSubscriptionSuspended = false;
   }
 
 
@@ -404,15 +407,28 @@ class UserController extends SintController implements UserService, AccountLoadL
             reason: AccountLoadFailure.missingProfile,
           );
         }
+        final switchedAccount = user.id.isNotEmpty && user.id != loaded.id;
         user = loaded;
         profile = loaded.profiles.first;
         AppConfig.instance.isAdminMode =
             loaded.userRole.value >= UserRole.admin.value;
+        if (switchedAccount) {
+          _userSubscription = null;
+          _isSubscriptionSuspended = false;
+          _subscriptionLevel = SubscriptionLevel.freemium;
+        }
+        if (loaded.userRole.value > UserRole.subscriber.value &&
+            _subscriptionLevel == SubscriptionLevel.freemium) {
+          _subscriptionLevel = SubscriptionLevel.ambassador;
+        }
       } else {
         // Only a successful, current server read can confirm account absence.
         // Do not call clear(): it would invalidate this same completed attempt.
         user = AppUser();
         profile = AppProfile();
+        _userSubscription = null;
+        _subscriptionLevel = SubscriptionLevel.freemium;
+        _isSubscriptionSuspended = false;
         AppConfig.instance.isAdminMode = false;
         _isNewUser = true;
       }
@@ -705,6 +721,9 @@ class UserController extends SintController implements UserService, AccountLoadL
           AppConfig.logger.w('User subscriptionId ${user.subscriptionId} is out of free month',
           );
           user.subscriptionId = "";
+          _subscriptionLevel = user.userRole.value > UserRole.subscriber.value
+              ? SubscriptionLevel.ambassador
+              : SubscriptionLevel.freemium;
         }
       } else if(user.userRole.value > UserRole.subscriber.value){
         AppConfig.logger.d('No user subscription found');

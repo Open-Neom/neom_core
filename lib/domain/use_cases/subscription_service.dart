@@ -33,6 +33,10 @@ abstract class SubscriptionService {
   ProfileType get profileType;
   Map<String, SubscriptionPlan> get profilePlans;
 
+  /// Returns active plans applicable to [type] without mutating [profileType].
+  Map<String, SubscriptionPlan> plansForProfileType(ProfileType type) =>
+      profilePlans;
+
   Map<SubscriptionLevel,List<UserSubscription>> get activeSubscriptions;
 
 }

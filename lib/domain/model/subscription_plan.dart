@@ -80,6 +80,16 @@ class SubscriptionPlan {
     return 'SubscriptionPlan{id: $id, name: $name, imgUrl: $imgUrl, href: $href, productId: $productId, priceId: $priceId, level: $level, isActive: $isActive, isLive: $isLive, price: $price, discount: $discount, lastUpdated: $lastUpdated}';
   }
 
+  static SubscriptionLevel _parseLevel(dynamic rawLevel) {
+    final normalized = rawLevel?.toString().trim() ?? '';
+    if (normalized == 'publish') return SubscriptionLevel.platinum;
+    return EnumToString.fromString(
+          SubscriptionLevel.values,
+          normalized.isEmpty ? SubscriptionLevel.basic.name : normalized,
+        ) ??
+        SubscriptionLevel.basic;
+  }
+
   SubscriptionPlan.fromJSON(dynamic data)
       : id = data['id'] ?? '',
         name = data['name'] ?? '',
@@ -88,7 +98,7 @@ class SubscriptionPlan {
         productId = data['productId'] ?? '',
         priceId = data['priceId'] ?? '',
         priceIdYearly = data['priceIdYearly'] ?? '',
-        level = EnumToString.fromString(SubscriptionLevel.values, data['level'] ?? SubscriptionLevel.basic.name) ?? SubscriptionLevel.basic,
+        level = _parseLevel(data['level']),
         price = data['price'] != null ? Price.fromJSON(data['price']) : null,
         priceYearly = data['priceYearly'] != null ? Price.fromJSON(data['priceYearly']) : null,
         isActive = data['isActive'] ?? true,

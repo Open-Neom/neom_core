@@ -21,4 +21,23 @@ abstract class AudioPlayerInvokerService {
   Future<void> pause();
   Future<void> stop();
 
+  /// True when the shared audio player is currently playing or loading an
+  /// audiobook/track. Never lazily initializes the audio handler.
+  bool get isAudioPlaying => false;
+
+  /// Pauses active/loading audio playback without spinning up the audio
+  /// handler if it has never been initialized.
+  Future<void> pauseIfPlaying() async {
+    if (isAudioPlaying) await pause();
+  }
+
+  /// Registers a callback invoked whenever audio playback begins, even if the
+  /// underlying audio handler is initialized lazily at a later time.
+  void registerPlaybackStartedListener(
+    String owner,
+    Future<void> Function() onPlaybackStarted,
+  ) {}
+
+  void unregisterPlaybackStartedListener(String owner) {}
+
 }
