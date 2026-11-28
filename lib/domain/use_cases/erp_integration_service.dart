@@ -73,13 +73,15 @@ abstract class ErpIntegrationService {
   Future<bool> recordPosSale({
     required String nodeId,
     required List<Map<String, dynamic>> lineItems,
-    required String paymentMethod, // efectivo | tarjeta | tarjeta_mp | emxiCoin | mixto
+    required String paymentMethod, // efectivo | tarjeta | tarjeta_mp | transferencia | otro | emxiCoin | mixto
     String buyerName,
     String buyerEmail,
     String cashierId,
     String sessionId,
     double discountPercent,
-    String cardAuthCode, // card-terminal folio/authorization (e.g. MercadoPago)
+    double discountAmount,
+    String cardAuthCode, // card-terminal / SPEI folio or authorization
+    String notes,
   });
 
   /// Submits a POS refund / void for approval (sensitive: money out + restock).
@@ -122,6 +124,12 @@ abstract class ErpIntegrationService {
     required String bookId,
     required String ownerEmail,
     String ownerId,
+  });
+
+  /// Updates the retail price of an existing inventory item from the Point of Sale.
+  Future<bool> updateProductPrice({
+    required String bookId,
+    required double price,
   });
 
   /// Registers a new product into the ERP inventory from the Point of Sale with
