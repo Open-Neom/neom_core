@@ -363,7 +363,11 @@ class AppReleaseItem implements PlayableItem {
       externalArtists = List.from(
         data["externalArtists"]?.cast<String>() ?? [],
       ),
-      featInternalArtists = data["featInternalArtists"] as Map<String, String>?,
+      featInternalArtists = data["featInternalArtists"] is Map
+          ? (data["featInternalArtists"] as Map).map(
+              (key, value) => MapEntry(key.toString(), value.toString()),
+            )
+          : null,
       likedProfiles = List.from(data["likedProfiles"]?.cast<String>() ?? []),
       sharedProfiles = List.from(data["sharedProfiles"]?.cast<String>() ?? []),
       commentIds = List.from(data["commentIds"]?.cast<String>() ?? []),

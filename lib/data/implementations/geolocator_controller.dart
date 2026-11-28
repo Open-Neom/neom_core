@@ -217,7 +217,7 @@ class GeoLocatorController implements GeoLocatorService {
     }
 
     AppConfig.logger.d("updateLocation method Exit");
-    return newPosition;
+    return newPosition ?? currentPosition;
   }
 
   final Set<String> areaSuggestions = {};
